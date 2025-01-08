@@ -1,0 +1,26 @@
+project_name: openscadgen
+
+builds:
+  - id: openscadgen
+    main: ./main.go
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+
+archives:
+  - id: default
+    format: tar.gz
+    files:
+      - README.md
+      - examples/**
+
+release:
+  github:
+    owner: kiwikid
+    name: openscadgen

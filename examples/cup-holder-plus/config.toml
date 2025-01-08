@@ -1,0 +1,35 @@
+# These lines configure, where the config file is, how openscad will be run and where the output will be saved
+[design]
+name = "car-holder-plus"
+description = "A parametric car cup holder"
+input_path = "./examples/cup-holder-plus/carHolderPlus.scad"
+output_path = "./examples/cup-holder-plus/export"
+version = "v1.2"
+custom_openscad_args = "--summary"
+
+
+# Each instance below will result in a separate .stl file being created with those parameters in the 'output_path' directory
+[[design.instances]]
+name = "late-90s-toyota-style-cup-holder"
+description = "The bottom cup holder is size for a late 90s Toyota cup holder (rav line)"
+[design.instances.params]
+in_car_cup_holder_height = 70
+in_car_cup_holder_top_diameter = 74
+in_car_cup_holder_bottom_diameter = 66.5
+in_car_cup_holder_center_offset = 0
+
+[[design.instances]]
+name = "Slightly larger cup holder"
+[design.instances.params]
+in_car_cup_holder_height = 70
+in_car_cup_holder_top_diameter = 80
+in_car_cup_holder_bottom_diameter = 70
+in_car_cup_holder_center_offset = 0
+
+[[design.instances]]
+name = "Slightly larger and longer cup holder"
+[design.instances.params]
+in_car_cup_holder_height = 80
+in_car_cup_holder_top_diameter = 80
+in_car_cup_holder_bottom_diameter = 70
+in_car_cup_holder_center_offset = 0

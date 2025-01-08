@@ -1,0 +1,331 @@
+# These lines configure, where the config file is, how openscad will be run and where the output will be saved
+[design]
+# name of the design, will be used in the name of output files
+name = "screw-mounted-clip"
+# description of the design, will be used in the README.md file
+description = "A parametric screw mounted clip"
+# path to the openscad file that will be used to generate the design
+input_path = "./examples/screw-mounted-clip/parametricCommandStripBroomHook.scad"
+# path to the directory where the export (.stl files, README.md) will be saved
+output_path = "./examples/screw-mounted-clip/export/"
+# version of the design, will be used in the README.md file
+version = "v1.4"
+# Each instance below will result in a separate .stl file being created with those parameters in the 'output_path' directory
+
+
+# Specific models
+
+[[design.instances]]
+name = "clip-for-large-ended-hex-tool"
+description = "A clip sized for a hex tool with a large piece"
+[design.instances.params]
+handle_diameter = 7
+handle_offset = 15
+
+## 30mm wide
+
+[[design.instances]]
+name = "clip-30mm-tall-30mm-wide"
+[design.instances.params]
+handle_diameter = 30
+handle_offset = 30
+
+[[design.instances]]
+name = "clip-25mm-tall-30mm-wide"
+[design.instances.params]
+handle_diameter = 30
+handle_offset = 25
+
+[[design.instances]]
+name = "clip-20mm-tall-30mm-wide"
+[design.instances.params]
+handle_diameter = 30
+handle_offset = 20
+
+[[design.instances]]
+name = "clip-15mm-tall-30mm-wide"
+[design.instances.params]
+handle_diameter = 30
+handle_offset = 15
+
+[[design.instances]]
+name = "clip-10mm-tall-30mm-wide"
+[design.instances.params]
+handle_diameter = 30
+handle_offset = 10
+
+[[design.instances]]
+name = "clip-5mm-tall-30mm-wide"
+[design.instances.params]
+handle_diameter = 30
+handle_offset = 5
+
+## 20mm wide
+
+[[design.instances]]
+name = "clip-30mm-tall-20mm-wide"
+[design.instances.params]
+handle_diameter = 20
+handle_offset = 30
+
+[[design.instances]]
+name = "clip-25mm-tall-20mm-wide"
+[design.instances.params]
+handle_diameter = 20
+handle_offset = 25
+
+[[design.instances]]
+name = "clip-20mm-tall-20mm-wide"
+[design.instances.params]
+handle_diameter = 20
+handle_offset = 20
+
+[[design.instances]]
+name = "clip-15mm-tall-20mm-wide"
+[design.instances.params]
+handle_diameter = 20
+handle_offset = 15
+
+[[design.instances]]
+name = "clip-10mm-tall-20mm-wide"
+[design.instances.params]
+handle_diameter = 20
+handle_offset = 10
+
+[[design.instances]]
+name = "clip-5mm-tall-20mm-wide"
+[design.instances.params]
+handle_diameter = 20
+handle_offset = 5
+
+## 15mm wide
+
+[[design.instances]]
+name = "clip-30mm-tall-15mm-wide"
+[design.instances.params]
+handle_diameter = 15
+handle_offset = 30
+
+## 15mm wide
+
+[[design.instances]]
+name = "clip-30mm-tall-15mm-wide"
+[design.instances.params]
+handle_diameter = 15
+handle_offset = 30
+
+[[design.instances]]
+name = "clip-25mm-tall-15mm-wide"
+[design.instances.params]
+handle_diameter = 15
+handle_offset = 25
+
+[[design.instances]]
+name = "clip-20mm-tall-15mm-wide"
+[design.instances.params]
+handle_diameter = 15
+handle_offset = 20
+
+[[design.instances]]
+name = "clip-15mm-tall-15mm-wide"
+[design.instances.params]
+handle_diameter = 15
+handle_offset = 15
+
+[[design.instances]]
+name = "clip-10mm-tall-15mm-wide"
+[design.instances.params]
+handle_diameter = 15
+handle_offset = 10
+
+[[design.instances]]
+name = "clip-5mm-tall-15mm-wide"
+[design.instances.params]
+handle_diameter = 15
+handle_offset = 5
+
+## 10mm wide
+
+[[design.instances]]
+name = "clip-30mm-tall-10mm-wide"
+[design.instances.params]
+handle_diameter = 10
+handle_offset = 30
+
+[[design.instances]]
+name = "clip-25mm-tall-10mm-wide"
+[design.instances.params]
+handle_diameter = 10
+handle_offset = 25
+
+[[design.instances]]
+name = "clip-20mm-tall-10mm-wide"
+[design.instances.params]
+handle_diameter = 10
+handle_offset = 20
+
+[[design.instances]]
+name = "clip-15mm-tall-10mm-wide"
+[design.instances.params]
+handle_diameter = 10
+handle_offset = 15
+
+[[design.instances]]
+name = "clip-10mm-tall-10mm-wide"
+[design.instances.params]
+handle_diameter = 10
+handle_offset = 10
+
+[[design.instances]]
+name = "clip-5mm-tall-10mm-wide"
+[design.instances.params]
+handle_diameter = 8
+handle_offset = 5
+
+[[design.instances]]
+name = "clip-30mm-tall-8mm-wide"
+[design.instances.params]
+handle_diameter = 8
+handle_offset = 30
+
+[[design.instances]]
+name = "clip-25mm-tall-8mm-wide"
+[design.instances.params]
+handle_diameter = 8
+handle_offset = 25
+
+[[design.instances]]
+name = "clip-20mm-tall-8mm-wide"
+[design.instances.params]
+handle_diameter = 8
+handle_offset = 20
+
+[[design.instances]]
+name = "clip-15mm-tall-8mm-wide"
+[design.instances.params]
+handle_diameter = 8
+handle_offset = 15
+
+[[design.instances]]
+name = "clip-10mm-tall-8mm-wide"
+[design.instances.params]
+handle_diameter = 8
+handle_offset = 10
+
+[[design.instances]]
+name = "clip-5mm-tall-8mm-wide"
+[design.instances.params]
+handle_diameter = 6
+handle_offset = 5
+
+## 7mm wide
+
+[[design.instances]]
+name = "clip-30mm-tall-7mm-wide"
+[design.instances.params]
+handle_diameter = 7
+handle_offset = 30
+
+[[design.instances]]
+name = "clip-25mm-tall-7mm-wide"
+[design.instances.params]
+handle_diameter = 7
+handle_offset = 25
+
+[[design.instances]]
+name = "clip-20mm-tall-7mm-wide"
+[design.instances.params]
+handle_diameter = 7
+handle_offset = 20
+
+[[design.instances]]
+name = "clip-15mm-tall-7mm-wide"
+[design.instances.params]
+handle_diameter = 7
+handle_offset = 15
+
+[[design.instances]]
+name = "clip-10mm-tall-7mm-wide"
+[design.instances.params]
+handle_diameter = 7
+handle_offset = 10
+
+[[design.instances]]
+name = "clip-5mm-tall-7mm-wide"
+[design.instances.params]
+handle_diameter = 7
+handle_offset = 5
+
+## 6mm wide
+[[design.instances]]
+name = "clip-30mm-tall-6mm-wide"
+[design.instances.params]
+handle_diameter = 6
+handle_offset = 30
+
+[[design.instances]]
+name = "clip-25mm-tall-6mm-wide"
+[design.instances.params]
+handle_diameter = 6
+handle_offset = 25
+
+[[design.instances]]
+name = "clip-20mm-tall-6mm-wide"
+[design.instances.params]
+handle_diameter = 6
+handle_offset = 20
+
+[[design.instances]]
+name = "clip-15mm-tall-6mm-wide"
+[design.instances.params]
+handle_diameter = 6
+handle_offset = 15
+
+[[design.instances]]
+name = "clip-10mm-tall-6mm-wide"
+[design.instances.params]
+handle_diameter = 6
+handle_offset = 10
+
+[[design.instances]]
+name = "clip-5mm-tall-6mm-wide"
+[design.instances.params]
+handle_diameter = 6
+handle_offset = 5
+
+[[design.instances]]
+name = "clip-30mm-tall-5mm-wide"
+[design.instances.params]
+handle_diameter = 5
+handle_offset = 30
+
+[[design.instances]]
+name = "clip-25mm-tall-5mm-wide"
+[design.instances.params]
+handle_diameter = 5
+handle_offset = 25
+
+[[design.instances]]
+name = "clip-20mm-tall-5mm-wide"
+[design.instances.params]
+handle_diameter = 5
+handle_offset = 20
+
+[[design.instances]]
+name = "clip-15mm-tall-5mm-wide"
+[design.instances.params]
+handle_diameter = 5
+handle_offset = 15
+
+[[design.instances]]
+name = "clip-10mm-tall-5mm-wide"
+[design.instances.params]
+handle_diameter = 5
+handle_offset = 10
+
+[[design.instances]]
+name = "clip-5mm-tall-5mm-wide"
+[design.instances.params]
+handle_diameter = 5
+handle_offset = 5
+   
