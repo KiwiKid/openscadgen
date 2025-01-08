@@ -46,6 +46,19 @@ An [example config file](./examples/screw-mounted-clip/config.yml) is provided f
 
 
 
+# Development
+```
+# build
+go build .
+
+# run
+./openscadgen -c ./examples/screw-mounted-clip/config.yml
+
+# release 
+git tag "v[VERSION_NUMBER_HERE]-alpha" && git commit -m "bump version" && git push --tags
+```
+
+
 ## TODO/Project Ideas
 - [ ] Add ability to configure ranges of parameters (i.e. handle_diameter: 5 to 10)
 - [ ] (maybe) make stl builds parallel to speed up processing time 

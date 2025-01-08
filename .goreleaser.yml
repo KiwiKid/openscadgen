@@ -1,21 +1,23 @@
+# Update the version to 2
+version: 2
+
 project_name: openscadgen
 
 builds:
-  - id: openscadgen
-    main: ./main.go
+  - main: ./main.go
     goos:
-      - linux
-      - darwin
-      - windows
+        - linux
+        - darwin
+        - windows
     goarch:
       - amd64
       - arm64
     ldflags:
-      - -s -w
+        - -s -w
 
 archives:
-  - id: default
-    format: tar.gz
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     files:
       - README.md
       - examples/**
