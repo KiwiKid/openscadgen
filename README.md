@@ -6,9 +6,7 @@ The goal of the tool is to ease the management and production of large numbers o
 
 Seeing some frustrations in the community with the lack of 'remixabilty' when providing open source models, the openscad code does make remixes easier, but we can't expect everyone to be comfortable with (especially other peoples!) openscad code. This tools aims to make it easier to create a 'base' model, a list of useful instances of that model and then generate a set of stl files based on the 'base' model.
 
-
-
-openscadgen uses the original .scad file and a specified config file set to generate a set of stl files based on configured 'instances'
+Additionally, through 'version' string defined in the config file, we control the subfolder the export is made into, allowing for easy management of old versions.
 
 The config file format is:
 ```yaml
