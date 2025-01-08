@@ -1,10 +1,12 @@
 openscadgen is IN-DEVELOPMENT a tool for generating a set of .stl files from a single .scad file and a simple config file.
 
-(early days, please let me know if you encounter any issues)
-
 The goal of the tool is to ease the management and production of large numbers of stl files when working with one openSCAD file.
 
-Seeing some frustrations in the community with the lack of 'remixabilty' when providing open source models, the openscad code does make remixes easier, but we can't expect everyone to be comfortable with (especially other peoples!) openscad code. This tools aims to make it easier to create a 'base' model, a list of useful instances of that model and then generate a set of stl files based on the 'base' model.
+(early days and still in active development, please let me know if you encounter any issues)
+
+# Why?
+
+Seeing some frustrations in the community with the lack of 'remixabilty' when providing open source models, the openscad code does make remixes easier, but we can't expect everyone to be comfortable with (especially other peoples!) openscad code. This tools aims to make it easier to create a 'base' model, a list of useful instances of that model and then generate a set of stl files based on the 'base' model. A good analogy might be the difference between providing the source code and providing a set of pre-compiled binaries. The source code can be used to install the software, but the pre-compiled software for each platform will be more accessible to a wider audience.
 
 Additionally, through 'version' string defined in the config file, we control the subfolder the export is made into, allowing for easy management of old versions.
 
