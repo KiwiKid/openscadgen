@@ -12,26 +12,39 @@ Additionally, through 'version' string defined in the config file, we control th
 
 The config file format is [toml](https://toml.io/en/)
 ```yaml
-design:
-  name: "screw-mounted-clip"
-  description: "A parametric screw mounted clip"
-  input_path: "./examples/screw-mounted-clip/parametricCommandStripBroomHook.scad"
-  output_path: "./examples/screw-mounted-clip/export"
-  version: v1.2
-  instances:
-    - name: "clip-for-hex-tool"
-      description: "A clip sized for a hex tool with a large piece"
-      params:
-        handle_diameter: 5
-        handle_offset: 10
-    - name: "clip-short-and-strong"
-      params:
-        handle_diameter: 4
-        handle_offset: 20
-    - name: "clip-large"
-      params:
-        handle_diameter: 10
-        handle_offset: 30
+# These lines configure, where the config file is, how openscad will be run and where the output will be saved
+[openscadgen]
+# name of the design, will be used in the name of output files
+name = "screw-mounted-clip"
+# description of the design, will be used in the README.md file
+description = "A parametric screw mounted clip"
+# path to the openscad file that will be used to generate the design
+input_path = "./examples/screw-mounted-clip/parametricCommandStripBroomHook.scad"
+# path to the directory where the export (.stl files, README.md) will be saved
+output_path = "./examples/screw-mounted-clip/export/"
+# version of the design, the export will be saved in a subfolder with this version number
+version = "v1.6"
+
+
+# Dynamic Instances
+
+# Each configuration below will result in a SET of separate .stl file being created with those parameters in the 'output_path' directory
+
+[[openscadgen.dynamic_instances]]
+# The 'name' field is a template string that will be used to generate the instance name (note the {param_name} syntax for value replacement)
+name = "clip-{handle_diameter}mm-wide-{handle_offset}mm-tall"
+# the params field configures which instances get created, this configures 50 
+params = { handle_diameter = "5,7,8,10,15,20,25,30", handle_offset = "5,10,15,20,25,30" }
+
+
+# Specific models
+# Each instance below will result in a separate .stl file being created with those parameters in the 'output_path' directory
+[[openscadgen.instances]]
+name = "clip-for-large-ended-hex-tool"
+description = "A clip sized for a hex tool with a large piece"
+[openscadgen.instances.params]
+handle_diameter = 7
+handle_offset = 15
 
 ```
 
@@ -92,6 +105,7 @@ git push && git push --tags
 
 
 ## TODO/Project Ideas
+- [ ] Directory generation (i.e. dynamically find and generate all the instance configs in a directory)
 - [ ] (maybe) Add ability to generate instances via annotations in the scad file (i.e. remove need for config file). Something like:
 ```
 // openscadgen: handle_offset: 10, 15, 25

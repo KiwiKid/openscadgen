@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"flag"
 	"fmt"
@@ -42,22 +43,114 @@ type InstanceConfig struct {
 	Name        string                 `toml:"name"`
 	Description string                 `toml:"description,omitempty"`
 	Params      map[string]interface{} `toml:"params"`
+	isDynamic   bool
+}
+
+type DynamicInstanceConfig struct {
+	Name        string            `toml:"name"`
+	Description string            `toml:"description,omitempty"`
+	Params      map[string]string `toml:"params"`
+}
+
+func generateDynamicInstances(dynamicInstanceConfig []DynamicInstanceConfig) []InstanceConfig {
+	instances := []InstanceConfig{}
+	// for each key in params, split the value by comma, parse the value (1,2,3 or 1-5, or 1,2,5-10) into a range of specific values and then generate all combinations of those values
+	for _, dynamicInstance := range dynamicInstanceConfig {
+		paramCombinations := map[string][]int{}
+
+		for key, value := range dynamicInstance.Params {
+			values := strings.Split(value, ",")
+			var intValues []int
+
+			for _, val := range values {
+				if strings.Contains(val, "-") {
+					// parse the value (1-5) into a range of specific values
+					rangeValues := strings.Split(val, "-")
+					start, err := strconv.Atoi(rangeValues[0])
+					if err != nil {
+						log.Printf(colorRed+"Failed to parse start value for dynamic instance %s", dynamicInstance.Name)
+						continue
+					}
+					end, err := strconv.Atoi(rangeValues[1])
+					if err != nil {
+						log.Printf(colorRed+"Failed to parse end value for dynamic instance %s", dynamicInstance.Name)
+						continue
+					}
+					for i := start; i <= end; i++ {
+						intValues = append(intValues, i)
+					}
+				} else {
+					num, err := strconv.Atoi(val)
+					if err != nil {
+						log.Printf(colorRed+"Failed to parse value for dynamic instance %s", dynamicInstance.Name)
+						continue
+					}
+					intValues = append(intValues, num)
+				}
+			}
+			paramCombinations[key] = intValues
+		}
+
+		// Generate all combinations of parameter values
+		keys := make([]string, 0, len(paramCombinations))
+		for k := range paramCombinations {
+			keys = append(keys, k)
+		}
+
+		var generateCombinations func(map[string]int, int)
+		generateCombinations = func(current map[string]int, index int) {
+			if index == len(keys) {
+				// Replace {param_name} in the name with actual values
+				instanceName := dynamicInstance.Name
+				for k, v := range current {
+					placeholder := fmt.Sprintf("{%s}", k)
+					instanceName = strings.ReplaceAll(instanceName, placeholder, strconv.Itoa(v))
+				}
+
+				instances = append(instances, InstanceConfig{
+					Name:        instanceName,
+					isDynamic:   true,
+					Description: dynamicInstance.Description,
+					Params:      copyMap(current),
+				})
+				return
+			}
+
+			key := keys[index]
+			for _, value := range paramCombinations[key] {
+				current[key] = value
+				generateCombinations(current, index+1)
+			}
+		}
+
+		generateCombinations(make(map[string]int), 0)
+	}
+	return instances
+}
+
+func copyMap(original map[string]int) map[string]interface{} {
+	copy := make(map[string]interface{})
+	for k, v := range original {
+		copy[k] = v
+	}
+	return copy
 }
 
 type DesignConfig struct {
-	Name               string           `toml:"name"`
-	Description        string           `toml:"description"`
-	InputPath          string           `toml:"input_path" validate:"required"`
-	OutputPath         string           `toml:"output_path" validate:"required"`
-	Version            string           `toml:"version"`
-	CustomOpenSCADArgs string           `toml:"custom_openscad_args"`
-	Instances          []InstanceConfig `toml:"instances" validate:"required"`
+	Name                  string                  `toml:"name"`
+	Description           string                  `toml:"description"`
+	InputPath             string                  `toml:"input_path" validate:"required"`
+	OutputPath            string                  `toml:"output_path" validate:"required"`
+	Version               string                  `toml:"version"`
+	CustomOpenSCADArgs    string                  `toml:"custom_openscad_args"`
+	Instances             []InstanceConfig        `toml:"instances" validate:"required"`
+	DynamicInstanceConfig []DynamicInstanceConfig `toml:"dynamic_instances"`
 }
 
 // Config holds the overall configuration structure
 type Config struct {
-	Design                DesignConfig `toml:"design"`
-	ConfigFile            string       `flag:"c"`
+	Design                DesignConfig `toml:"openscadgen"`
+	ConfigFile            string       `flag:"c,config"`
 	Quiet                 bool         `flag:"q"`
 	Verbose               bool         `flag:"v"`
 	RegexPattern          string       `flag:"f"`
@@ -67,11 +160,13 @@ type Config struct {
 	NoReadmeGeneration    bool         `flag:"nr"`
 	SkipReadme            bool         `flag:"skip-readme"`
 	CustomOpenSCADCommand string       `flag:"cmd"`
+	ForceExportOverwrite  bool         `flag:"nc,nocheck"`
 }
 
 // ANSI escape codes for colored output
 const (
 	colorReset  = "\033[0m"
+	colorOrange = "\033[38;5;208m"
 	colorRed    = "\033[31m"
 	colorGreen  = "\033[32m"
 	colorYellow = "\033[33m"
@@ -106,12 +201,15 @@ func logKeyValuePair(key string, value string) {
 	log.Printf(colorYellow+"%s: "+colorWhite+"\t\t%s"+colorReset, key, value)
 }
 
+func logWarn(message string) {
+	log.Printf(colorOrange+"%s"+colorReset, message)
+}
+
 func logStage(stage string) {
 	log.Printf(colorBlue+"%s"+colorReset, stage)
 }
 
-func generateSTL(instance InstanceConfig, config *Config) (string, error) {
-	outputFileName := instance.Name
+func getOrMakeExportFolder(config *Config) (string, error) {
 	designFileName := strings.Split(config.Design.InputPath, "/")[len(strings.Split(config.Design.InputPath, "/"))-1]
 
 	outputPath := config.Design.OutputPath
@@ -133,6 +231,32 @@ func generateSTL(instance InstanceConfig, config *Config) (string, error) {
 
 	exportFolderPath = path.Join(exportFolderPath, config.Design.Version)
 
+	if !config.ForceExportOverwrite {
+		// Check if exportFolderPath has any files or directories
+		if files, err := os.ReadDir(exportFolderPath); err == nil && len(files) > 0 {
+			// Prompt the user for confirmation
+			logKeyValuePair("Export Folder", exportFolderPath)
+			fmt.Printf("The export folder has %d existing files. Do you want to continue? (y/n): (-nc will skip this check)", len(files))
+
+			reader := bufio.NewReader(os.Stdin)
+			response, _ := reader.ReadString('\n')
+			if response != "y\n" && response != "Y\n" {
+				fmt.Println("Aborting operation.")
+				return "", nil
+			}
+		}
+	}
+
+	return exportFolderPath, nil
+}
+
+func generateSTL(instance InstanceConfig, config *Config, exportFolderPath string) (string, error) {
+
+	if config.Verbose {
+		logKeyValuePair("exportFolderPath", exportFolderPath)
+	}
+
+	outputPath := path.Join(exportFolderPath, instance.Name)
 	if !config.Quiet && config.Verbose {
 		logKeyValuePair("outputPath", outputPath)
 		logKeyValuePair("exportFolderPath", exportFolderPath)
@@ -157,7 +281,7 @@ func generateSTL(instance InstanceConfig, config *Config) (string, error) {
 	// copy design file to export folder
 	designFilePath := config.Design.InputPath
 
-	designFileCopyPath := path.Join(exportFolderPath, designFileName)
+	designFileCopyPath := path.Join(exportFolderPath, instance.Name)
 
 	fileExists, err := os.Stat(designFilePath)
 
@@ -181,6 +305,8 @@ func generateSTL(instance InstanceConfig, config *Config) (string, error) {
 		}
 	}
 
+	outputFileName := instance.Name
+	designFileName := strings.Split(config.Design.InputPath, "/")[len(strings.Split(config.Design.InputPath, "/"))-1]
 	if outputFileName == "" {
 		outputFileName = designFileName
 		for name, value := range instance.Params {
@@ -283,17 +409,17 @@ func loadConfig(configFile string, flags CmdFlags) (*Config, error) {
 func printUsage() {
 	log.Println("Usage of openscadgen:")
 	log.Println("  -config, -c string")
-	log.Println("        Path to config file")
+	log.Println("        Path to config file\n")
 	log.Println("  -h, -help, -man")
-	log.Println("        Display this help message")
+	log.Println("        Display this help message\n")
 	log.Println("  -regex, -r string")
-	log.Println("        Regex pattern to filter instances by name")
+	log.Println("        Regex pattern to filter instances by name\n")
 	log.Println("  -n, -max-instances int")
-	log.Println("        Maximum number of instances to process")
+	log.Println("        Maximum number of instances to process\n")
 	log.Println("  -q, -quiet")
-	log.Println("        Quiet mode, no output")
+	log.Println("        Quiet mode, no output\n")
 	log.Println("  -v, -verbose")
-	log.Println("        Verbose mode, more debug output")
+	log.Println("        Verbose mode, more debug output\n")
 
 	// Add more usage information as needed
 }
@@ -357,8 +483,31 @@ func getOutputPath(config Config) string {
 
 const OPENSCAD_VERSION_WARN_IF_OLDER_THAN = 2024
 
+func saveReleaseFile(filePath string, data []byte) error {
+	// Check if the file exists and is not empty
+	fileInfo, err := os.Stat(filePath)
+	if err == nil && fileInfo.Size() > 0 {
+		// File is not empty, prompt the user for confirmation
+		fmt.Printf("The file %s is not empty. Do you want to overwrite it? (y/n): ", filePath)
+		reader := bufio.NewReader(os.Stdin)
+		response, _ := reader.ReadString('\n')
+		if response != "y\n" && response != "Y\n" {
+			fmt.Println("Aborting save operation.")
+			return nil
+		}
+	}
+
+	// Proceed with saving the file
+	err = os.WriteFile(filePath, data, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to save file: %w", err)
+	}
+	fmt.Println("File saved successfully.")
+	return nil
+}
+
 func main() {
-	VERSION := "v0.9.9-alpha"
+	VERSION := "v1.0.0-ALPHA"
 
 	startTime := time.Now()
 
@@ -404,6 +553,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	if cmdFlags.Verbose && cmdFlags.Quiet {
+		log.Print("**whispers**WHAT DO YOU WANT FROM ME? Being quiet and verbose is better suited for when writing passive aggressive post-it notes **whispers**")
+	}
+
 	// New message indicating config file location and number of instances
 	if !cmdFlags.Quiet {
 
@@ -438,16 +591,18 @@ func main() {
 		log.Printf(colorRed+"Failed to get openscad version: %s"+colorReset, err)
 	} else if len(openscadVersion) == 0 {
 		log.Printf(colorRed + "Openscad version output is empty. Please check if OpenSCAD is installed and accessible." + colorReset)
-	} else {
+	} else if !cmdFlags.Quiet {
 		logKeyValuePair("Openscad version found", openscadVersion)
 		if openscadVersionNumber < OPENSCAD_VERSION_WARN_IF_OLDER_THAN {
-			log.Printf(colorRed+"Openscad version is older than the latest available (%d), consider updating to the latest version of openscad as has more features and improved rendering time"+colorReset, OPENSCAD_VERSION_WARN_IF_OLDER_THAN)
+			log.Printf(colorRed+"Openscad version is older than the latest available (%d), consider updating to the latest version of openscad as it has more features and improved rendering time"+colorReset, OPENSCAD_VERSION_WARN_IF_OLDER_THAN)
 		}
 	}
 
-	logStage("Loading config file")
-	if cmdFlags.Verbose {
-		logKeyValuePair("Config file", cmdFlags.ConfigFile)
+	if !cmdFlags.Quiet {
+		logStage("Loading config file")
+		if cmdFlags.Verbose {
+			logKeyValuePair("Config file", cmdFlags.ConfigFile)
+		}
 	}
 	config, err := loadConfig(cmdFlags.ConfigFile, cmdFlags)
 	if err != nil {
@@ -460,11 +615,22 @@ func main() {
 	}
 
 	design := config.Design
+	dynamicInstances := generateDynamicInstances(config.Design.DynamicInstanceConfig)
 
 	if !config.Quiet {
-		log.Printf(colorBlue+"Config provided %d possible instances to generate from scad file at: "+colorReset+"%s", len(design.Instances), design.InputPath)
+
+		log.Printf(colorBlue+"Config provided %d possible instances \n"+colorYellow+"(%d specific, %d dynamic)"+colorBlue+"to generate from scad file '%s'"+colorReset, len(design.Instances)+len(dynamicInstances), len(design.Instances), len(dynamicInstances), design.Name)
+		logKeyValuePair("Input File", design.InputPath)
+		logKeyValuePair("Design Name", design.Name)
+		logKeyValuePair("Design Version", design.Version)
+		if config.MaxInstances > 0 {
+			logWarn(fmt.Sprintf("Max Limit of %d instances", config.MaxInstances))
+		}
+		if config.RegexPattern != "" {
+			logWarn(fmt.Sprintf("Filter to: %s", config.RegexPattern))
+		}
 		if config.Verbose {
-			logKeyValuePair("Input File", design.InputPath)
+			logKeyValuePair("Input Flags", fmt.Sprintf("%+v", cmdFlags))
 			logKeyValuePair("Config File", cmdFlags.ConfigFile)
 			logKeyValuePair("Export Location", design.OutputPath)
 		}
@@ -482,12 +648,58 @@ func main() {
 	if !config.Quiet {
 		logStage("Starting STL generation")
 		if config.RegexPattern != "" {
-			logKeyValuePair("Filter: Only generating file matching pattern", config.RegexPattern)
+			logWarn(fmt.Sprintf("Filter: Only generating file matching pattern %s", config.RegexPattern))
 		}
+		if config.MaxInstances > 0 {
+			logWarn(fmt.Sprintf("Limit: Only generating first %d instances", config.MaxInstances))
+		}
+		logStage(fmt.Sprintf("Starting Dynamic %d Instances", len(dynamicInstances)))
 	}
+
+	exportFolderPath, err := getOrMakeExportFolder(config)
+	if err != nil {
+		log.Printf(colorRed+"Failed to get or make export folder: %s", err)
+		os.Exit(1)
+	}
+
 	// Generate STL files for each instance
 	processedCount := 0
 	skippedCount := 0
+	for _, instance := range dynamicInstances {
+
+		if regex != nil && !regex.MatchString(instance.Name) {
+			if !config.Quiet && config.Verbose {
+				log.Printf(colorYellow+"Skipping instance %s as it does not match the regex pattern", instance.Name)
+			}
+			skippedCount++
+			continue
+		}
+
+		if !config.Quiet {
+			logKeyValuePair("Generating dynamic instance", instance.Name)
+			if config.Verbose {
+				logKeyValuePair("Params", fmt.Sprintf("%+v", instance.Params))
+			}
+		}
+
+		if config.MaxInstances > 0 && processedCount >= config.MaxInstances {
+			log.Printf(colorBlue + "Max instances processed, stopping")
+			break
+		} else if config.Verbose {
+			logKeyValuePair("Processed", fmt.Sprintf("%d/%d", processedCount, len(dynamicInstances)))
+		}
+		exportSTLPath, err := generateSTL(instance, config, exportFolderPath)
+
+		if err != nil {
+			fmt.Fprintf(os.Stderr, colorRed+"Error generating STL for instance %s: %v\n"+colorReset, instance.Name, err)
+		} else if !config.Quiet {
+			logKeyValuePair("Outputting to", exportSTLPath)
+			processedCount++
+		}
+
+	}
+
+	logStage("Starting Specific Instances")
 	for _, instance := range design.Instances {
 
 		name := instance.Name
@@ -520,7 +732,7 @@ func main() {
 			logStage(fmt.Sprintf("========== %s ==========", prefix))
 		}
 
-		exportSTLPath, err := generateSTL(instance, config)
+		exportSTLPath, err := generateSTL(instance, config, exportFolderPath)
 
 		if err != nil {
 			fmt.Fprintf(os.Stderr, colorRed+"Error generating STL for instance %s: %v\n"+colorReset, instance.Name, err)
@@ -528,7 +740,6 @@ func main() {
 			log.Printf(colorGreen+"%s was successful\n"+colorReset, prefix)
 			logKeyValuePair("Outputting to", exportSTLPath)
 			processedCount++
-
 		}
 
 		if config.MaxInstances > 0 && processedCount >= config.MaxInstances {
