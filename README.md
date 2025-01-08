@@ -8,7 +8,7 @@ Seeing some frustrations in the community with the lack of 'remixabilty' when pr
 
 Additionally, through 'version' string defined in the config file, we control the subfolder the export is made into, allowing for easy management of old versions.
 
-The config file format is:
+The config file format is [toml](https://toml.io/en/)
 ```yaml
 design:
   name: "screw-mounted-clip"
