@@ -358,7 +358,7 @@ func getOutputPath(config Config) string {
 const OPENSCAD_VERSION_WARN_IF_OLDER_THAN = 2024
 
 func main() {
-	VERSION := "v0.6-alpha"
+	VERSION := "v0.7-alpha"
 
 	startTime := time.Now()
 
@@ -423,6 +423,10 @@ func main() {
 	cmd.Stdout = &out
 	cmd.Stderr = &out
 	err := cmd.Run()
+	if err != nil {
+		log.Printf(colorRed+"Failed to get openscad version: %s"+colorReset, err)
+	}
+
 	openscadVersion := strings.TrimSuffix(out.String(), "\n")
 	openscadVersionNumberStr := strings.Replace(openscadVersion, "OpenSCAD version ", "", 1)
 	openscadVersionNumber, err := strconv.ParseFloat(openscadVersionNumberStr, 64)
@@ -543,6 +547,6 @@ func main() {
 		}
 		msg += fmt.Sprintf(colorGreen+"STL generation completed. %d .stl instances generated in %s\n\n"+colorReset, processedCount, time.Since(startTime))
 
-		log.Printf(msg)
+		log.Print(msg)
 	}
 }
