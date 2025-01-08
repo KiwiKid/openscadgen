@@ -358,7 +358,7 @@ func getOutputPath(config Config) string {
 const OPENSCAD_VERSION_WARN_IF_OLDER_THAN = 2024
 
 func main() {
-	VERSION := "v0.9.5-alpha"
+	VERSION := "v0.9.7-alpha"
 
 	startTime := time.Now()
 
