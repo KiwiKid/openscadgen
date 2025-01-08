@@ -44,27 +44,70 @@ To run, use:
 
 An [example config file](./examples/screw-mounted-clip/config.yml) is provided for the excellent "[Command Strip Parametric Broom Handle Clip](https://www.printables.com/model/516117-parametric-broom-handle-holder-openscad-command-st/related)" by [Brian Khuu](https://briankhuu.com/). 
 
+# Installation
+
+Currently the program is only available via the [github release page](https://github.com/kiwikid/openscadgen/releases)
+
 
 
 # Development
-```
+```bash
 # build
 go build .
 
 # run
 ./openscadgen -c ./examples/screw-mounted-clip/config.yml
 
-# release 
-git tag "v[VERSION_NUMBER_HERE]-alpha" && git commit -m "bump version" && git push --tags
+# release   
+# bump version in main.go
+git commit -m "New and improved version"
+git tag "v[NEW_VERSION_HERE]-alpha"  
+git push && git push --tags
 ```
 
 
+
+## Troubleshooting
+
+
+Message:
+```
+./openscadgen -c examples/cup-holder-plus/config.toml
+exec: Failed to execute process: './openscadgen' the file could not be run by the operating system.
+```
+
+Solution:
+```
+Ensure you have downloaded the correct version of the tool from the releases page (i.e. darwin_arm64, linux_arm64, etc)
+```
+
+
+Message:
+```
+./openscadgen -c examples/cup-holder-plus/config.toml
+fish: Job 1, './openscadgen -c examples/cup-h…' terminated by signal SIGKILL (Forced quit)
+```
+
+Solution:
+```
+Ensure you have allowed openscadgen to run (in Privacy & Security settings)
+```
+
+
+
+
+
 ## TODO/Project Ideas
-- [ ] Add ability to configure ranges of parameters (i.e. handle_diameter: 5 to 10)
+- [ ] (maybe) Add ability to generate instances via annotations in the scad file (i.e. remove need for config file)
+```
+// openscadgen: handle_offset: 10, 15, 25
+handle_offset = 10
+```
+- [ ] Add ability to configure ranges of parameters in config file with auto-naming (i.e. handle_diameter: 5 to 10)
 - [ ] (maybe) make stl builds parallel to speed up processing time 
 - [ ] Warn when replacing existing stl export files
 - [ ] Add clean-up option for old versions
 - [ ] Add config file generation quickstart command (to create a config file from a scad file)
 - [ ] (maybe) Add a watch mode to automatically re-run the tool when the scad file is changed
 
-If you have any ideas/bugs/etc, please let me know and i'll try and fix them where possible. I do want to keep the goals of the project simple and specific as i believe it will result in the best tool for the job. s
+If you have any ideas/bugs/etc, please let me know and i'll try and fix them where possible. I do want to keep the goals of the project simple and specific as i believe it will result in the best tool for the job.
