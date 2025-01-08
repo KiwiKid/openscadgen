@@ -51,6 +51,25 @@ An [example config file](./examples/screw-mounted-clip/config.yml) is provided f
 Currently the program is only available via the [github release page](https://github.com/kiwikid/openscadgen/releases)
 
 
+## Troubleshooting
+
+
+Message:
+```
+./openscadgen -c examples/cup-holder-plus/config.toml
+exec: Failed to execute process: './openscadgen' the file could not be run by the operating system.
+```
+Ensure you have downloaded the correct version of the tool from the releases page (i.e. darwin_arm64, linux_arm64, etc)
+
+Message:
+```
+./openscadgen -c examples/cup-holder-plus/config.toml
+fish: Job 1, './openscadgen -c examples/cup-h…' terminated by signal SIGKILL (Forced quit)
+```
+Ensure you have allowed openscadgen to run (in Privacy & Security settings)
+
+
+
 
 # Development
 ```bash
@@ -69,38 +88,11 @@ git push && git push --tags
 
 
 
-## Troubleshooting
-
-
-Message:
-```
-./openscadgen -c examples/cup-holder-plus/config.toml
-exec: Failed to execute process: './openscadgen' the file could not be run by the operating system.
-```
-
-Solution:
-```
-Ensure you have downloaded the correct version of the tool from the releases page (i.e. darwin_arm64, linux_arm64, etc)
-```
-
-
-Message:
-```
-./openscadgen -c examples/cup-holder-plus/config.toml
-fish: Job 1, './openscadgen -c examples/cup-h…' terminated by signal SIGKILL (Forced quit)
-```
-
-Solution:
-```
-Ensure you have allowed openscadgen to run (in Privacy & Security settings)
-```
-
-
 
 
 
 ## TODO/Project Ideas
-- [ ] (maybe) Add ability to generate instances via annotations in the scad file (i.e. remove need for config file)
+- [ ] (maybe) Add ability to generate instances via annotations in the scad file (i.e. remove need for config file). Something like:
 ```
 // openscadgen: handle_offset: 10, 15, 25
 handle_offset = 10
