@@ -20,11 +20,6 @@ jobs:
         with:
           go-version: stable
 
-      - name: Install GoReleaser
-        uses: goreleaser/goreleaser-action@v6
-        with:
-          version: latest
-
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
