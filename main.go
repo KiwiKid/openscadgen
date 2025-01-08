@@ -507,7 +507,7 @@ func saveReleaseFile(filePath string, data []byte) error {
 }
 
 func main() {
-	VERSION := "v1.0.3-ALPHA"
+	VERSION := "v1.0.4-ALPHA"
 
 	startTime := time.Now()
 
