@@ -210,6 +210,9 @@ func logStage(stage string) {
 }
 
 func getOrMakeExportFolder(config *Config) (string, error) {
+	if config.Verbose {
+		logStage("Getting or making export folder")
+	}
 	designFileName := strings.Split(config.Design.InputPath, "/")[len(strings.Split(config.Design.InputPath, "/"))-1]
 
 	outputPath := config.Design.OutputPath
@@ -229,7 +232,7 @@ func getOrMakeExportFolder(config *Config) (string, error) {
 		config.Design.Version = "v0.1"
 	}
 
-	exportFolderPath = path.Join(exportFolderPath, config.Design.Version)
+	fullExportFolderPath := path.Join(exportFolderPath, config.Design.Version)
 
 	if !config.ForceExportOverwrite {
 		// Check if exportFolderPath has any files or directories
@@ -245,9 +248,17 @@ func getOrMakeExportFolder(config *Config) (string, error) {
 				return "", nil
 			}
 		}
+	} else if config.Verbose {
+		logKeyValuePair("ForceExportOverwrite set, skipping check", fullExportFolderPath)
 	}
 
-	return exportFolderPath, nil
+	if config.Verbose {
+		logStage("Creating export folder")
+		logKeyValuePair("Export folder", fullExportFolderPath)
+	}
+	os.MkdirAll(fullExportFolderPath, 0755)
+
+	return fullExportFolderPath, nil
 }
 
 func generateSTL(instance InstanceConfig, config *Config, exportFolderPath string) (string, error) {
