@@ -738,7 +738,7 @@ func findOpenSCAD() string {
 
 func main() {
 	// Set the PATH environment variable
-	VERSION := "v1.1.0-ALPHA"
+	VERSION := "v1.1.2-ALPHA"
 
 	startTime := time.Now()
 
