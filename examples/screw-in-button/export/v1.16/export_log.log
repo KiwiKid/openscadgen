@@ -1,0 +1,304 @@
+LOG: 2025/01/11 11:23:35 main.go:272: [34mStarting Dynamic 36 Instances[0m
+LOG: 2025/01/11 11:23:35 main.go:272: [34m
+Dynamic Model - (0/36) - 'button-height-1/width-1_A' [0m
+LOG: 2025/01/11 11:23:35 main.go:268: [32mCreated design folder: examples/screw-in-button/export/v1.16/button-height-1[0m
+Geometries in cache: 11
+Geometry cache size in bytes: 3680416
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 6501776
+Total rendering time: 0:00:08.661
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     2922
+   Halfedges:   12374
+   Edges:        6187
+   Halffacets:   6538
+   Facets:       3269
+   Volumes:         2
+LOG: 2025/01/11 11:23:43 main.go:272: [34m
+Dynamic Model - (1/36) - 'button-height-1/width-2_B' [0m
+Geometries in cache: 11
+Geometry cache size in bytes: 3814144
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 8821008
+Total rendering time: 0:00:10.264
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     3990
+   Halfedges:   16778
+   Edges:        8389
+   Halffacets:   8808
+   Facets:       4404
+   Volumes:         2
+LOG: 2025/01/11 11:23:54 main.go:272: [34m
+Dynamic Model - (2/36) - 'button-height-1/width-3_C' [0m
+Geometries in cache: 11
+Geometry cache size in bytes: 3811088
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 10026448
+Total rendering time: 0:00:10.244
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     4376
+   Halfedges:   19136
+   Edges:        9568
+   Halffacets:  10390
+   Facets:       5195
+   Volumes:         2
+LOG: 2025/01/11 11:24:04 main.go:272: [34m
+Dynamic Model - (3/36) - 'button-height-1/width-4_D' [0m
+Geometries in cache: 11
+Geometry cache size in bytes: 3750416
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 10144976
+Total rendering time: 0:00:10.500
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     4272
+   Halfedges:   19424
+   Edges:        9712
+   Halffacets:  10888
+   Facets:       5444
+   Volumes:         2
+LOG: 2025/01/11 11:24:15 main.go:272: [34m
+Dynamic Model - (4/36) - 'button-height-1/width-5_E' [0m
+Geometries in cache: 11
+Geometry cache size in bytes: 3659088
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 10629328
+Total rendering time: 0:00:10.001
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     4216
+   Halfedges:   20456
+   Edges:       10228
+   Halffacets:  12030
+   Facets:       6015
+   Volumes:         2
+LOG: 2025/01/11 11:24:25 main.go:272: [34m
+Dynamic Model - (5/36) - 'button-height-1/width-6_F' [0m
+Geometries in cache: 11
+Geometry cache size in bytes: 3658288
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 11237200
+Total rendering time: 0:00:10.365
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     4412
+   Halfedges:   21644
+   Edges:       10822
+   Halffacets:  12826
+   Facets:       6413
+   Volumes:         2
+LOG: 2025/01/11 11:24:35 main.go:272: [34m
+Dynamic Model - (6/36) - 'button-height-3/width-1_G' [0m
+Geometries in cache: 11
+Geometry cache size in bytes: 3812688
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 10039504
+Total rendering time: 0:00:10.265
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     4384
+   Halfedges:   19160
+   Edges:        9580
+   Halffacets:  10398
+   Facets:       5199
+   Volumes:         2
+LOG: 2025/01/11 11:24:45 main.go:272: [34m
+Dynamic Model - (7/36) - 'button-height-3/width-2_H' [0m
+Geometries in cache: 11
+Geometry cache size in bytes: 3659088
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 9400528
+Total rendering time: 0:00:09.221
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     3816
+   Halfedges:   18056
+   Edges:        9028
+   Halffacets:  10430
+   Facets:       5215
+   Volumes:         2
+LOG: 2025/01/11 11:24:55 main.go:272: [34m
+Dynamic Model - (8/36) - 'button-height-3/width-3_I' [0m
+Geometries in cache: 11
+Geometry cache size in bytes: 3655888
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 10603216
+Total rendering time: 0:00:09.645
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     4200
+   Halfedges:   20408
+   Edges:       10204
+   Halffacets:  12014
+   Facets:       6007
+   Volumes:         2
+LOG: 2025/01/11 11:25:04 main.go:272: [34m
+Dynamic Model - (9/36) - 'button-height-3/width-4_J' [0m
+Geometries in cache: 11
+Geometry cache size in bytes: 3739888
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 11903056
+Total rendering time: 0:00:11.200
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     4820
+   Halfedges:   22868
+   Edges:       11434
+   Halffacets:  13234
+   Facets:       6617
+   Volumes:         2
+LOG: 2025/01/11 11:25:16 main.go:272: [34m
+Dynamic Model - (10/36) - 'button-height-3/width-5_K' [0m
+Geometries in cache: 11
+Geometry cache size in bytes: 3659088
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 11858128
+Total rendering time: 0:00:10.738
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     4616
+   Halfedges:   22856
+   Edges:       11428
+   Halffacets:  13630
+   Facets:       6815
+   Volumes:         2
+LOG: 2025/01/11 11:25:26 main.go:272: [34m
+Dynamic Model - (11/36) - 'button-height-3/width-6_L' [0m
+Geometries in cache: 11
+Geometry cache size in bytes: 3656688
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 12452944
+Total rendering time: 0:00:10.318
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     4804
+   Halfedges:   24020
+   Edges:       12010
+   Halffacets:  14418
+   Facets:       7209
+   Volumes:         2
+LOG: 2025/01/11 11:25:37 main.go:272: [34m
+Dynamic Model - (12/36) - 'button-height-5/width-1_M' [0m
+Geometries in cache: 11
+Geometry cache size in bytes: 3702688
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 10985104
+Total rendering time: 0:00:10.341
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     4434
+   Halfedges:   21110
+   Edges:       10555
+   Halffacets:  12248
+   Facets:       6124
+   Volumes:         2
+LOG: 2025/01/11 11:25:47 main.go:272: [34m
+Dynamic Model - (13/36) - 'button-height-5/width-2_N' [0m
+Geometries in cache: 11
+Geometry cache size in bytes: 3679088
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 11406928
+Total rendering time: 0:00:10.000
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     4516
+   Halfedges:   21956
+   Edges:       10978
+   Halffacets:  12930
+   Facets:       6465
+   Volumes:         2
+LOG: 2025/01/11 11:25:57 main.go:272: [34m
+Dynamic Model - (14/36) - 'button-height-5/width-3_O' [0m
+Geometries in cache: 11
+Geometry cache size in bytes: 3831216
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 13261904
+Total rendering time: 0:00:12.208
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     5476
+   Halfedges:   25436
+   Edges:       12718
+   Halffacets:  14492
+   Facets:       7246
+   Volumes:         2
+LOG: 2025/01/11 11:26:10 main.go:272: [34m
+Dynamic Model - (15/36) - 'button-height-5/width-4_P' [0m
+Geometries in cache: 11
+Geometry cache size in bytes: 3740816
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 13138640
+Total rendering time: 0:00:11.250
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     5224
+   Halfedges:   25280
+   Edges:       12640
+   Halffacets:  14840
+   Facets:       7420
+   Volumes:         2
+LOG: 2025/01/11 11:26:21 main.go:272: [34m
+Dynamic Model - (16/36) - 'button-height-5/width-5_Q' [0m
+Geometries in cache: 11
+Geometry cache size in bytes: 3883616
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 14918288
+Total rendering time: 0:00:12.823
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     6138
+   Halfedges:   28622
+   Edges:       14311
+   Halffacets:  16354
+   Facets:       8177
+   Volumes:         2
+LOG: 2025/01/11 11:26:34 main.go:272: [34m
+Dynamic Model - (17/36) - 'button-height-5/width-6_R' [0m
+Geometries in cache: 11
+Geometry cache size in bytes: 3731616
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 14906768
+Total rendering time: 0:00:12.160
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     5778
+   Halfedges:   28742
+   Edges:       14371
+   Halffacets:  17194
+   Facets:       8597
+   Volumes:         2
+LOG: 2025/01/11 11:26:46 main.go:272: [34m
+Dynamic Model - (18/36) - 'button-height-10/width-1_S' [0m
+Geometries in cache: 11
+Geometry cache size in bytes: 3956688
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 16744144
+Total rendering time: 0:00:13.763
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     6904
+   Halfedges:   32120
+   Edges:       16060
+   Halffacets:  18318
+   Facets:       9159
+   Volumes:         2
+LOG: 2025/01/11 11:27:00 main.go:272: [34m
+Dynamic Model - (19/36) - 'button-height-10/width-2_T' [0m
+Geometries in cache: 11
+Geometry cache size in bytes: 3657488
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 14917072
+Total rendering time: 0:00:11.155
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     5608
+   Halfedges:   28832
+   Edges:       14416
+   Halffacets:  17622
+   Facets:       8811
+   Volumes:         2
+LOG: 2025/01/11 11:27:11 main.go:272: [34m
+Dynamic Model - (20/36) - 'button-height-10/width-3_U' [0m
