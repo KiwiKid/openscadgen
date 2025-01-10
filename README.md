@@ -105,6 +105,7 @@ git push && git push --tags
 
 
 ## TODO/Project Ideas
+- [ ] Allow for concurrent openscad runs
 - [ ] Directory generation (i.e. dynamically find and generate all the instance configs in a directory)
 - [ ] (maybe) Add ability to generate instances via annotations in the scad file (i.e. remove need for config file). Something like:
 ```

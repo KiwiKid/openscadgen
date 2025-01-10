@@ -9,7 +9,7 @@ handle_offset = 30;
 
 /* [Mount Screw Spec] */
 handle_screw_enable = true;
-handle_screw_hole = 3; // M3 thread = 3mm
+handle_screw_hole = 5; // M3 thread = 3mm
 handle_screw_head = 5.6; // M3 head = 5.6mm
 screw_hole_tol = 0.15;
 screw_head_tol = 0.5;
