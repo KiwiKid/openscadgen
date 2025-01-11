@@ -14,6 +14,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -21,6 +22,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/go-playground/validator/v10"
+	"github.com/pkg/xattr"
 )
 
 // https://stackoverflow.com/questions/21060945/simple-way-to-copy-a-file
@@ -136,11 +138,15 @@ func generateDynamicInstances(dynamicInstanceConfig []DynamicInstanceConfig, exp
 		generateCombinations(make(map[string]interface{}), 0)
 	}
 
+	if config.Verbose {
+		logStage("Generating PartIDLetters")
+	}
 	for index, instance := range instances {
-		instances[index].PartIDLetter = getPartIDLetter(index)
-		instances[index].Name = fmt.Sprintf("%s_%s", instances[index].Name, instances[index].PartIDLetter)
+		letter := getPartIDLetter(index)
+		instances[index].PartIDLetter = letter
+		instances[index].Name = fmt.Sprintf("%s_%s", instances[index].Name, letter)
 		if config.Verbose {
-			logKeyValuePair(fmt.Sprintf("Generated PartIDLetter from index (%d)", index), instance.PartIDLetter)
+			logKeyValuePair(fmt.Sprintf("Generated PartIDLetter from index (%d) for instance %s", index, instance.Name), letter)
 		}
 	}
 	return instances
@@ -179,20 +185,22 @@ type DesignConfig struct {
 
 // Config holds the overall configuration structure
 type Config struct {
-	Design                DesignConfig `toml:"openscadgen"`
-	ConfigFile            string       `flag:"c,config"`
-	Quiet                 bool         `flag:"q"`
-	Verbose               bool         `flag:"v"`
-	RegexPattern          string       `flag:"f"`
-	MaxInstances          int          `flag:"n"`
-	Overwrite             bool         `flag:"r"`
-	SkipRender            bool         `flag:"sr"`
-	OverwriteExisting     bool         `flag:"ow"`
-	SkipReadme            bool         `flag:"skip-readme"`
-	CustomOpenSCADCommand string       `flag:"cmd"`
-	Concurrent            bool         `flag:"p"`
-	MaxConcurrentRequests int          `flag:"pn"`
-	IncludePartIDLetter   bool         `flag:"pid"`
+	Design                       DesignConfig `toml:"openscadgen"`
+	ConfigFile                   string       `flag:"c,config"`
+	Quiet                        bool         `flag:"q"`
+	Verbose                      bool         `flag:"v"`
+	RegexPattern                 string       `flag:"f"`
+	MaxInstances                 int          `flag:"n"`
+	Overwrite                    bool         `flag:"r"`
+	SkipRender                   bool         `flag:"sr"`
+	OverwriteExisting            bool         `flag:"ow"`
+	SkipReadme                   bool         `flag:"skip-readme"`
+	CustomOpenSCADCommand        string       `flag:"cmd"`
+	Concurrent                   bool         `flag:"p"`
+	MaxConcurrentRequests        int          `flag:"pn"`
+	IncludePartIDLetter          bool         `flag:"pid"`
+	OverrideFN                   int          `flag:"fn"`
+	SetBuildInfoInFileAttributes bool         `flag:"fi"`
 }
 
 var config Config
@@ -239,7 +247,7 @@ func initLogger(logFilePath string) error {
 		return err
 	}
 	multiWriter := io.MultiWriter(os.Stdout, logFile)
-	logger = log.New(multiWriter, "LOG: ", log.Ldate|log.Ltime|log.Lshortfile)
+	logger = log.New(multiWriter, "", log.Ldate|log.Ltime|log.Lshortfile)
 	return nil
 }
 
@@ -255,13 +263,25 @@ func logWarn(message string, critical bool) {
 	}
 }
 
-// Exclude symbols and use numbers after Z
+// Exclude symbols and use multiple letters if the number is greater than 26
 func getPartIDLetter(stlIndex int) string {
-	letter := string(rune(65 + stlIndex))
-	if letter >= "A" && letter <= "Z" {
-		return letter
+	if stlIndex < 26 {
+		letter := string(rune(65 + stlIndex))
+		if letter >= "A" && letter <= "Z" {
+			return letter
+		}
 	}
-	return fmt.Sprintf("%d", stlIndex)
+	// For numbers >= 26, use multiple letters (AA, AB, AC, etc.)
+	quotient := stlIndex / 26
+	remainder := stlIndex % 26
+
+	var result string
+	if quotient > 0 {
+		result += string(rune(64 + quotient)) // First letter
+	}
+	result += string(rune(65 + remainder)) // Second letter or only letter if < 26
+
+	return result
 }
 
 func logCreation(message string) {
@@ -297,6 +317,10 @@ func getOrMakeExportFolder(config *Config) (string, error) {
 
 	fullExportFolderPath := path.Join(exportFolderPath, config.Design.Version)
 
+	if config.IncludePartIDLetter {
+		fullExportFolderPath = path.Join(fullExportFolderPath, "has_part_letter")
+	}
+
 	// Check if exportFolderPath has any files or directories
 	if files, err := os.ReadDir(fullExportFolderPath); err == nil && len(files) > 0 {
 		filesStr := ""
@@ -309,10 +333,12 @@ func getOrMakeExportFolder(config *Config) (string, error) {
 			}
 		}
 		// Prompt the user for confirmation
-		logKeyValuePair("Export Folder", exportFolderPath)
+		logKeyValuePair("Export Folder", fullExportFolderPath)
 
-		logWarn(fmt.Sprintf("\nThe export folder (%s) has %d existing files: \n%s. \n\nDo you want to continue? (y/n): \n (the '-ow' flag will skip this check)", exportFolderPath, len(files), filesStr), false)
-
+		log.Printf(colorYellow + "(tip: if you want to keep the existing stl export files, cancel this run and update the 'version' in the config file, this will generate a new folder and keep the existing files)")
+		log.Printf(colorYellow + "(the '-ow' flag will skip this check)")
+		logWarn(fmt.Sprintf("\nThe export folder (%s) has %d existing files: \n%s\n\n"+colorRed+" %d files will be deleted from: \n\t%s\n", fullExportFolderPath, len(files), filesStr, len(files), fullExportFolderPath), false)
+		logWarn(colorOrange+"\n\nDo you want to continue? (y/n):\n"+colorReset, false)
 		if !config.OverwriteExisting {
 
 			reader := bufio.NewReader(os.Stdin)
@@ -328,7 +354,7 @@ func getOrMakeExportFolder(config *Config) (string, error) {
 		if !config.Quiet {
 			logStage(fmt.Sprintf("Clearing %d files from export folder", len(files)))
 		}
-		err := os.RemoveAll(exportFolderPath)
+		err := os.RemoveAll(fullExportFolderPath)
 		if config.Verbose {
 			logKeyValuePair("Removed files from export folder", exportFolderPath)
 		}
@@ -345,6 +371,79 @@ func getOrMakeExportFolder(config *Config) (string, error) {
 	os.MkdirAll(fullExportFolderPath, 0755)
 
 	return fullExportFolderPath, nil
+}
+
+func SetMetadata(fileName string, metadata map[string]string, config *Config) error {
+	if !config.Quiet {
+		logStage("Setting metadata")
+	}
+	// Check if the file exists
+	_, err := os.Stat(fileName)
+	if os.IsNotExist(err) {
+		logWarn(fmt.Sprintf("warning: file '%s' does not exist", fileName), false)
+		return fmt.Errorf("warning: file '%s' does not exist", fileName)
+	} else if err != nil {
+		logWarn(fmt.Sprintf("warning: error accessing file '%s': %v", fileName, err), false)
+		return fmt.Errorf("error accessing file '%s': %v", fileName, err)
+	}
+
+	// Get OS details
+	currentOS := runtime.GOOS
+	fmt.Printf("Running on OS: %s\n", currentOS)
+
+	// Set metadata based on the OS
+	switch currentOS {
+	case "linux", "darwin":
+		// For Linux and macOS, use xattrs
+		for key, value := range metadata {
+			xattrKey := "user." + key
+			if err := xattr.Set(fileName, xattrKey, []byte(value)); err != nil {
+				logWarn(fmt.Sprintf("warning: error setting xattr '%s' on file '%s': %v", key, fileName, err), false)
+				return fmt.Errorf("error setting xattr '%s' on file '%s': %v", key, fileName, err)
+			}
+			if config.Verbose {
+				logKeyValuePair("Set xattr", xattrKey)
+			}
+			fmt.Printf("Set xattr '%s' on file '%s' with value: %s\n", xattrKey, fileName, value)
+		}
+	case "windows":
+		// For Windows, use NTFS Alternate Data Streams (ADS)
+		for key, value := range metadata {
+			adsName := fileName + ":" + key
+			file, err := os.OpenFile(adsName, os.O_CREATE|os.O_RDWR, 0600)
+			if err != nil {
+				logWarn(fmt.Sprintf("warning: error opening ADS '%s': %v", adsName, err), false)
+				return fmt.Errorf("error opening ADS '%s': %v", adsName, err)
+			}
+			defer file.Close()
+
+			_, err = file.Write([]byte(value))
+			if err != nil {
+				logWarn(fmt.Sprintf("warning: error writing to ADS '%s': %v", adsName, err), false)
+				return fmt.Errorf("error writing to ADS '%s': %v", adsName, err)
+			}
+			if config.Verbose {
+				logKeyValuePair("Set ADS", adsName)
+			}
+			fmt.Printf("Set ADS '%s' on file '%s' with value: %s\n", key, fileName, value)
+		}
+	default:
+		logWarn(fmt.Sprintf("warning: unsupported operating system: %s", currentOS), false)
+		return fmt.Errorf("unsupported operating system: %s", currentOS)
+	}
+
+	return nil
+}
+
+// Set all the attributes against the file in the metadata
+func setBuildInfoInFileAttributes(outputPath string, config *Config, instance InstanceConfig) {
+	metadata := make(map[string]string)
+	metadata["openscadgen.version"] = config.Design.Version
+	metadata["openscadgen.instance"] = instance.Name
+	for name, value := range instance.Params {
+		metadata[fmt.Sprintf("openscadgen.params.%s", name)] = fmt.Sprintf("%v", value)
+	}
+	SetMetadata(outputPath, metadata, config)
 }
 
 func generateSTL(instance InstanceConfig, config *Config, exportFolderPath string) (string, error) {
@@ -388,7 +487,9 @@ func generateSTL(instance InstanceConfig, config *Config, exportFolderPath strin
 	designFileCopyFolder := filepath.Dir(designFileCopyPath)
 	if _, err := os.Stat(designFileCopyFolder); os.IsNotExist(err) {
 		os.MkdirAll(designFileCopyFolder, 0755)
-		logCreation(fmt.Sprintf("Created design folder: %s", designFileCopyFolder))
+		if !config.Quiet {
+			logCreation(fmt.Sprintf("Created design folder: %s", designFileCopyFolder))
+		}
 	}
 	/*
 		if config.Verbose {
@@ -433,7 +534,7 @@ func generateSTL(instance InstanceConfig, config *Config, exportFolderPath strin
 
 	for name, value := range instance.Params {
 		if config.Verbose {
-			logKeyValuePair("CustomParameter", fmt.Sprintf("%s=%v", name, value))
+			logKeyValuePair(fmt.Sprintf("CustomParameter [%s]", name), fmt.Sprintf("%v", value))
 		}
 		args = append(args, "-D", fmt.Sprintf("%s=%v", name, value))
 	}
@@ -441,7 +542,18 @@ func generateSTL(instance InstanceConfig, config *Config, exportFolderPath strin
 	if config.IncludePartIDLetter {
 		args = append(args, "-D", fmt.Sprintf("'optional_part_id_letter=\"%s\"'", instance.PartIDLetter))
 		if config.Verbose {
-			logKeyValuePair("OptionalPartIDLetter", instance.PartIDLetter)
+			logKeyValuePair("OptionalPartIDLetter set on model", instance.PartIDLetter)
+		}
+	} else {
+		if config.Verbose {
+			logKeyValuePair("OptionalPartIDLetter NOT set on model", "false")
+		}
+	}
+
+	if config.OverrideFN > 0 {
+		args = append(args, "-D", fmt.Sprintf("'$fn=%d'", config.OverrideFN))
+		if config.Verbose {
+			logKeyValuePair("OverrideFN", fmt.Sprintf("%d", config.OverrideFN))
 		}
 	}
 
@@ -468,7 +580,9 @@ func generateSTL(instance InstanceConfig, config *Config, exportFolderPath strin
 	command := "openscad"
 	if config.CustomOpenSCADCommand != "" {
 		command = config.CustomOpenSCADCommand
-		logKeyValuePair("Custom OpenSCAD command", command)
+		if !config.Quiet {
+			logKeyValuePair("Custom OpenSCAD command", command)
+		}
 	}
 
 	// Create a context with a timeout
@@ -482,7 +596,9 @@ func generateSTL(instance InstanceConfig, config *Config, exportFolderPath strin
 	cmd.Stdout = logger.Writer()
 	cmd.Stderr = logger.Writer()
 
-	log.Printf("Running command: %s", strings.Join(cmd.Args, " "))
+	if !config.Quiet {
+		log.Printf("Running command: %s", strings.Join(cmd.Args, " "))
+	}
 	err := cmd.Run()
 
 	if err != nil {
@@ -502,24 +618,42 @@ func generateSTL(instance InstanceConfig, config *Config, exportFolderPath strin
 		return "", fmt.Errorf("command execution failed: %w", err)
 	}
 
+	if config.SetBuildInfoInFileAttributes {
+		setBuildInfoInFileAttributes(outputPath, config, instance)
+		if config.Verbose {
+			logKeyValuePair("Set build info in file attributes", outputPath)
+		}
+	}
+
+	_, fileErr := os.Stat(outputPath)
+	if os.IsNotExist(fileErr) {
+		logWarn(fmt.Sprintf("warning: file '%s' does not exist", outputPath), false)
+		return outputPath, fmt.Errorf("warning: file '%s' does not exist", outputPath)
+	} else if err != nil {
+		logWarn(fmt.Sprintf("warning: error accessing file '%s': %v", outputPath, err), false)
+		return outputPath, fmt.Errorf("error accessing file '%s': %v", outputPath, err)
+	}
+
 	return outputPath, nil
 }
 
 // Define a struct to hold the command-line flags
 type CmdFlags struct {
-	Quiet                 bool
-	Verbose               bool
-	RegexPattern          string
-	MaxInstances          int
-	OverwriteExisting     bool
-	ShowMan               bool
-	ConfigFile            string
-	SkipRender            bool
-	SkipReadme            bool
-	CustomOpenSCADCommand string
-	Concurrent            bool
-	MaxConcurrentRequests int
-	IncludePartIDLetter   bool
+	Quiet                        bool
+	Verbose                      bool
+	RegexPattern                 string
+	MaxInstances                 int
+	OverwriteExisting            bool
+	ShowMan                      bool
+	ConfigFile                   string
+	SkipRender                   bool
+	SkipReadme                   bool
+	CustomOpenSCADCommand        string
+	Concurrent                   bool
+	MaxConcurrentRequests        int
+	IncludePartIDLetter          bool
+	SetBuildInfoInFileAttributes bool
+	OverrideFN                   int
 }
 
 // loadConfig reads the configuration file and populates the Config struct
@@ -557,6 +691,9 @@ func loadConfig(configFile string, flags CmdFlags) (*Config, error) {
 	conf.Concurrent = flags.Concurrent
 	conf.MaxConcurrentRequests = flags.MaxConcurrentRequests
 	conf.IncludePartIDLetter = flags.IncludePartIDLetter
+	conf.SetBuildInfoInFileAttributes = flags.SetBuildInfoInFileAttributes
+
+	conf.OverrideFN = flags.OverrideFN
 
 	if conf.Design.OutputPath == "" {
 		conf.Design.OutputPath = getOutputPath(conf)
@@ -610,35 +747,22 @@ does not contain param
 	return &conf, nil
 }
 
-func printUsage() {
-	log.Println("Usage of openscadgen:")
-	log.Println("  -config, -c string")
-	log.Println("        Path to config file\n")
-	log.Println("  -h, -help, -man")
-	log.Println("        Display this help message\n")
-	log.Println("  -regex, -r string")
-	log.Println("        Regex pattern to filter instances by name\n")
-	log.Println("  -n, -max-instances int")
-	log.Println("        Maximum number of instances to process\n")
-	log.Println("  -q, -quiet")
-	log.Println("        Quiet mode, no output\n")
-	log.Println("  -v, -verbose")
-	log.Println("        Verbose mode, more debug output\n")
-	log.Println("  -pid, -part-id-letter")
-	log.Println("        Include part_it_letter variable will be based into each openscad design to help match instances to configuration easily\n")
-
-	// Add more usage information as needed
-}
-
-func generateReadme(config *Config, designName string, version string, openscadVersion string) {
+func generateReadme(config *Config, dynamicInstances []InstanceConfig, designName string, version string, openscadVersion string) {
 	if config.SkipReadme {
 		log.Printf(colorYellow + "Skipping readme generation" + colorReset)
 		return
 	}
 
+	if !config.Quiet {
+		logStage("Generating README.md")
+	}
+
 	contents := fmt.Sprintf("# %s\n\n%s\n\n", designName, config.Design.Description)
 	contents += "## Table of Contents\n"
 	for _, instance := range config.Design.Instances {
+		contents += fmt.Sprintf("- [%s](#%s)\n", instance.Name, strings.ToLower(strings.ReplaceAll(instance.Name, " ", "-")))
+	}
+	for _, instance := range dynamicInstances {
 		contents += fmt.Sprintf("- [%s](#%s)\n", instance.Name, strings.ToLower(strings.ReplaceAll(instance.Name, " ", "-")))
 	}
 	contents += "\n"
@@ -655,6 +779,14 @@ func generateReadme(config *Config, designName string, version string, openscadV
 		contents += "\n"
 	}
 
+	for _, instance := range dynamicInstances {
+		contents += fmt.Sprintf("## %s\n", instance.Name)
+		for name, value := range instance.Params {
+			contents += fmt.Sprintf("- **%s**: %v\n", name, value)
+		}
+		contents += "\n"
+	}
+
 	// Optionally add a footer or additional information
 	contents += "## Additional Information\n"
 	contents += fmt.Sprintf("This README was generated by [openscadgen](https://github.com/KiwiKid/openscadgen) %s %s.\n", version, openscadVersion)
@@ -664,6 +796,10 @@ func generateReadme(config *Config, designName string, version string, openscadV
 	readmeFile, err := os.Create(readmePath)
 	if err != nil {
 		log.Panicf(colorRed+"Failed to create README.md file: %s", err)
+	} else {
+		if !config.Quiet {
+			logKeyValuePair("README.md written to", readmePath)
+		}
 	}
 	defer readmeFile.Close()
 
@@ -765,6 +901,9 @@ func main() {
 	flag.BoolVar(&cmdFlags.SkipRender, "manifold", false, "Dont run a render before export")
 	flag.BoolVar(&cmdFlags.SkipRender, "rm", false, "Alias for -manifold")
 
+	flag.BoolVar(&cmdFlags.SkipReadme, "skip-readme", false, "Skip generating a README.md file")
+	flag.BoolVar(&cmdFlags.SkipReadme, "sr", false, "Alias for -skip-readme")
+
 	flag.IntVar(&cmdFlags.MaxInstances, "n", 0, "Maximum number of instances to process")
 
 	flag.BoolVar(&cmdFlags.OverwriteExisting, "ow", false, "Overrwite existing files")
@@ -777,6 +916,11 @@ func main() {
 
 	flag.IntVar(&cmdFlags.MaxConcurrentRequests, "max-concurrent-requests", 10, "Maximum number of concurrent requests")
 
+	flag.StringVar(&cmdFlags.CustomOpenSCADCommand, "custom-openscad-command", "", "Custom OpenSCAD command to use")
+
+	flag.IntVar(&cmdFlags.OverrideFN, "fn", 0, "Override the default fn value (default none)")
+
+	flag.BoolVar(&cmdFlags.SetBuildInfoInFileAttributes, "fi", true, "Set build info in file attributes (default true)")
 	// Create a logger that writes to both the file and stdout (console)
 
 	// Load configuration
@@ -790,13 +934,14 @@ func main() {
 	}
 
 	if cmdFlags.ShowMan {
-		printUsage()
+		flag.PrintDefaults()
 		return
 	}
 
 	if cmdFlags.ConfigFile == "" {
-		log.Println(colorRed + "No config file provided, use -c or -config to specify a config file" + colorReset)
-		printUsage()
+		flag.PrintDefaults()
+
+		logWarn("No config file provided, use -c or -config to specify a config file", true)
 		os.Exit(1)
 	}
 
@@ -958,7 +1103,7 @@ func main() {
 	processedCount := 0
 	skippedCount := 0
 
-	for _, instance := range dynamicInstances {
+	for diIndex, instance := range dynamicInstances {
 		if regex != nil && !regex.MatchString(instance.Name) {
 			if !config.Quiet && config.Verbose {
 				log.Printf(colorYellow+"Skipping instance %s as it does not match the regex pattern", instance.Name)
@@ -968,7 +1113,7 @@ func main() {
 		}
 
 		if !config.Quiet {
-			logStage(fmt.Sprintf("\nDynamic Model - (%d/%d) - '%s' ", processedCount, len(dynamicInstances), instance.Name))
+			logStage(fmt.Sprintf("\nDynamic Model - (%d/%d) [%d processed] - '%s' ", diIndex, len(dynamicInstances), processedCount, instance.Name))
 			if config.Verbose {
 				logKeyValuePair("Params", fmt.Sprintf("%+v", instance.Params))
 			}
@@ -976,7 +1121,6 @@ func main() {
 
 		if config.MaxInstances > 0 && processedCount >= config.MaxInstances {
 			log.Printf(colorBlue+"Max instance of %d processed, stopping", config.MaxInstances)
-			os.Exit(0)
 			break
 		} else if config.Verbose {
 			logStage("Max instance check passed")
@@ -1004,7 +1148,7 @@ func main() {
 			_, err := generateSTL(instance, config, exportFolderPath)
 			if err != nil {
 				logWarn(fmt.Sprintf("Error generating STL for instance '%s': %v", instance.Name, err), false)
-			} else {
+			} else if !config.Quiet {
 				processedCount++
 			}
 
@@ -1101,7 +1245,7 @@ func main() {
 		logStage("No Static Instances")
 	}
 
-	generateReadme(config, design.Name, VERSION, openscadVersion)
+	generateReadme(config, dynamicInstances, design.Name, VERSION, openscadVersion)
 	if !config.Quiet {
 		logStage("STL generation completed")
 

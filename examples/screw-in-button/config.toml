@@ -9,7 +9,7 @@ input_path = "./examples/screw-in-button/Button.scad"
 # path to the directory where the export (.stl files, README.md) will be saved
 output_path = "./examples/screw-in-button/export/"
 # version of the design, will be used in the README.md file
-version = "v1.16"
+version = "v1.17"
 # Each instance below will result in a separate .stl file being created with those parameters in the 'output_path' directory
 
 # Dynamic Instances
@@ -17,5 +17,11 @@ version = "v1.16"
 [[openscadgen.dynamic_instances]]
 # The 'name' field is a template string that will be used to generate the instance name (note the {param_name} syntax for value replacement)
 # the params field configures which instances get created ()
-name =  "button-height-{button_height}/width-{button_width}"
-params = { button_height = "1,3,5,10,20,50", button_width = "1,2,3,4,5,6" }
+name =  "button-height-{button_height}-width-{button_width}-button-profile-{button_radius}"
+params = { button_height = "1,3,5,10,20,50", button_width = "5,10", button_radius = "50" }
+
+[[openscadgen.dynamic_instances]]
+# The 'name' field is a template string that will be used to generate the instance name (note the {param_name} syntax for value replacement)
+# the params field configures which instances get created ()
+name =  "button-height-{button_height}-width-{button_width}-button-profile-{button_radius}"
+params = { button_height = "5,10,20,50", button_width = "5,10", button_radius = "90" }

@@ -1,304 +1,1161 @@
-LOG: 2025/01/11 11:23:35 main.go:272: [34mStarting Dynamic 36 Instances[0m
-LOG: 2025/01/11 11:23:35 main.go:272: [34m
+2025/01/11 12:36:26 main.go:285: [34mStarting Dynamic 36 Instances[0m
+2025/01/11 12:36:26 main.go:285: [34m
 Dynamic Model - (0/36) - 'button-height-1/width-1_A' [0m
-LOG: 2025/01/11 11:23:35 main.go:268: [32mCreated design folder: examples/screw-in-button/export/v1.16/button-height-1[0m
-Geometries in cache: 11
-Geometry cache size in bytes: 3680416
+2025/01/11 12:36:26 main.go:248: [33mParams: [37m			map[button_height:1 button_width:1][0m
+2025/01/11 12:36:26 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:36:26 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:36:26 main.go:248: [33mProcessed instances: [37m			0[0m
+2025/01/11 12:36:26 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-1/width-1_A[0m
+2025/01/11 12:36:26 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:36:26 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:36:26 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:36:26 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:36:26 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:36:26 main.go:281: [32mCreated design folder: examples/screw-in-button/export/v1.16/button-height-1[0m
+2025/01/11 12:36:26 main.go:248: [33mCustomParameter [button_width]: [37m			1[0m
+2025/01/11 12:36:26 main.go:248: [33mCustomParameter [button_height]: [37m			1[0m
+2025/01/11 12:36:26 main.go:248: [33mOptionalPartIDLetter: [37m			A[0m
+2025/01/11 12:36:26 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:36:26 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:36:26 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:36:26 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-1/width-1_A.stl -D button_width=1 -D button_height=1 -D 'optional_part_id_letter="A"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3693072
 CGAL Polyhedrons in cache: 1
-CGAL cache size in bytes: 6501776
-Total rendering time: 0:00:08.661
+CGAL cache size in bytes: 5932304
+Total rendering time: 0:00:08.416
 Top level object is a 3D object (Nef polyhedron):
    Simple:     yes
-   Vertices:     2922
-   Halfedges:   12374
-   Edges:        6187
-   Halffacets:   6538
-   Facets:       3269
+   Vertices:     2750
+   Halfedges:   11258
+   Edges:        5629
+   Halffacets:   5758
+   Facets:       2879
    Volumes:         2
-LOG: 2025/01/11 11:23:43 main.go:272: [34m
-Dynamic Model - (1/36) - 'button-height-1/width-2_B' [0m
-Geometries in cache: 11
-Geometry cache size in bytes: 3814144
+2025/01/11 12:36:34 main.go:285: [34m
+Dynamic Model - (1/36) - 'button-height-3/width-1_B' [0m
+2025/01/11 12:36:34 main.go:248: [33mParams: [37m			map[button_height:3 button_width:1][0m
+2025/01/11 12:36:34 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:36:34 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:36:34 main.go:248: [33mProcessed instances: [37m			1[0m
+2025/01/11 12:36:34 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-3/width-1_B[0m
+2025/01/11 12:36:34 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:36:34 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:36:34 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:36:34 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:36:34 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:36:34 main.go:281: [32mCreated design folder: examples/screw-in-button/export/v1.16/button-height-3[0m
+2025/01/11 12:36:34 main.go:248: [33mCustomParameter [button_width]: [37m			1[0m
+2025/01/11 12:36:34 main.go:248: [33mCustomParameter [button_height]: [37m			3[0m
+2025/01/11 12:36:34 main.go:248: [33mOptionalPartIDLetter: [37m			B[0m
+2025/01/11 12:36:34 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:36:34 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:36:34 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:36:34 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-3/width-1_B.stl -D button_width=1 -D button_height=3 -D 'optional_part_id_letter="B"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3890976
 CGAL Polyhedrons in cache: 1
-CGAL cache size in bytes: 8821008
-Total rendering time: 0:00:10.264
+CGAL cache size in bytes: 10664208
+Total rendering time: 0:00:10.640
 Top level object is a 3D object (Nef polyhedron):
    Simple:     yes
-   Vertices:     3990
-   Halfedges:   16778
-   Edges:        8389
-   Halffacets:   8808
-   Facets:       4404
+   Vertices:     4590
+   Halfedges:   20378
+   Edges:       10189
+   Halffacets:  11208
+   Facets:       5604
    Volumes:         2
-LOG: 2025/01/11 11:23:54 main.go:272: [34m
-Dynamic Model - (2/36) - 'button-height-1/width-3_C' [0m
-Geometries in cache: 11
-Geometry cache size in bytes: 3811088
+2025/01/11 12:36:45 main.go:285: [34m
+Dynamic Model - (2/36) - 'button-height-5/width-1_C' [0m
+2025/01/11 12:36:45 main.go:248: [33mParams: [37m			map[button_height:5 button_width:1][0m
+2025/01/11 12:36:45 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:36:45 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:36:45 main.go:248: [33mProcessed instances: [37m			2[0m
+2025/01/11 12:36:45 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-5/width-1_C[0m
+2025/01/11 12:36:45 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:36:45 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:36:45 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:36:45 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:36:45 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:36:45 main.go:281: [32mCreated design folder: examples/screw-in-button/export/v1.16/button-height-5[0m
+2025/01/11 12:36:45 main.go:248: [33mCustomParameter [button_width]: [37m			1[0m
+2025/01/11 12:36:45 main.go:248: [33mCustomParameter [button_height]: [37m			5[0m
+2025/01/11 12:36:45 main.go:248: [33mOptionalPartIDLetter: [37m			C[0m
+2025/01/11 12:36:45 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:36:45 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:36:45 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:36:45 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-5/width-1_C.stl -D button_width=1 -D button_height=5 -D 'optional_part_id_letter="C"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3886480
 CGAL Polyhedrons in cache: 1
-CGAL cache size in bytes: 10026448
-Total rendering time: 0:00:10.244
+CGAL cache size in bytes: 13712848
+Total rendering time: 0:00:11.863
 Top level object is a 3D object (Nef polyhedron):
    Simple:     yes
-   Vertices:     4376
-   Halfedges:   19136
-   Edges:        9568
-   Halffacets:  10390
-   Facets:       5195
+   Vertices:     5576
+   Halfedges:   26336
+   Edges:       13168
+   Halffacets:  15190
+   Facets:       7595
    Volumes:         2
-LOG: 2025/01/11 11:24:04 main.go:272: [34m
-Dynamic Model - (3/36) - 'button-height-1/width-4_D' [0m
-Geometries in cache: 11
-Geometry cache size in bytes: 3750416
+2025/01/11 12:36:57 main.go:285: [34m
+Dynamic Model - (3/36) - 'button-height-10/width-1_D' [0m
+2025/01/11 12:36:57 main.go:248: [33mParams: [37m			map[button_height:10 button_width:1][0m
+2025/01/11 12:36:57 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:36:57 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:36:57 main.go:248: [33mProcessed instances: [37m			3[0m
+2025/01/11 12:36:57 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-10/width-1_D[0m
+2025/01/11 12:36:57 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:36:57 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:36:57 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:36:57 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:36:57 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:36:57 main.go:281: [32mCreated design folder: examples/screw-in-button/export/v1.16/button-height-10[0m
+2025/01/11 12:36:57 main.go:248: [33mCustomParameter [button_height]: [37m			10[0m
+2025/01/11 12:36:57 main.go:248: [33mCustomParameter [button_width]: [37m			1[0m
+2025/01/11 12:36:57 main.go:248: [33mOptionalPartIDLetter: [37m			D[0m
+2025/01/11 12:36:57 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:36:57 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:36:57 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:36:57 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-10/width-1_D.stl -D button_height=10 -D button_width=1 -D 'optional_part_id_letter="D"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3796672
 CGAL Polyhedrons in cache: 1
-CGAL cache size in bytes: 10144976
-Total rendering time: 0:00:10.500
+CGAL cache size in bytes: 19360976
+Total rendering time: 0:00:13.858
 Top level object is a 3D object (Nef polyhedron):
    Simple:     yes
-   Vertices:     4272
-   Halfedges:   19424
-   Edges:        9712
-   Halffacets:  10888
-   Facets:       5444
+   Vertices:     7272
+   Halfedges:   37424
+   Edges:       18712
+   Halffacets:  22888
+   Facets:      11444
    Volumes:         2
-LOG: 2025/01/11 11:24:15 main.go:272: [34m
-Dynamic Model - (4/36) - 'button-height-1/width-5_E' [0m
-Geometries in cache: 11
-Geometry cache size in bytes: 3659088
+2025/01/11 12:37:11 main.go:285: [34m
+Dynamic Model - (4/36) - 'button-height-20/width-1_E' [0m
+2025/01/11 12:37:11 main.go:248: [33mParams: [37m			map[button_height:20 button_width:1][0m
+2025/01/11 12:37:11 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:37:11 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:37:11 main.go:248: [33mProcessed instances: [37m			4[0m
+2025/01/11 12:37:11 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-20/width-1_E[0m
+2025/01/11 12:37:11 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:37:11 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:37:11 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:37:11 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:37:11 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:37:11 main.go:281: [32mCreated design folder: examples/screw-in-button/export/v1.16/button-height-20[0m
+2025/01/11 12:37:11 main.go:248: [33mCustomParameter [button_height]: [37m			20[0m
+2025/01/11 12:37:11 main.go:248: [33mCustomParameter [button_width]: [37m			1[0m
+2025/01/11 12:37:11 main.go:248: [33mOptionalPartIDLetter: [37m			E[0m
+2025/01/11 12:37:11 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:37:11 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:37:11 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:37:11 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-20/width-1_E.stl -D button_height=20 -D button_width=1 -D 'optional_part_id_letter="E"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3661520
 CGAL Polyhedrons in cache: 1
-CGAL cache size in bytes: 10629328
-Total rendering time: 0:00:10.001
+CGAL cache size in bytes: 28869328
+Total rendering time: 0:00:15.944
 Top level object is a 3D object (Nef polyhedron):
    Simple:     yes
-   Vertices:     4216
-   Halfedges:   20456
-   Edges:       10228
-   Halffacets:  12030
-   Facets:       6015
+   Vertices:    10216
+   Halfedges:   56056
+   Edges:       28028
+   Halffacets:  35630
+   Facets:      17815
    Volumes:         2
-LOG: 2025/01/11 11:24:25 main.go:272: [34m
-Dynamic Model - (5/36) - 'button-height-1/width-6_F' [0m
-Geometries in cache: 11
-Geometry cache size in bytes: 3658288
+2025/01/11 12:37:27 main.go:285: [34m
+Dynamic Model - (5/36) - 'button-height-50/width-1_F' [0m
+2025/01/11 12:37:27 main.go:248: [33mParams: [37m			map[button_height:50 button_width:1][0m
+2025/01/11 12:37:27 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:37:27 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:37:27 main.go:248: [33mProcessed instances: [37m			5[0m
+2025/01/11 12:37:27 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-50/width-1_F[0m
+2025/01/11 12:37:27 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:37:27 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:37:27 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:37:27 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:37:27 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:37:27 main.go:281: [32mCreated design folder: examples/screw-in-button/export/v1.16/button-height-50[0m
+2025/01/11 12:37:27 main.go:248: [33mCustomParameter [button_height]: [37m			50[0m
+2025/01/11 12:37:27 main.go:248: [33mCustomParameter [button_width]: [37m			1[0m
+2025/01/11 12:37:27 main.go:248: [33mOptionalPartIDLetter: [37m			F[0m
+2025/01/11 12:37:27 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:37:27 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:37:27 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:37:27 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-50/width-1_F.stl -D button_height=50 -D button_width=1 -D 'optional_part_id_letter="F"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3660336
 CGAL Polyhedrons in cache: 1
-CGAL cache size in bytes: 11237200
-Total rendering time: 0:00:10.365
+CGAL cache size in bytes: 52128976
+Total rendering time: 0:00:26.803
 Top level object is a 3D object (Nef polyhedron):
    Simple:     yes
-   Vertices:     4412
-   Halfedges:   21644
-   Edges:       10822
-   Halffacets:  12826
-   Facets:       6413
+   Vertices:    17584
+   Halfedges:  101568
+   Edges:       50784
+   Halffacets:  66400
+   Facets:      33200
    Volumes:         2
-LOG: 2025/01/11 11:24:35 main.go:272: [34m
-Dynamic Model - (6/36) - 'button-height-3/width-1_G' [0m
-Geometries in cache: 11
-Geometry cache size in bytes: 3812688
+2025/01/11 12:37:54 main.go:285: [34m
+Dynamic Model - (6/36) - 'button-height-1/width-2_G' [0m
+2025/01/11 12:37:54 main.go:248: [33mParams: [37m			map[button_height:1 button_width:2][0m
+2025/01/11 12:37:54 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:37:54 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:37:54 main.go:248: [33mProcessed instances: [37m			6[0m
+2025/01/11 12:37:54 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-1/width-2_G[0m
+2025/01/11 12:37:54 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:37:54 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:37:54 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:37:54 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:37:54 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:37:54 main.go:248: [33mCustomParameter [button_width]: [37m			2[0m
+2025/01/11 12:37:54 main.go:248: [33mCustomParameter [button_height]: [37m			1[0m
+2025/01/11 12:37:54 main.go:248: [33mOptionalPartIDLetter: [37m			G[0m
+2025/01/11 12:37:54 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:37:54 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:37:54 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:37:54 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-1/width-2_G.stl -D button_width=2 -D button_height=1 -D 'optional_part_id_letter="G"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3888848
 CGAL Polyhedrons in cache: 1
-CGAL cache size in bytes: 10039504
-Total rendering time: 0:00:10.265
+CGAL cache size in bytes: 9425104
+Total rendering time: 0:00:10.543
 Top level object is a 3D object (Nef polyhedron):
    Simple:     yes
-   Vertices:     4384
-   Halfedges:   19160
-   Edges:        9580
-   Halffacets:  10398
-   Facets:       5199
+   Vertices:     4184
+   Halfedges:   17960
+   Edges:        8980
+   Halffacets:   9598
+   Facets:       4799
    Volumes:         2
-LOG: 2025/01/11 11:24:45 main.go:272: [34m
+2025/01/11 12:38:04 main.go:285: [34m
 Dynamic Model - (7/36) - 'button-height-3/width-2_H' [0m
-Geometries in cache: 11
-Geometry cache size in bytes: 3659088
+2025/01/11 12:38:04 main.go:248: [33mParams: [37m			map[button_height:3 button_width:2][0m
+2025/01/11 12:38:04 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:38:04 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:38:04 main.go:248: [33mProcessed instances: [37m			7[0m
+2025/01/11 12:38:04 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-3/width-2_H[0m
+2025/01/11 12:38:04 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:38:04 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:38:04 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:38:04 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:38:04 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:38:04 main.go:248: [33mCustomParameter [button_height]: [37m			3[0m
+2025/01/11 12:38:04 main.go:248: [33mCustomParameter [button_width]: [37m			2[0m
+2025/01/11 12:38:04 main.go:248: [33mOptionalPartIDLetter: [37m			H[0m
+2025/01/11 12:38:04 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:38:04 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:38:04 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:38:04 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-3/width-2_H.stl -D button_height=3 -D button_width=2 -D 'optional_part_id_letter="H"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3661520
 CGAL Polyhedrons in cache: 1
-CGAL cache size in bytes: 9400528
-Total rendering time: 0:00:09.221
+CGAL cache size in bytes: 11243728
+Total rendering time: 0:00:10.200
 Top level object is a 3D object (Nef polyhedron):
    Simple:     yes
-   Vertices:     3816
-   Halfedges:   18056
-   Edges:        9028
-   Halffacets:  10430
-   Facets:       5215
+   Vertices:     4416
+   Halfedges:   21656
+   Edges:       10828
+   Halffacets:  12830
+   Facets:       6415
    Volumes:         2
-LOG: 2025/01/11 11:24:55 main.go:272: [34m
-Dynamic Model - (8/36) - 'button-height-3/width-3_I' [0m
-Geometries in cache: 11
-Geometry cache size in bytes: 3655888
+2025/01/11 12:38:15 main.go:285: [34m
+Dynamic Model - (8/36) - 'button-height-5/width-2_I' [0m
+2025/01/11 12:38:15 main.go:248: [33mParams: [37m			map[button_height:5 button_width:2][0m
+2025/01/11 12:38:15 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:38:15 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:38:15 main.go:248: [33mProcessed instances: [37m			8[0m
+2025/01/11 12:38:15 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-5/width-2_I[0m
+2025/01/11 12:38:15 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:38:15 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:38:15 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:38:15 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:38:15 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:38:15 main.go:248: [33mCustomParameter [button_width]: [37m			2[0m
+2025/01/11 12:38:15 main.go:248: [33mCustomParameter [button_height]: [37m			5[0m
+2025/01/11 12:38:15 main.go:248: [33mOptionalPartIDLetter: [37m			I[0m
+2025/01/11 12:38:15 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:38:15 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:38:15 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:38:15 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-5/width-2_I.stl -D button_width=2 -D button_height=5 -D 'optional_part_id_letter="I"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3656784
 CGAL Polyhedrons in cache: 1
-CGAL cache size in bytes: 10603216
-Total rendering time: 0:00:09.645
+CGAL cache size in bytes: 13675216
+Total rendering time: 0:00:11.165
 Top level object is a 3D object (Nef polyhedron):
    Simple:     yes
-   Vertices:     4200
-   Halfedges:   20408
-   Edges:       10204
-   Halffacets:  12014
-   Facets:       6007
+   Vertices:     5200
+   Halfedges:   26408
+   Edges:       13204
+   Halffacets:  16014
+   Facets:       8007
    Volumes:         2
-LOG: 2025/01/11 11:25:04 main.go:272: [34m
-Dynamic Model - (9/36) - 'button-height-3/width-4_J' [0m
-Geometries in cache: 11
-Geometry cache size in bytes: 3739888
+2025/01/11 12:38:26 main.go:285: [34m
+Dynamic Model - (9/36) - 'button-height-10/width-2_J' [0m
+2025/01/11 12:38:26 main.go:248: [33mParams: [37m			map[button_height:10 button_width:2][0m
+2025/01/11 12:38:26 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:38:26 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:38:26 main.go:248: [33mProcessed instances: [37m			9[0m
+2025/01/11 12:38:26 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-10/width-2_J[0m
+2025/01/11 12:38:26 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:38:26 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:38:26 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:38:26 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:38:26 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:38:26 main.go:248: [33mCustomParameter [button_width]: [37m			2[0m
+2025/01/11 12:38:26 main.go:248: [33mCustomParameter [button_height]: [37m			10[0m
+2025/01/11 12:38:26 main.go:248: [33mOptionalPartIDLetter: [37m			J[0m
+2025/01/11 12:38:26 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:38:26 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:38:26 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:38:26 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-10/width-2_J.stl -D button_width=2 -D button_height=10 -D 'optional_part_id_letter="J"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3781104
 CGAL Polyhedrons in cache: 1
-CGAL cache size in bytes: 11903056
-Total rendering time: 0:00:11.200
+CGAL cache size in bytes: 20504656
+Total rendering time: 0:00:14.702
 Top level object is a 3D object (Nef polyhedron):
    Simple:     yes
-   Vertices:     4820
-   Halfedges:   22868
-   Edges:       11434
-   Halffacets:  13234
-   Facets:       6617
+   Vertices:     7620
+   Halfedges:   39668
+   Edges:       19834
+   Halffacets:  24434
+   Facets:      12217
    Volumes:         2
-LOG: 2025/01/11 11:25:16 main.go:272: [34m
-Dynamic Model - (10/36) - 'button-height-3/width-5_K' [0m
-Geometries in cache: 11
-Geometry cache size in bytes: 3659088
+2025/01/11 12:38:41 main.go:285: [34m
+Dynamic Model - (10/36) - 'button-height-20/width-2_K' [0m
+2025/01/11 12:38:41 main.go:248: [33mParams: [37m			map[button_height:20 button_width:2][0m
+2025/01/11 12:38:41 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:38:41 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:38:41 main.go:248: [33mProcessed instances: [37m			10[0m
+2025/01/11 12:38:41 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-20/width-2_K[0m
+2025/01/11 12:38:41 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:38:41 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:38:41 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:38:41 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:38:41 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:38:41 main.go:248: [33mCustomParameter [button_width]: [37m			2[0m
+2025/01/11 12:38:41 main.go:248: [33mCustomParameter [button_height]: [37m			20[0m
+2025/01/11 12:38:41 main.go:248: [33mOptionalPartIDLetter: [37m			K[0m
+2025/01/11 12:38:41 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:38:41 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:38:41 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:38:41 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-20/width-2_K.stl -D button_width=2 -D button_height=20 -D 'optional_part_id_letter="K"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3661520
 CGAL Polyhedrons in cache: 1
-CGAL cache size in bytes: 11858128
-Total rendering time: 0:00:10.738
+CGAL cache size in bytes: 29483728
+Total rendering time: 0:00:16.692
 Top level object is a 3D object (Nef polyhedron):
    Simple:     yes
-   Vertices:     4616
-   Halfedges:   22856
-   Edges:       11428
-   Halffacets:  13630
-   Facets:       6815
+   Vertices:    10416
+   Halfedges:   57256
+   Edges:       28628
+   Halffacets:  36430
+   Facets:      18215
    Volumes:         2
-LOG: 2025/01/11 11:25:26 main.go:272: [34m
-Dynamic Model - (11/36) - 'button-height-3/width-6_L' [0m
-Geometries in cache: 11
-Geometry cache size in bytes: 3656688
+2025/01/11 12:38:57 main.go:285: [34m
+Dynamic Model - (11/36) - 'button-height-50/width-2_L' [0m
+2025/01/11 12:38:57 main.go:248: [33mParams: [37m			map[button_height:50 button_width:2][0m
+2025/01/11 12:38:57 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:38:57 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:38:57 main.go:248: [33mProcessed instances: [37m			11[0m
+2025/01/11 12:38:57 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-50/width-2_L[0m
+2025/01/11 12:38:57 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:38:57 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:38:57 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:38:57 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:38:57 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:38:57 main.go:248: [33mCustomParameter [button_width]: [37m			2[0m
+2025/01/11 12:38:57 main.go:248: [33mCustomParameter [button_height]: [37m			50[0m
+2025/01/11 12:38:57 main.go:248: [33mOptionalPartIDLetter: [37m			L[0m
+2025/01/11 12:38:57 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:38:57 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:38:57 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:38:57 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-50/width-2_L.stl -D button_width=2 -D button_height=50 -D 'optional_part_id_letter="L"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3657968
 CGAL Polyhedrons in cache: 1
-CGAL cache size in bytes: 12452944
-Total rendering time: 0:00:10.318
+CGAL cache size in bytes: 52128976
+Total rendering time: 0:00:25.326
 Top level object is a 3D object (Nef polyhedron):
    Simple:     yes
-   Vertices:     4804
-   Halfedges:   24020
-   Edges:       12010
-   Halffacets:  14418
-   Facets:       7209
+   Vertices:    17584
+   Halfedges:  101568
+   Edges:       50784
+   Halffacets:  66400
+   Facets:      33200
    Volumes:         2
-LOG: 2025/01/11 11:25:37 main.go:272: [34m
-Dynamic Model - (12/36) - 'button-height-5/width-1_M' [0m
-Geometries in cache: 11
-Geometry cache size in bytes: 3702688
+2025/01/11 12:39:23 main.go:285: [34m
+Dynamic Model - (12/36) - 'button-height-1/width-3_M' [0m
+2025/01/11 12:39:23 main.go:248: [33mParams: [37m			map[button_height:1 button_width:3][0m
+2025/01/11 12:39:23 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:39:23 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:39:23 main.go:248: [33mProcessed instances: [37m			12[0m
+2025/01/11 12:39:23 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-1/width-3_M[0m
+2025/01/11 12:39:23 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:39:23 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:39:23 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:39:23 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:39:23 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:39:23 main.go:248: [33mCustomParameter [button_width]: [37m			3[0m
+2025/01/11 12:39:23 main.go:248: [33mCustomParameter [button_height]: [37m			1[0m
+2025/01/11 12:39:23 main.go:248: [33mOptionalPartIDLetter: [37m			M[0m
+2025/01/11 12:39:23 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:39:23 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:39:23 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:39:23 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-1/width-3_M.stl -D button_width=3 -D button_height=1 -D 'optional_part_id_letter="M"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3726048
 CGAL Polyhedrons in cache: 1
-CGAL cache size in bytes: 10985104
-Total rendering time: 0:00:10.341
+CGAL cache size in bytes: 9756304
+Total rendering time: 0:00:09.617
 Top level object is a 3D object (Nef polyhedron):
    Simple:     yes
-   Vertices:     4434
-   Halfedges:   21110
-   Edges:       10555
-   Halffacets:  12248
-   Facets:       6124
+   Vertices:     4034
+   Halfedges:   18710
+   Edges:        9355
+   Halffacets:  10648
+   Facets:       5324
    Volumes:         2
-LOG: 2025/01/11 11:25:47 main.go:272: [34m
-Dynamic Model - (13/36) - 'button-height-5/width-2_N' [0m
-Geometries in cache: 11
-Geometry cache size in bytes: 3679088
+2025/01/11 12:39:33 main.go:285: [34m
+Dynamic Model - (13/36) - 'button-height-3/width-3_N' [0m
+2025/01/11 12:39:33 main.go:248: [33mParams: [37m			map[button_height:3 button_width:3][0m
+2025/01/11 12:39:33 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:39:33 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:39:33 main.go:248: [33mProcessed instances: [37m			13[0m
+2025/01/11 12:39:33 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-3/width-3_N[0m
+2025/01/11 12:39:33 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:39:33 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:39:33 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:39:33 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:39:33 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:39:33 main.go:248: [33mCustomParameter [button_width]: [37m			3[0m
+2025/01/11 12:39:33 main.go:248: [33mCustomParameter [button_height]: [37m			3[0m
+2025/01/11 12:39:33 main.go:248: [33mOptionalPartIDLetter: [37m			N[0m
+2025/01/11 12:39:33 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:39:33 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:39:33 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:39:33 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-3/width-3_N.stl -D button_width=3 -D button_height=3 -D 'optional_part_id_letter="N"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3691120
 CGAL Polyhedrons in cache: 1
-CGAL cache size in bytes: 11406928
-Total rendering time: 0:00:10.000
+CGAL cache size in bytes: 12635728
+Total rendering time: 0:00:10.482
 Top level object is a 3D object (Nef polyhedron):
    Simple:     yes
-   Vertices:     4516
-   Halfedges:   21956
-   Edges:       10978
-   Halffacets:  12930
-   Facets:       6465
+   Vertices:     4916
+   Halfedges:   24356
+   Edges:       12178
+   Halffacets:  14530
+   Facets:       7265
    Volumes:         2
-LOG: 2025/01/11 11:25:57 main.go:272: [34m
+2025/01/11 12:39:43 main.go:285: [34m
 Dynamic Model - (14/36) - 'button-height-5/width-3_O' [0m
-Geometries in cache: 11
-Geometry cache size in bytes: 3831216
+2025/01/11 12:39:43 main.go:248: [33mParams: [37m			map[button_height:5 button_width:3][0m
+2025/01/11 12:39:43 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:39:43 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:39:43 main.go:248: [33mProcessed instances: [37m			14[0m
+2025/01/11 12:39:43 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-5/width-3_O[0m
+2025/01/11 12:39:43 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:39:43 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:39:43 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:39:43 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:39:43 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:39:43 main.go:248: [33mCustomParameter [button_height]: [37m			5[0m
+2025/01/11 12:39:43 main.go:248: [33mCustomParameter [button_width]: [37m			3[0m
+2025/01/11 12:39:43 main.go:248: [33mOptionalPartIDLetter: [37m			O[0m
+2025/01/11 12:39:43 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:39:43 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:39:43 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:39:43 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-5/width-3_O.stl -D button_height=5 -D button_width=3 -D 'optional_part_id_letter="O"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3916256
 CGAL Polyhedrons in cache: 1
-CGAL cache size in bytes: 13261904
-Total rendering time: 0:00:12.208
+CGAL cache size in bytes: 16948304
+Total rendering time: 0:00:13.173
 Top level object is a 3D object (Nef polyhedron):
    Simple:     yes
-   Vertices:     5476
-   Halfedges:   25436
-   Edges:       12718
-   Halffacets:  14492
-   Facets:       7246
+   Vertices:     6676
+   Halfedges:   32636
+   Edges:       16318
+   Halffacets:  19292
+   Facets:       9646
    Volumes:         2
-LOG: 2025/01/11 11:26:10 main.go:272: [34m
-Dynamic Model - (15/36) - 'button-height-5/width-4_P' [0m
-Geometries in cache: 11
-Geometry cache size in bytes: 3740816
+2025/01/11 12:39:56 main.go:285: [34m
+Dynamic Model - (15/36) - 'button-height-10/width-3_P' [0m
+2025/01/11 12:39:56 main.go:248: [33mParams: [37m			map[button_height:10 button_width:3][0m
+2025/01/11 12:39:56 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:39:56 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:39:56 main.go:248: [33mProcessed instances: [37m			15[0m
+2025/01/11 12:39:56 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-10/width-3_P[0m
+2025/01/11 12:39:56 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:39:56 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:39:56 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:39:56 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:39:56 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:39:56 main.go:248: [33mCustomParameter [button_width]: [37m			3[0m
+2025/01/11 12:39:56 main.go:248: [33mCustomParameter [button_height]: [37m			10[0m
+2025/01/11 12:39:56 main.go:248: [33mOptionalPartIDLetter: [37m			P[0m
+2025/01/11 12:39:56 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:39:56 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:39:56 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:39:56 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-10/width-3_P.stl -D button_width=3 -D button_height=10 -D 'optional_part_id_letter="P"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3782464
 CGAL Polyhedrons in cache: 1
-CGAL cache size in bytes: 13138640
-Total rendering time: 0:00:11.250
+CGAL cache size in bytes: 21740240
+Total rendering time: 0:00:14.734
 Top level object is a 3D object (Nef polyhedron):
    Simple:     yes
-   Vertices:     5224
-   Halfedges:   25280
-   Edges:       12640
-   Halffacets:  14840
-   Facets:       7420
+   Vertices:     8024
+   Halfedges:   42080
+   Edges:       21040
+   Halffacets:  26040
+   Facets:      13020
    Volumes:         2
-LOG: 2025/01/11 11:26:21 main.go:272: [34m
-Dynamic Model - (16/36) - 'button-height-5/width-5_Q' [0m
-Geometries in cache: 11
-Geometry cache size in bytes: 3883616
+2025/01/11 12:40:11 main.go:285: [34m
+Dynamic Model - (16/36) - 'button-height-20/width-3_Q' [0m
+2025/01/11 12:40:11 main.go:248: [33mParams: [37m			map[button_height:20 button_width:3][0m
+2025/01/11 12:40:11 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:40:11 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:40:11 main.go:248: [33mProcessed instances: [37m			16[0m
+2025/01/11 12:40:11 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-20/width-3_Q[0m
+2025/01/11 12:40:11 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:40:11 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:40:11 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:40:11 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:40:11 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:40:11 main.go:248: [33mCustomParameter [button_width]: [37m			3[0m
+2025/01/11 12:40:11 main.go:248: [33mCustomParameter [button_height]: [37m			20[0m
+2025/01/11 12:40:11 main.go:248: [33mOptionalPartIDLetter: [37m			Q[0m
+2025/01/11 12:40:11 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:40:11 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:40:11 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:40:11 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-20/width-3_Q.stl -D button_width=3 -D button_height=20 -D 'optional_part_id_letter="Q"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3993808
 CGAL Polyhedrons in cache: 1
-CGAL cache size in bytes: 14918288
-Total rendering time: 0:00:12.823
+CGAL cache size in bytes: 32543888
+Total rendering time: 0:00:20.455
 Top level object is a 3D object (Nef polyhedron):
    Simple:     yes
-   Vertices:     6138
-   Halfedges:   28622
-   Edges:       14311
-   Halffacets:  16354
-   Facets:       8177
+   Vertices:    11938
+   Halfedges:   63022
+   Edges:       31511
+   Halffacets:  39154
+   Facets:      19577
    Volumes:         2
-LOG: 2025/01/11 11:26:34 main.go:272: [34m
-Dynamic Model - (17/36) - 'button-height-5/width-6_R' [0m
-Geometries in cache: 11
+2025/01/11 12:40:32 main.go:285: [34m
+Dynamic Model - (17/36) - 'button-height-50/width-3_R' [0m
+2025/01/11 12:40:32 main.go:248: [33mParams: [37m			map[button_height:50 button_width:3][0m
+2025/01/11 12:40:32 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:40:32 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:40:32 main.go:248: [33mProcessed instances: [37m			17[0m
+2025/01/11 12:40:32 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-50/width-3_R[0m
+2025/01/11 12:40:32 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:40:32 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:40:32 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:40:32 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:40:32 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:40:32 main.go:248: [33mCustomParameter [button_width]: [37m			3[0m
+2025/01/11 12:40:32 main.go:248: [33mCustomParameter [button_height]: [37m			50[0m
+2025/01/11 12:40:32 main.go:248: [33mOptionalPartIDLetter: [37m			R[0m
+2025/01/11 12:40:32 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:40:32 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:40:32 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:40:32 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-50/width-3_R.stl -D button_width=3 -D button_height=50 -D 'optional_part_id_letter="R"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3768848
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 52128976
+Total rendering time: 0:00:28.686
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:    17584
+   Halfedges:  101568
+   Edges:       50784
+   Halffacets:  66400
+   Facets:      33200
+   Volumes:         2
+2025/01/11 12:41:00 main.go:285: [34m
+Dynamic Model - (18/36) - 'button-height-1/width-4_S' [0m
+2025/01/11 12:41:00 main.go:248: [33mParams: [37m			map[button_height:1 button_width:4][0m
+2025/01/11 12:41:00 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:41:00 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:41:00 main.go:248: [33mProcessed instances: [37m			18[0m
+2025/01/11 12:41:00 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-1/width-4_S[0m
+2025/01/11 12:41:00 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:41:00 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:41:00 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:41:00 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:41:00 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:41:00 main.go:248: [33mCustomParameter [button_width]: [37m			4[0m
+2025/01/11 12:41:00 main.go:248: [33mCustomParameter [button_height]: [37m			1[0m
+2025/01/11 12:41:00 main.go:248: [33mOptionalPartIDLetter: [37m			S[0m
+2025/01/11 12:41:00 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:41:00 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:41:00 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:41:00 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-1/width-4_S.stl -D button_width=4 -D button_height=1 -D 'optional_part_id_letter="S"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 4101968
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 13672144
+Total rendering time: 0:00:13.093
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     5904
+   Halfedges:   26120
+   Edges:       13060
+   Halffacets:  14318
+   Facets:       7159
+   Volumes:         2
+2025/01/11 12:41:14 main.go:285: [34m
+Dynamic Model - (19/36) - 'button-height-3/width-4_T' [0m
+2025/01/11 12:41:14 main.go:248: [33mParams: [37m			map[button_height:3 button_width:4][0m
+2025/01/11 12:41:14 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:41:14 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:41:14 main.go:248: [33mProcessed instances: [37m			19[0m
+2025/01/11 12:41:14 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-3/width-4_T[0m
+2025/01/11 12:41:14 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:41:14 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:41:14 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:41:14 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:41:14 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:41:14 main.go:248: [33mCustomParameter [button_width]: [37m			4[0m
+2025/01/11 12:41:14 main.go:248: [33mCustomParameter [button_height]: [37m			3[0m
+2025/01/11 12:41:14 main.go:248: [33mOptionalPartIDLetter: [37m			T[0m
+2025/01/11 12:41:14 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:41:14 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:41:14 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:41:14 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-3/width-4_T.stl -D button_width=4 -D button_height=3 -D 'optional_part_id_letter="T"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3659152
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 13688272
+Total rendering time: 0:00:11.305
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     5208
+   Halfedges:   26432
+   Edges:       13216
+   Halffacets:  16022
+   Facets:       8011
+   Volumes:         2
+2025/01/11 12:41:25 main.go:285: [34m
+Dynamic Model - (20/36) - 'button-height-5/width-4_U' [0m
+2025/01/11 12:41:25 main.go:248: [33mParams: [37m			map[button_height:5 button_width:4][0m
+2025/01/11 12:41:25 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:41:25 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:41:25 main.go:248: [33mProcessed instances: [37m			20[0m
+2025/01/11 12:41:25 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-5/width-4_U[0m
+2025/01/11 12:41:25 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:41:25 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:41:25 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:41:25 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:41:25 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:41:25 main.go:248: [33mCustomParameter [button_width]: [37m			4[0m
+2025/01/11 12:41:25 main.go:248: [33mCustomParameter [button_height]: [37m			5[0m
+2025/01/11 12:41:25 main.go:248: [33mOptionalPartIDLetter: [37m			U[0m
+2025/01/11 12:41:25 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:41:25 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:41:25 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:41:25 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-5/width-4_U.stl -D button_width=4 -D button_height=5 -D 'optional_part_id_letter="U"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3781104
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 16818256
+Total rendering time: 0:00:13.311
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     6420
+   Halfedges:   32468
+   Edges:       16234
+   Halffacets:  19634
+   Facets:       9817
+   Volumes:         2
+2025/01/11 12:41:38 main.go:285: [34m
+Dynamic Model - (21/36) - 'button-height-10/width-4_V' [0m
+2025/01/11 12:41:38 main.go:248: [33mParams: [37m			map[button_height:10 button_width:4][0m
+2025/01/11 12:41:38 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:41:38 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:41:38 main.go:248: [33mProcessed instances: [37m			21[0m
+2025/01/11 12:41:38 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-10/width-4_V[0m
+2025/01/11 12:41:38 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:41:38 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:41:38 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:41:38 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:41:38 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:41:38 main.go:248: [33mCustomParameter [button_width]: [37m			4[0m
+2025/01/11 12:41:38 main.go:248: [33mCustomParameter [button_height]: [37m			10[0m
+2025/01/11 12:41:38 main.go:248: [33mOptionalPartIDLetter: [37m			V[0m
+2025/01/11 12:41:38 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:41:38 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:41:38 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:41:38 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-10/width-4_V.stl -D button_width=4 -D button_height=10 -D 'optional_part_id_letter="V"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3675136
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 21763600
+Total rendering time: 0:00:14.100
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     7862
+   Halfedges:   42194
+   Edges:       21097
+   Halffacets:  26476
+   Facets:      13238
+   Volumes:         2
+2025/01/11 12:41:52 main.go:285: [34m
+Dynamic Model - (22/36) - 'button-height-20/width-4_W' [0m
+2025/01/11 12:41:52 main.go:248: [33mParams: [37m			map[button_height:20 button_width:4][0m
+2025/01/11 12:41:52 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:41:52 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:41:52 main.go:248: [33mProcessed instances: [37m			22[0m
+2025/01/11 12:41:52 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-20/width-4_W[0m
+2025/01/11 12:41:52 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:41:52 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:41:52 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:41:52 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:41:52 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:41:52 main.go:248: [33mCustomParameter [button_width]: [37m			4[0m
+2025/01/11 12:41:52 main.go:248: [33mCustomParameter [button_height]: [37m			20[0m
+2025/01/11 12:41:52 main.go:248: [33mOptionalPartIDLetter: [37m			W[0m
+2025/01/11 12:41:52 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:41:52 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:41:52 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:41:52 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-20/width-4_W.stl -D button_width=4 -D button_height=20 -D 'optional_part_id_letter="W"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3755056
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 31842640
+Total rendering time: 0:00:19.081
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:    11332
+   Halfedges:   61804
+   Edges:       30902
+   Halffacets:  39146
+   Facets:      19573
+   Volumes:         2
+2025/01/11 12:42:12 main.go:285: [34m
+Dynamic Model - (23/36) - 'button-height-50/width-4_X' [0m
+2025/01/11 12:42:12 main.go:248: [33mParams: [37m			map[button_height:50 button_width:4][0m
+2025/01/11 12:42:12 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:42:12 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:42:12 main.go:248: [33mProcessed instances: [37m			23[0m
+2025/01/11 12:42:12 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-50/width-4_X[0m
+2025/01/11 12:42:12 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:42:12 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:42:12 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:42:12 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:42:12 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:42:12 main.go:248: [33mCustomParameter [button_width]: [37m			4[0m
+2025/01/11 12:42:12 main.go:248: [33mCustomParameter [button_height]: [37m			50[0m
+2025/01/11 12:42:12 main.go:248: [33mOptionalPartIDLetter: [37m			X[0m
+2025/01/11 12:42:12 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:42:12 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:42:12 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:42:12 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-50/width-4_X.stl -D button_width=4 -D button_height=50 -D 'optional_part_id_letter="X"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3661520
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 52128976
+Total rendering time: 0:00:26.897
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:    17584
+   Halfedges:  101568
+   Edges:       50784
+   Halffacets:  66400
+   Facets:      33200
+   Volumes:         2
+2025/01/11 12:42:39 main.go:285: [34m
+Dynamic Model - (24/36) - 'button-height-1/width-5_Y' [0m
+2025/01/11 12:42:39 main.go:248: [33mParams: [37m			map[button_height:1 button_width:5][0m
+2025/01/11 12:42:39 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:42:39 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:42:39 main.go:248: [33mProcessed instances: [37m			24[0m
+2025/01/11 12:42:39 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-1/width-5_Y[0m
+2025/01/11 12:42:39 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:42:39 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:42:39 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:42:39 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:42:39 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:42:39 main.go:248: [33mCustomParameter [button_height]: [37m			1[0m
+2025/01/11 12:42:39 main.go:248: [33mCustomParameter [button_width]: [37m			5[0m
+2025/01/11 12:42:39 main.go:248: [33mOptionalPartIDLetter: [37m			Y[0m
+2025/01/11 12:42:39 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:42:39 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:42:39 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:42:39 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-1/width-5_Y.stl -D button_height=1 -D button_width=5 -D 'optional_part_id_letter="Y"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3659744
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 12462736
+Total rendering time: 0:00:11.162
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     4810
+   Halfedges:   24038
+   Edges:       12019
+   Halffacets:  14424
+   Facets:       7212
+   Volumes:         2
+2025/01/11 12:42:50 main.go:285: [34m
+Dynamic Model - (25/36) - 'button-height-3/width-5_Z' [0m
+2025/01/11 12:42:50 main.go:248: [33mParams: [37m			map[button_height:3 button_width:5][0m
+2025/01/11 12:42:50 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:42:50 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:42:50 main.go:248: [33mProcessed instances: [37m			25[0m
+2025/01/11 12:42:50 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-3/width-5_Z[0m
+2025/01/11 12:42:50 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:42:50 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:42:50 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:42:50 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:42:50 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:42:50 main.go:248: [33mCustomParameter [button_width]: [37m			5[0m
+2025/01/11 12:42:50 main.go:248: [33mCustomParameter [button_height]: [37m			3[0m
+2025/01/11 12:42:50 main.go:248: [33mOptionalPartIDLetter: [37m			Z[0m
+2025/01/11 12:42:50 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:42:50 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:42:50 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:42:50 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-3/width-5_Z.stl -D button_width=5 -D button_height=3 -D 'optional_part_id_letter="Z"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3660336
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 15538000
+Total rendering time: 0:00:12.191
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     5812
+   Halfedges:   30044
+   Edges:       15022
+   Halffacets:  18426
+   Facets:       9213
+   Volumes:         2
+2025/01/11 12:43:02 main.go:285: [34m
+Dynamic Model - (26/36) - 'button-height-5/width-5_AA' [0m
+2025/01/11 12:43:02 main.go:248: [33mParams: [37m			map[button_height:5 button_width:5][0m
+2025/01/11 12:43:02 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:43:02 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:43:02 main.go:248: [33mProcessed instances: [37m			26[0m
+2025/01/11 12:43:02 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-5/width-5_AA[0m
+2025/01/11 12:43:02 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:43:02 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:43:02 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:43:02 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:43:02 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:43:02 main.go:248: [33mCustomParameter [button_width]: [37m			5[0m
+2025/01/11 12:43:02 main.go:248: [33mCustomParameter [button_height]: [37m			5[0m
+2025/01/11 12:43:02 main.go:248: [33mOptionalPartIDLetter: [37m			AA[0m
+2025/01/11 12:43:02 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:43:02 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:43:02 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:43:02 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-5/width-5_AA.stl -D button_width=5 -D button_height=5 -D 'optional_part_id_letter="AA"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
 Geometry cache size in bytes: 3731616
 CGAL Polyhedrons in cache: 1
-CGAL cache size in bytes: 14906768
-Total rendering time: 0:00:12.160
+CGAL cache size in bytes: 17773648
+Total rendering time: 0:00:13.070
 Top level object is a 3D object (Nef polyhedron):
    Simple:     yes
-   Vertices:     5778
-   Halfedges:   28742
-   Edges:       14371
-   Halffacets:  17194
-   Facets:       8597
+   Vertices:     6652
+   Halfedges:   34364
+   Edges:       17182
+   Halffacets:  21072
+   Facets:      10536
    Volumes:         2
-LOG: 2025/01/11 11:26:46 main.go:272: [34m
-Dynamic Model - (18/36) - 'button-height-10/width-1_S' [0m
-Geometries in cache: 11
-Geometry cache size in bytes: 3956688
+2025/01/11 12:43:15 main.go:285: [34m
+Dynamic Model - (27/36) - 'button-height-10/width-5_AB' [0m
+2025/01/11 12:43:15 main.go:248: [33mParams: [37m			map[button_height:10 button_width:5][0m
+2025/01/11 12:43:15 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:43:15 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:43:15 main.go:248: [33mProcessed instances: [37m			27[0m
+2025/01/11 12:43:15 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-10/width-5_AB[0m
+2025/01/11 12:43:15 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:43:15 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:43:15 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:43:15 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:43:15 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:43:15 main.go:248: [33mCustomParameter [button_height]: [37m			10[0m
+2025/01/11 12:43:15 main.go:248: [33mCustomParameter [button_width]: [37m			5[0m
+2025/01/11 12:43:15 main.go:248: [33mOptionalPartIDLetter: [37m			AB[0m
+2025/01/11 12:43:15 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:43:15 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:43:15 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:43:15 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-10/width-5_AB.stl -D button_height=10 -D button_width=5 -D 'optional_part_id_letter="AB"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3929520
 CGAL Polyhedrons in cache: 1
-CGAL cache size in bytes: 16744144
-Total rendering time: 0:00:13.763
+CGAL cache size in bytes: 24393680
+Total rendering time: 0:00:16.477
 Top level object is a 3D object (Nef polyhedron):
    Simple:     yes
-   Vertices:     6904
-   Halfedges:   32120
-   Edges:       16060
-   Halffacets:  18318
-   Facets:       9159
+   Vertices:     9120
+   Halfedges:   47168
+   Edges:       23584
+   Halffacets:  28942
+   Facets:      14471
    Volumes:         2
-LOG: 2025/01/11 11:27:00 main.go:272: [34m
-Dynamic Model - (19/36) - 'button-height-10/width-2_T' [0m
-Geometries in cache: 11
-Geometry cache size in bytes: 3657488
+2025/01/11 12:43:32 main.go:285: [34m
+Dynamic Model - (28/36) - 'button-height-20/width-5_AC' [0m
+2025/01/11 12:43:32 main.go:248: [33mParams: [37m			map[button_height:20 button_width:5][0m
+2025/01/11 12:43:32 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:43:32 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:43:32 main.go:248: [33mProcessed instances: [37m			28[0m
+2025/01/11 12:43:32 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-20/width-5_AC[0m
+2025/01/11 12:43:32 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:43:32 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:43:32 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:43:32 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:43:32 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:43:32 main.go:248: [33mCustomParameter [button_width]: [37m			5[0m
+2025/01/11 12:43:32 main.go:248: [33mCustomParameter [button_height]: [37m			20[0m
+2025/01/11 12:43:32 main.go:248: [33mOptionalPartIDLetter: [37m			AC[0m
+2025/01/11 12:43:32 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:43:32 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:43:32 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:43:32 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-20/width-5_AC.stl -D button_width=5 -D button_height=20 -D 'optional_part_id_letter="AC"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3925024
 CGAL Polyhedrons in cache: 1
-CGAL cache size in bytes: 14917072
-Total rendering time: 0:00:11.155
+CGAL cache size in bytes: 34008720
+Total rendering time: 0:00:20.628
 Top level object is a 3D object (Nef polyhedron):
    Simple:     yes
-   Vertices:     5608
-   Halfedges:   28832
-   Edges:       14416
-   Halffacets:  17622
-   Facets:       8811
+   Vertices:    12306
+   Halfedges:   65926
+   Edges:       32963
+   Halffacets:  41324
+   Facets:      20662
    Volumes:         2
-LOG: 2025/01/11 11:27:11 main.go:272: [34m
-Dynamic Model - (20/36) - 'button-height-10/width-3_U' [0m
+2025/01/11 12:43:52 main.go:285: [34m
+Dynamic Model - (29/36) - 'button-height-50/width-5_AD' [0m
+2025/01/11 12:43:52 main.go:248: [33mParams: [37m			map[button_height:50 button_width:5][0m
+2025/01/11 12:43:52 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:43:52 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:43:52 main.go:248: [33mProcessed instances: [37m			29[0m
+2025/01/11 12:43:52 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-50/width-5_AD[0m
+2025/01/11 12:43:52 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:43:52 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:43:52 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:43:52 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:43:52 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:43:52 main.go:248: [33mCustomParameter [button_width]: [37m			5[0m
+2025/01/11 12:43:52 main.go:248: [33mCustomParameter [button_height]: [37m			50[0m
+2025/01/11 12:43:52 main.go:248: [33mOptionalPartIDLetter: [37m			AD[0m
+2025/01/11 12:43:52 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:43:52 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:43:52 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:43:52 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-50/width-5_AD.stl -D button_width=5 -D button_height=50 -D 'optional_part_id_letter="AD"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3835216
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 52128976
+Total rendering time: 0:00:28.923
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:    17584
+   Halfedges:  101568
+   Edges:       50784
+   Halffacets:  66400
+   Facets:      33200
+   Volumes:         2
+2025/01/11 12:44:21 main.go:285: [34m
+Dynamic Model - (30/36) - 'button-height-1/width-6_AE' [0m
+2025/01/11 12:44:21 main.go:248: [33mParams: [37m			map[button_height:1 button_width:6][0m
+2025/01/11 12:44:21 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:44:21 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:44:21 main.go:248: [33mProcessed instances: [37m			30[0m
+2025/01/11 12:44:21 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-1/width-6_AE[0m
+2025/01/11 12:44:21 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:44:21 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:44:21 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:44:21 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:44:21 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:44:21 main.go:248: [33mCustomParameter [button_width]: [37m			6[0m
+2025/01/11 12:44:21 main.go:248: [33mCustomParameter [button_height]: [37m			1[0m
+2025/01/11 12:44:21 main.go:248: [33mOptionalPartIDLetter: [37m			AE[0m
+2025/01/11 12:44:21 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:44:21 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:44:21 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:44:21 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-1/width-6_AE.stl -D button_width=6 -D button_height=1 -D 'optional_part_id_letter="AE"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3700064
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 13914000
+Total rendering time: 0:00:11.334
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     5346
+   Halfedges:   26846
+   Edges:       13423
+   Halffacets:  16164
+   Facets:       8082
+   Volumes:         2
+2025/01/11 12:44:33 main.go:285: [34m
+Dynamic Model - (31/36) - 'button-height-3/width-6_AF' [0m
+2025/01/11 12:44:33 main.go:248: [33mParams: [37m			map[button_height:3 button_width:6][0m
+2025/01/11 12:44:33 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:44:33 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:44:33 main.go:248: [33mProcessed instances: [37m			31[0m
+2025/01/11 12:44:33 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-3/width-6_AF[0m
+2025/01/11 12:44:33 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:44:33 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:44:33 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:44:33 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:44:33 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:44:33 main.go:248: [33mCustomParameter [button_width]: [37m			6[0m
+2025/01/11 12:44:33 main.go:248: [33mCustomParameter [button_height]: [37m			3[0m
+2025/01/11 12:44:33 main.go:248: [33mOptionalPartIDLetter: [37m			AF[0m
+2025/01/11 12:44:33 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:44:33 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:44:33 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:44:33 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-3/width-6_AF.stl -D button_width=6 -D button_height=3 -D 'optional_part_id_letter="AF"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3698880
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 16365072
+Total rendering time: 0:00:12.600
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     6142
+   Halfedges:   31634
+   Edges:       15817
+   Halffacets:  19360
+   Facets:       9680
+   Volumes:         2
+2025/01/11 12:44:45 main.go:285: [34m
+Dynamic Model - (32/36) - 'button-height-5/width-6_AG' [0m
+2025/01/11 12:44:45 main.go:248: [33mParams: [37m			map[button_height:5 button_width:6][0m
+2025/01/11 12:44:45 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:44:45 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:44:45 main.go:248: [33mProcessed instances: [37m			32[0m
+2025/01/11 12:44:45 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-5/width-6_AG[0m
+2025/01/11 12:44:45 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:44:45 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:44:45 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:44:45 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:44:45 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:44:45 main.go:248: [33mCustomParameter [button_width]: [37m			6[0m
+2025/01/11 12:44:45 main.go:248: [33mCustomParameter [button_height]: [37m			5[0m
+2025/01/11 12:44:45 main.go:248: [33mOptionalPartIDLetter: [37m			AG[0m
+2025/01/11 12:44:45 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:44:45 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:44:45 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:44:45 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-5/width-6_AG.stl -D button_width=6 -D button_height=5 -D 'optional_part_id_letter="AG"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3927392
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 20082576
+Total rendering time: 0:00:14.711
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     7714
+   Halfedges:   38750
+   Edges:       19375
+   Halffacets:  23332
+   Facets:      11666
+   Volumes:         2
+2025/01/11 12:45:00 main.go:285: [34m
+Dynamic Model - (33/36) - 'button-height-10/width-6_AH' [0m
+2025/01/11 12:45:00 main.go:248: [33mParams: [37m			map[button_height:10 button_width:6][0m
+2025/01/11 12:45:00 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:45:00 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:45:00 main.go:248: [33mProcessed instances: [37m			33[0m
+2025/01/11 12:45:00 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-10/width-6_AH[0m
+2025/01/11 12:45:00 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:45:00 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:45:00 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:45:00 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:45:00 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:45:00 main.go:248: [33mCustomParameter [button_height]: [37m			10[0m
+2025/01/11 12:45:00 main.go:248: [33mCustomParameter [button_width]: [37m			6[0m
+2025/01/11 12:45:00 main.go:248: [33mOptionalPartIDLetter: [37m			AH[0m
+2025/01/11 12:45:00 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:45:00 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:45:00 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:45:00 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-10/width-6_AH.stl -D button_height=10 -D button_width=6 -D 'optional_part_id_letter="AH"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3700064
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 24358800
+Total rendering time: 0:00:15.202
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:     8746
+   Halfedges:   47246
+   Edges:       23623
+   Halffacets:  29764
+   Facets:      14882
+   Volumes:         2
+2025/01/11 12:45:16 main.go:285: [34m
+Dynamic Model - (34/36) - 'button-height-20/width-6_AI' [0m
+2025/01/11 12:45:16 main.go:248: [33mParams: [37m			map[button_height:20 button_width:6][0m
+2025/01/11 12:45:16 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:45:16 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:45:16 main.go:248: [33mProcessed instances: [37m			34[0m
+2025/01/11 12:45:16 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-20/width-6_AI[0m
+2025/01/11 12:45:16 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:45:16 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:45:16 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:45:16 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:45:16 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:45:16 main.go:248: [33mCustomParameter [button_width]: [37m			6[0m
+2025/01/11 12:45:16 main.go:248: [33mCustomParameter [button_height]: [37m			20[0m
+2025/01/11 12:45:16 main.go:248: [33mOptionalPartIDLetter: [37m			AI[0m
+2025/01/11 12:45:16 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:45:16 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:45:16 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:45:16 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-20/width-6_AI.stl -D button_width=6 -D button_height=20 -D 'optional_part_id_letter="AI"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3695328
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 33971088
+Total rendering time: 0:00:18.263
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:    11930
+   Halfedges:   65998
+   Edges:       32999
+   Halffacets:  42148
+   Facets:      21074
+   Volumes:         2
+2025/01/11 12:45:34 main.go:285: [34m
+Dynamic Model - (35/36) - 'button-height-50/width-6_AJ' [0m
+2025/01/11 12:45:34 main.go:248: [33mParams: [37m			map[button_height:50 button_width:6][0m
+2025/01/11 12:45:34 main.go:285: [34mMax instance check passed[0m
+2025/01/11 12:45:34 main.go:248: [33mMax instances: [37m			0[0m
+2025/01/11 12:45:34 main.go:248: [33mProcessed instances: [37m			35[0m
+2025/01/11 12:45:34 main.go:248: [33moutputPath: [37m			examples/screw-in-button/export/v1.16/button-height-50/width-6_AJ[0m
+2025/01/11 12:45:34 main.go:248: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:45:34 main.go:248: [33mexportFolderPath to check:: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:45:34 main.go:285: [34mCopying design file to export folder[0m
+2025/01/11 12:45:34 main.go:248: [33mDesign file: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:45:34 main.go:248: [33mExport folder: [37m			examples/screw-in-button/export/v1.16[0m
+2025/01/11 12:45:34 main.go:248: [33mCustomParameter [button_width]: [37m			6[0m
+2025/01/11 12:45:34 main.go:248: [33mCustomParameter [button_height]: [37m			50[0m
+2025/01/11 12:45:34 main.go:248: [33mOptionalPartIDLetter: [37m			AJ[0m
+2025/01/11 12:45:34 main.go:248: [33mOverrideFN: [37m			200[0m
+2025/01/11 12:45:34 main.go:248: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/01/11 12:45:34 main.go:285: [34mRunning openscad[0m
+2025/01/11 12:45:34 main.go:248: [33mCommand: [37m			openscad -o examples/screw-in-button/export/v1.16/button-height-50/width-6_AJ.stl -D button_width=6 -D button_height=50 -D 'optional_part_id_letter="AJ"' -D 'fn=200' ./examples/screw-in-button/Button.scad --export-format binstl --render[0m
+Geometries in cache: 12
+Geometry cache size in bytes: 3819648
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 52128976
+Total rendering time: 0:00:28.682
+Top level object is a 3D object (Nef polyhedron):
+   Simple:     yes
+   Vertices:    17584
+   Halfedges:  101568
+   Edges:       50784
+   Halffacets:  66400
+   Facets:      33200
+   Volumes:         2
+2025/01/11 12:46:03 main.go:285: [34mNo Static Instances[0m
+2025/01/11 12:46:03 main.go:285: [34mSTL generation completed[0m

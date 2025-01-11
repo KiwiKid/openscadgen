@@ -105,6 +105,7 @@ git push && git push --tags
 
 
 ## TODO/Project Ideas
+- [ ] Allow for multi-part builds in the same config file (i.e. multiple scad files, generated with the same input parameters)
 - [ ] Allow for concurrent openscad runs
 - [ ] Directory generation (i.e. dynamically find and generate all the instance configs in a directory)
 - [ ] (maybe) Add ability to generate instances via annotations in the scad file (i.e. remove need for config file). Something like:
@@ -112,11 +113,13 @@ git push && git push --tags
 // openscadgen: handle_offset: 10, 15, 25
 handle_offset = 10
 ```
-- [ ] Add ability to configure ranges of parameters in config file with auto-naming (i.e. handle_diameter: 5 to 10)
+- [ ] Split export folder into 'base' and 'has_part_letter' folders
+- [ ] Allow for setting of part id in the static instance config
 - [ ] (maybe) make stl builds parallel to speed up processing time 
-- [ ] Warn when replacing existing stl export files
 - [ ] Add clean-up option for old versions
 - [ ] Add config file generation quickstart command (to create a config file from a scad file)
 - [ ] (maybe) Add a watch mode to automatically re-run the tool when the scad file is changed
+- [-] Warn when replacing existing stl export files
+- [-] Add ability to configure ranges of parameters in config file with auto-naming (i.e. handle_diameter: 5 to 10)
 
-If you have any ideas/bugs/etc, please let me know and i'll try and fix them where possible. I do want to keep the goals of the project simple and specific as i believe it will result in the best tool for the job.
+If you have any ideas/bugs/etc, please let me know and i'll try and fix them where possible. I do want to keep the goals of the project simple and specific.
