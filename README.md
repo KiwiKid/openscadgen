@@ -1,12 +1,8 @@
 openscadgen is IN-DEVELOPMENT a tool for generating a set of .stl files from a single .scad file and a simple config file.
 
-The goal of the tool is to ease the management and production of large numbers of stl files when working with one openSCAD file.
+The goal of the tool is to ease the management, production and distribution of large numbers of stl files when working with openSCAD.
 
 (early days and still in active development, please let me know if you encounter any issues)
-
-# Why?
-
-Seeing some frustrations in the community with the lack of 'remixabilty' when providing open source models, the openscad code does make remixes easier, but we can't expect everyone to be comfortable with (especially other peoples!) openscad code. This tools aims to make it easier to create a 'base' model, a list of useful instances of that model and then generate a set of stl files based on the 'base' model. A good analogy might be the difference between providing the source code and providing a set of pre-compiled binaries. The source code can be used to install the software, but the pre-compiled software for each platform will be more accessible to a wider audience.
 
 Additionally, through 'version' string defined in the config file, we control the subfolder the export is made into, allowing for easy management of old versions.
 
@@ -100,6 +96,10 @@ git push && git push --tags
 ```
 
 
+# Why?
+
+Seeing some frustrations in the community with the lack of 'remixabilty' when providing open source models, the openscad code does make remixes easier, but we can't expect everyone to be comfortable with (especially other peoples!) openscad code. This tools aims to make it easier to create a 'base' model, a list of useful instances of that model and then generate a set of stl files based on the 'base' model. A good analogy might be the difference between providing the source code and providing a set of pre-compiled binaries. The source code can be used to install the software, but the pre-compiled software for each platform will be more accessible to a wider audience.
+
 
 
 
@@ -113,13 +113,15 @@ git push && git push --tags
 // openscadgen: handle_offset: 10, 15, 25
 handle_offset = 10
 ```
+- [ ] Allow for building a whole directory of scad files (i.e. generate all the instances in a directory)
 - [ ] Split export folder into 'base' and 'has_part_letter' folders
 - [ ] Allow for setting of part id in the static instance config
 - [ ] (maybe) make stl builds parallel to speed up processing time 
 - [ ] Add clean-up option for old versions
-- [ ] Add config file generation quickstart command (to create a config file from a scad file)
-- [ ] (maybe) Add a watch mode to automatically re-run the tool when the scad file is changed
+- [ ] Add config file generation quickstart command (to initialise a openscadgen config file from a scad file)
+- [ ] (maybe) Add configurable watch mode to automatically re-run the tool when the scad file is changed
+- [ ] Tidy/Improve logging and log handling
 - [-] Warn when replacing existing stl export files
-- [-] Add ability to configure ranges of parameters in config file with auto-naming (i.e. handle_diameter: 5 to 10)
+- [-] Add ability to configure ranges of parameters in config file with auto-naming (i.e. i want models for each handle_diameter from 5 to 10, with )
 
 If you have any ideas/bugs/etc, please let me know and i'll try and fix them where possible. I do want to keep the goals of the project simple and specific.

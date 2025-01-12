@@ -1,4 +1,14 @@
-$fn = 200;
+/**
+   mulit-size upholstery screw-in button
+   
+   Source: https://github.com/KiwiKid/openscaden/
+   Author: KiwiKid
+   
+*/
+
+$fn = 100;
+
+
 
 // Size of the screw hole
 screw_hole_radius_size = 2.5;
@@ -31,7 +41,7 @@ module label_text(txt) {
         text_size = 3;  // Size of the text
         text_height = 3; // Height of the extruded text
         text_y_translate = screw_head_hole_radius_size+1;
-        text_depth = 0.3;
+        text_depth = 0.8;
         
         // Estimate width of each character
         char_width = text_size * 0.94;
@@ -62,9 +72,11 @@ difference(){
     translate([0, 0, screw_hole_guard_depth-button_width])
     cylinder(h=all_the_way, r = screw_head_hole_radius_size);
     
+    
+    
   
     // (optional) part label to help with identification
     label_text(optional_part_id_letter);
 
- 
+
 }
