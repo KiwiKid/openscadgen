@@ -1,35 +1,34 @@
 # These lines configure, where the config file is, how openscad will be run and where the output will be saved
 [openscadgen]
 name = "car-holder-plus"
-description = "A parametric car cup holder"
+description = """\
+  A simple model that upgrades the center console cup holder from one small cup holder to two medium-large cup holders with a slot at either end for a phone
+\n
+Tested against late 90s toyota models, you can adjust the cup holder size via these params in the openscad file:
+\n
+$in_car_cup_holder_height = 65;
+$in_car_holder_top_diameter = 74;
+$in_car_bottom_diameter = 66.5;
+\n\n
+Project file includes:
+\n
+- Cup Adapter without cut - an “All-in-on” print - uses more supports & time, stronger, with no assembly (~21h print time & 560g of PLA filament)
+\n
+- Cut the Cup Adapter with a dowel cut - Minimise print/build time via splitting the cup holder to a separate part (~14h print time & 450g of PLA filament)
+ - Parametric .scad file for customisation 
+\n\n\n
+v1.1
+- Making the cup shorter and wider at the top (remove the need for tape)
+- Slightly narrower cup holder diameter at the brim and base
+- Reduce sharp edges (better align cup & phone holders in the center)
+"""
 input_path = "./examples/cup-holder-plus/carHolderPlus.scad"
-output_path = "./examples/cup-holder-plus/export"
+export_name_format = "{cup_holders_mode}-{designFileName}-{name}"
+
+output_path = "./examples/cup-holder-plus/export/"
 version = "v1.2"
 custom_openscad_args = "--summary"
 
+[[openscadgen.dynamic_instances]]
+params = { name= "rav4", in_car_cup_holder_height = "70", in_car_cup_holder_top_diameter = "74", in_car_cup_holder_bottom_diameter = "66.5", center_offset = "0", cup_holders_mode = "oneBigOneSmall,twoBig" }
 
-# Each instance below will result in a separate .stl file being created with those parameters in the 'output_path' directory
-[[openscadgen.instances]]
-name = "late-90s-toyota-style-cup-holder"
-description = "The bottom cup holder is size for a late 90s Toyota cup holder (rav line)"
-[openscadgen.instances.params]
-in_car_cup_holder_height = 70
-in_car_cup_holder_top_diameter = 74
-in_car_cup_holder_bottom_diameter = 66.5
-in_car_cup_holder_center_offset = 0
-
-[[openscadgen.instances]]
-name = "Slightly larger cup holder"
-[openscadgen.instances.params]
-in_car_cup_holder_height = 70
-in_car_cup_holder_top_diameter = 80
-in_car_cup_holder_bottom_diameter = 70
-in_car_cup_holder_center_offset = 0
-
-[[openscadgen.instances]]
-name = "Slightly larger and longer cup holder"
-[openscadgen.instances.params]
-in_car_cup_holder_height = 80
-in_car_cup_holder_top_diameter = 80
-in_car_cup_holder_bottom_diameter = 70
-in_car_cup_holder_center_offset = 0
