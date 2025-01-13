@@ -1,6 +1,10 @@
+$fn = 200;
 
+include <BOSL2/std.scad>
+include <BOSL2/joiners.scad>
 
-
+// oneBigOneSmall, twoBig
+cup_holders_mode = "twoBig";
 
 cup_holder_y_offset = 4;
 cup_holder_center_offset= 43;
@@ -27,16 +31,17 @@ phone_holder_depth=100;
 // Mode: simple or rounded - (this is redundent in newer builds of openSCAD, as at Jan 2025, the development build (with peformance improvments, i.e. manfold) will run this model, with minkowski transform without lagging
 $mode = "rounded";
 
-// IMPORTAINT - ENSURE THESE MATCH YOU Cup holder below (toyata rav below)
+// IMPORTANT - Ensure these match your cup holder (toyata rav4 set below)
 in_car_cup_holder_height = 70;
 in_car_cup_holder_top_diameter = 74;
 in_car_cup_holder_bottom_diameter = 66.5;
-in_car_cup_holder_center_offset = 0;
+in_car_cup_holder_center_offset = 16;
 
 
 holder_length=230;
 holder_width=110;
 holder_depth=100;
+
 
 module roundedCube(size = [10, 10, 10], radius = 2, center = false) {
     // Calculate adjustment for Minkowski thickness
@@ -47,7 +52,7 @@ module roundedCube(size = [10, 10, 10], radius = 2, center = false) {
         cube(size, center = false);
     } else if ($mode == "rounded") {
         minkowski() {
-            #cube(size - [2 * radius, 2 * radius, 2 * radius], center = false);
+            cube(size - [2 * radius, 2 * radius, 2 * radius], center = false);
             sphere(radius);
         }
     } else {
@@ -72,50 +77,67 @@ module roundedCylinder(h = 20, d1 = 10, d2 = 10, radius = 2, center = false) {
             sphere(radius);
         }
     } else {
-        echo("Invalid mode. Use 'simple' or 'rounded'.");
+     //   echo("Invalid mode. Use 'simple' or 'rounded'.");
     }
 }
 
-translate([in_car_cup_holder_center_offset, 0, 0])
-cylinder(h=in_car_cup_holder_height,d1=in_car_cup_holder_bottom_diameter, d2=in_car_cup_holder_top_diameter);
+
+module cupHolder(){
+
+    translate([in_car_cup_holder_center_offset, 0, 0])
+    cylinder(h=in_car_cup_holder_height,d1=in_car_cup_holder_bottom_diameter, d2=in_car_cup_holder_top_diameter);
 
 
-difference(){
-    // Main Holder Box
-    translate([-holder_length/2, -cup_holder_1_top_radius/2-5, in_car_cup_holder_height]) roundedCube(size = [holder_length, holder_width, holder_depth], radius = 10);
-    
-    // Side Through cutout 1
-  //  translate([$side_cutout_x_offset-15, -90, $side_cutout_y_offset])
-  //  roundedCube([$side_cutout_1_width, 200, $side_cutout_height]);
-    
-    // Side Through cutout 2
-  //  translate([-$side_cutout_x_offset-80, -100, $side_cutout_y_offset])
-   // roundedCube([$side_cutout_1_width, 200, $side_cutout_height]);
-    
-    
-    // End-To-End Through cutout
-   // translate([-150, -35, 100])
-   // roundedCube([2000, 90, 50]);
-    
-    
-    
-    // Cup holder 1
-   translate([cup_holder_center_offset, cup_holder_y_offset, in_car_cup_holder_height+cup_holder_floor_depth]) roundedCylinder(h=cup_holder_height, d1=cup_holder_1_botton_radius, d2=cup_holder_1_top_radius);
-    
-     // Cup holder 2
-    translate([-cup_holder_center_offset, cup_holder_y_offset, in_car_cup_holder_height+cup_holder_floor_depth]) roundedCylinder(h=cup_holder_height, d1=cup_holder_2_botton_radius, d2=cup_holder_2_top_radius);
-    
-    // Phone Holder 1 
-    translate([phone_holder1_offset, -47, in_car_cup_holder_height+phone_holder_floor_depth])
-    roundedCube([phone_holder_width, phone_holder_depth, phone_holder_height], radius=10);
-      
-     // Phone Holder 2
-    translate([phone_holder2_offset, -48, in_car_cup_holder_height+phone_holder_floor_depth])
-    roundedCube([phone_holder_width, phone_holder_depth, phone_holder_height], radius=10);
-    
-    // Center Phone Cutout
-    translate([-90, -23, in_car_cup_holder_height+phone_holder_floor_depth+10])
-    roundedCube([190, 50, 90]);
+    difference(){
+        // Main Holder Box
+        translate([-holder_length/2, -cup_holder_1_top_radius/2-5, in_car_cup_holder_height]) roundedCube(size = [holder_length, holder_width, holder_depth], radius = 10);
+        
+        // Cup holder 1
+       translate([cup_holder_center_offset, cup_holder_y_offset, in_car_cup_holder_height+cup_holder_floor_depth]) roundedCylinder(h=cup_holder_height, d1=cup_holder_1_botton_radius, d2=cup_holder_1_top_radius);
+        
+        if (cup_holders_mode == "oneBigOneSmall") {
+         // Cup holder 2
+        translate([-cup_holder_center_offset, cup_holder_y_offset, in_car_cup_holder_height+cup_holder_floor_depth]) roundedCylinder(h=cup_holder_height, d1=cup_holder_2_botton_radius, d2=cup_holder_2_top_radius);
+        } else if (cup_holders_mode == "twoBig") {
+        
+        translate([-cup_holder_center_offset, cup_holder_y_offset, in_car_cup_holder_height+cup_holder_floor_depth]) roundedCylinder(h=cup_holder_height, d1=cup_holder_1_botton_radius, d2=cup_holder_1_top_radius);
+        
+        } else {
+           echo("<b style='color:red'>", A="Failed");
+        
+        }
+        
+        // Phone Holder 1 
+        translate([phone_holder1_offset, -47, in_car_cup_holder_height+phone_holder_floor_depth])
+        roundedCube([phone_holder_width, phone_holder_depth, phone_holder_height], radius=10);
+          
+         // Phone Holder 2
+        translate([phone_holder2_offset, -48, in_car_cup_holder_height+phone_holder_floor_depth])
+        roundedCube([phone_holder_width, phone_holder_depth, phone_holder_height], radius=10);
+        
+        
+        if (cup_holders_mode == "twoBig") {
+        // Center Phone Cutout
+        translate([-90, -31, in_car_cup_holder_height+phone_holder_floor_depth+10])
+        roundedCube([180, 70, 90]);
+        } else if (cup_holders_mode == "oneBigOneSmall") {
+         
+         translate([-90, -20, in_car_cup_holder_height+phone_holder_floor_depth+10])
+        
+        roundedCube([190, 50, 100]);
+        
+        
+        translate([68, -33, in_car_cup_holder_height+phone_holder_floor_depth+10])
+        roundedCube([20, 75, 90]);
+        }
+        
+    };
 
 };
 
+
+
+
+cupHolder();
+
+        
