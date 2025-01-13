@@ -1,0 +1,32 @@
+2025/01/13 21:49:46 main.go:437: [34mLoading config file[0m
+2025/01/13 21:49:46 main.go:400: [33mParam name to confirm: [37m			cup_holders_mode[0m
+2025/01/13 21:49:46 main.go:400: [33mExportNameFormat: [37m			{cup_holders_mode}-{designFileName}-{name}[0m
+2025/01/13 21:49:46 main.go:400: [33mParam name to confirm: [37m			designFileName[0m
+2025/01/13 21:49:46 main.go:400: [33mExportNameFormat: [37m			{cup_holders_mode}-{designFileName}-{name}[0m
+2025/01/13 21:49:46 main.go:400: [33mParam name to confirm: [37m			name[0m
+2025/01/13 21:49:46 main.go:400: [33mExportNameFormat: [37m			{cup_holders_mode}-{designFileName}-{name}[0m
+2025/01/13 21:49:46 main.go:407: [38;5;208m
+The export folder (examples/cup-holder-plus/export/v1.1) has 5 existing files: 
+	- README.md
+	- carHolderPlus.scad
+	- oneBigOneSmall-carHolderPlus-rav4.stl
+	- openscadgen_export_log.log
+	- twoBig-carHolderPlus-rav4.stl
+
+
+[31m 5 files will be deleted from: 
+	examples/cup-holder-plus/export/v1.1
+[0m
+2025/01/13 21:49:46 main.go:407: [38;5;208m[38;5;208m
+
+Do you want to continue? (y/n):
+[0m[0m
+2025/01/13 21:49:48 main.go:437: [34mStarting Dynamic 2 Instances[0m
+2025/01/13 21:49:48 main.go:437: [34mGot 1 paths to process[0m
+2025/01/13 21:49:48 main.go:400: [33mPath: [37m			./examples/cup-holder-plus/carHolderPlus.scad[0m
+2025/01/13 21:49:48 main.go:400: [33m=============== path: [37m			./examples/cup-holder-plus/carHolderPlus.scad[0m
+2025/01/13 21:49:48 main.go:437: [34mStarting Dynamic 2 Instances[0m
+2025/01/13 21:49:48 main.go:400: [33mformatToUse: [37m			{cup_holders_mode}-{designFileName}-{name}[0m
+2025/01/13 21:49:48 main.go:400: [33mInputPath: [37m			./examples/cup-holder-plus/carHolderPlus.scad[0m
+2025/01/13 21:50:27 main.go:400: [33mformatToUse: [37m			{cup_holders_mode}-{designFileName}-{name}[0m
+2025/01/13 21:50:27 main.go:400: [33mInputPath: [37m			./examples/cup-holder-plus/carHolderPlus.scad[0m
