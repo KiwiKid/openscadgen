@@ -18,7 +18,6 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/BurntSushi/toml"
@@ -54,13 +53,44 @@ func getFileName(path string) string {
 
 // InstanceConfig represents a single instance configuration
 type InstanceConfig struct {
-	Name         string                 `toml:"name"`
-	AutoName     string                 `toml:"auto_name"`
-	Description  string                 `toml:"description,omitempty"`
-	InputPath    string                 `toml:"input_path"`
-	Params       map[string]interface{} `toml:"params"`
-	PartIDLetter string                 `toml:"part_id_letter"`
-	isDynamic    bool
+	Name             string                 `toml:"name"`
+	AutoName         string                 `toml:"auto_name"`
+	Description      string                 `toml:"description,omitempty"`
+	ExportNameFormat string                 `toml:"export_name_format"`
+	InputPath        string                 `toml:"input_path"`
+	Params           map[string]interface{} `toml:"params"`
+	PartIDLetter     string                 `toml:"part_id_letter"`
+	isDynamic        bool
+}
+
+type InstancePaths struct {
+	InputPath        string
+	OutputFolderPath string
+	OutputPath       string
+	FullOutputPath   string
+	PartIDOutputPath string
+}
+
+func (instance *InstanceConfig) getInstancePaths(config *Config) *InstancePaths {
+
+	saveLocation := getInstanceConfigSaveLocation(config, instance)
+	nameFormat := instance.ExportNameFormat
+	if nameFormat == "" {
+		nameFormat = config.Design.ExportNameFormat
+	}
+
+	if nameFormat == "" {
+		nameFormat = "{designFileName}-{name}"
+	}
+
+	outputFolderPath := path.Join(config.Design.OutputPath, config.Design.Version)
+	return &InstancePaths{
+		InputPath:        instance.InputPath,
+		OutputFolderPath: outputFolderPath,
+		OutputPath:       strings.Replace(saveLocation, outputFolderPath, "", 1),
+		FullOutputPath:   path.Join(config.Design.OutputPath, config.Design.Version, nameFormat),
+		PartIDOutputPath: path.Join(config.Design.OutputPath, config.Design.Version, "with_embedded_part_letter"),
+	}
 }
 
 type DynamicInstanceConfig struct {
@@ -95,19 +125,17 @@ func getExportNameFormatParams(exportNameFormat string) []string {
 	return params
 }
 
-func getInstanceConfigSaveLocation(config *Config, instance *InstanceConfig, inputPath string) string {
+func getInstanceConfigSaveLocation(config *Config, instance *InstanceConfig) string {
 
-	fileName := getFileName(inputPath)
+	fileName := getFileName(instance.InputPath)
 	if fileName == "" {
-		log.Panicf("inputPath: '%s' is invalid, could not get fileName", inputPath)
+		log.Panicf("inputPath: '%s' is invalid, could not get fileName", instance.InputPath)
 	}
 
-	formatToUse := config.Design.ExportNameFormat
+	formatToUse := instance.ExportNameFormat
 	if formatToUse == "" {
 		formatToUse = "{designFileName}"
 	}
-
-	logKeyValuePair("formatToUse", formatToUse)
 
 	if formatToUse != "" {
 		for key, value := range instance.Params {
@@ -121,17 +149,6 @@ func getInstanceConfigSaveLocation(config *Config, instance *InstanceConfig, inp
 
 	res := path.Join(config.Design.OutputPath, config.Design.Version, formatToUse+".stl")
 	return res
-}
-
-func getStaticInstances(config *Config, inputPath string) []InstanceConfig {
-	instances := []InstanceConfig{}
-	for _, instance := range config.Design.Instances {
-		instance.isDynamic = false
-		instance.InputPath = inputPath
-		instances = append(instances, instance)
-	}
-
-	return instances
 }
 
 func generateDynamicInstances(config *Config) []InstanceConfig {
@@ -219,13 +236,26 @@ func generateDynamicInstances(config *Config) []InstanceConfig {
 						current["designFileName"] = fileName
 					}
 
+					filteredParams := copyMap(current)
+					if inputPath.FilterParams != "" {
+						for _, param := range strings.Split(inputPath.FilterParams, ",") {
+							delete(filteredParams, param)
+						}
+					}
+
+					exportNameFormat := inputPath.ExportNameFormat
+					if exportNameFormat == "" {
+						exportNameFormat = config.Design.ExportNameFormat
+					}
+
 					instances = append(instances, InstanceConfig{
-						Name:        dynamicInstance.Name,
-						AutoName:    instanceName,
-						isDynamic:   true,
-						Description: dynamicInstance.Description,
-						InputPath:   inputPath.Path,
-						Params:      copyMap(current),
+						Name:             dynamicInstance.Name,
+						AutoName:         instanceName,
+						isDynamic:        true,
+						Description:      dynamicInstance.Description,
+						InputPath:        inputPath.Path,
+						Params:           filteredParams,
+						ExportNameFormat: exportNameFormat,
 					})
 					return
 				}
@@ -281,6 +311,10 @@ func copyMap(original map[string]interface{}) map[string]interface{} {
 type InputPath struct {
 	Path             string `toml:"path" validate:"required"`
 	ExportNameFormat string `toml:"export_name_format"`
+	/*
+		FilterParams are params that will be ignored when processing this input path
+	*/
+	FilterParams string `toml:"filter_params"`
 }
 
 type DesignConfig struct {
@@ -292,9 +326,9 @@ type DesignConfig struct {
 	Version        string      `toml:"version"`
 	NoPartIDLetter bool        `toml:"no_part_id_letter"`
 	// @@ deprecated
-	ExportNameFormat      string                  `toml:"export_name_format"`
-	CustomOpenSCADArgs    string                  `toml:"custom_openscad_args"`
-	Instances             []InstanceConfig        `toml:"instances"`
+	ExportNameFormat   string `toml:"export_name_format"`
+	CustomOpenSCADArgs string `toml:"custom_openscad_args"`
+	// Instances             []InstanceConfig        `toml:"instances"`
 	DynamicInstanceConfig []DynamicInstanceConfig `toml:"dynamic_instances"`
 }
 
@@ -323,7 +357,7 @@ func (config *Config) getInputPaths() []InputPath {
 		return config.Design.InputPaths
 	}
 	return []InputPath{
-		{Path: config.Design.InputPath, ExportNameFormat: config.Design.ExportNameFormat},
+		{Path: config.Design.InputPath},
 	}
 }
 
@@ -408,6 +442,10 @@ func logWarn(message string, critical bool) {
 	}
 }
 
+func logTip(message string) {
+	logger.Printf(colorCyan+"\t%s"+colorReset, message)
+}
+
 // Exclude symbols and use multiple letters if the number is greater than 26
 func getPartIDLetter(stlIndex int) string {
 	if stlIndex < 26 {
@@ -437,7 +475,7 @@ func logStage(stage string) {
 	logger.Printf(colorBlue+"%s"+colorReset, stage)
 }
 
-func getOrMakeExportFolder(config *Config) (string, error) {
+func getOrMakeExportFolder(config *Config, outputPaths *OutputPaths) {
 	if config.Verbose {
 		logStage("Getting or making export folder")
 	}
@@ -451,23 +489,10 @@ func getOrMakeExportFolder(config *Config) (string, error) {
 	exportFolderPath := strings.Clone(outputPath)
 	if !strings.HasSuffix(outputPath, "/export") && !strings.HasSuffix(outputPath, "/export/") {
 		exportFolderPath = path.Join(exportFolderPath, "export")
-	} else {
-		// Remove /export from outputPath
-		outputPath = strings.TrimSuffix(outputPath, "/export")
-	}
-
-	if config.Design.Version == "" {
-		config.Design.Version = "v0.1"
-	}
-
-	fullExportFolderPath := path.Join(exportFolderPath, config.Design.Version)
-
-	if config.IncludePartIDLetter {
-		fullExportFolderPath = path.Join(fullExportFolderPath, "with_embedded_part_letter")
 	}
 
 	// Check if exportFolderPath has any files or directories
-	if files, err := os.ReadDir(fullExportFolderPath); err == nil && len(files) > 0 {
+	if files, err := os.ReadDir(outputPaths.ExportFolderPath); err == nil && len(files) > 0 {
 		filesStr := ""
 		for i, file := range files {
 			if i < 5 {
@@ -478,13 +503,14 @@ func getOrMakeExportFolder(config *Config) (string, error) {
 			}
 		}
 
-		if !config.Quiet {
-			log.Printf(colorYellow + "(tip: if you want to keep the existing stl export files, cancel this run and update the 'version' in the config file, this will generate a new folder and keep the existing files)")
-			log.Printf(colorYellow + "(the '-ow' flag will skip this check)")
-		}
-		logWarn(fmt.Sprintf("\nThe export folder (%s) has %d existing files: \n%s\n\n"+colorRed+" %d files will be deleted from: \n\t%s\n", fullExportFolderPath, len(files), filesStr, len(files), fullExportFolderPath), false)
-		logWarn(colorOrange+"\n\nDo you want to continue? (y/n):\n"+colorReset, false)
 		if !config.OverwriteExisting {
+			logWarn(fmt.Sprintf("\nThe export folder (%s) has %d existing files: \n%s", outputPaths.ExportFolderPath, len(files), filesStr), false)
+
+			if !config.Quiet {
+				logTip("the '-ow' flag will skip this check")
+				logTip("(tip: if you want to keep the existing stl export files, cancel this run and update the 'version' in the config file, this will generate a new folder and keep the existing files)")
+			}
+			logWarn(fmt.Sprintf(" %d files will be deleted from: \n\n\t%s\n\nDo you want to continue? (y/n):", len(files), outputPaths.ExportFolderPath), true)
 
 			reader := bufio.NewReader(os.Stdin)
 			response, _ := reader.ReadString('\n')
@@ -493,13 +519,13 @@ func getOrMakeExportFolder(config *Config) (string, error) {
 				os.Exit(1)
 			}
 		} else if config.Verbose {
-			logKeyValuePair("OverwriteExisting set, skipping check", fullExportFolderPath)
+			logKeyValuePair("OverwriteExisting set, skipping check", outputPaths.ExportFolderPath)
 		}
 
 		if !config.Quiet {
 			logStage(fmt.Sprintf("Clearing %d files from export folder", len(files)))
 		}
-		err := os.RemoveAll(fullExportFolderPath)
+		err := os.RemoveAll(outputPaths.ExportFolderPath)
 		if config.Verbose {
 			logKeyValuePair("Removed files from export folder", exportFolderPath)
 		}
@@ -511,15 +537,14 @@ func getOrMakeExportFolder(config *Config) (string, error) {
 
 	if config.Verbose {
 		logStage("Creating export folder")
-		logKeyValuePair("Export folder", fullExportFolderPath)
+		logKeyValuePair("Export folder", outputPaths.ExportFolderPath)
 	}
-	os.MkdirAll(fullExportFolderPath, 0755)
+	os.MkdirAll(outputPaths.ExportFolderPath, 0755)
 
-	return fullExportFolderPath, nil
 }
 
 func SetMetadata(fileName string, metadata map[string]string, config *Config) error {
-	if !config.Quiet {
+	if config.Verbose {
 		logStage("Setting metadata")
 	}
 	// Check if the file exists
@@ -594,7 +619,10 @@ func setBuildInfoInFileAttributes(outputPath string, config *Config, instance In
 }
 
 func generateSTL(instance InstanceConfig, config *Config, exportFolderPath string) (string, error) {
-	log.Printf("\n\nGENERATE STL FOR inputPath: %s", instance.InputPath)
+	if !config.Quiet {
+		logStage("Generating STL")
+		logKeyValuePair("inputPath", instance.InputPath)
+	}
 
 	name := instance.Name
 	if name == "" {
@@ -665,11 +693,22 @@ func generateSTL(instance InstanceConfig, config *Config, exportFolderPath strin
 		} else if !config.Quiet && config.Verbose {
 			log.Printf(colorBlue + "Copied .scad file to export folder" + colorReset)
 		}
-	} else {
-		if !config.Quiet {
-			log.Printf(colorBlue + "Design file already exists in export folder, skipping copy" + colorReset)
+
+		configFileName := strings.Split(config.ConfigFile, "/")[len(strings.Split(config.ConfigFile, "/"))-1]
+
+		configCopyPath := path.Join(exportFolderPath, configFileName)
+		log.Printf("Copying config file from \n\nconfig.ConfigFile: \t%s\n\nconfigCopyPath:\t%s", config.ConfigFile, configCopyPath)
+		configErr := Copy(config.ConfigFile, configCopyPath)
+		if configErr != nil {
+			log.Panicf(colorRed+"Failed to copy config file to export folder: %s", configErr)
+		} else if !config.Quiet && config.Verbose {
+			log.Printf(colorBlue + "Copied config file to export folder" + colorReset)
 		}
+
+	} else {
 		if config.Verbose {
+			log.Printf(colorBlue + "Design file already exists in export folder, skipping copy" + colorReset)
+
 			logKeyValuePair("Design file", designFileCopyPath)
 		}
 	}
@@ -686,7 +725,19 @@ func generateSTL(instance InstanceConfig, config *Config, exportFolderPath strin
 
 	outputFileName += ".stl"
 
-	outputPath = getInstanceConfigSaveLocation(config, &instance, instance.InputPath)
+	paths := instance.getInstancePaths(config)
+
+	if config.Verbose {
+		logStage("(in-progress) Instance paths")
+		logKeyValuePair("Instance paths", fmt.Sprintf("%+v", paths))
+	}
+
+	if paths.InputPath == "" {
+		logWarn("InputPath is empty, please set at least one the input path in the config file", true)
+		os.Exit(1)
+	}
+
+	outputPath = getInstanceConfigSaveLocation(config, &instance)
 	args := []string{"-o", fmt.Sprintf("'%s'", outputPath)}
 
 	if config.Verbose {
@@ -737,7 +788,7 @@ func generateSTL(instance InstanceConfig, config *Config, exportFolderPath strin
 		}
 	}
 
-	if config.Verbose || true {
+	if config.Verbose {
 		logKeyValuePair("InputPath", instance.InputPath)
 	}
 	args = append(args, instance.InputPath)
@@ -772,9 +823,9 @@ func generateSTL(instance InstanceConfig, config *Config, exportFolderPath strin
 	defer cancel()
 
 	commandStr := fmt.Sprintf("%s %s", command, strings.Join(args, " "))
-	//if !config.Quiet {
-	log.Printf("Running command: %s", commandStr)
-	//	}
+	if !config.Quiet {
+		log.Printf("Running command: %s", commandStr)
+	}
 	// Run the command through a shell
 	cmd := exec.Command("sh", "-c", commandStr)
 
@@ -820,8 +871,9 @@ func generateSTL(instance InstanceConfig, config *Config, exportFolderPath strin
 		return outputPath, fmt.Errorf("error accessing file '%s': %v", outputPath, err)
 	}
 
-	if !config.Quiet {
-		logStage("Finished generating STL in " + outputPath)
+	if config.Verbose {
+		logStage("Finished generating STL in ")
+		logKeyValuePair("MetaData set on Path", outputPath)
 	}
 
 	return outputPath, nil
@@ -880,10 +932,11 @@ func loadConfig(configFile string, flags CmdFlags) (*Config, error) {
 	conf.SkipReadme = flags.SkipReadme
 	conf.OverwriteExisting = flags.OverwriteExisting
 	conf.CustomOpenSCADCommand = flags.CustomOpenSCADCommand
-	conf.Concurrent = flags.Concurrent
 	conf.MaxConcurrentRequests = flags.MaxConcurrentRequests
 	conf.IncludePartIDLetter = flags.IncludePartIDLetter
 	conf.SetBuildInfoInFileAttributes = flags.SetBuildInfoInFileAttributes
+
+	conf.ConfigFile = configFile
 
 	if flags.OverrideFN > 0 {
 		conf.OverrideFN = flags.OverrideFN
@@ -893,17 +946,26 @@ func loadConfig(configFile string, flags CmdFlags) (*Config, error) {
 		conf.OverrideFN = 20
 	}
 
-	if conf.Design.OutputPath == "" {
-		conf.Design.OutputPath = getOutputPath(conf)
+	if config.Design.Version == "" {
+		config.Design.Version = "v0.1"
 	}
+
+	outputPaths := getOutputPaths(conf)
+
+	log.Printf("outputPaths: %+v", outputPaths)
 
 	exportNameFormat := getExportNameFormat(&conf)
 
 	exportNameFormatParams := getExportNameFormatParams(exportNameFormat)
 
+	if config.Verbose {
+		logStage("Validating: export_name_format params")
+	}
 	for _, paramName := range exportNameFormatParams {
-		logKeyValuePair("Param name to confirm", paramName)
-		logKeyValuePair("ExportNameFormat", exportNameFormat)
+		if config.Verbose {
+			logKeyValuePair("Param name to confirm", paramName)
+			logKeyValuePair("ExportNameFormat", exportNameFormat)
+		}
 		if !strings.Contains(conf.Design.ExportNameFormat, paramName) {
 			logWarn(fmt.Sprintf("ExportNameFormat contains param (%s) that is not in the params", paramName), true)
 		}
@@ -918,12 +980,15 @@ func loadConfig(configFile string, flags CmdFlags) (*Config, error) {
 						continue
 					}
 
-					//	if len(conf.Design.InputPaths) > 1 {
-					nameHasDesignFileName := strings.Contains(exportNameFormat, "{designFileName}")
-					if !nameHasDesignFileName {
-						log.Panicf("designFileName is required (add {designFileName} to the export_name_format)", dynamicInstance.Name)
+					if len(conf.Design.InputPaths) > 1 {
+						nameHasDesignFileName := strings.Contains(exportNameFormat, "{designFileName}")
+						if !nameHasDesignFileName {
+							logWarn("If more than one input is specified, the export_name_format need to include designFileName (add {designFileName} to the export_name_format)", true)
+							logKeyValuePair("ExportNameFormat missing {designFileName}", exportNameFormat)
+							logKeyValuePair("from config file:", configFile)
+							os.Exit(1)
+						}
 					}
-					//	}
 
 					nameHasParams := strings.Contains(exportNameFormat, fmt.Sprintf("{%s}", paramName))
 					if !nameHasParams && paramHasMoreThanOneValue {
@@ -993,7 +1058,38 @@ Include every param in the export name (in the format '{param_name}') to ensure 
 	return &conf, nil
 }
 
-func generateReadme(config *Config, dynamicInstances []InstanceConfig, designName string, version string, openscadVersion string) {
+func generateLowQualityWarningFile(config *Config, outputPath string) {
+
+	if config.OverrideFN == 0 {
+		return
+	}
+
+	if config.OverrideFN > 100 {
+		return
+	}
+
+	if !config.Quiet {
+		logStage("Generating LOW_QUALITY_WARNING.md")
+	}
+
+	contents := fmt.Sprintf("[WARNING: This model was generated with a low quality (fn = %d)]", config.OverrideFN)
+
+	lowQualityWarningFile, err := os.Create(outputPath)
+	if err != nil {
+		log.Panicf(colorRed+"Failed to create LOW_QUALITY_WARNING.md file: %s", err)
+	}
+	defer lowQualityWarningFile.Close()
+
+	_, err = lowQualityWarningFile.WriteString(contents)
+	if err != nil {
+		log.Panicf(colorRed+"Failed to write to LOW_QUALITY_WARNING.md file: %s", err)
+	} else if !config.Quiet {
+		logKeyValuePair("LOW_QUALITY_WARNING.md written to", outputPath)
+	}
+
+}
+
+func generateReadme(config *Config, dynamicInstances []InstanceConfig, version string, openscadVersion string, readmePath string) {
 	if config.SkipReadme {
 		log.Printf(colorYellow + "Skipping readme generation" + colorReset)
 		return
@@ -1003,41 +1099,26 @@ func generateReadme(config *Config, dynamicInstances []InstanceConfig, designNam
 		logStage("Generating README.md")
 	}
 
-	contents := fmt.Sprintf("# %s\n\n%s\n\n", designName, config.Design.Description)
-	contents += "## Table of Contents\n"
-	for _, instance := range getStaticInstances(config, config.Design.InputPath) {
-		contents += fmt.Sprintf("- [%s](#%s)\n", instance.Name, strings.ToLower(strings.ReplaceAll(instance.Name, " ", "-")))
-	}
-	for _, instance := range dynamicInstances {
-		contents += fmt.Sprintf("- [%s](#%s)\n", instance.Name, strings.ToLower(strings.ReplaceAll(instance.Name, " ", "-")))
-	}
-	contents += "\n"
-
-	for _, instance := range getStaticInstances(config, config.Design.InputPath) {
-		contents += fmt.Sprintf("## %s\n", instance.Name)
-		if instance.Description != "" {
-			contents += fmt.Sprintf("### Description\n%s\n", instance.Description)
-		}
-		contents += "### Parameters:\n"
-		for name, value := range instance.Params {
-			contents += fmt.Sprintf("- **%s**: %v\n", name, value)
-		}
-		contents += "\n"
-	}
+	contents := fmt.Sprintf("# %s\n\n%s\n\n", config.Design.Name, config.Design.Description)
+	contents += "## Contents \n"
 
 	for _, instance := range dynamicInstances {
-		contents += fmt.Sprintf("## %s\n", instance.Name)
+		paths := instance.getInstancePaths(config)
+		contents += fmt.Sprintf("- [%s](.%s)\n", paths.OutputPath, strings.ToLower(strings.ReplaceAll(paths.OutputPath, " ", "-")))
+
+		contents += fmt.Sprintf("\t- **%s**: %v\n", "InputPath", paths.InputPath)
+
 		for name, value := range instance.Params {
-			contents += fmt.Sprintf("- **%s**: %v\n", name, value)
+			contents += fmt.Sprintf("\t- **%s**: %v\n", name, value)
 		}
-		contents += "\n"
+		contents += "\n\n"
 	}
 
 	// Optionally add a footer or additional information
 	contents += "## Additional Information\n"
-	contents += fmt.Sprintf("This README was generated by [openscadgen](https://github.com/KiwiKid/openscadgen) %s %s. The free, local, open source openscad file generator.\n", version, openscadVersion)
+	contents += fmt.Sprintf("This README was generated by [openscadgen](https://github.com/KiwiKid/openscadgen) %s %s. The free, local, open source openscad stl release generator.\n", version, openscadVersion)
 
-	readmePath := path.Join(config.Design.OutputPath, config.Design.Version, "README.md")
+	//readmePath := path.Join(config.Design.OutputPath, config.Design.Version, "README.md")
 
 	readmeFile, err := os.Create(readmePath)
 	if err != nil {
@@ -1055,9 +1136,24 @@ func generateReadme(config *Config, dynamicInstances []InstanceConfig, designNam
 	}
 }
 
-func getOutputPath(config Config) string {
+type OutputPaths struct {
+	OutputPath            string
+	ExportFolderPath      string
+	LowQualityWarningPath string
+	ReadmePath            string
+	LogOutputPath         string
+}
+
+func getOutputPaths(config Config) OutputPaths {
 	if config.Design.OutputPath != "" {
-		return config.Design.OutputPath
+		log.Printf("Output path specified in config: %s", config.Design.OutputPath)
+		return OutputPaths{
+			OutputPath:            config.Design.OutputPath,
+			ExportFolderPath:      filepath.Join("./", config.Design.OutputPath, config.Design.Version),
+			LowQualityWarningPath: filepath.Join("./", config.Design.OutputPath, config.Design.Version, "LOW_QUALITY_WARNING.md"),
+			ReadmePath:            filepath.Join("./", config.Design.OutputPath, config.Design.Version, "README.md"),
+			LogOutputPath:         filepath.Join("./", config.Design.OutputPath, config.Design.Version, "export_log.log"),
+		}
 	}
 
 	// If output_path is not specified, derive it from input_path
@@ -1066,7 +1162,13 @@ func getOutputPath(config Config) string {
 	designName := strings.TrimSuffix(designFilename, filepath.Ext(designFilename))
 
 	// Construct the new output path
-	return filepath.Join(filepath.Dir(inputPath), designName)
+	return OutputPaths{
+		OutputPath:            filepath.Join(filepath.Dir(inputPath), "export", config.Design.Version, designName),
+		ExportFolderPath:      filepath.Join(filepath.Dir(inputPath), "export", config.Design.Version),
+		LowQualityWarningPath: filepath.Join(filepath.Dir(inputPath), "export", config.Design.Version, designName, "LOW_QUALITY_WARNING.md"),
+		ReadmePath:            filepath.Join(filepath.Dir(inputPath), "export", config.Design.Version, designName, "README.md"),
+		LogOutputPath:         filepath.Join(filepath.Dir(inputPath), "export", config.Design.Version, designName, "export_log.log"),
+	}
 }
 
 const OPENSCAD_VERSION_WARN_IF_OLDER_THAN = 2024
@@ -1120,7 +1222,7 @@ func findOpenSCAD() string {
 
 func main() {
 	// Set the PATH environment variable
-	VERSION := "v1.1.6-ALPHA"
+	VERSION := "v1.2.0-ALPHA"
 
 	startTime := time.Now()
 
@@ -1157,11 +1259,6 @@ func main() {
 
 	flag.BoolVar(&cmdFlags.IncludePartIDLetter, "pid", false, "Include optional_part_id_letter variable in the call the openscad")
 
-	flag.BoolVar(&cmdFlags.Concurrent, "concurrent", false, "Run instances concurrently")
-	flag.BoolVar(&cmdFlags.Concurrent, "con", false, "Run instances concurrently")
-
-	flag.IntVar(&cmdFlags.MaxConcurrentRequests, "max-concurrent-requests", 10, "Maximum number of concurrent requests")
-
 	flag.StringVar(&cmdFlags.CustomOpenSCADCommand, "custom-openscad-command", "", "Custom OpenSCAD command to use")
 
 	flag.IntVar(&cmdFlags.OverrideFN, "fn", 0, "Override the default fn value (default none)")
@@ -1178,11 +1275,6 @@ func main() {
 
 	initLogger("memory")
 
-	if cmdFlags.Concurrent {
-		logWarn("Concurrent mode is not (yet) supported", true)
-		os.Exit(1)
-	}
-
 	if cmdFlags.ShowMan {
 		flag.PrintDefaults()
 		return
@@ -1196,7 +1288,8 @@ func main() {
 	}
 
 	if cmdFlags.Verbose && cmdFlags.Quiet {
-		log.Print("**whispers**WHAT DO YOU WANT FROM ME? Being quiet and verbose is better suited for when writing passive aggressive post-it notes **whispers**")
+		log.Print("**whispers**WHAT DO YOU WANT FROM ME? Being quiet (-q) and verbose (-v) is better suited for when writing passive aggressive post-it notes **whispers**. Going with quiet mode")
+		cmdFlags.Verbose = false
 	}
 
 	// New message indicating config file location and number of instances
@@ -1257,7 +1350,7 @@ func main() {
 
 	}
 
-	if !cmdFlags.Quiet {
+	if cmdFlags.Verbose {
 		logStage("Loading config file")
 		if cmdFlags.Verbose {
 			log.Printf("Config file %s", cmdFlags.ConfigFile)
@@ -1265,7 +1358,6 @@ func main() {
 		}
 	}
 
-	logStage("Loading config file")
 	config, err := loadConfig(cmdFlags.ConfigFile, cmdFlags)
 	if err != nil {
 		msg := fmt.Sprintf("Failed to load config: %v", err)
@@ -1289,9 +1381,14 @@ func main() {
 
 	if !config.Quiet {
 
-		log.Printf(colorBlue+"Config provided %d possible instances "+colorYellow+"(%d specific, %d dynamic)"+colorBlue+" to generate from scad file '%s'"+colorReset, len(design.Instances)+len(dynamicInstances), len(design.Instances), len(dynamicInstances), design.Name)
-		logKeyValuePair("Input File", design.InputPath)
-		logKeyValuePair("Design Name", design.Name)
+		log.Printf(colorBlue+"Config provided %d possible instances "+colorYellow+"(%d dynamic)"+colorBlue+" to generate from scad file '%s'"+colorReset, len(dynamicInstances), len(dynamicInstances), design.Name)
+		if design.InputPath != "" {
+			logKeyValuePair("Input File", design.InputPath)
+		} else {
+			for i, inputPath := range design.InputPaths {
+				logKeyValuePair(fmt.Sprintf("Input File [%d/%d]", i+1, len(design.InputPaths)), inputPath.Path)
+			}
+		}
 		logKeyValuePair("Design Version", design.Version)
 		if config.MaxInstances > 0 {
 			logWarn(fmt.Sprintf("Max Limit of %d instances", config.MaxInstances), false)
@@ -1342,41 +1439,32 @@ func main() {
 		}
 	}
 
-	exportFolderPath, err := getOrMakeExportFolder(config)
-	if err != nil {
-		log.Printf(colorRed+"Failed to get or make export folder: %s", err)
-		os.Exit(1)
-	}
+	outputPaths := getOutputPaths(*config)
 
-	initLogger(path.Join(exportFolderPath, "openscadgen_export_log.log"))
+	getOrMakeExportFolder(config, &outputPaths)
 
-	// Create a WaitGroup to manage concurrency
-	var wg sync.WaitGroup
-	errorChannel := make(chan error, len(dynamicInstances)+len(design.Instances))
+	initLogger(outputPaths.LogOutputPath)
 
 	// Generate STL files for dynamic instances
-	if len(dynamicInstances) > 0 {
+	if len(dynamicInstances) > 0 && !config.Quiet {
 		logStage(fmt.Sprintf("Starting Dynamic %d Instances", len(dynamicInstances)))
 	}
 
-	//if config.Verbose {
-	logStage(fmt.Sprintf("Got %d paths to process", len(pathsToProcess)))
-
-	for _, path := range pathsToProcess {
-		logKeyValuePair("Path", path.Path)
+	if config.Verbose {
+		logStage(fmt.Sprintf("Got %d paths to process", len(pathsToProcess)))
 	}
-	//}
 
 	processedCount := 0
 	skippedCount := 0
-	for _, path := range pathsToProcess {
-		logKeyValuePair("=============== path", path.Path)
+	for pathIndex, path := range pathsToProcess {
 		stlIndex := 0
 
-		logStage(fmt.Sprintf("Starting Dynamic %d Instances", len(dynamicInstances)))
+		if !config.Quiet {
+			logStage(fmt.Sprintf("Starting Dynamic %d Instances - %s", len(dynamicInstances), path.Path))
+		}
 		for diIndex, instance := range dynamicInstances {
 			if config.Verbose {
-				logStage(fmt.Sprintf("Dynamic Model - (%d/%d) [%d processed] - '%s' ", diIndex, len(dynamicInstances), processedCount, instance.Name))
+				logStage(fmt.Sprintf("Dynamic Model - (path:[%d/%d]-instance:[%d/%d]) [%d processed] - '%s' %s ", pathIndex+1, len(pathsToProcess), diIndex+1, len(dynamicInstances), processedCount, instance.PartIDLetter, instance.AutoName))
 			}
 			if regex != nil && !regex.MatchString(instance.Name) {
 				if !config.Quiet && config.Verbose {
@@ -1387,7 +1475,12 @@ func main() {
 			}
 
 			if !config.Quiet {
-				logStage(fmt.Sprintf("\nDynamic Model - (%d/%d) [%d processed] - '%s' ", diIndex, len(dynamicInstances), processedCount, instance.Name))
+				logStage(fmt.Sprintf("Dynamic Model - (path:[%d/%d]-instance:[%d/%d]) [%d processed] - '%s' %s ", pathIndex, len(pathsToProcess), diIndex, len(dynamicInstances), processedCount, instance.PartIDLetter, instance.AutoName))
+				logKeyValuePair("InputPath", instance.InputPath)
+				logKeyValuePair("AutoName", instance.AutoName)
+				if config.IncludePartIDLetter {
+					logKeyValuePair("PartIDLetter", instance.PartIDLetter)
+				}
 				if config.Verbose {
 					logKeyValuePair("Params", fmt.Sprintf("%+v", instance.Params))
 				}
@@ -1402,130 +1495,22 @@ func main() {
 				logKeyValuePair("Processed instances", fmt.Sprintf("%d", processedCount))
 			}
 
-			if config.Concurrent {
-				wg.Add(1)
-
-				// Run generateSTL concurrently if Concurrent flag is set
-				go func(instance InstanceConfig, inputPath string) {
-					defer wg.Done()
-
-					exportSTLPath, err := generateSTL(instance, config, exportFolderPath)
-					if err != nil {
-						errorChannel <- fmt.Errorf("(concurrent) Error generating STL for instance %s: %v", instance.Name, err)
-					} else if !config.Quiet {
-						logKeyValuePair("Outputting to", exportSTLPath)
-					}
-					processedCount++
-
-				}(instance, path.Path)
-			} else {
-				_, err := generateSTL(instance, config, exportFolderPath)
-				if err != nil {
-					logWarn(fmt.Sprintf("Error generating STL for instance '%s': %v", instance.Name, err), false)
-				} else if !config.Quiet {
-					processedCount++
-				}
-
+			_, err := generateSTL(instance, config, outputPaths.ExportFolderPath)
+			if err != nil {
+				logWarn(fmt.Sprintf("Error generating STL for instance '%s': %v", instance.Name, err), false)
+			} else if !config.Quiet {
+				processedCount++
 			}
+
 			stlIndex++
 		}
 
-		if config.Concurrent {
-
-			logStage("Waiting for dynamic instances to finish")
-
-			// Wait for all goroutines to finish
-			wg.Wait()
-			close(errorChannel)
-
-			// Handle any errors that occurred during concurrent execution
-			for err := range errorChannel {
-				fmt.Fprintf(os.Stderr, colorRed+"%v\n"+colorReset, err)
-			}
-		}
-
-		// Generate STL files for specific instances
-		if len(design.Instances) > 0 {
-			logStage("Starting Specific Instances")
-			for index, instance := range getStaticInstances(config, path.Path) {
-
-				name := instance.Name
-				instance.PartIDLetter = getPartIDLetter(index + len(dynamicInstances))
-				if config.Verbose {
-					logKeyValuePair(fmt.Sprintf("Generated PartIDLetter from index (%d)", index), instance.PartIDLetter)
-				}
-
-				if name == "" {
-					// Create a default name using up to the first 3 parameters
-					paramCount := 0
-					for paramName, paramValue := range instance.Params {
-						if paramCount >= 3 {
-							break
-						}
-						if paramCount > 0 {
-							name += "_"
-						}
-						name += fmt.Sprintf("%s%d", paramName, paramValue)
-						paramCount++
-					}
-				}
-
-				prefix := fmt.Sprintf("Generating (%d/%d) - '%s' ", processedCount, len(design.Instances), name)
-
-				if regex != nil && !regex.MatchString(name) {
-					if !config.Quiet && config.Verbose {
-						log.Printf(colorYellow+"Skipping instance %s as it does not match the regex pattern", name)
-					}
-					skippedCount++
-					continue
-				}
-
-				if !config.Quiet {
-					logStage(fmt.Sprintf("========== %s ==========", prefix))
-				}
-
-				if config.Concurrent {
-					wg.Add(1)
-
-					// Run generateSTL concurrently if Concurrent flag is set
-					go func(instance InstanceConfig) {
-						defer wg.Done()
-
-						exportSTLPath, err := generateSTL(instance, config, exportFolderPath)
-						if err != nil {
-							errorChannel <- fmt.Errorf("Error generating STL for instance %s: %v", instance.Name, err)
-						} else if !config.Quiet {
-							logKeyValuePair("Outputting to", exportSTLPath)
-							processedCount++
-						}
-						wg.Done()
-
-					}(instance)
-				} else {
-					exportSTLPath, err := generateSTL(instance, config, exportFolderPath)
-					if err != nil {
-						fmt.Fprintf(os.Stderr, colorRed+"Error generating STL for instance %s: %+v\n"+colorReset, instance.Name, err)
-					} else {
-						processedCount++
-
-						if !config.Quiet {
-							log.Printf(colorGreen+"%s successfully in %s\n"+colorReset, prefix, time.Since(startTime))
-							logKeyValuePair("Outputting to", exportSTLPath)
-						}
-					}
-				}
-
-				if config.MaxInstances > 0 && processedCount >= config.MaxInstances {
-					log.Printf(colorBlue+"Max instance of %d processed, stopping", config.MaxInstances)
-					break
-				}
-			}
-		} else if config.Verbose {
-			logStage("No Static Instances")
-		}
 	}
 
-	generateReadme(config, dynamicInstances, design.Name, VERSION, openscadVersion)
+	generateReadme(config, dynamicInstances, VERSION, openscadVersion, outputPaths.ReadmePath)
+
+	generateLowQualityWarningFile(config, outputPaths.LowQualityWarningPath)
+
 	if !config.Quiet {
 		logStage("STL generation completed")
 

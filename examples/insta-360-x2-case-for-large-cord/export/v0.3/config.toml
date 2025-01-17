@@ -1,0 +1,34 @@
+# These lines configure, where the config file is, how openscad will be run and where the output will be saved
+[openscadgen]
+name = "insta-360-x2-case-for-large-cord"
+description = """
+
+A case for the Insta360 X2 camera
+
+
+Based on "Tough Case INSTA360 X2" from https://makerworld.com/en/models/200043#profileId-220576 by https://makerworld.com/en/@gianluigideruvo
+
+Tip: Print the cap first to confirm the size of the elastic cord (3.5 fits a slightly larger cord available to me)
+
+
+- **cylinderWidth**: 0 (cylinder width is the original design/size)
+
+Created with openscadgen
+"""
+output_path = "./examples/insta-360-x2-case-for-large-cord/export"
+export_name_format = "includeGoProMount-{includeGoProMount}/cylinderWidth-{cylinderWidth}/{designFileName}"
+version = "v0.3"
+custom_openscad_args = "--summary"
+no_part_id_letter = true
+[[openscadgen.input_paths]]
+path = "./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad"
+[[openscadgen.input_paths]]
+path = "./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad"
+[[openscadgen.input_paths]]
+path = "./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad"
+
+[[openscadgen.dynamic_instances]]
+# The 'name' field is a template string that will be used to generate the instance name (note the {param_name} syntax for value replacement)
+# the params field configures which instances get created ()
+params = { cylinderWidth = "0,3,3.5", includeGoProMount = "true,false" }
+

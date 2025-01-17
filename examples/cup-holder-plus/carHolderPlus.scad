@@ -1,12 +1,25 @@
-$fn = 200;
+$fn = 20;
+/*
+    A cup holder upgrade for the toyota rav4 (v1.4)
 
-include <BOSL2/std.scad>
-include <BOSL2/joiners.scad>
+    Includes: 
+    - Two options for the holder size (twoLargerHolders, oneLargerHolderOneSmallerHolder)
+    - Phone holders at either end
+    - Adjustable cup holder size
 
-// oneBigOneSmall, twoBig
-cup_holders_mode = "twoBig";
 
-cup_holder_y_offset = 4;
+Note: This design is a learning tool for openSCAD, while the design is functional, the code should not be used as a reference for best (or even good) practices for writing openSCAD code (includes hardcoded values, hidden dependencies between variables, non-modular etc.)
+
+*/
+
+
+
+
+// oneLargerHolderOneSmallerHolder, twoLargerHolders
+cup_holders_mode = "twoLargerHolders";
+
+
+cup_holder_y_offset = 2.5;
 cup_holder_center_offset= 43;
 cup_holder_height=120;
 cup_holder_floor_depth=10;
@@ -15,10 +28,10 @@ cup_holder_1_top_radius=95;
 cup_holder_1_botton_radius=95;
 
 cup_holder_2_top_radius=85;
-cup_holder_2_botton_radius=50;
+cup_holder_2_botton_radius=75;
 
-phone_holder1_offset=-105;
-phone_holder2_offset=80;
+phone_holder1_offset=-110;
+phone_holder2_offset=90;
 
 phone_holder_width=23;
 
@@ -32,15 +45,16 @@ phone_holder_depth=100;
 $mode = "rounded";
 
 // IMPORTANT - Ensure these match your cup holder (toyata rav4 set below)
-in_car_cup_holder_height = 70;
-in_car_cup_holder_top_diameter = 74;
+in_car_cup_holder_height = 56;
+in_car_cup_holder_top_diameter = 78;
 in_car_cup_holder_bottom_diameter = 66.5;
 in_car_cup_holder_center_offset = 16;
 
 
-holder_length=230;
+holder_length=240;
 holder_width=110;
 holder_depth=100;
+
 
 
 module roundedCube(size = [10, 10, 10], radius = 2, center = false) {
@@ -86,6 +100,8 @@ module cupHolder(){
 
     translate([in_car_cup_holder_center_offset, 0, 0])
     cylinder(h=in_car_cup_holder_height,d1=in_car_cup_holder_bottom_diameter, d2=in_car_cup_holder_top_diameter);
+    
+        
 
 
     difference(){
@@ -95,11 +111,12 @@ module cupHolder(){
         // Cup holder 1
        translate([cup_holder_center_offset, cup_holder_y_offset, in_car_cup_holder_height+cup_holder_floor_depth]) roundedCylinder(h=cup_holder_height, d1=cup_holder_1_botton_radius, d2=cup_holder_1_top_radius);
         
-        if (cup_holders_mode == "oneBigOneSmall") {
-         // Cup holder 2
+        if (cup_holders_mode == "oneLargerHolderOneSmallerHolder") {
+         // Cup holder 2 (small)
         translate([-cup_holder_center_offset, cup_holder_y_offset, in_car_cup_holder_height+cup_holder_floor_depth]) roundedCylinder(h=cup_holder_height, d1=cup_holder_2_botton_radius, d2=cup_holder_2_top_radius);
-        } else if (cup_holders_mode == "twoBig") {
-        
+        } else if (cup_holders_mode == "twoLargerHolders") {
+           // Cup holder 2 (big)
+
         translate([-cup_holder_center_offset, cup_holder_y_offset, in_car_cup_holder_height+cup_holder_floor_depth]) roundedCylinder(h=cup_holder_height, d1=cup_holder_1_botton_radius, d2=cup_holder_1_top_radius);
         
         } else {
@@ -110,25 +127,32 @@ module cupHolder(){
         // Phone Holder 1 
         translate([phone_holder1_offset, -47, in_car_cup_holder_height+phone_holder_floor_depth])
         roundedCube([phone_holder_width, phone_holder_depth, phone_holder_height], radius=10);
+        
+        
+
           
          // Phone Holder 2
         translate([phone_holder2_offset, -48, in_car_cup_holder_height+phone_holder_floor_depth])
         roundedCube([phone_holder_width, phone_holder_depth, phone_holder_height], radius=10);
         
+
         
-        if (cup_holders_mode == "twoBig") {
+        
+        
+        // Soften some edges in the middle
+        if (cup_holders_mode == "twoLargerHolders") {
         // Center Phone Cutout
-        translate([-90, -31, in_car_cup_holder_height+phone_holder_floor_depth+10])
-        roundedCube([180, 70, 90]);
-        } else if (cup_holders_mode == "oneBigOneSmall") {
+        translate([5, 5, in_car_cup_holder_height+60])
+        roundedCube([180, 60, 90], center=true);
+        } else if (cup_holders_mode == "oneLargerHolderOneSmallerHolder") {
          
          translate([-90, -20, in_car_cup_holder_height+phone_holder_floor_depth+10])
         
-        roundedCube([190, 50, 100]);
+        roundedCube([200, 50, 100]);
         
         
-        translate([68, -33, in_car_cup_holder_height+phone_holder_floor_depth+10])
-        roundedCube([20, 75, 90]);
+        translate([phone_holder2_offset, 8, phone_holder_depth+phone_holder_floor_depth+20])
+        roundedCube([20, 60, 90], center=true);
         }
         
     };

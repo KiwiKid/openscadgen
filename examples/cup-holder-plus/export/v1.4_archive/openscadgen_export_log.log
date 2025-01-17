@@ -1,0 +1,56 @@
+2025/01/14 10:13:48 main.go:420: [38;5;208mYou are running an ALPHA version, this software is being worked on and not yet stable, please report any bugs to https://github.com/KiwiKid/openscadgen/issues[0m
+2025/01/14 10:13:48 main.go:413: [33mInput File: [37m			./examples/cup-holder-plus/carHolderPlus.scad[0m
+2025/01/14 10:13:48 main.go:413: [33mDesign Version: [37m			v1.4[0m
+2025/01/14 10:13:48 main.go:454: [34mStarting STL generation[0m
+2025/01/14 10:13:48 main.go:420: [38;5;208m
+The export folder (examples/cup-holder-plus/export/v1.4) has 5 existing files: 
+	- README.md
+	- carHolderPlus.scad
+	- oneBigOneSmall-carHolderPlus-rav4.stl
+	- openscadgen_export_log.log
+	- twoBig-carHolderPlus-rav4.stl
+[0m
+2025/01/14 10:13:48 main.go:425: [36m	the '-ow' flag will skip this check[0m
+2025/01/14 10:13:48 main.go:425: [36m	(tip: if you want to keep the existing stl export files, cancel this run and update the 'version' in the config file, this will generate a new folder and keep the existing files)[0m
+2025/01/14 10:13:48 main.go:418: [31m 5 files will be deleted from: 
+
+	examples/cup-holder-plus/export/v1.4
+
+Do you want to continue? (y/n):[0m
+2025/01/14 10:13:49 main.go:454: [34mClearing 5 files from export folder[0m
+2025/01/14 10:13:49 main.go:454: [34mStarting Dynamic 2 Instances[0m
+2025/01/14 10:13:49 main.go:454: [34mStarting Dynamic 2 Instances - ./examples/cup-holder-plus/carHolderPlus.scad[0m
+2025/01/14 10:13:49 main.go:454: [34mDynamic Model - (path:[0/1]-instance:[0/2]) [0 processed] - 'A' oneBigOneSmall-carHolderPlus-rav4 [0m
+2025/01/14 10:13:49 main.go:413: [33mInputPath: [37m			./examples/cup-holder-plus/carHolderPlus.scad[0m
+2025/01/14 10:13:49 main.go:413: [33mAutoName: [37m			oneBigOneSmall-carHolderPlus-rav4[0m
+2025/01/14 10:13:49 main.go:454: [34mGenerating STL[0m
+2025/01/14 10:13:49 main.go:413: [33minputPath: [37m			./examples/cup-holder-plus/carHolderPlus.scad[0m
+2025/01/14 10:13:49 main.go:450: [32mCopied design file to export folder: examples/cup-holder-plus/export/v1.4/carHolderPlus.scad[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 8121248
+CGAL Polyhedrons in cache: 22
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:39.962
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      -1
+   Vertices:   183992
+   Facets:     367976
+2025/01/14 10:14:29 main.go:454: [34mDynamic Model - (path:[0/1]-instance:[1/2]) [1 processed] - 'B' twoBig-carHolderPlus-rav4 [0m
+2025/01/14 10:14:29 main.go:413: [33mInputPath: [37m			./examples/cup-holder-plus/carHolderPlus.scad[0m
+2025/01/14 10:14:29 main.go:413: [33mAutoName: [37m			twoBig-carHolderPlus-rav4[0m
+2025/01/14 10:14:29 main.go:454: [34mGenerating STL[0m
+2025/01/14 10:14:29 main.go:413: [33minputPath: [37m			./examples/cup-holder-plus/carHolderPlus.scad[0m
+Geometries in cache: 8
+Geometry cache size in bytes: 8069824
+CGAL Polyhedrons in cache: 16
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:20.333
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      -1
+   Vertices:   194684
+   Facets:     389360
+2025/01/14 10:14:50 main.go:454: [34mGenerating README.md[0m
+2025/01/14 10:14:50 main.go:413: [33mREADME.md written to: [37m			examples/cup-holder-plus/export/v1.4/README.md[0m
+2025/01/14 10:14:50 main.go:454: [34mSTL generation completed[0m

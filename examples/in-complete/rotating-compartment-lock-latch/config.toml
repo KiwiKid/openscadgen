@@ -1,0 +1,15 @@
+# These lines configure, where the config file is, how openscad will be run and where the output will be saved
+[openscadgen]
+name = "rotating-compartment-lock-latch"
+description = """\
+"""
+input_path = "./examples/rotating-compartment-lock-latch/rotating-compartment-lock.scad"
+export_name_format = "{name}"
+
+output_path = "./examples/rotating-compartment-lock-latch/export/"
+version = "v1.0"
+custom_openscad_args = "--summary"
+
+[[openscadgen.dynamic_instances]]
+params = { name= "test" }
+

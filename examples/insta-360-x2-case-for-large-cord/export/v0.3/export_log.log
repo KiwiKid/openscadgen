@@ -1,0 +1,791 @@
+2025/01/18 09:47:52 main.go:441: [38;5;208mYou are running an ALPHA version, this software is being worked on and not yet stable, please report any bugs to https://github.com/KiwiKid/openscadgen/issues[0m
+2025/01/18 09:47:52 main.go:434: [33mInput File [1/3]: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+2025/01/18 09:47:52 main.go:434: [33mInput File [2/3]: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+2025/01/18 09:47:52 main.go:434: [33mInput File [3/3]: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+2025/01/18 09:47:52 main.go:434: [33mDesign Version: [37m			v0.3[0m
+2025/01/18 09:47:52 main.go:475: [34mStarting STL generation[0m
+2025/01/18 09:47:52 main.go:475: [34mClearing 2 files from export folder[0m
+2025/01/18 09:47:52 main.go:475: [34mStarting Dynamic 18 Instances[0m
+2025/01/18 09:47:52 main.go:475: [34mStarting Dynamic 18 Instances - ./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+2025/01/18 09:47:52 main.go:475: [34mDynamic Model - (path:[0/3]-instance:[0/18]) [0 processed] - 'A' includeGoProMount-true/cylinderWidth-0/insta360x2-case [0m
+2025/01/18 09:47:52 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+2025/01/18 09:47:52 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-0/insta360x2-case[0m
+2025/01/18 09:47:52 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:52 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+2025/01/18 09:47:52 main.go:471: [32mCopied design file to export folder: examples/insta-360-x2-case-for-large-cord/export/v0.3/insta360x2-case.scad[0m
+Geometries in cache: 25
+Geometry cache size in bytes: 10765632
+CGAL Polyhedrons in cache: 12
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.125
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      7
+   Vertices:    51765
+   Facets:     103554
+2025/01/18 09:47:53 main.go:475: [34mDynamic Model - (path:[0/3]-instance:[1/18]) [1 processed] - 'B' includeGoProMount-true/cylinderWidth-3/insta360x2-case [0m
+2025/01/18 09:47:53 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+2025/01/18 09:47:53 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-3/insta360x2-case[0m
+2025/01/18 09:47:53 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:53 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+Geometries in cache: 25
+Geometry cache size in bytes: 10785792
+CGAL Polyhedrons in cache: 12
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.139
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      7
+   Vertices:    47141
+   Facets:      94306
+2025/01/18 09:47:53 main.go:475: [34mDynamic Model - (path:[0/3]-instance:[2/18]) [2 processed] - 'C' includeGoProMount-true/cylinderWidth-3.5/insta360x2-case [0m
+2025/01/18 09:47:53 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+2025/01/18 09:47:53 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-3.5/insta360x2-case[0m
+2025/01/18 09:47:53 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:53 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+Geometries in cache: 25
+Geometry cache size in bytes: 10785792
+CGAL Polyhedrons in cache: 12
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.139
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      8
+   Vertices:    46191
+   Facets:      92410
+2025/01/18 09:47:53 main.go:475: [34mDynamic Model - (path:[0/3]-instance:[3/18]) [3 processed] - 'D' includeGoProMount-false/cylinderWidth-0/insta360x2-case [0m
+2025/01/18 09:47:53 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+2025/01/18 09:47:53 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-0/insta360x2-case[0m
+2025/01/18 09:47:53 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:53 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+Geometries in cache: 8
+Geometry cache size in bytes: 10729312
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.063
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      6
+   Vertices:    53248
+   Facets:     106516
+2025/01/18 09:47:53 main.go:475: [34mDynamic Model - (path:[0/3]-instance:[4/18]) [4 processed] - 'E' includeGoProMount-false/cylinderWidth-3/insta360x2-case [0m
+2025/01/18 09:47:53 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+2025/01/18 09:47:53 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-3/insta360x2-case[0m
+2025/01/18 09:47:53 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:53 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+Geometries in cache: 8
+Geometry cache size in bytes: 10749472
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.113
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      6
+   Vertices:    48624
+   Facets:      97268
+2025/01/18 09:47:54 main.go:475: [34mDynamic Model - (path:[0/3]-instance:[5/18]) [5 processed] - 'F' includeGoProMount-false/cylinderWidth-3.5/insta360x2-case [0m
+2025/01/18 09:47:54 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+2025/01/18 09:47:54 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-3.5/insta360x2-case[0m
+2025/01/18 09:47:54 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:54 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+Geometries in cache: 8
+Geometry cache size in bytes: 10749472
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.104
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      7
+   Vertices:    47674
+   Facets:      95372
+2025/01/18 09:47:54 main.go:475: [34mDynamic Model - (path:[0/3]-instance:[6/18]) [6 processed] - 'G' includeGoProMount-true/cylinderWidth-0/insta360x2-top [0m
+2025/01/18 09:47:54 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+2025/01/18 09:47:54 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-0/insta360x2-top[0m
+2025/01/18 09:47:54 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:54 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+2025/01/18 09:47:54 main.go:471: [32mCopied design file to export folder: examples/insta-360-x2-case-for-large-cord/export/v0.3/insta360x2-top.scad[0m
+Geometries in cache: 14
+Geometry cache size in bytes: 7102832
+CGAL Polyhedrons in cache: 2
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.071
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      4
+   Vertices:    35583
+   Facets:      71178
+2025/01/18 09:47:54 main.go:475: [34mDynamic Model - (path:[0/3]-instance:[7/18]) [7 processed] - 'H' includeGoProMount-true/cylinderWidth-3/insta360x2-top [0m
+2025/01/18 09:47:54 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+2025/01/18 09:47:54 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-3/insta360x2-top[0m
+2025/01/18 09:47:54 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:54 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+Geometries in cache: 14
+Geometry cache size in bytes: 7304432
+CGAL Polyhedrons in cache: 2
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.114
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      4
+   Vertices:    35692
+   Facets:      71396
+2025/01/18 09:47:54 main.go:475: [34mDynamic Model - (path:[0/3]-instance:[8/18]) [8 processed] - 'I' includeGoProMount-true/cylinderWidth-3.5/insta360x2-top [0m
+2025/01/18 09:47:54 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+2025/01/18 09:47:54 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-3.5/insta360x2-top[0m
+2025/01/18 09:47:54 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:54 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+Geometries in cache: 14
+Geometry cache size in bytes: 7304432
+CGAL Polyhedrons in cache: 2
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.115
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      4
+   Vertices:    35054
+   Facets:      70120
+2025/01/18 09:47:54 main.go:475: [34mDynamic Model - (path:[0/3]-instance:[9/18]) [9 processed] - 'J' includeGoProMount-false/cylinderWidth-0/insta360x2-top [0m
+2025/01/18 09:47:54 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+2025/01/18 09:47:54 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-0/insta360x2-top[0m
+2025/01/18 09:47:54 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:54 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+Geometries in cache: 14
+Geometry cache size in bytes: 7102832
+CGAL Polyhedrons in cache: 2
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.070
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      4
+   Vertices:    35583
+   Facets:      71178
+2025/01/18 09:47:54 main.go:475: [34mDynamic Model - (path:[0/3]-instance:[10/18]) [10 processed] - 'K' includeGoProMount-false/cylinderWidth-3/insta360x2-top [0m
+2025/01/18 09:47:54 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+2025/01/18 09:47:54 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-3/insta360x2-top[0m
+2025/01/18 09:47:54 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:54 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+Geometries in cache: 14
+Geometry cache size in bytes: 7304432
+CGAL Polyhedrons in cache: 2
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.276
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      4
+   Vertices:    35692
+   Facets:      71396
+2025/01/18 09:47:55 main.go:475: [34mDynamic Model - (path:[0/3]-instance:[11/18]) [11 processed] - 'L' includeGoProMount-false/cylinderWidth-3.5/insta360x2-top [0m
+2025/01/18 09:47:55 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+2025/01/18 09:47:55 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-3.5/insta360x2-top[0m
+2025/01/18 09:47:55 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:55 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+Geometries in cache: 14
+Geometry cache size in bytes: 7304432
+CGAL Polyhedrons in cache: 2
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.207
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      4
+   Vertices:    35054
+   Facets:      70120
+2025/01/18 09:47:56 main.go:475: [34mDynamic Model - (path:[0/3]-instance:[12/18]) [12 processed] - 'M' includeGoProMount-true/cylinderWidth-0/insta360x2-cap [0m
+2025/01/18 09:47:56 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+2025/01/18 09:47:56 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-0/insta360x2-cap[0m
+2025/01/18 09:47:56 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:56 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+2025/01/18 09:47:56 main.go:471: [32mCopied design file to export folder: examples/insta-360-x2-case-for-large-cord/export/v0.3/insta360x2-cap.scad[0m
+Geometries in cache: 3
+Geometry cache size in bytes: 2076576
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.005
+Top level object is a 3D object (PolySet):
+   Convex:       no
+   Triangles:  14420
+2025/01/18 09:47:56 main.go:475: [34mDynamic Model - (path:[0/3]-instance:[13/18]) [13 processed] - 'N' includeGoProMount-true/cylinderWidth-3/insta360x2-cap [0m
+2025/01/18 09:47:56 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+2025/01/18 09:47:56 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-3/insta360x2-cap[0m
+2025/01/18 09:47:56 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:56 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+Geometries in cache: 3
+Geometry cache size in bytes: 2076576
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.004
+Top level object is a 3D object (PolySet):
+   Convex:       no
+   Triangles:  14420
+2025/01/18 09:47:56 main.go:475: [34mDynamic Model - (path:[0/3]-instance:[14/18]) [14 processed] - 'O' includeGoProMount-true/cylinderWidth-3.5/insta360x2-cap [0m
+2025/01/18 09:47:56 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+2025/01/18 09:47:56 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-3.5/insta360x2-cap[0m
+2025/01/18 09:47:56 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:56 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+Geometries in cache: 3
+Geometry cache size in bytes: 2076576
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.004
+Top level object is a 3D object (PolySet):
+   Convex:       no
+   Triangles:  14420
+2025/01/18 09:47:56 main.go:475: [34mDynamic Model - (path:[0/3]-instance:[15/18]) [15 processed] - 'P' includeGoProMount-false/cylinderWidth-0/insta360x2-cap [0m
+2025/01/18 09:47:56 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+2025/01/18 09:47:56 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-0/insta360x2-cap[0m
+2025/01/18 09:47:56 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:56 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+Geometries in cache: 3
+Geometry cache size in bytes: 2076576
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.004
+Top level object is a 3D object (PolySet):
+   Convex:       no
+   Triangles:  14420
+2025/01/18 09:47:56 main.go:475: [34mDynamic Model - (path:[0/3]-instance:[16/18]) [16 processed] - 'Q' includeGoProMount-false/cylinderWidth-3/insta360x2-cap [0m
+2025/01/18 09:47:56 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+2025/01/18 09:47:56 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-3/insta360x2-cap[0m
+2025/01/18 09:47:56 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:56 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+Geometries in cache: 3
+Geometry cache size in bytes: 2076576
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.006
+Top level object is a 3D object (PolySet):
+   Convex:       no
+   Triangles:  14420
+2025/01/18 09:47:56 main.go:475: [34mDynamic Model - (path:[0/3]-instance:[17/18]) [17 processed] - 'R' includeGoProMount-false/cylinderWidth-3.5/insta360x2-cap [0m
+2025/01/18 09:47:56 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+2025/01/18 09:47:56 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-3.5/insta360x2-cap[0m
+2025/01/18 09:47:56 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:56 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+Geometries in cache: 3
+Geometry cache size in bytes: 2076576
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.005
+Top level object is a 3D object (PolySet):
+   Convex:       no
+   Triangles:  14420
+2025/01/18 09:47:56 main.go:475: [34mStarting Dynamic 18 Instances - ./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+2025/01/18 09:47:56 main.go:475: [34mDynamic Model - (path:[1/3]-instance:[0/18]) [18 processed] - 'A' includeGoProMount-true/cylinderWidth-0/insta360x2-case [0m
+2025/01/18 09:47:56 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+2025/01/18 09:47:56 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-0/insta360x2-case[0m
+2025/01/18 09:47:56 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:56 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+Geometries in cache: 25
+Geometry cache size in bytes: 10765632
+CGAL Polyhedrons in cache: 12
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.119
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      7
+   Vertices:    51765
+   Facets:     103554
+2025/01/18 09:47:56 main.go:475: [34mDynamic Model - (path:[1/3]-instance:[1/18]) [19 processed] - 'B' includeGoProMount-true/cylinderWidth-3/insta360x2-case [0m
+2025/01/18 09:47:56 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+2025/01/18 09:47:56 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-3/insta360x2-case[0m
+2025/01/18 09:47:56 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:56 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+Geometries in cache: 25
+Geometry cache size in bytes: 10785792
+CGAL Polyhedrons in cache: 12
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.150
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      7
+   Vertices:    47141
+   Facets:      94306
+2025/01/18 09:47:57 main.go:475: [34mDynamic Model - (path:[1/3]-instance:[2/18]) [20 processed] - 'C' includeGoProMount-true/cylinderWidth-3.5/insta360x2-case [0m
+2025/01/18 09:47:57 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+2025/01/18 09:47:57 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-3.5/insta360x2-case[0m
+2025/01/18 09:47:57 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:57 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+Geometries in cache: 25
+Geometry cache size in bytes: 10785792
+CGAL Polyhedrons in cache: 12
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.132
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      8
+   Vertices:    46191
+   Facets:      92410
+2025/01/18 09:47:57 main.go:475: [34mDynamic Model - (path:[1/3]-instance:[3/18]) [21 processed] - 'D' includeGoProMount-false/cylinderWidth-0/insta360x2-case [0m
+2025/01/18 09:47:57 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+2025/01/18 09:47:57 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-0/insta360x2-case[0m
+2025/01/18 09:47:57 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:57 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+Geometries in cache: 8
+Geometry cache size in bytes: 10729312
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.061
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      6
+   Vertices:    53248
+   Facets:     106516
+2025/01/18 09:47:57 main.go:475: [34mDynamic Model - (path:[1/3]-instance:[4/18]) [22 processed] - 'E' includeGoProMount-false/cylinderWidth-3/insta360x2-case [0m
+2025/01/18 09:47:57 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+2025/01/18 09:47:57 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-3/insta360x2-case[0m
+2025/01/18 09:47:57 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:57 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+Geometries in cache: 8
+Geometry cache size in bytes: 10749472
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.104
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      6
+   Vertices:    48624
+   Facets:      97268
+2025/01/18 09:47:58 main.go:475: [34mDynamic Model - (path:[1/3]-instance:[5/18]) [23 processed] - 'F' includeGoProMount-false/cylinderWidth-3.5/insta360x2-case [0m
+2025/01/18 09:47:58 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+2025/01/18 09:47:58 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-3.5/insta360x2-case[0m
+2025/01/18 09:47:58 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:58 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+Geometries in cache: 8
+Geometry cache size in bytes: 10749472
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.101
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      7
+   Vertices:    47674
+   Facets:      95372
+2025/01/18 09:47:58 main.go:475: [34mDynamic Model - (path:[1/3]-instance:[6/18]) [24 processed] - 'G' includeGoProMount-true/cylinderWidth-0/insta360x2-top [0m
+2025/01/18 09:47:58 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+2025/01/18 09:47:58 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-0/insta360x2-top[0m
+2025/01/18 09:47:58 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:58 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+Geometries in cache: 14
+Geometry cache size in bytes: 7102832
+CGAL Polyhedrons in cache: 2
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.071
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      4
+   Vertices:    35583
+   Facets:      71178
+2025/01/18 09:47:58 main.go:475: [34mDynamic Model - (path:[1/3]-instance:[7/18]) [25 processed] - 'H' includeGoProMount-true/cylinderWidth-3/insta360x2-top [0m
+2025/01/18 09:47:58 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+2025/01/18 09:47:58 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-3/insta360x2-top[0m
+2025/01/18 09:47:58 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:58 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+Geometries in cache: 14
+Geometry cache size in bytes: 7304432
+CGAL Polyhedrons in cache: 2
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.113
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      4
+   Vertices:    35692
+   Facets:      71396
+2025/01/18 09:47:58 main.go:475: [34mDynamic Model - (path:[1/3]-instance:[8/18]) [26 processed] - 'I' includeGoProMount-true/cylinderWidth-3.5/insta360x2-top [0m
+2025/01/18 09:47:58 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+2025/01/18 09:47:58 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-3.5/insta360x2-top[0m
+2025/01/18 09:47:58 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:58 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+Geometries in cache: 14
+Geometry cache size in bytes: 7304432
+CGAL Polyhedrons in cache: 2
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.113
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      4
+   Vertices:    35054
+   Facets:      70120
+2025/01/18 09:47:58 main.go:475: [34mDynamic Model - (path:[1/3]-instance:[9/18]) [27 processed] - 'J' includeGoProMount-false/cylinderWidth-0/insta360x2-top [0m
+2025/01/18 09:47:58 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+2025/01/18 09:47:58 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-0/insta360x2-top[0m
+2025/01/18 09:47:58 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:58 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+Geometries in cache: 14
+Geometry cache size in bytes: 7102832
+CGAL Polyhedrons in cache: 2
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.069
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      4
+   Vertices:    35583
+   Facets:      71178
+2025/01/18 09:47:58 main.go:475: [34mDynamic Model - (path:[1/3]-instance:[10/18]) [28 processed] - 'K' includeGoProMount-false/cylinderWidth-3/insta360x2-top [0m
+2025/01/18 09:47:58 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+2025/01/18 09:47:58 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-3/insta360x2-top[0m
+2025/01/18 09:47:58 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:58 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+Geometries in cache: 14
+Geometry cache size in bytes: 7304432
+CGAL Polyhedrons in cache: 2
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.112
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      4
+   Vertices:    35692
+   Facets:      71396
+2025/01/18 09:47:59 main.go:475: [34mDynamic Model - (path:[1/3]-instance:[11/18]) [29 processed] - 'L' includeGoProMount-false/cylinderWidth-3.5/insta360x2-top [0m
+2025/01/18 09:47:59 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+2025/01/18 09:47:59 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-3.5/insta360x2-top[0m
+2025/01/18 09:47:59 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:59 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+Geometries in cache: 14
+Geometry cache size in bytes: 7304432
+CGAL Polyhedrons in cache: 2
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.134
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      4
+   Vertices:    35054
+   Facets:      70120
+2025/01/18 09:47:59 main.go:475: [34mDynamic Model - (path:[1/3]-instance:[12/18]) [30 processed] - 'M' includeGoProMount-true/cylinderWidth-0/insta360x2-cap [0m
+2025/01/18 09:47:59 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+2025/01/18 09:47:59 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-0/insta360x2-cap[0m
+2025/01/18 09:47:59 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:59 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+Geometries in cache: 3
+Geometry cache size in bytes: 2076576
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.004
+Top level object is a 3D object (PolySet):
+   Convex:       no
+   Triangles:  14420
+2025/01/18 09:47:59 main.go:475: [34mDynamic Model - (path:[1/3]-instance:[13/18]) [31 processed] - 'N' includeGoProMount-true/cylinderWidth-3/insta360x2-cap [0m
+2025/01/18 09:47:59 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+2025/01/18 09:47:59 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-3/insta360x2-cap[0m
+2025/01/18 09:47:59 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:59 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+Geometries in cache: 3
+Geometry cache size in bytes: 2076576
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.005
+Top level object is a 3D object (PolySet):
+   Convex:       no
+   Triangles:  14420
+2025/01/18 09:47:59 main.go:475: [34mDynamic Model - (path:[1/3]-instance:[14/18]) [32 processed] - 'O' includeGoProMount-true/cylinderWidth-3.5/insta360x2-cap [0m
+2025/01/18 09:47:59 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+2025/01/18 09:47:59 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-3.5/insta360x2-cap[0m
+2025/01/18 09:47:59 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:59 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+Geometries in cache: 3
+Geometry cache size in bytes: 2076576
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.004
+Top level object is a 3D object (PolySet):
+   Convex:       no
+   Triangles:  14420
+2025/01/18 09:47:59 main.go:475: [34mDynamic Model - (path:[1/3]-instance:[15/18]) [33 processed] - 'P' includeGoProMount-false/cylinderWidth-0/insta360x2-cap [0m
+2025/01/18 09:47:59 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+2025/01/18 09:47:59 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-0/insta360x2-cap[0m
+2025/01/18 09:47:59 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:59 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+Geometries in cache: 3
+Geometry cache size in bytes: 2076576
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.003
+Top level object is a 3D object (PolySet):
+   Convex:       no
+   Triangles:  14420
+2025/01/18 09:47:59 main.go:475: [34mDynamic Model - (path:[1/3]-instance:[16/18]) [34 processed] - 'Q' includeGoProMount-false/cylinderWidth-3/insta360x2-cap [0m
+2025/01/18 09:47:59 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+2025/01/18 09:47:59 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-3/insta360x2-cap[0m
+2025/01/18 09:47:59 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:59 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+Geometries in cache: 3
+Geometry cache size in bytes: 2076576
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.004
+Top level object is a 3D object (PolySet):
+   Convex:       no
+   Triangles:  14420
+2025/01/18 09:47:59 main.go:475: [34mDynamic Model - (path:[1/3]-instance:[17/18]) [35 processed] - 'R' includeGoProMount-false/cylinderWidth-3.5/insta360x2-cap [0m
+2025/01/18 09:47:59 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+2025/01/18 09:47:59 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-3.5/insta360x2-cap[0m
+2025/01/18 09:47:59 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:59 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+Geometries in cache: 3
+Geometry cache size in bytes: 2076576
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.004
+Top level object is a 3D object (PolySet):
+   Convex:       no
+   Triangles:  14420
+2025/01/18 09:47:59 main.go:475: [34mStarting Dynamic 18 Instances - ./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+2025/01/18 09:47:59 main.go:475: [34mDynamic Model - (path:[2/3]-instance:[0/18]) [36 processed] - 'A' includeGoProMount-true/cylinderWidth-0/insta360x2-case [0m
+2025/01/18 09:47:59 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+2025/01/18 09:47:59 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-0/insta360x2-case[0m
+2025/01/18 09:47:59 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:59 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+Geometries in cache: 25
+Geometry cache size in bytes: 10765632
+CGAL Polyhedrons in cache: 12
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.099
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      7
+   Vertices:    51765
+   Facets:     103554
+2025/01/18 09:47:59 main.go:475: [34mDynamic Model - (path:[2/3]-instance:[1/18]) [37 processed] - 'B' includeGoProMount-true/cylinderWidth-3/insta360x2-case [0m
+2025/01/18 09:47:59 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+2025/01/18 09:47:59 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-3/insta360x2-case[0m
+2025/01/18 09:47:59 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:47:59 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+Geometries in cache: 25
+Geometry cache size in bytes: 10785792
+CGAL Polyhedrons in cache: 12
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.136
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      7
+   Vertices:    47141
+   Facets:      94306
+2025/01/18 09:48:00 main.go:475: [34mDynamic Model - (path:[2/3]-instance:[2/18]) [38 processed] - 'C' includeGoProMount-true/cylinderWidth-3.5/insta360x2-case [0m
+2025/01/18 09:48:00 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+2025/01/18 09:48:00 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-3.5/insta360x2-case[0m
+2025/01/18 09:48:00 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:48:00 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+Geometries in cache: 25
+Geometry cache size in bytes: 10785792
+CGAL Polyhedrons in cache: 12
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.134
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      8
+   Vertices:    46191
+   Facets:      92410
+2025/01/18 09:48:00 main.go:475: [34mDynamic Model - (path:[2/3]-instance:[3/18]) [39 processed] - 'D' includeGoProMount-false/cylinderWidth-0/insta360x2-case [0m
+2025/01/18 09:48:00 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+2025/01/18 09:48:00 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-0/insta360x2-case[0m
+2025/01/18 09:48:00 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:48:00 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+Geometries in cache: 8
+Geometry cache size in bytes: 10729312
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.077
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      6
+   Vertices:    53248
+   Facets:     106516
+2025/01/18 09:48:00 main.go:475: [34mDynamic Model - (path:[2/3]-instance:[4/18]) [40 processed] - 'E' includeGoProMount-false/cylinderWidth-3/insta360x2-case [0m
+2025/01/18 09:48:00 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+2025/01/18 09:48:00 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-3/insta360x2-case[0m
+2025/01/18 09:48:00 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:48:00 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+Geometries in cache: 8
+Geometry cache size in bytes: 10749472
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.117
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      6
+   Vertices:    48624
+   Facets:      97268
+2025/01/18 09:48:01 main.go:475: [34mDynamic Model - (path:[2/3]-instance:[5/18]) [41 processed] - 'F' includeGoProMount-false/cylinderWidth-3.5/insta360x2-case [0m
+2025/01/18 09:48:01 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+2025/01/18 09:48:01 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-3.5/insta360x2-case[0m
+2025/01/18 09:48:01 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:48:01 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-case.scad[0m
+Geometries in cache: 8
+Geometry cache size in bytes: 10749472
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.109
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      7
+   Vertices:    47674
+   Facets:      95372
+2025/01/18 09:48:01 main.go:475: [34mDynamic Model - (path:[2/3]-instance:[6/18]) [42 processed] - 'G' includeGoProMount-true/cylinderWidth-0/insta360x2-top [0m
+2025/01/18 09:48:01 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+2025/01/18 09:48:01 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-0/insta360x2-top[0m
+2025/01/18 09:48:01 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:48:01 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+Geometries in cache: 14
+Geometry cache size in bytes: 7102832
+CGAL Polyhedrons in cache: 2
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.066
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      4
+   Vertices:    35583
+   Facets:      71178
+2025/01/18 09:48:01 main.go:475: [34mDynamic Model - (path:[2/3]-instance:[7/18]) [43 processed] - 'H' includeGoProMount-true/cylinderWidth-3/insta360x2-top [0m
+2025/01/18 09:48:01 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+2025/01/18 09:48:01 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-3/insta360x2-top[0m
+2025/01/18 09:48:01 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:48:01 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+Geometries in cache: 14
+Geometry cache size in bytes: 7304432
+CGAL Polyhedrons in cache: 2
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.112
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      4
+   Vertices:    35692
+   Facets:      71396
+2025/01/18 09:48:01 main.go:475: [34mDynamic Model - (path:[2/3]-instance:[8/18]) [44 processed] - 'I' includeGoProMount-true/cylinderWidth-3.5/insta360x2-top [0m
+2025/01/18 09:48:01 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+2025/01/18 09:48:01 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-3.5/insta360x2-top[0m
+2025/01/18 09:48:01 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:48:01 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+Geometries in cache: 14
+Geometry cache size in bytes: 7304432
+CGAL Polyhedrons in cache: 2
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.114
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      4
+   Vertices:    35054
+   Facets:      70120
+2025/01/18 09:48:01 main.go:475: [34mDynamic Model - (path:[2/3]-instance:[9/18]) [45 processed] - 'J' includeGoProMount-false/cylinderWidth-0/insta360x2-top [0m
+2025/01/18 09:48:01 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+2025/01/18 09:48:01 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-0/insta360x2-top[0m
+2025/01/18 09:48:01 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:48:01 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+Geometries in cache: 14
+Geometry cache size in bytes: 7102832
+CGAL Polyhedrons in cache: 2
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.099
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      4
+   Vertices:    35583
+   Facets:      71178
+2025/01/18 09:48:02 main.go:475: [34mDynamic Model - (path:[2/3]-instance:[10/18]) [46 processed] - 'K' includeGoProMount-false/cylinderWidth-3/insta360x2-top [0m
+2025/01/18 09:48:02 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+2025/01/18 09:48:02 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-3/insta360x2-top[0m
+2025/01/18 09:48:02 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:48:02 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+Geometries in cache: 14
+Geometry cache size in bytes: 7304432
+CGAL Polyhedrons in cache: 2
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.135
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      4
+   Vertices:    35692
+   Facets:      71396
+2025/01/18 09:48:02 main.go:475: [34mDynamic Model - (path:[2/3]-instance:[11/18]) [47 processed] - 'L' includeGoProMount-false/cylinderWidth-3.5/insta360x2-top [0m
+2025/01/18 09:48:02 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+2025/01/18 09:48:02 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-3.5/insta360x2-top[0m
+2025/01/18 09:48:02 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:48:02 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad[0m
+Geometries in cache: 14
+Geometry cache size in bytes: 7304432
+CGAL Polyhedrons in cache: 2
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.125
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      4
+   Vertices:    35054
+   Facets:      70120
+2025/01/18 09:48:02 main.go:475: [34mDynamic Model - (path:[2/3]-instance:[12/18]) [48 processed] - 'M' includeGoProMount-true/cylinderWidth-0/insta360x2-cap [0m
+2025/01/18 09:48:02 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+2025/01/18 09:48:02 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-0/insta360x2-cap[0m
+2025/01/18 09:48:02 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:48:02 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+Geometries in cache: 3
+Geometry cache size in bytes: 2076576
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.004
+Top level object is a 3D object (PolySet):
+   Convex:       no
+   Triangles:  14420
+2025/01/18 09:48:02 main.go:475: [34mDynamic Model - (path:[2/3]-instance:[13/18]) [49 processed] - 'N' includeGoProMount-true/cylinderWidth-3/insta360x2-cap [0m
+2025/01/18 09:48:02 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+2025/01/18 09:48:02 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-3/insta360x2-cap[0m
+2025/01/18 09:48:02 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:48:02 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+Geometries in cache: 3
+Geometry cache size in bytes: 2076576
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.004
+Top level object is a 3D object (PolySet):
+   Convex:       no
+   Triangles:  14420
+2025/01/18 09:48:02 main.go:475: [34mDynamic Model - (path:[2/3]-instance:[14/18]) [50 processed] - 'O' includeGoProMount-true/cylinderWidth-3.5/insta360x2-cap [0m
+2025/01/18 09:48:02 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+2025/01/18 09:48:02 main.go:434: [33mAutoName: [37m			includeGoProMount-true/cylinderWidth-3.5/insta360x2-cap[0m
+2025/01/18 09:48:02 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:48:02 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+Geometries in cache: 3
+Geometry cache size in bytes: 2076576
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.005
+Top level object is a 3D object (PolySet):
+   Convex:       no
+   Triangles:  14420
+2025/01/18 09:48:02 main.go:475: [34mDynamic Model - (path:[2/3]-instance:[15/18]) [51 processed] - 'P' includeGoProMount-false/cylinderWidth-0/insta360x2-cap [0m
+2025/01/18 09:48:02 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+2025/01/18 09:48:02 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-0/insta360x2-cap[0m
+2025/01/18 09:48:02 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:48:02 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+Geometries in cache: 3
+Geometry cache size in bytes: 2076576
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.004
+Top level object is a 3D object (PolySet):
+   Convex:       no
+   Triangles:  14420
+2025/01/18 09:48:02 main.go:475: [34mDynamic Model - (path:[2/3]-instance:[16/18]) [52 processed] - 'Q' includeGoProMount-false/cylinderWidth-3/insta360x2-cap [0m
+2025/01/18 09:48:02 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+2025/01/18 09:48:02 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-3/insta360x2-cap[0m
+2025/01/18 09:48:02 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:48:02 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+Geometries in cache: 3
+Geometry cache size in bytes: 2076576
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.006
+Top level object is a 3D object (PolySet):
+   Convex:       no
+   Triangles:  14420
+2025/01/18 09:48:02 main.go:475: [34mDynamic Model - (path:[2/3]-instance:[17/18]) [53 processed] - 'R' includeGoProMount-false/cylinderWidth-3.5/insta360x2-cap [0m
+2025/01/18 09:48:02 main.go:434: [33mInputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+2025/01/18 09:48:02 main.go:434: [33mAutoName: [37m			includeGoProMount-false/cylinderWidth-3.5/insta360x2-cap[0m
+2025/01/18 09:48:02 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:48:02 main.go:434: [33minputPath: [37m			./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad[0m
+Geometries in cache: 3
+Geometry cache size in bytes: 2076576
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.004
+Top level object is a 3D object (PolySet):
+   Convex:       no
+   Triangles:  14420
+2025/01/18 09:48:02 main.go:475: [34mGenerating README.md[0m
+2025/01/18 09:48:02 main.go:434: [33mREADME.md written to: [37m			examples/insta-360-x2-case-for-large-cord/export/v0.3/README.md[0m
+2025/01/18 09:48:02 main.go:475: [34mSTL generation completed[0m

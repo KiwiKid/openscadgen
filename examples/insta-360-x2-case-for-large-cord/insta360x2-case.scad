@@ -98,7 +98,7 @@ mountLocation = [-20,-5.8,40];
 
 mountJoinerSize = [28,30];
 mountJoinerRotation = [90,0,0];
-mountJoinerLocation = [-mountJoinerSize[0]/2+14, 34.6, 12.5];
+mountJoinerLocation = [-mountJoinerSize[0]/2+14, 34.6, 10.3];
 
 //mountStabilizerSize = [15, 14];
 //mountStabilizerExtention = 10;

@@ -1,0 +1,133 @@
+2025/01/18 09:36:54 main.go:441: [38;5;208mYou are running an ALPHA version, this software is being worked on and not yet stable, please report any bugs to https://github.com/KiwiKid/openscadgen/issues[0m
+2025/01/18 09:36:54 main.go:434: [33mInput File [1/2]: [37m			./examples/cup-holder-plus/carHolderPlus.scad[0m
+2025/01/18 09:36:54 main.go:434: [33mInput File [2/2]: [37m			./examples/cup-holder-plus/carHolderPlus-cup-holder-sizer.scad[0m
+2025/01/18 09:36:54 main.go:434: [33mDesign Version: [37m			v2.0[0m
+2025/01/18 09:36:54 main.go:475: [34mStarting STL generation[0m
+2025/01/18 09:36:54 main.go:475: [34mStarting Dynamic 4 Instances[0m
+2025/01/18 09:36:54 main.go:475: [34mStarting Dynamic 4 Instances - ./examples/cup-holder-plus/carHolderPlus.scad[0m
+2025/01/18 09:36:54 main.go:475: [34mDynamic Model - (path:[0/2]-instance:[0/4]) [0 processed] - 'A' twoLargerHolders/carHolderPlus-rav4 [0m
+2025/01/18 09:36:54 main.go:434: [33mInputPath: [37m			./examples/cup-holder-plus/carHolderPlus.scad[0m
+2025/01/18 09:36:54 main.go:434: [33mAutoName: [37m			twoLargerHolders/carHolderPlus-rav4[0m
+2025/01/18 09:36:54 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:36:54 main.go:434: [33minputPath: [37m			./examples/cup-holder-plus/carHolderPlus.scad[0m
+2025/01/18 09:36:54 main.go:471: [32mCopied design file to export folder: examples/cup-holder-plus/export/v2.0/carHolderPlus.scad[0m
+Geometries in cache: 8
+Geometry cache size in bytes: 8069824
+CGAL Polyhedrons in cache: 16
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:21.814
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      -1
+   Vertices:   194680
+   Facets:     389352
+2025/01/18 09:37:16 main.go:475: [34mDynamic Model - (path:[0/2]-instance:[1/4]) [1 processed] - 'B' oneLargerHolderOneSmallerHolder/carHolderPlus-rav4 [0m
+2025/01/18 09:37:16 main.go:434: [33mInputPath: [37m			./examples/cup-holder-plus/carHolderPlus.scad[0m
+2025/01/18 09:37:16 main.go:434: [33mAutoName: [37m			oneLargerHolderOneSmallerHolder/carHolderPlus-rav4[0m
+2025/01/18 09:37:16 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:37:16 main.go:434: [33minputPath: [37m			./examples/cup-holder-plus/carHolderPlus.scad[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 8121248
+CGAL Polyhedrons in cache: 22
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:38.923
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      -1
+   Vertices:   178883
+   Facets:     357758
+2025/01/18 09:37:55 main.go:475: [34mDynamic Model - (path:[0/2]-instance:[2/4]) [2 processed] - 'C' twoLargerHolders/carHolderPlus-cup-holder-sizer-rav4 [0m
+2025/01/18 09:37:55 main.go:434: [33mInputPath: [37m			./examples/cup-holder-plus/carHolderPlus-cup-holder-sizer.scad[0m
+2025/01/18 09:37:55 main.go:434: [33mAutoName: [37m			twoLargerHolders/carHolderPlus-cup-holder-sizer-rav4[0m
+2025/01/18 09:37:55 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:37:55 main.go:434: [33minputPath: [37m			./examples/cup-holder-plus/carHolderPlus-cup-holder-sizer.scad[0m
+2025/01/18 09:37:55 main.go:471: [32mCopied design file to export folder: examples/cup-holder-plus/export/v2.0/carHolderPlus-cup-holder-sizer.scad[0m
+Geometries in cache: 7
+Geometry cache size in bytes: 354032
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.023
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      2
+   Vertices:     2620
+   Facets:       5244
+2025/01/18 09:37:55 main.go:475: [34mDynamic Model - (path:[0/2]-instance:[3/4]) [3 processed] - 'D' oneLargerHolderOneSmallerHolder/carHolderPlus-cup-holder-sizer-rav4 [0m
+2025/01/18 09:37:55 main.go:434: [33mInputPath: [37m			./examples/cup-holder-plus/carHolderPlus-cup-holder-sizer.scad[0m
+2025/01/18 09:37:55 main.go:434: [33mAutoName: [37m			oneLargerHolderOneSmallerHolder/carHolderPlus-cup-holder-sizer-rav4[0m
+2025/01/18 09:37:55 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:37:55 main.go:434: [33minputPath: [37m			./examples/cup-holder-plus/carHolderPlus-cup-holder-sizer.scad[0m
+Geometries in cache: 7
+Geometry cache size in bytes: 354032
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.022
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      2
+   Vertices:     2620
+   Facets:       5244
+2025/01/18 09:37:55 main.go:475: [34mStarting Dynamic 4 Instances - ./examples/cup-holder-plus/carHolderPlus-cup-holder-sizer.scad[0m
+2025/01/18 09:37:55 main.go:475: [34mDynamic Model - (path:[1/2]-instance:[0/4]) [4 processed] - 'A' twoLargerHolders/carHolderPlus-rav4 [0m
+2025/01/18 09:37:55 main.go:434: [33mInputPath: [37m			./examples/cup-holder-plus/carHolderPlus.scad[0m
+2025/01/18 09:37:55 main.go:434: [33mAutoName: [37m			twoLargerHolders/carHolderPlus-rav4[0m
+2025/01/18 09:37:55 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:37:55 main.go:434: [33minputPath: [37m			./examples/cup-holder-plus/carHolderPlus.scad[0m
+Geometries in cache: 8
+Geometry cache size in bytes: 8069824
+CGAL Polyhedrons in cache: 16
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:19.852
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      -1
+   Vertices:   194676
+   Facets:     389344
+2025/01/18 09:38:15 main.go:475: [34mDynamic Model - (path:[1/2]-instance:[1/4]) [5 processed] - 'B' oneLargerHolderOneSmallerHolder/carHolderPlus-rav4 [0m
+2025/01/18 09:38:15 main.go:434: [33mInputPath: [37m			./examples/cup-holder-plus/carHolderPlus.scad[0m
+2025/01/18 09:38:15 main.go:434: [33mAutoName: [37m			oneLargerHolderOneSmallerHolder/carHolderPlus-rav4[0m
+2025/01/18 09:38:15 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:38:15 main.go:434: [33minputPath: [37m			./examples/cup-holder-plus/carHolderPlus.scad[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 8121248
+CGAL Polyhedrons in cache: 22
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:38.706
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      -1
+   Vertices:   178882
+   Facets:     357756
+2025/01/18 09:38:54 main.go:475: [34mDynamic Model - (path:[1/2]-instance:[2/4]) [6 processed] - 'C' twoLargerHolders/carHolderPlus-cup-holder-sizer-rav4 [0m
+2025/01/18 09:38:54 main.go:434: [33mInputPath: [37m			./examples/cup-holder-plus/carHolderPlus-cup-holder-sizer.scad[0m
+2025/01/18 09:38:54 main.go:434: [33mAutoName: [37m			twoLargerHolders/carHolderPlus-cup-holder-sizer-rav4[0m
+2025/01/18 09:38:54 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:38:54 main.go:434: [33minputPath: [37m			./examples/cup-holder-plus/carHolderPlus-cup-holder-sizer.scad[0m
+Geometries in cache: 7
+Geometry cache size in bytes: 354032
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.024
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      2
+   Vertices:     2620
+   Facets:       5244
+2025/01/18 09:38:54 main.go:475: [34mDynamic Model - (path:[1/2]-instance:[3/4]) [7 processed] - 'D' oneLargerHolderOneSmallerHolder/carHolderPlus-cup-holder-sizer-rav4 [0m
+2025/01/18 09:38:54 main.go:434: [33mInputPath: [37m			./examples/cup-holder-plus/carHolderPlus-cup-holder-sizer.scad[0m
+2025/01/18 09:38:54 main.go:434: [33mAutoName: [37m			oneLargerHolderOneSmallerHolder/carHolderPlus-cup-holder-sizer-rav4[0m
+2025/01/18 09:38:54 main.go:475: [34mGenerating STL[0m
+2025/01/18 09:38:54 main.go:434: [33minputPath: [37m			./examples/cup-holder-plus/carHolderPlus-cup-holder-sizer.scad[0m
+Geometries in cache: 7
+Geometry cache size in bytes: 354032
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.022
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      2
+   Vertices:     2620
+   Facets:       5244
+2025/01/18 09:38:54 main.go:475: [34mGenerating README.md[0m
+2025/01/18 09:38:54 main.go:434: [33mREADME.md written to: [37m			examples/cup-holder-plus/export/v2.0/README.md[0m
+2025/01/18 09:38:54 main.go:475: [34mSTL generation completed[0m

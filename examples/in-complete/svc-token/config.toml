@@ -1,0 +1,18 @@
+# These lines configure, where the config file is, how openscad will be run and where the output will be saved
+[openscadgen]
+name = "svc-token"
+description = "A case for the Insta360 X2 camera"
+output_path = "./examples/svc-token/export"
+version = "v0.2"
+custom_openscad_args = "--summary"
+no_part_id_letter = true
+[[openscadgen.input_paths]]
+path = "./examples/svc-token/svc-token.scad"
+
+#path = "./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad"
+
+[[openscadgen.dynamic_instances]]
+# The 'name' field is a template string that will be used to generate the instance name (note the {param_name} syntax for value replacement)
+# the params field configures which instances get created ()
+name = "{designFileName}"
+
