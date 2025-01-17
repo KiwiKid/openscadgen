@@ -3,7 +3,7 @@ $fn = 20;
     A cup holder upgrade for the toyota rav4 (v1.4)
 
     Includes: 
-    - Two options for the holder size (twoLargerHolders, oneLargerHolderOneSmallerHolder)
+    - Two options for the holder size (twoBig, oneBigOneSmall)
     - Phone holders at either end
     - Adjustable cup holder size
 
@@ -14,10 +14,8 @@ Note: This design is a learning tool for openSCAD, while the design is functiona
 
 
 
-
-// oneLargerHolderOneSmallerHolder, twoLargerHolders
-cup_holders_mode = "twoLargerHolders";
-
+// oneBigOneSmall, twoBig
+cup_holders_mode = "twoBig";
 
 cup_holder_y_offset = 2.5;
 cup_holder_center_offset= 43;
@@ -45,8 +43,8 @@ phone_holder_depth=100;
 $mode = "rounded";
 
 // IMPORTANT - Ensure these match your cup holder (toyata rav4 set below)
-in_car_cup_holder_height = 56;
-in_car_cup_holder_top_diameter = 78;
+in_car_cup_holder_height = 70;
+in_car_cup_holder_top_diameter = 74;
 in_car_cup_holder_bottom_diameter = 66.5;
 in_car_cup_holder_center_offset = 16;
 
@@ -111,10 +109,10 @@ module cupHolder(){
         // Cup holder 1
        translate([cup_holder_center_offset, cup_holder_y_offset, in_car_cup_holder_height+cup_holder_floor_depth]) roundedCylinder(h=cup_holder_height, d1=cup_holder_1_botton_radius, d2=cup_holder_1_top_radius);
         
-        if (cup_holders_mode == "oneLargerHolderOneSmallerHolder") {
+        if (cup_holders_mode == "oneBigOneSmall") {
          // Cup holder 2 (small)
         translate([-cup_holder_center_offset, cup_holder_y_offset, in_car_cup_holder_height+cup_holder_floor_depth]) roundedCylinder(h=cup_holder_height, d1=cup_holder_2_botton_radius, d2=cup_holder_2_top_radius);
-        } else if (cup_holders_mode == "twoLargerHolders") {
+        } else if (cup_holders_mode == "twoBig") {
            // Cup holder 2 (big)
 
         translate([-cup_holder_center_offset, cup_holder_y_offset, in_car_cup_holder_height+cup_holder_floor_depth]) roundedCylinder(h=cup_holder_height, d1=cup_holder_1_botton_radius, d2=cup_holder_1_top_radius);
@@ -140,11 +138,11 @@ module cupHolder(){
         
         
         // Soften some edges in the middle
-        if (cup_holders_mode == "twoLargerHolders") {
+        if (cup_holders_mode == "twoBig") {
         // Center Phone Cutout
         translate([5, 5, in_car_cup_holder_height+60])
         roundedCube([180, 60, 90], center=true);
-        } else if (cup_holders_mode == "oneLargerHolderOneSmallerHolder") {
+        } else if (cup_holders_mode == "oneBigOneSmall") {
          
          translate([-90, -20, in_car_cup_holder_height+phone_holder_floor_depth+10])
         

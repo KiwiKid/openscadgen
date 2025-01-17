@@ -1,0 +1,39 @@
+2025/01/14 11:22:54 main.go:420: [38;5;208mYou are running an ALPHA version, this software is being worked on and not yet stable, please report any bugs to https://github.com/KiwiKid/openscadgen/issues[0m
+2025/01/14 11:22:54 main.go:413: [33mInput File: [37m			./examples/rotating-compartment-lock-latch/rotating-compartment-lock.scad[0m
+2025/01/14 11:22:54 main.go:413: [33mDesign Version: [37m			v1.0[0m
+2025/01/14 11:22:54 main.go:454: [34mStarting STL generation[0m
+2025/01/14 11:22:54 main.go:420: [38;5;208m
+The export folder (examples/rotating-compartment-lock-latch/export/v1.0) has 4 existing files: 
+	- README.md
+	- openscadgen_export_log.log
+	- rotating-compartment-lock.scad
+	- test.stl
+[0m
+2025/01/14 11:22:54 main.go:425: [36m	the '-ow' flag will skip this check[0m
+2025/01/14 11:22:54 main.go:425: [36m	(tip: if you want to keep the existing stl export files, cancel this run and update the 'version' in the config file, this will generate a new folder and keep the existing files)[0m
+2025/01/14 11:22:54 main.go:418: [31m 4 files will be deleted from: 
+
+	examples/rotating-compartment-lock-latch/export/v1.0
+
+Do you want to continue? (y/n):[0m
+2025/01/14 11:22:58 main.go:454: [34mClearing 4 files from export folder[0m
+2025/01/14 11:22:58 main.go:454: [34mStarting Dynamic 1 Instances[0m
+2025/01/14 11:22:58 main.go:454: [34mStarting Dynamic 1 Instances - ./examples/rotating-compartment-lock-latch/rotating-compartment-lock.scad[0m
+2025/01/14 11:22:58 main.go:454: [34mDynamic Model - (path:[0/1]-instance:[0/1]) [0 processed] - 'A' test [0m
+2025/01/14 11:22:58 main.go:413: [33mInputPath: [37m			./examples/rotating-compartment-lock-latch/rotating-compartment-lock.scad[0m
+2025/01/14 11:22:58 main.go:413: [33mAutoName: [37m			test[0m
+2025/01/14 11:22:58 main.go:454: [34mGenerating STL[0m
+2025/01/14 11:22:58 main.go:413: [33minputPath: [37m			./examples/rotating-compartment-lock-latch/rotating-compartment-lock.scad[0m
+2025/01/14 11:22:58 main.go:450: [32mCopied design file to export folder: examples/rotating-compartment-lock-latch/export/v1.0/rotating-compartment-lock.scad[0m
+WARNING: Can't open include file 'BOSL2/shapes.scad'. in file examples/rotating-compartment-lock-latch/rotating-compartment-lock.scad, line 2
+Geometries in cache: 3
+Geometry cache size in bytes: 78144
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.001
+Top level object is a 3D object (PolySet):
+   Convex:       no
+   Triangles:    536
+2025/01/14 11:22:58 main.go:454: [34mGenerating README.md[0m
+2025/01/14 11:22:58 main.go:413: [33mREADME.md written to: [37m			examples/rotating-compartment-lock-latch/export/v1.0/README.md[0m
+2025/01/14 11:22:58 main.go:454: [34mSTL generation completed[0m

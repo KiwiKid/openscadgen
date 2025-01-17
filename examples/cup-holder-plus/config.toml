@@ -6,15 +6,14 @@ description = """\
 \n
 Tested against late 90s toyota models, you can adjust the cup holder size via these params in the openscad file:
 \n
-$in_car_cup_holder_height = 65;
-$in_car_holder_top_diameter = 74;
-$in_car_bottom_diameter = 66.5;
+Be-aware of the limitations of the material you are using, PLA can have a very limited lifespan as it will deform and warp in the sun/heat of the car (https://3dprinting.stackexchange.com/questions/6119/can-you-put-pla-parts-in-your-car-in-the-sun)
+
 \n\n
 Project file includes:
 \n
-- Cup Adapter without cut - an “All-in-on” print - uses more supports & time, stronger, with no assembly (~21h print time & 560g of PLA filament)
+- Cup Adapter without cut - an “All-in-on” print - uses more supports & time, stronger, with no assembly (~14h print time & 560g of PLA filament)
 \n
-- Cut the Cup Adapter with a dowel cut - Minimise print/build time via splitting the cup holder to a separate part (~14h print time & 450g of PLA filament)
+- Cut the Cup Adapter with a dowel cut - Minimise print/build time via splitting the cup holder to a separate part (~10h print time & 470g of PLA filament)
  - Parametric .scad file for customisation 
 \n\n\n
 v1.1
@@ -22,13 +21,19 @@ v1.1
 - Slightly narrower cup holder diameter at the brim and base
 - Reduce sharp edges (better align cup & phone holders in the center)
 """
-input_path = "./examples/cup-holder-plus/carHolderPlus.scad"
-export_name_format = "{cup_holders_mode}-{designFileName}-{name}"
+export_name_format = "{cup_holders_mode}/{designFileName}-{name}"
 
 output_path = "./examples/cup-holder-plus/export/"
-version = "v1.2"
-custom_openscad_args = "--summary"
+version = "v2.0"
+
+[[openscadgen.input_paths]]
+path = "./examples/cup-holder-plus/carHolderPlus.scad"
+
+[[openscadgen.input_paths]]
+path = "./examples/cup-holder-plus/carHolderPlus-cup-holder-sizer.scad"
+filter_params = "cup_holders_mode"
+export_name_format = "cup-holder-sizer/{designFileName}-{name}-height_{in_car_cup_holder_height}mm-top_diameter_{in_car_cup_holder_top_diameter}mm-bottom_diameter_{in_car_cup_holder_bottom_diameter}mm"
 
 [[openscadgen.dynamic_instances]]
-params = { name= "rav4", in_car_cup_holder_height = "70", in_car_cup_holder_top_diameter = "74", in_car_cup_holder_bottom_diameter = "66.5", center_offset = "0", cup_holders_mode = "oneBigOneSmall,twoBig" }
+params = { name= "rav4", in_car_cup_holder_height = "56", in_car_cup_holder_top_diameter = "78", in_car_cup_holder_bottom_diameter = "66.5", cup_holders_mode = "twoLargerHolders,oneLargerHolderOneSmallerHolder" }
 
