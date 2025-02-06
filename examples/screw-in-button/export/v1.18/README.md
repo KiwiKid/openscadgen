@@ -1,148 +1,179 @@
 # screw-in-button
 
-A parametric screw in button
+   mulit-size upholstery screw-in button
+   
+   Source: https://github.com/KiwiKid/openscaden/
+   Author: KiwiKid
 
-## Table of Contents
-- [_A](#_a)
-- [_B](#_b)
-- [_C](#_c)
-- [_D](#_d)
-- [_E](#_e)
-- [_F](#_f)
-- [_G](#_g)
-- [_H](#_h)
-- [_I](#_i)
-- [_J](#_j)
-- [_K](#_k)
-- [_L](#_l)
-- [_M](#_m)
-- [_N](#_n)
-- [_O](#_o)
-- [_P](#_p)
-- [_Q](#_q)
-- [_R](#_r)
-- [_S](#_s)
-- [_T](#_t)
+   Used for upholstery buttons to secure older fabric in a carovan, could be useful for other purposes. 
+    Has openSCAD parametric code for editing and a number of default "button" profiles that allow for attachment via standard sized screws.
 
-## _A
-- **designFileName**: Button
-- **button_height**: 1
-- **button_width**: 5
-- **button_radius**: 50
+    Note: This is not a reference for best practices for writing openSCAD code  (includes hardcoded values, hidden dependencies between variables, non-modular etc.)
 
-## _B
-- **button_width**: 10
-- **button_radius**: 50
-- **designFileName**: Button
-- **button_height**: 1
 
-## _C
-- **button_radius**: 50
-- **designFileName**: Button
-- **button_height**: 3
-- **button_width**: 5
+    Be aware of the operating conditions of the buttons and the limitations of the materials you are using - PLA is not recommended for long term/high-stress/high-temp use.
 
-## _D
-- **button_radius**: 50
-- **designFileName**: Button
-- **button_height**: 3
-- **button_width**: 10
 
-## _E
-- **button_radius**: 50
-- **designFileName**: Button
-- **button_height**: 5
-- **button_width**: 5
+## Contents 
+- [/button-height-1-width-5-button-profile-50.stl](./button-height-1-width-5-button-profile-50.stl)
+	- **InputPath**: ./examples/screw-in-button/Button.scad
+	- **button_radius**: 50
+	- **button_height**: 1
+	- **button_width**: 5
+	- **designFileName**: Button
 
-## _F
-- **designFileName**: Button
-- **button_height**: 5
-- **button_width**: 10
-- **button_radius**: 50
 
-## _G
-- **button_width**: 5
-- **button_radius**: 50
-- **designFileName**: Button
-- **button_height**: 10
+- [/button-height-1-width-10-button-profile-50.stl](./button-height-1-width-10-button-profile-50.stl)
+	- **InputPath**: ./examples/screw-in-button/Button.scad
+	- **button_height**: 1
+	- **button_width**: 10
+	- **designFileName**: Button
+	- **button_radius**: 50
 
-## _H
-- **designFileName**: Button
-- **button_height**: 10
-- **button_width**: 10
-- **button_radius**: 50
 
-## _I
-- **button_height**: 20
-- **button_width**: 5
-- **button_radius**: 50
-- **designFileName**: Button
+- [/button-height-3-width-5-button-profile-50.stl](./button-height-3-width-5-button-profile-50.stl)
+	- **InputPath**: ./examples/screw-in-button/Button.scad
+	- **button_radius**: 50
+	- **button_height**: 3
+	- **button_width**: 5
+	- **designFileName**: Button
 
-## _J
-- **button_height**: 20
-- **button_width**: 10
-- **button_radius**: 50
-- **designFileName**: Button
 
-## _K
-- **button_width**: 5
-- **button_radius**: 50
-- **designFileName**: Button
-- **button_height**: 50
+- [/button-height-3-width-10-button-profile-50.stl](./button-height-3-width-10-button-profile-50.stl)
+	- **InputPath**: ./examples/screw-in-button/Button.scad
+	- **button_width**: 10
+	- **designFileName**: Button
+	- **button_radius**: 50
+	- **button_height**: 3
 
-## _L
-- **button_height**: 50
-- **button_width**: 10
-- **button_radius**: 50
-- **designFileName**: Button
 
-## _M
-- **button_height**: 5
-- **designFileName**: Button
-- **button_width**: 5
-- **button_radius**: 90
+- [/button-height-5-width-5-button-profile-50.stl](./button-height-5-width-5-button-profile-50.stl)
+	- **InputPath**: ./examples/screw-in-button/Button.scad
+	- **button_radius**: 50
+	- **button_height**: 5
+	- **button_width**: 5
+	- **designFileName**: Button
 
-## _N
-- **button_height**: 10
-- **designFileName**: Button
-- **button_width**: 5
-- **button_radius**: 90
 
-## _O
-- **button_width**: 5
-- **button_radius**: 90
-- **button_height**: 20
-- **designFileName**: Button
+- [/button-height-5-width-10-button-profile-50.stl](./button-height-5-width-10-button-profile-50.stl)
+	- **InputPath**: ./examples/screw-in-button/Button.scad
+	- **designFileName**: Button
+	- **button_radius**: 50
+	- **button_height**: 5
+	- **button_width**: 10
 
-## _P
-- **button_radius**: 90
-- **button_height**: 50
-- **designFileName**: Button
-- **button_width**: 5
 
-## _Q
-- **button_width**: 10
-- **button_radius**: 90
-- **button_height**: 5
-- **designFileName**: Button
+- [/button-height-10-width-5-button-profile-50.stl](./button-height-10-width-5-button-profile-50.stl)
+	- **InputPath**: ./examples/screw-in-button/Button.scad
+	- **button_height**: 10
+	- **button_width**: 5
+	- **designFileName**: Button
+	- **button_radius**: 50
 
-## _R
-- **button_width**: 10
-- **button_radius**: 90
-- **button_height**: 10
-- **designFileName**: Button
 
-## _S
-- **designFileName**: Button
-- **button_width**: 10
-- **button_radius**: 90
-- **button_height**: 20
+- [/button-height-10-width-10-button-profile-50.stl](./button-height-10-width-10-button-profile-50.stl)
+	- **InputPath**: ./examples/screw-in-button/Button.scad
+	- **designFileName**: Button
+	- **button_radius**: 50
+	- **button_height**: 10
+	- **button_width**: 10
 
-## _T
-- **button_width**: 10
-- **button_radius**: 90
-- **button_height**: 50
-- **designFileName**: Button
+
+- [/button-height-20-width-5-button-profile-50.stl](./button-height-20-width-5-button-profile-50.stl)
+	- **InputPath**: ./examples/screw-in-button/Button.scad
+	- **button_width**: 5
+	- **designFileName**: Button
+	- **button_radius**: 50
+	- **button_height**: 20
+
+
+- [/button-height-20-width-10-button-profile-50.stl](./button-height-20-width-10-button-profile-50.stl)
+	- **InputPath**: ./examples/screw-in-button/Button.scad
+	- **designFileName**: Button
+	- **button_radius**: 50
+	- **button_height**: 20
+	- **button_width**: 10
+
+
+- [/button-height-50-width-5-button-profile-50.stl](./button-height-50-width-5-button-profile-50.stl)
+	- **InputPath**: ./examples/screw-in-button/Button.scad
+	- **designFileName**: Button
+	- **button_radius**: 50
+	- **button_height**: 50
+	- **button_width**: 5
+
+
+- [/button-height-50-width-10-button-profile-50.stl](./button-height-50-width-10-button-profile-50.stl)
+	- **InputPath**: ./examples/screw-in-button/Button.scad
+	- **button_height**: 50
+	- **button_width**: 10
+	- **designFileName**: Button
+	- **button_radius**: 50
+
+
+- [/button-height-5-width-5-button-profile-90.stl](./button-height-5-width-5-button-profile-90.stl)
+	- **InputPath**: ./examples/screw-in-button/Button.scad
+	- **button_radius**: 90
+	- **designFileName**: Button
+	- **button_height**: 5
+	- **button_width**: 5
+
+
+- [/button-height-5-width-10-button-profile-90.stl](./button-height-5-width-10-button-profile-90.stl)
+	- **InputPath**: ./examples/screw-in-button/Button.scad
+	- **button_height**: 5
+	- **button_width**: 10
+	- **button_radius**: 90
+	- **designFileName**: Button
+
+
+- [/button-height-10-width-5-button-profile-90.stl](./button-height-10-width-5-button-profile-90.stl)
+	- **InputPath**: ./examples/screw-in-button/Button.scad
+	- **button_height**: 10
+	- **button_width**: 5
+	- **button_radius**: 90
+	- **designFileName**: Button
+
+
+- [/button-height-10-width-10-button-profile-90.stl](./button-height-10-width-10-button-profile-90.stl)
+	- **InputPath**: ./examples/screw-in-button/Button.scad
+	- **button_radius**: 90
+	- **designFileName**: Button
+	- **button_height**: 10
+	- **button_width**: 10
+
+
+- [/button-height-20-width-5-button-profile-90.stl](./button-height-20-width-5-button-profile-90.stl)
+	- **InputPath**: ./examples/screw-in-button/Button.scad
+	- **button_width**: 5
+	- **button_radius**: 90
+	- **designFileName**: Button
+	- **button_height**: 20
+
+
+- [/button-height-20-width-10-button-profile-90.stl](./button-height-20-width-10-button-profile-90.stl)
+	- **InputPath**: ./examples/screw-in-button/Button.scad
+	- **button_height**: 20
+	- **button_width**: 10
+	- **button_radius**: 90
+	- **designFileName**: Button
+
+
+- [/button-height-50-width-5-button-profile-90.stl](./button-height-50-width-5-button-profile-90.stl)
+	- **InputPath**: ./examples/screw-in-button/Button.scad
+	- **designFileName**: Button
+	- **button_height**: 50
+	- **button_width**: 5
+	- **button_radius**: 90
+
+
+- [/button-height-50-width-10-button-profile-90.stl](./button-height-50-width-10-button-profile-90.stl)
+	- **InputPath**: ./examples/screw-in-button/Button.scad
+	- **button_height**: 50
+	- **button_width**: 10
+	- **button_radius**: 90
+	- **designFileName**: Button
+
 
 ## Additional Information
-This README was generated by [openscadgen](https://github.com/KiwiKid/openscadgen) v1.1.7-ALPHA OpenSCAD version 2025.01.09. The free, local, open source openscad file generator.
+This README was generated by [openscadgen](https://github.com/KiwiKid/openscadgen) v1.2.0-ALPHA OpenSCAD version 2025.01.09. The free, local, open source openscad stl release generator.
