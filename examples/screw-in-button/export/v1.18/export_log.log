@@ -1,0 +1,347 @@
+2025/02/07 11:59:55 processor.go:1002: [33mInput File: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:55 processor.go:1002: [33mDesign Version: [37m			v1.18[0m
+2025/02/07 11:59:55 processor.go:1009: [38;5;208mYou are running an ALPHA version, this software is being worked on and not yet stable, please report any bugs to https://github.com/KiwiKid/openscadgen/issues[0m
+2025/02/07 11:59:55 processor.go:1043: [34mStarting STL generation[0m
+2025/02/07 11:59:55 processor.go:1009: [38;5;208m
+The export folder (examples/screw-in-button/export/v1.18) has 24 existing files: 
+	- Button.scad
+	- README.md
+	- button-height-1-width-10-button-profile-50.stl
+	- button-height-1-width-5-button-profile-50.stl
+	- button-height-10-width-10-button-profile-50.stl
+	and 19 other files ...
+[0m
+2025/02/07 11:59:55 processor.go:1014: [36m	the '-ow' flag will skip this check[0m
+2025/02/07 11:59:55 processor.go:1014: [36m	(tip: if you want to keep the existing stl export files, cancel this run and update the 'version' in the config file, this will generate a new folder and keep the existing files)[0m
+2025/02/07 11:59:55 processor.go:1007: [31m 24 files will be deleted from: 
+
+	examples/screw-in-button/export/v1.18
+
+Do you want to continue? (y/n):[0m
+2025/02/07 11:59:57 processor.go:1043: [34mClearing 24 files from export folder[0m
+2025/02/07 11:59:57 processor.go:1043: [34mStarting Dynamic 20 Instances[0m
+2025/02/07 11:59:57 processor.go:1043: [34mStarting Dynamic 20 Instances - ./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:57 processor.go:1043: [34mDynamic Model - (path:[0/1]-instance:[0/20]) [0 processed] - 'A' button-height-1-width-5-button-profile-50 [0m
+2025/02/07 11:59:57 processor.go:1002: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:57 processor.go:1002: [33mAutoName: [37m			button-height-1-width-5-button-profile-50[0m
+2025/02/07 11:59:57 processor.go:1043: [34mGenerating STL[0m
+2025/02/07 11:59:57 processor.go:1002: [33minputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:57 processor.go:1002: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.18[0m
+2025/02/07 11:59:57 processor.go:1039: [32mCopied design file to export folder: examples/screw-in-button/export/v1.18/Button.scad[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 948400
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.045
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      1
+   Vertices:      501
+   Facets:       1002
+2025/02/07 11:59:57 processor.go:1043: [34mDynamic Model - (path:[0/1]-instance:[1/20]) [1 processed] - 'B' button-height-1-width-10-button-profile-50 [0m
+2025/02/07 11:59:57 processor.go:1002: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:57 processor.go:1002: [33mAutoName: [37m			button-height-1-width-10-button-profile-50[0m
+2025/02/07 11:59:57 processor.go:1043: [34mGenerating STL[0m
+2025/02/07 11:59:57 processor.go:1002: [33minputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:57 processor.go:1002: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.18[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 948400
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.044
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      1
+   Vertices:     1100
+   Facets:       2200
+2025/02/07 11:59:57 processor.go:1043: [34mDynamic Model - (path:[0/1]-instance:[2/20]) [2 processed] - 'C' button-height-3-width-5-button-profile-50 [0m
+2025/02/07 11:59:57 processor.go:1002: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:57 processor.go:1002: [33mAutoName: [37m			button-height-3-width-5-button-profile-50[0m
+2025/02/07 11:59:57 processor.go:1043: [34mGenerating STL[0m
+2025/02/07 11:59:57 processor.go:1002: [33minputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:57 processor.go:1002: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.18[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 948400
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.044
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      1
+   Vertices:      903
+   Facets:       1806
+2025/02/07 11:59:57 processor.go:1043: [34mDynamic Model - (path:[0/1]-instance:[3/20]) [3 processed] - 'D' button-height-3-width-10-button-profile-50 [0m
+2025/02/07 11:59:57 processor.go:1002: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:57 processor.go:1002: [33mAutoName: [37m			button-height-3-width-10-button-profile-50[0m
+2025/02/07 11:59:57 processor.go:1043: [34mGenerating STL[0m
+2025/02/07 11:59:57 processor.go:1002: [33minputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:57 processor.go:1002: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.18[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 948400
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.044
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      1
+   Vertices:     1203
+   Facets:       2406
+2025/02/07 11:59:57 processor.go:1043: [34mDynamic Model - (path:[0/1]-instance:[4/20]) [4 processed] - 'E' button-height-5-width-5-button-profile-50 [0m
+2025/02/07 11:59:57 processor.go:1002: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:57 processor.go:1002: [33mAutoName: [37m			button-height-5-width-5-button-profile-50[0m
+2025/02/07 11:59:57 processor.go:1043: [34mGenerating STL[0m
+2025/02/07 11:59:57 processor.go:1002: [33minputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:57 processor.go:1002: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.18[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 948400
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.044
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      1
+   Vertices:     1003
+   Facets:       2006
+2025/02/07 11:59:57 processor.go:1043: [34mDynamic Model - (path:[0/1]-instance:[5/20]) [5 processed] - 'F' button-height-5-width-10-button-profile-50 [0m
+2025/02/07 11:59:57 processor.go:1002: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:57 processor.go:1002: [33mAutoName: [37m			button-height-5-width-10-button-profile-50[0m
+2025/02/07 11:59:57 processor.go:1043: [34mGenerating STL[0m
+2025/02/07 11:59:57 processor.go:1002: [33minputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:57 processor.go:1002: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.18[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 948400
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.044
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      1
+   Vertices:     1303
+   Facets:       2606
+2025/02/07 11:59:57 processor.go:1043: [34mDynamic Model - (path:[0/1]-instance:[6/20]) [6 processed] - 'G' button-height-10-width-5-button-profile-50 [0m
+2025/02/07 11:59:57 processor.go:1002: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:57 processor.go:1002: [33mAutoName: [37m			button-height-10-width-5-button-profile-50[0m
+2025/02/07 11:59:57 processor.go:1043: [34mGenerating STL[0m
+2025/02/07 11:59:57 processor.go:1002: [33minputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:57 processor.go:1002: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.18[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 948400
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.044
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      1
+   Vertices:     1300
+   Facets:       2600
+2025/02/07 11:59:57 processor.go:1043: [34mDynamic Model - (path:[0/1]-instance:[7/20]) [7 processed] - 'H' button-height-10-width-10-button-profile-50 [0m
+2025/02/07 11:59:57 processor.go:1002: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:57 processor.go:1002: [33mAutoName: [37m			button-height-10-width-10-button-profile-50[0m
+2025/02/07 11:59:57 processor.go:1043: [34mGenerating STL[0m
+2025/02/07 11:59:57 processor.go:1002: [33minputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:57 processor.go:1002: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.18[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 948400
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.044
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      1
+   Vertices:     1600
+   Facets:       3200
+2025/02/07 11:59:57 processor.go:1043: [34mDynamic Model - (path:[0/1]-instance:[8/20]) [8 processed] - 'I' button-height-20-width-5-button-profile-50 [0m
+2025/02/07 11:59:57 processor.go:1002: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:57 processor.go:1002: [33mAutoName: [37m			button-height-20-width-5-button-profile-50[0m
+2025/02/07 11:59:57 processor.go:1043: [34mGenerating STL[0m
+2025/02/07 11:59:57 processor.go:1002: [33minputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:57 processor.go:1002: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.18[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 948400
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.045
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      1
+   Vertices:     1800
+   Facets:       3600
+2025/02/07 11:59:58 processor.go:1043: [34mDynamic Model - (path:[0/1]-instance:[9/20]) [9 processed] - 'J' button-height-20-width-10-button-profile-50 [0m
+2025/02/07 11:59:58 processor.go:1002: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:58 processor.go:1002: [33mAutoName: [37m			button-height-20-width-10-button-profile-50[0m
+2025/02/07 11:59:58 processor.go:1043: [34mGenerating STL[0m
+2025/02/07 11:59:58 processor.go:1002: [33minputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:58 processor.go:1002: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.18[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 948400
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.045
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      1
+   Vertices:     2000
+   Facets:       4000
+2025/02/07 11:59:58 processor.go:1043: [34mDynamic Model - (path:[0/1]-instance:[10/20]) [10 processed] - 'K' button-height-50-width-5-button-profile-50 [0m
+2025/02/07 11:59:58 processor.go:1002: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:58 processor.go:1002: [33mAutoName: [37m			button-height-50-width-5-button-profile-50[0m
+2025/02/07 11:59:58 processor.go:1043: [34mGenerating STL[0m
+2025/02/07 11:59:58 processor.go:1002: [33minputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:58 processor.go:1002: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.18[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 948400
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.047
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      1
+   Vertices:     2800
+   Facets:       5600
+2025/02/07 11:59:58 processor.go:1043: [34mDynamic Model - (path:[0/1]-instance:[11/20]) [11 processed] - 'L' button-height-50-width-10-button-profile-50 [0m
+2025/02/07 11:59:58 processor.go:1002: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:58 processor.go:1002: [33mAutoName: [37m			button-height-50-width-10-button-profile-50[0m
+2025/02/07 11:59:58 processor.go:1043: [34mGenerating STL[0m
+2025/02/07 11:59:58 processor.go:1002: [33minputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:58 processor.go:1002: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.18[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 948400
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.045
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      1
+   Vertices:     3000
+   Facets:       6000
+2025/02/07 11:59:58 processor.go:1043: [34mDynamic Model - (path:[0/1]-instance:[12/20]) [12 processed] - 'M' button-height-5-width-5-button-profile-90 [0m
+2025/02/07 11:59:58 processor.go:1002: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:58 processor.go:1002: [33mAutoName: [37m			button-height-5-width-5-button-profile-90[0m
+2025/02/07 11:59:58 processor.go:1043: [34mGenerating STL[0m
+2025/02/07 11:59:58 processor.go:1002: [33minputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:58 processor.go:1002: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.18[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 948400
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.044
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      1
+   Vertices:      904
+   Facets:       1808
+2025/02/07 11:59:58 processor.go:1043: [34mDynamic Model - (path:[0/1]-instance:[13/20]) [13 processed] - 'N' button-height-5-width-10-button-profile-90 [0m
+2025/02/07 11:59:58 processor.go:1002: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:58 processor.go:1002: [33mAutoName: [37m			button-height-5-width-10-button-profile-90[0m
+2025/02/07 11:59:58 processor.go:1043: [34mGenerating STL[0m
+2025/02/07 11:59:58 processor.go:1002: [33minputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:58 processor.go:1002: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.18[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 948400
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.045
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      1
+   Vertices:     1204
+   Facets:       2408
+2025/02/07 11:59:58 processor.go:1043: [34mDynamic Model - (path:[0/1]-instance:[14/20]) [14 processed] - 'O' button-height-10-width-5-button-profile-90 [0m
+2025/02/07 11:59:58 processor.go:1002: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:58 processor.go:1002: [33mAutoName: [37m			button-height-10-width-5-button-profile-90[0m
+2025/02/07 11:59:58 processor.go:1043: [34mGenerating STL[0m
+2025/02/07 11:59:58 processor.go:1002: [33minputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:58 processor.go:1002: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.18[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 948400
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.044
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      1
+   Vertices:     1200
+   Facets:       2400
+2025/02/07 11:59:58 processor.go:1043: [34mDynamic Model - (path:[0/1]-instance:[15/20]) [15 processed] - 'P' button-height-10-width-10-button-profile-90 [0m
+2025/02/07 11:59:58 processor.go:1002: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:58 processor.go:1002: [33mAutoName: [37m			button-height-10-width-10-button-profile-90[0m
+2025/02/07 11:59:58 processor.go:1043: [34mGenerating STL[0m
+2025/02/07 11:59:58 processor.go:1002: [33minputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:58 processor.go:1002: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.18[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 948400
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.044
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      1
+   Vertices:     1300
+   Facets:       2600
+2025/02/07 11:59:58 processor.go:1043: [34mDynamic Model - (path:[0/1]-instance:[16/20]) [16 processed] - 'Q' button-height-20-width-5-button-profile-90 [0m
+2025/02/07 11:59:58 processor.go:1002: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:58 processor.go:1002: [33mAutoName: [37m			button-height-20-width-5-button-profile-90[0m
+2025/02/07 11:59:58 processor.go:1043: [34mGenerating STL[0m
+2025/02/07 11:59:58 processor.go:1002: [33minputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:58 processor.go:1002: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.18[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 948400
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.044
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      1
+   Vertices:     1500
+   Facets:       3000
+2025/02/07 11:59:58 processor.go:1043: [34mDynamic Model - (path:[0/1]-instance:[17/20]) [17 processed] - 'R' button-height-20-width-10-button-profile-90 [0m
+2025/02/07 11:59:58 processor.go:1002: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:58 processor.go:1002: [33mAutoName: [37m			button-height-20-width-10-button-profile-90[0m
+2025/02/07 11:59:58 processor.go:1043: [34mGenerating STL[0m
+2025/02/07 11:59:58 processor.go:1002: [33minputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:58 processor.go:1002: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.18[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 948400
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.045
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      1
+   Vertices:     1600
+   Facets:       3200
+2025/02/07 11:59:58 processor.go:1043: [34mDynamic Model - (path:[0/1]-instance:[18/20]) [18 processed] - 'S' button-height-50-width-5-button-profile-90 [0m
+2025/02/07 11:59:58 processor.go:1002: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:58 processor.go:1002: [33mAutoName: [37m			button-height-50-width-5-button-profile-90[0m
+2025/02/07 11:59:58 processor.go:1043: [34mGenerating STL[0m
+2025/02/07 11:59:58 processor.go:1002: [33minputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:58 processor.go:1002: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.18[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 948400
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.045
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      1
+   Vertices:     2200
+   Facets:       4400
+2025/02/07 11:59:59 processor.go:1043: [34mDynamic Model - (path:[0/1]-instance:[19/20]) [19 processed] - 'T' button-height-50-width-10-button-profile-90 [0m
+2025/02/07 11:59:59 processor.go:1002: [33mInputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:59 processor.go:1002: [33mAutoName: [37m			button-height-50-width-10-button-profile-90[0m
+2025/02/07 11:59:59 processor.go:1043: [34mGenerating STL[0m
+2025/02/07 11:59:59 processor.go:1002: [33minputPath: [37m			./examples/screw-in-button/Button.scad[0m
+2025/02/07 11:59:59 processor.go:1002: [33mexportFolderPath: [37m			examples/screw-in-button/export/v1.18[0m
+Geometries in cache: 10
+Geometry cache size in bytes: 948400
+CGAL Polyhedrons in cache: 1
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.045
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      1
+   Vertices:     2300
+   Facets:       4600
+2025/02/07 11:59:59 processor.go:1043: [34mGenerating README.md[0m
+2025/02/07 11:59:59 processor.go:1002: [33mREADME.md written to: [37m			examples/screw-in-button/export/v1.18/README.md[0m
+2025/02/07 11:59:59 processor.go:1043: [34mSTL generation completed[0m

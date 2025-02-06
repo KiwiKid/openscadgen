@@ -2,12 +2,13 @@
 [openscadgen]
 name = "svc-token"
 description = "A case for the Insta360 X2 camera"
-output_path = "./examples/svc-token/export"
-version = "v0.2"
+output_path = "./export"
+version = "v0.3"
 custom_openscad_args = "--summary"
 no_part_id_letter = true
+export_name_format = "{designFileName}"
 [[openscadgen.input_paths]]
-path = "./examples/svc-token/svc-token.scad"
+path = "./svc-token.scad"
 
 #path = "./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad"
 

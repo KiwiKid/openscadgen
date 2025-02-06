@@ -1,0 +1,41 @@
+# These lines configure, where the config file is, how openscad will be run and where the output will be saved
+[openscadgen]
+name = "car-holder-plus"
+summary = "Cup Holder++ one-to-two cup holder adapter"
+description = """\
+  A simple model that upgrades the center console cup holder from one small cup holder to two medium-large cup holders with a slot at either end for a phone
+
+Tested against late 90s toyota models, you can adjust the cup holder size via these params in the openscad file:
+
+Be-aware of the limitations of the material you are using, PLA can have a very limited lifespan as it will deform and warp in the sun/heat of the car (https://3dprinting.stackexchange.com/questions/6119/can-you-put-pla-parts-in-your-car-in-the-sun)
+
+Project file includes 3 models:
+- Cup Holder Sizer - to confirm the cup holder size before committing to a full print
+- twoLargerHolder - two larger cup holders with a slot at either end for a phone
+- oneLargerHolderOneSmallerHolder - one larger cup holder and one smaller cup holder with a slot at either end for a phone
+
+V2.0 updates:
+- Making the cup shorter and wider at the top & bottom (remove the need for tape)
+- Slightly narrower cup holder diameter at the brim and base
+- Reduce sharp edges (better align cup & phone holders in the center)
+
+
+NB: pictured model is v1.1, will update photos on next print
+
+"""
+export_name_format = "{cup_holders_mode}/{designFileName}-{name}"
+
+output_path = "./examples/cup-holder-plus/export/"
+version = "v2.0"
+
+[[openscadgen.input_paths]]
+path = "./examples/cup-holder-plus/carHolderPlus.scad"
+
+[[openscadgen.input_paths]]
+path = "./examples/cup-holder-plus/carHolderPlus-cup-holder-sizer.scad"
+filter_params = "cup_holders_mode"
+export_name_format = "cup-holder-sizer/{designFileName}-{name}-height_{in_car_cup_holder_height}mm-top_diameter_{in_car_cup_holder_top_diameter}mm-bottom_diameter_{in_car_cup_holder_bottom_diameter}mm"
+
+[[openscadgen.dynamic_instances]]
+params = { name= "rav4", in_car_cup_holder_height = "56", in_car_cup_holder_top_diameter = "78", in_car_cup_holder_bottom_diameter = "66.5", cup_holders_mode = "twoLargerHolders,oneLargerHolderOneSmallerHolder" }
+

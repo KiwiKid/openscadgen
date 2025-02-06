@@ -1,0 +1,39 @@
+# These lines configure, where the config file is, how openscad will be run and where the output will be saved
+[openscadgen]
+# name of the design, will be used in the name of output files
+name = "screw-in-button"
+# description of the design, will be used in the README.md file
+description = """
+   mulit-size upholstery screw-in button
+   
+   Source: https://github.com/KiwiKid/openscaden/
+   Author: KiwiKid
+
+   Used for upholstery buttons to secure older fabric in a carovan, could be useful for other purposes. 
+    Has openSCAD parametric code for editing and a number of default "button" profiles that allow for attachment via standard sized screws.
+
+    Note: This is not a reference for best practices for writing openSCAD code  (includes hardcoded values, hidden dependencies between variables, non-modular etc.)
+
+
+    Be aware of the operating conditions of the buttons and the limitations of the materials you are using - PLA is not recommended for long term/high-stress/high-temp use.
+"""
+# path to the openscad file that will be used to generate the design
+input_path = "./examples/screw-in-button/Button.scad"
+export_name_format =  "button-height-{button_height}-width-{button_width}-button-profile-{button_radius}"
+# path to the directory where the export (.stl files, README.md) will be saved
+output_path = "./examples/screw-in-button/export/"
+# version of the design, will be used in the README.md file
+version = "v1.18"
+# Each instance below will result in a separate .stl file being created with those parameters in the 'output_path' directory
+
+# Dynamic Instances
+
+[[openscadgen.dynamic_instances]]
+# The 'name' field is a template string that will be used to generate the instance name (note the {param_name} syntax for value replacement)
+# the params field configures which instances get created ()
+params = { button_height = "1,3,5,10,20,50", button_width = "5,10", button_radius = "50" }
+
+[[openscadgen.dynamic_instances]]
+# The 'name' field is a template string that will be used to generate the instance name (note the {param_name} syntax for value replacement)
+# the params field configures which instances get created ()
+params = { button_height = "5,10,20,50", button_width = "5,10", button_radius = "90" }
