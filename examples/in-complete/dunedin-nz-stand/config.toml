@@ -1,0 +1,27 @@
+# These lines configure, where the config file is, how openscad will be run and where the output will be saved
+[openscadgen]
+# name of the design, will be used in the name of output files
+name = "dunedin-nz-stand"
+# description of the design, will be used in the README.md file
+description = """
+   Dunedin New Zealand Stand
+   
+   Source: https://github.com/KiwiKid/openscaden/
+   Author: KiwiKid
+
+   A stand for displaying topographical data of the Otago Peninsula in Dunedin, New Zealand.
+
+"""
+# path to the openscad file that will be used to generate the design
+input_path = "./examples/in-complete/dunedin-nz-stand/dunedin-stand.scad"
+export_name_format =  "{part}_{designFileName}_test"
+
+# path to the directory where the export (.stl files, README.md) will be saved
+output_path = "./examples/in-complete/dunedin-nz-stand/export/"
+# version of the design, will be used in the README.md file
+version = "v0.1"
+# Each instance below will result in a separate .stl file being created with those parameters in the 'output_path' directory
+
+# Dynamic Instances
+[[openscadgen.dynamic_instances]]
+params = { part = "stand,map,both" }
