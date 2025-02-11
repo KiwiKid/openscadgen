@@ -4,7 +4,7 @@ version: 2
 project_name: openscadgen
 
 builds:
-  - main: ./src/main.go
+  - main: ./main.go
     goos:
         - linux
         - darwin
