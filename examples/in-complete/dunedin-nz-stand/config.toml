@@ -11,6 +11,7 @@ description = """
 
    A stand for displaying topographical data of the Otago Peninsula in Dunedin, New Zealand.
 
+   NB: this will need the referenced STL of the map to be added to the export directory (to big for github)
 """
 # path to the openscad file that will be used to generate the design
 input_path = "./examples/in-complete/dunedin-nz-stand/dunedin-stand.scad"
