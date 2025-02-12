@@ -161,7 +161,7 @@ const (
 
 func Process(cmdFlags CmdFlags) {
 
-	VERSION := "v1.2.0-ALPHA"
+	VERSION := "v1.4.0-ALPHA"
 	startTime := time.Now()
 
 	initLogger("memory")
@@ -458,17 +458,10 @@ func LoadConfig(configFile string, flags CmdFlags) (*Config, error) {
 	err = validate.Struct(conf)
 	if err != nil {
 		log.Printf(colorRed+"Config Validation failed: %v", err)
+		log.Panicf(colorRed+"Config Validation failed: %v", err)
 		return nil, err
 	}
-	/*
-		// Validate the config
-		validate := validator.New()
-		err = validate.Struct(conf)
-		if err != nil {
-			log.Printf(colorRed+"Config Validation failed: %v", err)
-			return nil, err
-		}
-	*/
+
 	// Merge command-line flags into the config
 	conf.Quiet = flags.Quiet
 	conf.Debug = flags.Debug
@@ -543,9 +536,9 @@ func LoadConfig(configFile string, flags CmdFlags) (*Config, error) {
 %s 
 
 does not contain param:
- %s
+ {%s}
 
-Include every param in the export name (in the format '{param_name}') to ensure all instances are generated.`, dynamicInstance.Name, paramName), true)
+Include every param in the export_name_format (in the format '{param_name}') to ensure all instances are generated.`, dynamicInstance.Name, paramName), true)
 						os.Exit(1)
 					}
 				}
