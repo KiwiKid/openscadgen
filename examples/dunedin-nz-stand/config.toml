@@ -1,0 +1,39 @@
+# These lines configure, where the config file is, how openscad will be run and where the output will be saved
+[openscadgen]
+# name of the design, will be used in the name of output files
+name = "dunedin-nz-stand"
+# description of the design, will be used in the README.md file
+description = """
+   Dunedin New Zealand Stand
+   
+   Source: https://github.com/KiwiKid/openscaden/
+   Author: KiwiKid
+
+   A stand for displaying topographical data of the Otago Peninsula in Dunedin, New Zealand.
+
+   NB: this will need the referenced STL of the map to be added to the export directory (to big for github)
+"""
+
+output_path = "./examples/dunedin-nz-stand/export/"
+# path to the openscad file that will be used to generate the design
+export_name_format =  "{part}_{designFileName}_{map_stl_file}"
+
+[[openscadgen.input_paths]]
+path =  "./stand.scad"
+
+[[openscadgen.input_paths]]
+path = "./map.scad"
+
+# path to the directory where the export (.stl files, README.md) will be saved
+output_path = "./examples/dunedin-nz-stand/export/"
+# version of the design, will be used in the README.md file
+version = "v0.3"
+# Each instance below will result in a separate .stl file being created with those parameters in the 'output_path' directory
+
+# Dynamic Instances
+[[openscadgen.dynamic_instances]]
+params = { part = "stand,map,both", map_stl_file = "otago_peninsula_full.stl" }
+
+[[openscadgen.dynamic_instances]]
+params = { part = "stand,map,both", map_stl_file = "banks-peninsula.stl", map_stl_x_translate = "-226", map_stl_y_translate = "5", map_stl_z_translate = "-5" }
+
