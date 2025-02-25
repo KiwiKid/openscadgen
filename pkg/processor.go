@@ -197,7 +197,7 @@ const (
 
 func Process(cmdFlags CmdFlags) {
 
-	VERSION := "v1.5.0-ALPHA"
+	VERSION := "v1.6.0-ALPHA"
 	startTime := time.Now()
 
 	if cmdFlags.ShowMan {

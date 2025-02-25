@@ -1,6 +1,6 @@
-openscadgen is IN-DEVELOPMENT a tool for generating a set of .stl files from a single .scad file and a simple config file.
+openscadgen is IN-DEVELOPMENT a tool for generating a set of .stl files (or other openscad export formats) from a single .scad file and a simple config file.
 
-The goal of the tool is to ease the management, production and distribution of large numbers of stl files when working with openSCAD.
+The goal of the tool is to ease the management, production and distribution of large numbers of stl files
 
 (early days and still in active development, please let me know if you encounter any issues)
 
