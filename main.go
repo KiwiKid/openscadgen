@@ -25,8 +25,11 @@ func main() {
 	flag.StringVar(&cmdFlags.RegexPattern, "regex", "", "Regex pattern to filter instances by name")
 	flag.StringVar(&cmdFlags.RegexPattern, "r", "", "Alias for -regex")
 
-	flag.BoolVar(&cmdFlags.Quiet, "quiet", false, "quiet mode, no output")
+	flag.BoolVar(&cmdFlags.Quiet, "quiet", false, "quiet mode, no log output")
 	flag.BoolVar(&cmdFlags.Quiet, "q", false, "Alias for -quiet")
+
+	flag.BoolVar(&cmdFlags.NoProcessing, "no-processing", false, "'dry-run' mode - will check config and provide instances that will be processed, but not do any processing")
+	flag.BoolVar(&cmdFlags.NoProcessing, "np", false, "Alias for -no-processing")
 
 	flag.BoolVar(&cmdFlags.Debug, "debug", false, "debug mode, more output")
 	flag.BoolVar(&cmdFlags.Debug, "d", false, "Alias for -debug")
@@ -41,6 +44,12 @@ func main() {
 	flag.BoolVar(&cmdFlags.SkipReadme, "sr", false, "Alias for -skip-readme")
 
 	flag.IntVar(&cmdFlags.MaxInstances, "n", 0, "Maximum number of instances to process")
+
+	flag.BoolVar(&cmdFlags.ContinueOnError, "co", false, "Continue on error")
+	flag.BoolVar(&cmdFlags.ContinueOnError, "continue-on-error", false, "Alias for -co")
+
+	flag.BoolVar(&cmdFlags.IncludeExportLog, "include-export-log-file", false, "Include the export log in the README.md file")
+	flag.BoolVar(&cmdFlags.IncludeExportLog, "el", false, "Alias for -include-export-log-file")
 
 	flag.BoolVar(&cmdFlags.OverwriteExisting, "ow", false, "Overrwite existing files")
 	flag.BoolVar(&cmdFlags.OverwriteExisting, "overwrite", false, "Alias for -ow")

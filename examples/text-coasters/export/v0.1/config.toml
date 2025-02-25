@@ -1,0 +1,34 @@
+# These lines configure, where the config file is, how openscad will be run and where the output will be saved
+[openscadgen]
+name = "car-holder-plus"
+description = """\
+ A simple model that creates a coaster with text on it.
+
+ Three text options are available:
+ - textContent: The main text on the coaster (adjust through textContentSize - default 16)
+ - textSubContent: The subtext on the coaster (adjust through textSubContentSize - default 3)
+ - textAround: The text around the outside edge of the coaster (adjust through textAroundSize - default 1)
+
+The coaster is designed to be printed on a flat surface, with the text on the outside edge of the coaster.
+
+"""
+
+export_name_format = "{designFileName}_{textContent}"
+
+output_path = "./export/"
+version = "v0.1"
+
+[[openscadgen.input_paths]]
+path = "./text-coasters.scad"
+
+[[openscadgen.dynamic_instances]]
+params = { textContent = "LEFTY",  textSubContent = "Only Drink with Left Hand", textAround = "LEFT LEFT LEFT LEFT LEFT LEF LEFT LEFT LEFT LEFT LEFT LEFT" }
+
+[[openscadgen.dynamic_instances]]
+params = { textContent = "RIGHTY", textSubContent = "Only Drink with Right Hand", textAround = "RIGHT RIGHT RIGHT RIGHT RIGHT RIGHT RIGHT RIGHT RIGHT RIGHT" }
+
+[[openscadgen.dynamic_instances]]
+params = { textContent = "FANCY", textSubContent = "Only Drink with pinky out", textAround = "FANCY FANCY FANCY FANCY FANCY FANCY FANCY FANCY FANCY FANCY FANCY" }
+
+[[openscadgen.dynamic_instances]]
+params = { textContent = "NO-NAMES", textContentSize = "14", textSubContent = "Drink if you use a persons name",  textAround = "NO-NAMES NO-NAMES NO-NAMES NO-NAMES NO-NAMES NO-NAMES " }

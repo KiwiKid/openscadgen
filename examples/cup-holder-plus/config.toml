@@ -3,6 +3,9 @@
 name = "car-holder-plus"
 description = """\
   A simple model that upgrades the center console cup holder from one small cup holder to two medium-large cup holders with a slot at either end for a phone
+
+
+  NB: The latest model includes a rotation of 18 degrees (consider matching this when preparing your print)
 \n
 Tested against late 90s toyota models, you can adjust the cup holder size via these params in the openscad file:
 \n
@@ -20,18 +23,26 @@ v1.1
 - Making the cup shorter and wider at the top (remove the need for tape)
 - Slightly narrower cup holder diameter at the brim and base
 - Reduce sharp edges (better align cup & phone holders in the center)
+
+v3.0
+-- Added angle to the bottom cup holder to avoid the layer line causing a weakness in the attachement of the cup holder to the center console & make easier to print
+-- Added cutout for charging cable
+-- Added cutout blockers to reduce filiment usage
+-
 """
+
+
 export_name_format = "{cup_holders_mode}/{designFileName}-{name}"
 
-output_path = "./examples/cup-holder-plus/export/"
-version = "v2.0"
+output_path = "./export/"
+version = "v3.0"
 
 [[openscadgen.input_paths]]
-path = "./examples/cup-holder-plus/carHolderPlus.scad"
+path = "./carHolderPlus.scad"
 
 [[openscadgen.input_paths]]
-path = "./examples/cup-holder-plus/carHolderPlus-cup-holder-sizer.scad"
-filter_params = "cup_holders_mode"
+path = "./carHolderPlus-cup-holder-sizer.scad"
+ignore_param_when_processing = "cup_holders_mode"
 export_name_format = "cup-holder-sizer/{designFileName}-{name}-height_{in_car_cup_holder_height}mm-top_diameter_{in_car_cup_holder_top_diameter}mm-bottom_diameter_{in_car_cup_holder_bottom_diameter}mm"
 
 [[openscadgen.dynamic_instances]]

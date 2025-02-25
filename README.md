@@ -81,7 +81,7 @@ path = "./examples/cup-holder-plus/carHolderPlus.scad"
 
 [[openscadgen.input_paths]]
 path = "./examples/cup-holder-plus/carHolderPlus-cup-holder-sizer.scad"
-filter_params = "cup_holders_mode"
+ignore_param_when_processing = "cup_holders_mode"
 export_name_format = "cup-holder-sizer/{designFileName}-{name}"
 
 [[openscadgen.dynamic_instances]]

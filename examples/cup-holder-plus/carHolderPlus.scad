@@ -1,4 +1,7 @@
-$fn = 20;
+include <BOSL2/std.scad>
+$fa = .01;
+$fs = $preview ? 5 : 1;
+$fn = 200;
 /*
     A cup holder upgrade for the toyota rav4 (v1.4)
 
@@ -13,9 +16,9 @@ Note: This design is a learning tool for openSCAD, while the design is functiona
 */
 
 
+ 
 
-
-// oneLargerHolderOneSmallerHolder, twoLargerHolders
+// oneLargerHolderOneSmallerHolder, twoLargerHolders twoLargerHolders
 cup_holders_mode = "twoLargerHolders";
 
 
@@ -49,6 +52,7 @@ in_car_cup_holder_height = 56;
 in_car_cup_holder_top_diameter = 78;
 in_car_cup_holder_bottom_diameter = 66.5;
 in_car_cup_holder_center_offset = 16;
+in_car_cup_holder_make_print_easier_cutout_angle = 18;
 
 
 holder_length=240;
@@ -98,9 +102,14 @@ module roundedCylinder(h = 20, d1 = 10, d2 = 10, radius = 2, center = false) {
 
 module cupHolder(){
 
-    translate([in_car_cup_holder_center_offset, 0, 0])
-    cylinder(h=in_car_cup_holder_height,d1=in_car_cup_holder_bottom_diameter, d2=in_car_cup_holder_top_diameter);
-    
+    difference(){
+        translate([in_car_cup_holder_center_offset, 0, 0])
+        cylinder(h=in_car_cup_holder_height,d1=in_car_cup_holder_bottom_diameter, d2=in_car_cup_holder_top_diameter);
+           translate([-50,1,-70])
+        rotate([0,in_car_cup_holder_make_print_easier_cutout_angle,0])
+        cube(200, 100, 200);
+        
+       }
         
 
 
@@ -142,8 +151,8 @@ module cupHolder(){
         // Soften some edges in the middle
         if (cup_holders_mode == "twoLargerHolders") {
         // Center Phone Cutout
-        translate([5, 5, in_car_cup_holder_height+60])
-        roundedCube([180, 60, 90], center=true);
+        translate([5, 7, in_car_cup_holder_height+60])
+        #roundedCube([180, 52, 90], center=true);
         } else if (cup_holders_mode == "oneLargerHolderOneSmallerHolder") {
          
          translate([-90, -20, in_car_cup_holder_height+phone_holder_floor_depth+10])
@@ -155,7 +164,54 @@ module cupHolder(){
         roundedCube([20, 60, 90], center=true);
         }
         
+        
+        
+ 
+        
+        
+  
+cutoutHeight = 38;
+cutoutLength = 150;
+        
+        
+        // Side 1
+        translate([45,80,110])
+        rotate([90,0,0])
+        cylinder(cutoutHeight+110, cutoutHeight, cutoutHeight);
+        
+        
+        // Side 2 
+        translate([-45,80,110])
+        rotate([90,0,0])
+        cylinder(cutoutHeight+110, cutoutHeight, cutoutHeight);
+        
+        
+        // Lengthlong throughhole
+        translate([-160,3.5,110])
+        rotate([0,90,0])
+        cylinder(cutoutHeight+300, cutoutHeight, cutoutHeight);
+        
+        
+        // Cord holder cutout
+        translate([-100,80,140])
+        union(){
+            rotate([90,90,0])
+            cylinder(200,5,5);
+            rotate([90,0,0])
+            translate([-1.5,4,0])
+            cube([5, 15, 200]);
+         }
+            
+            
+        // Cord bottom hole
+        
+        translate([-105,0,70])
+        rotate([90,90,90])
+        #prismoid(50,50,10);
+        
     };
+    
+    
 
 };
 
