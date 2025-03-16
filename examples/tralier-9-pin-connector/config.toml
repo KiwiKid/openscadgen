@@ -1,0 +1,18 @@
+# These lines configure, where the config file is, how openscad will be run and where the output will be saved
+[openscadgen]
+name = "tralier-9-pin-connector"
+description = """\
+ A simple model that creates a 9 pin connector.
+
+
+"""
+
+export_name_format = "{designFileName}"
+
+output_path = "./export/"
+version = "v0.1"
+
+[[openscadgen.input_paths]]
+path = "./tralier-9-pin-connector.scad"
+
+[[openscadgen.instances]]

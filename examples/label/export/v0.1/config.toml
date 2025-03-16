@@ -1,0 +1,25 @@
+# These lines configure, where the config file is, how openscad will be run and where the output will be saved
+[openscadgen]
+name = "label"
+description = """\
+ A simple model that creates a label.
+
+ Three render options are available:
+ - horz-slice: A horizontal slice of the cup holder
+ - vert-slice: A vertical slice of the cup holder
+ - all: All three views of the cup holder
+
+The coaster is designed to be printed on a flat surface, with the text on the outside edge of the coaster.
+
+"""
+
+export_name_format = "{designFileName}"
+
+output_path = "./export/"
+version = "v0.1"
+
+[[openscadgen.input_paths]]
+path = "./project-text.scad"
+
+[[openscadgen.instances]]
+params = { name = "Your Name Here!"}
