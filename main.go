@@ -22,6 +22,9 @@ func main() {
 	flag.BoolVar(&cmdFlags.ShowMan, "m", false, "Alias for -man")
 	flag.BoolVar(&cmdFlags.ShowMan, "h", false, "Alias for -man")
 
+	flag.StringVar(&cmdFlags.InitProjectName, "init", "", "Initialize a new project at the current directory with the given name")
+	flag.StringVar(&cmdFlags.InitProjectName, "i", "", "Alias for -init")
+
 	flag.StringVar(&cmdFlags.RegexPattern, "regex", "", "Regex pattern to filter instances by name")
 	flag.StringVar(&cmdFlags.RegexPattern, "r", "", "Alias for -regex")
 

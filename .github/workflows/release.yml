@@ -2,8 +2,6 @@ name: Release
 
 on:
   push:
-#    branches:
-#      - main
     tags:
       - 'v*'
 
@@ -28,6 +26,15 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: stable
+
+      - name: Install dependencies
+        run: go get .
+
+      - name: Build
+        run: go build -v ./... 
+
+      - name: Test
+        run: go test
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6

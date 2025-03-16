@@ -36,6 +36,6 @@ path = "./examples/cup-holder-plus/carHolderPlus-cup-holder-sizer.scad"
 ignore_param_when_processing = "cup_holders_mode"
 export_name_format = "cup-holder-sizer/{designFileName}-{name}-height_{in_car_cup_holder_height}mm-top_diameter_{in_car_cup_holder_top_diameter}mm-bottom_diameter_{in_car_cup_holder_bottom_diameter}mm"
 
-[[openscadgen.dynamic_instances]]
+[[openscadgen.instances]]
 params = { name= "rav4", in_car_cup_holder_height = "56", in_car_cup_holder_top_diameter = "78", in_car_cup_holder_bottom_diameter = "66.5", cup_holders_mode = "twoLargerHolders,oneLargerHolderOneSmallerHolder" }
 
