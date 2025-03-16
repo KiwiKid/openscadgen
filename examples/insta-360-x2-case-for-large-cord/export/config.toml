@@ -27,7 +27,7 @@ path = "./examples/insta-360-x2-case-for-large-cord/insta360x2-top.scad"
 [[openscadgen.input_paths]]
 path = "./examples/insta-360-x2-case-for-large-cord/insta360x2-cap.scad"
 
-[[openscadgen.dynamic_instances]]
+[[openscadgen.instances]]
 # The 'name' field is a template string that will be used to generate the instance name (note the {param_name} syntax for value replacement)
 # the params field configures which instances get created ()
 params = { cylinderWidth = "0,3,3.5", includeGoProMount = "true,false" }
