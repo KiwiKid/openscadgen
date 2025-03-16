@@ -45,10 +45,7 @@ params = { handle_diameter = "5,7,8,10,15,20,25,30", handle_offset = "5,10,15,20
 [[openscadgen.instances]]
 name = "clip-for-large-ended-hex-tool"
 description = "A clip sized for a hex tool with a large piece"
-[openscadgen.instances.params]
-handle_diameter = 7
-handle_offset = 15
-
+params = {  handle_diameter = "7", handle_offset="15" }
 ```
 
 

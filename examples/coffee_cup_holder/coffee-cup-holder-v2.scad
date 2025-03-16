@@ -188,9 +188,11 @@ union(){
             rotate(phone_holder_rotate)
             cuboid(phone_holder_size, rounding=2);
         }
+        
+        
+        move([-50,0,-70])
+        cuboid([70,300,100], rounding=4);
         }
-        
-        
   }
   
   renderType = "";

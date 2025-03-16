@@ -142,8 +142,10 @@ func getOutputPaths(config Config) OutputPaths {
 			log.Printf("Output path specified in config: %s", absOutputPath)
 		}
 
-		logKeyValuePair("Version", config.Design.Version)
-		logKeyValuePair("getOutputPaths:Output path", filepath.Join(absOutputPath, config.Design.Version))
+		if !config.Quiet {
+			logKeyValuePair("Version", config.Design.Version)
+			logKeyValuePair("getOutputPaths:Output path", filepath.Join(absOutputPath, config.Design.Version))
+		}
 
 		return OutputPaths{
 			OutputPath:            filepath.Join(absOutputPath, config.Design.Version),
@@ -585,7 +587,9 @@ func LoadConfig(flags CmdFlags) (*Config, error) {
 		return nil, err
 	}
 
-	log.Printf("Loaded config")
+	if !flags.Quiet {
+		log.Printf("Loaded config")
+	}
 
 	// Merge command-line flags into the config
 	conf.Quiet = flags.Quiet
@@ -1368,7 +1372,7 @@ func getOrMakeExportFolder(config *Config, outputPaths *OutputPaths) {
 		if config.NoProcessing {
 			log.Printf(colorBlue + "No processing requested, skipping export folder actions" + colorReset)
 			return
-		} else {
+		} else if !config.Quiet {
 			logKeyValuePair("[processing] Export folder", absPath)
 		}
 
@@ -1569,7 +1573,7 @@ func generateSTL(instance InstanceConfig, config *Config, exportFolderPath strin
 		configErr := Copy(config.ConfigFile, configCopyPath)
 		if configErr != nil {
 			log.Panicf(colorRed+"Failed to copy config file to export folder: %s", configErr)
-		} else { //if !config.Quiet && config.Debug
+		} else if !config.Quiet {
 			log.Printf(colorBlue + "Copied config file to export folder" + colorReset)
 		}
 	} else if config.Debug {
