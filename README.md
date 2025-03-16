@@ -4,6 +4,9 @@ The goal of the tool is to ease the management, production and distribution of l
 
 (early days and still in active development, please let me know if you encounter any issues)
 
+https://github.com/user-attachments/assets/61d605fa-3b5a-43c0-98d2-71357f96fc32
+
+
 There are two core concepts to understand:
 - Instances - [[openscadgen.instances]] - These define one (or multiple) stl file "instances" to be generated, you can customize via 'params' to define the files to be created
 - Input Path - at the top level OR multiple via the [[openscadgen.input_paths]]. Multiple Input Paths allow you to use the same 'params' (i.e. all the ones from "Instances") as input for each openscad defined (see the 'cup-holder-plus' for an example of this )
