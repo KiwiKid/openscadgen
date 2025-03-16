@@ -2,7 +2,7 @@ include <BOSL2/std.scad>
 
 $fn = 20;
 
-name = "Rodney Cumming";
+name = "Your Name Here";
 
 text_angle = 60;
 
