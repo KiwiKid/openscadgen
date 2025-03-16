@@ -1,0 +1,18 @@
+[openscadgen]
+name = "carovan-cupboard-hook"
+description = """\
+ A simple model that creates a cupboard hook.
+
+
+"""
+
+export_name_format = "{designFileName}-{height}"
+
+output_path = "./export/"
+version = "v0.1"
+
+[[openscadgen.input_paths]]
+path = "./carovan-cupboard-hook.scad"
+
+[[openscadgen.instances]]
+params = { height = "1,40,100"}

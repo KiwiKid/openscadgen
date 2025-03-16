@@ -7,7 +7,8 @@ $fn = 200;
 coasterHeight = 6;
 coasterRadius = 45;
 
-textContentSize = 16;
+textMainSize = 16;
+textMainDepth = 3;
 textContent = "LEFTY";
 textSubContentSize = 3;
 textSubContent = "Only Drink with Left Hand";
@@ -25,10 +26,14 @@ aroundTextStartAngle = 200;
 aroundTextEndAngle = 370; 
 aroundTextHeightOffset = 0.5;
 
+
 stackingRimOffset = 1.5;
 stackingRimHeight = 7;
 stackingRimBaseRadius = -0.6;
 stackingRimTopRadius = 3;
+
+iconOffset = 16;
+iconScale = 15;
 
 difference() {
 union(){
@@ -46,7 +51,7 @@ union(){
    path = path3d(arc(100, r=textAroundRadius, angle=[0, 360]));
     color("red") stroke(path, width=.5);
     translate([0,0,aroundTextHeightOffset])
-    path_text(path,textAround , font="Liberation Mono", thickness=2, size=5, center=true, lettersize = 4);
+    path_text(path,textAround , font="Liberation Mono",  size=5, center=true, lettersize = 4);
     
     // Semi-Circle instructions
         path2 = path3d(arc(99, r=insetRadius, angle=[subContentStartAngle, subContentEndAngle]));
@@ -54,16 +59,27 @@ union(){
     translate([0,0,insetHeight+2])
     path_text(path2, textSubContent, font="Liberation Mono", normal=UP, thickness=15, size=6, lettersize = 5/1.2, center=true);
 
+   // Main Center Text
    
-          translate([0,0,1])
-    linear_extrude(height=10)
-   // wrapped_text(textContent, max_width=50, size=10);
-    text(textContent, size=textContentSize, halign="center", valign="center");
+    translate([0,0,coasterHeight-textMainDepth])
+    linear_extrude(height=textMainDepth+1)
+    text(textContent, size=textMainSize, halign="center", valign="center");
     
-   
     
-}
-
+    
+   /*
+   translate([0,iconOffset,coasterHeight])
+   scale(iconScale)
+   difference(){
+       import("./icon.stl");
+       translate([0,4.1,0])
+       #cuboid(5);
+       
+       translate([0,-3,0])
+       #cuboid(5);
+   }*/
+    
+} 
 
 // Text on the top center
 
