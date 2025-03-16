@@ -215,7 +215,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.0.4-BETA"
+const VERSION = "v2.0.5-BETA"
 
 func Process(cmdFlags CmdFlags) {
 
