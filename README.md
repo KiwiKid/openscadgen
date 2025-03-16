@@ -28,7 +28,7 @@ version = "v1.6"
 
 # Each configuration below will result in a SET of separate .stl file being created with those parameters in the 'output_path' directory
 
-[[openscadgen.dynamic_instances]]
+[[openscadgen.instances]]
 # The 'name' field is a template string that will be used to generate the instance name (note the {param_name} syntax for value replacement)
 # the params field configures which instances get created, this configures 50 
 params = { handle_diameter = "5,7,8,10,15,20,25,30", handle_offset = "5,10,15,20,25,30" }
@@ -84,7 +84,7 @@ path = "./examples/cup-holder-plus/carHolderPlus-cup-holder-sizer.scad"
 ignore_param_when_processing = "cup_holders_mode"
 export_name_format = "cup-holder-sizer/{designFileName}-{name}"
 
-[[openscadgen.dynamic_instances]]
+[[openscadgen.instances]]
 params = { name= "rav4", in_car_cup_holder_height = "60", in_car_cup_holder_top_diameter = "74", in_car_cup_holder_bottom_diameter = "66.5", cup_holders_mode = "twoLargerHolders,oneLargerHolderOneSmallerHolder" }
 
 ```
@@ -149,6 +149,10 @@ Seeing some frustrations in the community with the lack of 'remixabilty' when pr
 
 
 
+# TO FIX !!
+
+- [ ] Ensure openscad export paths are relative to the config file (unless overridden), (test: running in parent, running in sub, and running with custom 'exportToCurrentPath' param)
+
 
 
 ## TODO/Project Ideas
@@ -163,13 +167,16 @@ handle_offset = 10
 - [ ] Allow for building a whole directory of scad files (i.e. generate all the instances in a directory)
 - [ ] Split export folder into 'base' and 'has_part_letter' folders
 - [ ] Allow for setting of part id in the static instance config
+- [ ] Allow for exporting a set of images
+- [ ] (maybe) Configure option to automatically create a horizontal and/or vertical cross-sectional slice of the part
 - [ ] (maybe) make stl builds parallel to speed up processing time 
 - [ ] Add clean-up option for old versions
-- [ ] Add config file generation quickstart command (to initialise a openscadgen config file from a scad file)
+- [ ] Add config file generation quickstart command (to initialize a openscadgen config file from a scad file)
 - [ ] (maybe) Add configurable watch mode to automatically re-run the tool when the scad file is changed
 - [ ] Tidy/Improve logging and log handling
 - [ ] Tools to ease handling of common openscad external libraries (i.e. BOSL2 etc)
 - [-] Warn when replacing existing stl export files
 - [-] Add ability to configure ranges of parameters in config file with auto-naming (i.e. i want models for each handle_diameter from 5 to 10, with )
+- [ ] Improve 
 
-If you have any ideas/bugs/etc, please let me know and i'll try and fix them where possible. I do want to keep the goals of the project simple and specific.
+If you have any ideas/bugs/etc, please let me know and i'll try and fix them where possible. I do want to keep the goals of the project simple and specific (i have)

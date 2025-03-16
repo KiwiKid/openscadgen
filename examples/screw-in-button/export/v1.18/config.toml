@@ -28,12 +28,12 @@ version = "v1.18"
 
 # Dynamic Instances
 
-[[openscadgen.dynamic_instances]]
+[[openscadgen.instances]]
 # The 'name' field is a template string that will be used to generate the instance name (note the {param_name} syntax for value replacement)
 # the params field configures which instances get created ()
 params = { button_height = "1,3,5,10,20,50", button_width = "5,10", button_radius = "50" }
 
-[[openscadgen.dynamic_instances]]
+[[openscadgen.instances]]
 # The 'name' field is a template string that will be used to generate the instance name (note the {param_name} syntax for value replacement)
 # the params field configures which instances get created ()
 params = { button_height = "5,10,20,50", button_width = "5,10", button_radius = "90" }

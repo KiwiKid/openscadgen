@@ -8,7 +8,9 @@ include <../../library/BOSL2/std.scad>;
 
     Based on "Tough Case INSTA360 X2" from https://makerworld.com/en/models/200043#profileId-220576 by https://makerworld.com/en/@gianluigideruvo
 */
-$fn = 20;
+$fa = .01;
+$fs = $preview ? 5 : 1;
+$fn = 200;
 
 cylinderWidth = 3.5;
 

@@ -21,14 +21,14 @@ version = "v0.1"
 [[openscadgen.input_paths]]
 path = "./text-coasters.scad"
 
-[[openscadgen.dynamic_instances]]
+[[openscadgen.instances]]
 params = { textContent = "LEFTY",  textSubContent = "Only Drink with Left Hand", textAround = "LEFT LEFT LEFT LEFT LEFT LEF LEFT LEFT LEFT LEFT LEFT LEFT" }
 
-[[openscadgen.dynamic_instances]]
+[[openscadgen.instances]]
 params = { textContent = "RIGHTY", textSubContent = "Only Drink with Right Hand", textAround = "RIGHT RIGHT RIGHT RIGHT RIGHT RIGHT RIGHT RIGHT RIGHT RIGHT" }
 
-[[openscadgen.dynamic_instances]]
+[[openscadgen.instances]]
 params = { textContent = "FANCY", textSubContent = "Only Drink with pinky out", textAround = "FANCY FANCY FANCY FANCY FANCY FANCY FANCY FANCY FANCY FANCY FANCY" }
 
-[[openscadgen.dynamic_instances]]
-params = { textContent = "NO-NAMES", textContentSize = "14", textSubContent = "Drink if you use a persons name",  textAround = "NO-NAMES NO-NAMES NO-NAMES NO-NAMES NO-NAMES NO-NAMES " }
+[[openscadgen.instances]]
+params = { textContent = "NO-NAMES", textSubContent = "Drink if you use a persons name",  textAround = "NO-NAMES NO-NAMES NO-NAMES NO-NAMES NO-NAMES NO-NAMES " }
