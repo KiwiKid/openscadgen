@@ -1,0 +1,20 @@
+# These lines configure, where the config file is, how openscad will be run and where the output will be saved
+[openscadgen]
+name = "car-holder-plus"
+description = """\
+ A plastic dome cover to make it easier to get the carovan cover over pipes or jutting edges on the carovan room
+"""
+
+export_name_format = "{designFileName}{thin_extrude}"
+
+output_path = "./export/"
+version = "v0.1"
+
+[[openscadgen.input_paths]]
+path = "./carovanCoverHelpers.scad"
+
+[[openscadgen.input_paths]]
+path = "./arial_cover.scad"
+
+[[openscadgen.instances]]
+params = { thin_extrude = "true,false" }

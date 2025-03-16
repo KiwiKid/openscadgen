@@ -3,3 +3,7 @@ dist/
 library/**/*
 openscadgen
 *.log
+*.stl
+*.3mf
+
+examples/cup-holder-plus/export/*.stl
