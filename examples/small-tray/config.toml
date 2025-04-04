@@ -1,0 +1,32 @@
+[openscadgen]
+name = "small-tray"
+description = ""
+
+output_path = "./export/"
+version = "v0.1"
+
+export_name_format = "{tray_height}-{designFileName}"
+
+[[openscadgen.input_paths]]
+path = "./small-tray.scad"
+
+
+# [[openscadgen.input_paths]]
+# path = "./a-second-related-openscad-file.scad"
+# ignore_param_when_processing = "param3" # dont process param3 when generating instances for this file 
+# export_name_format = "custom-export-name-for-this-file/{designFileName}-{name}"
+
+#[[openscadgen.export_images]]
+#camera_name = "front"
+#camera_coordinates = "0,0,0"
+#image_size = "1920,1080"
+
+#[[openscadgen.export_images]]
+#camera_name = "back"
+#camera_coordinates = "0,0,0"
+#image_size = "1920,1080"
+
+
+[[openscadgen.instances]]
+params = { tray_height = "80,82,84,86,88,90,92,94,96,98,100" }
+

@@ -1,0 +1,341 @@
+package templates
+
+import (
+    "fmt"
+    "time"
+    "github.com/kiwikid/openscadgen/pkg/models"
+)
+
+templ Report(config *models.Config, instances []models.InstanceConfig, version string, openscadVersion string, outputPaths models.OutputPaths, stlResults []models.GenerateSTLResult, allParamNames []string) {
+    <!DOCTYPE html>
+    <html lang="en" x-data="{ darkMode: false }" x-init="
+        darkMode = localStorage.getItem('darkMode') === 'true' || 
+                  (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        $watch('darkMode', value => {
+            localStorage.setItem('darkMode', value);
+            document.documentElement.classList.toggle('dark', value);
+        });
+    ">
+        <head>
+            <meta charset="UTF-8"/>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+            <base href="."/>
+            <title>{ config.Design.Name } - OpenSCAD Generation Report</title>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
+            
+            <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+            <style>
+                :root {
+                    --bg-color: #ffffff;
+                    --text-color: #333333;
+                    --card-bg: #ffffff;
+                    --border-color: #eee;
+                }
+
+                .dark {
+                    --bg-color: #1a1a1a;
+                    --text-color: #f5f5f5;
+                    --card-bg: #2d2d2d;
+                    --border-color: #404040;
+                }
+
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                    line-height: 1.6;
+                    margin: 0;
+                    padding: 20px;
+                    color: var(--text-color);
+                    background-color: var(--bg-color);
+                }
+                .container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                }
+                h1, h2, h3 {
+                    color: var(--text-color);
+                }
+                .header {
+                    margin-bottom: 30px;
+                }
+                .params {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                    gap: 10px;
+                    margin-top: 10px;
+                }
+                .param {
+                    background: var(--card-bg);
+                    padding: 10px;
+                    border-radius: 4px;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                }
+                .footer {
+                    margin-top: 30px;
+                    padding-top: 20px;
+                    border-top: 1px solid var(--border-color);
+                    font-size: 0.9em;
+                    color: var(--text-color);
+                }
+                .table-container {
+                    margin: 20px 0;
+                }
+                .table {
+                    background-color: var(--card-bg);
+                }
+                .table th {
+                    color: var(--text-color);
+                }
+                .table td {
+                    color: var(--text-color);
+                }
+                .tag {
+                    background-color: var(--card-bg);
+                    color: var(--text-color);
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="level">
+                        <div class="level-left">
+                            <h1>{ config.Design.Name }</h1>
+                        </div>
+                        <div class="level-right">
+                            <button class="button" @click="darkMode = !darkMode">
+                                <span x-show="!darkMode">🌙</span>
+                                <span x-show="darkMode">☀️</span>
+                            </button>
+                        </div>
+                    </div>
+                    <p>{ config.Design.Description }</p>
+                </div>
+
+                <h2 class="is-size-4">Global Parameters</h2>
+                <div class="table-container">
+                    <table class="table is-striped is-fullwidth">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            for name, value := range config.Design.GlobalParams {
+                                <tr>
+                                    <td>{ name }</td>
+                                    <td>{ fmt.Sprintf("%v", value) }</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2 class="is-size-4">Input Paths</h2>
+                <div class="table-container">
+                    <table class="table is-striped is-fullwidth">
+                        <thead>
+                            <tr>
+                                <th>Path</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            for _, inputPath := range config.GetInputPaths() {
+                                <tr>
+                                    <td><a href={templ.SafeURL(fmt.Sprintf("file://%s", inputPath.Path))}>{ inputPath.Path }</a></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+
+                <h2 class="is-size-4">STL Generation Results</h2>
+                <div>Generate { fmt.Sprintf("%d",len(stlResults)) }</div>
+                <div class="table-container">
+                    <table class="table is-striped is-fullwidth">
+                        <thead>
+                            <tr>
+                                <th>Instance</th>
+                                <th>Output Path</th>
+                                <th>Command</th>
+                                <th>Time Taken</th>
+                                <th>Config Error</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            for _, stlResult := range stlResults {
+                                <tr>
+                                    <td>{ stlResult.InstanceConfig.Name }</td>
+                                    <td>{ stlResult.OutputPath }</td>
+                                    <td>{ stlResult.Command }</td>
+                                    <td>{ fmt.Sprintf("%v", stlResult.TimeTaken) }</td>
+                                    <td>{ stlResult.Error }</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2 class="is-size-4">Configuration Details</h2>
+                <div class="instance">
+                    <div class="params">
+                        <div class="param">
+                            <strong>Version:</strong> { config.Design.Version }
+                        </div>
+                        <div class="param">
+                            <strong>Output Path:</strong> { config.Design.OutputPath }
+                        </div>
+                        <div class="param">
+                            <strong>OpenSCAD Version:</strong> { openscadVersion }
+                        </div>
+                        <div class="param">
+                            <strong>Quality:</strong> { config.Quality }
+                            if config.Quality == "low" {
+                                <span class="tag is-danger">Low Quality !! </span>
+                            } else if config.Quality == "high" {
+                                <span class="tag is-success">High Quality</span>
+                            }
+                        </div>
+
+                        if config.CustomOpenSCADCommand != "" {
+                            <div class="param">
+                                <strong>Export Images:</strong> { config.CustomOpenSCADCommand }
+                            </div>
+                        }
+
+                        if config.RegexPattern != "" {
+                            <div class="param">
+                                <strong>Regex Pattern:</strong> { config.RegexPattern }
+                            </div>
+                        }
+
+                        if config.MaxInstances > 0 {
+                            <div class="param">
+                                <strong>Max Instances:</strong> { fmt.Sprintf("%d", config.MaxInstances) }
+                            </div>
+                        }
+
+                        if config.ContinueOnError {
+                            <div class="param">
+                                <strong>Continue On Error</strong>
+                            </div>
+                        }
+
+
+                        if config.IncludeExportLog {
+                            <div class="param">
+                                <strong>Include Export Log</strong>
+                            </div>
+                        }
+
+
+                        if config.FullExport {
+                            <div class="param">
+                                <strong>Full Export</strong>
+                            </div>
+                        }
+
+
+                        if config.OverwriteExisting {
+                            <div class="param">
+                                <strong>Overwrite Existing</strong>
+                            </div>
+                        }
+
+
+                        if config.SkipRender {
+                            <div class="param">
+                                <strong>Skip Render</strong>
+                            </div>
+                        }
+
+
+                        if config.SkipReadme {
+                            <div class="param">
+                                <strong>Skip Readme</strong>
+                            </div>
+                        }
+
+
+                        if config.IncludePartIDLetter {
+                            <div class="param">
+                                <strong>Include Part ID Letter</strong>
+                            </div>
+                        }
+
+
+                        if config.SetBuildInfoInFileAttributes {
+                            <div class="param">
+                                <strong>Set Build Info In File Attributes</strong>
+                            </div>
+                        }
+
+
+                        if config.Concurrent {
+                            <div class="param">
+                                <strong>Concurrent</strong>
+                            </div>
+                        }
+                        
+                    </div>
+                </div>
+                 <h2 class="is-size-4">Output Paths</h2>
+                    <div class="instance">
+                    <div class="param">
+                        <strong>OutputPath:</strong> { outputPaths.OutputPath }
+                    </div>
+                    <div class="param">
+                        <strong>ExportFolderPath:</strong> { outputPaths.ExportFolderPath }
+                    </div>
+                    <div class="param">
+                        <strong>LowQualityWarningPath:</strong> { outputPaths.LowQualityWarningPath }
+                    </div>
+                    <div class="param">
+                        <strong>ReadmePath:</strong> { outputPaths.ReadmePath }
+                    </div>
+                    <div class="param">
+                        <strong>LogOutputPath:</strong> { outputPaths.LogOutputPath }
+                    </div>
+                </div>
+
+                <h2 class="is-size-4">Generated Instances</h2>
+                <div class="table-container">
+                    <table class="table is-striped is-fullwidth">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Part ID</th>
+                                <th>Input Path</th>
+                                <th>Param Sets</th>
+
+                                for _, paramName := range allParamNames {
+                                    <th>{ paramName }</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            for _, instance := range instances {
+                                <tr>
+                                    <td>{ instance.Name }</td>
+                                    <td>{ instance.Description }</td>
+                                    for _, paramName := range allParamNames {
+                                        if value, ok := instance.Params[paramName]; ok {
+                                            <td>{ fmt.Sprintf("%v", value) }</td>
+                                        } else {
+                                            <td>No Param Set for { paramName }</td>
+                                        }
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="footer">
+                    <p>Generated by openscadgen { version } at { time.Now().Format("2006-01-02 15:04:05") }</p>
+                </div>
+            </div>
+        </body>
+    </html>
+}

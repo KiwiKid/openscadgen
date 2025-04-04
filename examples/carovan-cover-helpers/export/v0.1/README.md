@@ -17,8 +17,8 @@ A plastic dome cover to make it easier to get the carovan cover over pipes or ju
 
 - [carovan-cover-helpers//arial_covertrue.stl](.carovan-cover-helpers//arial_covertrue.stl)
 	- **InputPath**: carovan-cover-helpers/arial_cover.scad
-	- **designFileName**: arial_cover
 	- **thin_extrude**: true
+	- **designFileName**: arial_cover
 
 
 - [carovan-cover-helpers//arial_coverfalse.stl](.carovan-cover-helpers//arial_coverfalse.stl)

@@ -2,110 +2,77 @@ include <BOSL2/std.scad>
 
 $fa = .01;
 $fs = $preview ? 5 : 1;
-$fn = 200;
+$fn = 10;
 
-coasterHeight = 13;
-coasterRadius = 33;
-
-can_xy_scale = 1.001;
+coasterHeight = 10;
+coasterRadius = 40;
 
 textMainSize = 13;
-textMainDepth = 5;
+textMainDepth = 8;
 textContent = "LEFTY";
-//mainTextStrike = is_undef(mainTextStrike) ?  mainTextStrike :  "false";
-
-
-textSubContentSize = 4;
+textSubContentSize = 2;
 textSubContent = "Only Left Hand";
-textSubDepth = 6;
 subContentStartAngle = 180;
 subContentEndAngle = 360;
 
-textSubZOffset = 10;
-
-textAround = "LEFT LEFT LEFT LEFT LEFT LEFT LEF";
+textAround = "LEFT LEFT LEFT LEFT LEFT LEFT LEFT LEFT LEFT LEFT LEFT LEFT L";
 
 insetHeight = 6;
 insetRadius = coasterRadius-4;
 
+textAroundRadius = coasterRadius-2;
 
 aroundTextStartAngle = 200;
 aroundTextEndAngle = 370; 
-aroundTextHeightOffset = 10;
+aroundTextHeightOffset = 3;
 
 
 stackingRimOffset = 1.5;
-stackingRimHeight = 30;
-stackingRimBaseRadius = 10;
-stackingRimTopRadius = 7;
-
-textAroundRadius = stackingRimBaseRadius+18;
+stackingRimHeight = 10;
+stackingRimBaseRadius = -0.6;
+stackingRimTopRadius = 3;
 
 
-bottom_stacking_rim_z_offset = -6;
+bottom_stacking_rim_z_offset = 2;
 
 iconOffset = 16;
 iconScale = 15;
-bottom_flatten_z_offset =0;
-bottom_flatten_size = [100,100,10];
-
-
-
-module stacking_tube(){
-chamfer=4;
-
- tube(h=stackingRimHeight, or1=coasterRadius+stackingRimBaseRadius, or2=coasterRadius+stackingRimBaseRadius, wall=15, rounding=10)
-    fillet(h=2, r=2);
-
-}
 
 difference() {
 union(){
     cylinder(h=coasterHeight, r=coasterRadius);
     
     translate([0,0,coasterHeight+stackingRimOffset])
-   stacking_tube();
-    
+    #tube(h=stackingRimHeight, or1=coasterRadius+stackingRimBaseRadius, or2=coasterRadius+stackingRimTopRadius, wall=2, chamfer2=2, ichamfer1=2, ichamfer2=2, ochamfer1=2, ochamfer2=2);
 
 }
 
     up(bottom_stacking_rim_z_offset)
-     stacking_tube();
+    tube(h=stackingRimHeight, or1=coasterRadius+stackingRimBaseRadius, or2=coasterRadius+stackingRimTopRadius, wall=2, chamfer2=2, ichamfer1=2, ichamfer2=2, ochamfer1=2, ochamfer2=2);
     //translate([0,0,3])
     //#cylinder(h=coasterHeight, r=coasterRadius - insetHeight);
 
-     
+    
     // Text around the coaster
-   path = path3d(arc(100, r=textAroundRadius, angle=[0, 360]));
+path = path3d(arc(100, r=textAroundRadius, angle=[0, 400]));
     color("red") stroke(path, width=.5);
     translate([0,0,aroundTextHeightOffset])
-    scale(1.5)
-    path_text(path, textAround , font="Liberation Mono",  size=6, center=true, lettersize =5, h=3);
-     /*
+    !path_text(path, textAround , font="Liberation Mono",  size=5, center=true, lettersize = 4);
+      /* 
     // Semi-Circle instructions
         path2 = path3d(arc(99, r=insetRadius, angle=[subContentStartAngle, subContentEndAngle]));
     color("red") stroke(path, width=.5);
     translate([0,0,insetHeight+2])
     path_text(path2, textSubContent, font="Liberation Mono", normal=UP, thickness=15, size=6, lettersize = 5/1.2, center=true);
-*/
+
    // Main Center Text
    
     translate([0,0,coasterHeight-textMainDepth])
     linear_extrude(height=textMainDepth+1)
     text(textContent, size=textMainSize, halign="center", valign="center");
-     
-    if (mainTextStrike == "with-strike"){
-        up(textMainDepth+8)
-        cuboid([coasterRadius*1.8,2,10]);
-    }
+    */
     
-    fwd(textSubZOffset)
-    translate([0,0,coasterHeight-textSubDepth])
-    linear_extrude(height=50+1)
-    text(textSubContent, size=textSubContentSize, halign="center", valign="center");
-    /*
-  
-
+   /*
    translate([0,iconOffset,coasterHeight])
    scale(iconScale)
    difference(){
@@ -118,14 +85,8 @@ union(){
    }*/
      right(540)
     fwd(24)
-    up(4)
-    scale([can_xy_scale, can_xy_scale, 1])
+    up(0)
     import("/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text-coasters/can.stl");
-    
-    
-    // Bottom Flattener
-    down(bottom_flatten_z_offset)
-    cuboid(bottom_flatten_size);
     
 } 
 
@@ -133,6 +94,7 @@ union(){
 
 
   
+
 
     
 

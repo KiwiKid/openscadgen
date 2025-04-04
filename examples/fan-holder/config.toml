@@ -1,0 +1,25 @@
+[openscadgen]
+name = "fan-holder"
+description = "{{projectDescription}}"
+
+output_path = "./export/"
+version = "v0.1"
+export_name_format = "{designFileName}_extrude_{renderType}"
+
+
+[[openscadgen.input_paths]]
+path = "./fan-holder.scad"
+
+
+
+# [[openscadgen.input_paths]]
+# path = "./a-second-related-openscad-file.scad"
+# ignore_param_when_processing = "param3" # dont process param3 when generating instances for this file 
+# export_name_format = "custom-export-name-for-this-file/{designFileName}-{name}"
+
+
+[[openscadgen.instances]]
+params = { renderType = "horz-slice,vert-slice,fan-holder" }
+
+# [[openscadgen.instances]]
+# params = { name= "secondInstanceName", param1 = "firstValue", param2 = "secondValue", param3 = "thirdValue" }

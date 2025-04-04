@@ -3,22 +3,28 @@
 A simple model that creates a coffee cup holder. Three render options are available: - horz-slice: A horizontal slice of the cup holder - vert-slice: A vertical slice of the cup holder - all: All three views of the cup holderThe coaster is designed to be printed on a flat surface, with the text on the outside edge of the coaster.
 
 ## Contents 
-- [coffee_cup_holder//coffee-cup-holder-v2_extrude_horz-slice.stl](.coffee_cup_holder//coffee-cup-holder-v2_extrude_horz-slice.stl)
-	- **InputPath**: coffee_cup_holder/coffee-cup-holder-v2.scad
+- [examples/coffee_cup_holder//coffee-cup-holder-v2_extrude_horz-slice.stl](.examples/coffee_cup_holder//coffee-cup-holder-v2_extrude_horz-slice.stl)
+	- **InputPath**: examples/coffee_cup_holder/coffee-cup-holder-v2.scad
 	- **renderType**: horz-slice
 	- **designFileName**: coffee-cup-holder-v2
 
 
-- [coffee_cup_holder//coffee-cup-holder-v2_extrude_vert-slice.stl](.coffee_cup_holder//coffee-cup-holder-v2_extrude_vert-slice.stl)
-	- **InputPath**: coffee_cup_holder/coffee-cup-holder-v2.scad
-	- **renderType**: vert-slice
+- [examples/coffee_cup_holder//coffee-cup-holder-v2_extrude_vert-slice.stl](.examples/coffee_cup_holder//coffee-cup-holder-v2_extrude_vert-slice.stl)
+	- **InputPath**: examples/coffee_cup_holder/coffee-cup-holder-v2.scad
 	- **designFileName**: coffee-cup-holder-v2
+	- **renderType**: vert-slice
 
 
-- [coffee_cup_holder//coffee-cup-holder-v2_extrude_all.stl](.coffee_cup_holder//coffee-cup-holder-v2_extrude_all.stl)
-	- **InputPath**: coffee_cup_holder/coffee-cup-holder-v2.scad
+- [examples/coffee_cup_holder//coffee-cup-holder-v2_extrude_all.stl](.examples/coffee_cup_holder//coffee-cup-holder-v2_extrude_all.stl)
+	- **InputPath**: examples/coffee_cup_holder/coffee-cup-holder-v2.scad
 	- **renderType**: all
 	- **designFileName**: coffee-cup-holder-v2
+
+
+- [examples/coffee_cup_holder//coffee-cup-holder-v2_extrude_bottom_gap.stl](.examples/coffee_cup_holder//coffee-cup-holder-v2_extrude_bottom_gap.stl)
+	- **InputPath**: examples/coffee_cup_holder/coffee-cup-holder-v2.scad
+	- **designFileName**: coffee-cup-holder-v2
+	- **renderType**: bottom_gap
 
 
 ## Additional Information

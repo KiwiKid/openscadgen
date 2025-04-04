@@ -13,7 +13,7 @@ The coaster is designed to be printed on a flat surface, with the text on the ou
 
 """
 
-export_name_format = "{designFileName}_{textContent}"
+export_name_format = "{designFileName}_{textContent}_{mainTextStrike}"
 
 output_path = "./export/"
 version = "v0.1"
@@ -21,14 +21,51 @@ version = "v0.1"
 [[openscadgen.input_paths]]
 path = "./text-coasters.scad"
 
-[[openscadgen.instances]]
-params = { textContent = "LEFTY",  textSubContent = "Only Drink with Left Hand", textAround = "LEFT LEFT LEFT LEFT LEFT LEF LEFT LEFT LEFT LEFT LEFT LEFT" }
+#[[openscadgen.instances]]
+#params = { textContent = "LEFTY",  textSubContent = "Only Drink with Left Hand", textAround = "LEFT LEFT LEFT LEFT LEFT LEF LEFT LEFT LEFT LEFT LEFT LEFT" }
+
+#[[openscadgen.instances]]
+#params = { textContent = "RIGHTY", textSubContent = "Only Drink with Right Hand", textAround = "RIGHT RIGHT RIGHT RIGHT RIGHT RIGHT RIGHT RIGHT RIGHT RIGHT" }
+
+#[[openscadgen.instances]]
+#params = { textContent = "FANCY", textSubContent = "Only Drink with pinky out", textAround = "FANCY FANCY FANCY FANCY FANCY FANCY FANCY FANCY FANCY FANCY FANCY" }
+
+#[[openscadgen.instances]]
+#params = { textContent = "NO-NAMES", textSubContent = "Drink if you use a persons name",  textAround = "NO-NAMES NO-NAMES NO-NAMES NO-NAMES NO-NAMES NO-NAMES " }
+
 
 [[openscadgen.instances]]
-params = { textContent = "RIGHTY", textSubContent = "Only Drink with Right Hand", textAround = "RIGHT RIGHT RIGHT RIGHT RIGHT RIGHT RIGHT RIGHT RIGHT RIGHT" }
+params = { textAround =  "LEFT LEFT LEFT LEFT LEFT LEFT LEF", textContent = "LEFTY", textSubContent = "Only Left Hand", mainTextStrike="na" }
 
 [[openscadgen.instances]]
-params = { textContent = "FANCY", textSubContent = "Only Drink with pinky out", textAround = "FANCY FANCY FANCY FANCY FANCY FANCY FANCY FANCY FANCY FANCY FANCY" }
+params = {  textAround = "RIGHT RIGHT RIGHT RIGHT RIGHT RI", textContent = "RIGHTY", textSubContent = "Only Right Hand", mainTextStrike="na" }
 
 [[openscadgen.instances]]
-params = { textContent = "NO-NAMES", textSubContent = "Drink if you use a persons name",  textAround = "NO-NAMES NO-NAMES NO-NAMES NO-NAMES NO-NAMES NO-NAMES " }
+params = { textAround = "NO SWEARING NO SWEARING NO SWEARING", textContent = "SWEAR", mainTextStrike="with-strike", textSubContent = "Drink if You Swear" }
+
+[[openscadgen.instances]]
+params = { textAround = "MUST SWEAR MUST SWEAR MUST SWEAR", textContent = "SWEAR", textSubContent = "Include a Swear Word with each drink", textSubContentSize="2", mainTextStrike="na"  }
+
+[[openscadgen.instances]]
+params = { textAround = "NO LAUGHING NO LAUGHING NO LAUGHING", textContent = "LAUGH",  mainTextStrike="with-strike", textSubContent = "Drink if You Laugh"  }
+
+[[openscadgen.instances]]
+params = { textAround = "PINKY OUT PINKY OUT PINKY OUT", textContent = "FANCY", textSubContent = "Drink with Pinky Out", mainTextStrike="na"  }
+
+[[openscadgen.instances]]
+params = { textAround = "NO PHONES NO PHONES NO PHONES", textContent = "PHONES", mainTextStrike="with-strike", textSubContent = "No Checking Phones"  }
+
+[[openscadgen.instances]]
+params = { textAround = "NO QUESTIONS NO QUESTIONS NO QUESTIONS", textContent = "?????",  mainTextStrike="with-strike", textSubContent = "No Asking Questions" }
+
+[[openscadgen.instances]]
+params = { textAround = "UMM UHHH UMM UHHH UMM UHHH", textContent = "UMMMM",  mainTextStrike="with-strike", textSubContent = "No 'Umm' or 'Uhh'" }
+
+[[openscadgen.instances]]
+params = { textAround = "TIDY TITAN TIDY TITAN TIDY TITAN", textContent = "SPILL",  mainTextStrike="with-strike", textSubContent = "Drink if You Spill" }
+
+[[openscadgen.instances]]
+params = { textAround = "CIVILIZED CIVILIZED CIVILIZED", textContent = "CIVIL",  mainTextStrike="with-strike", textSubContent = "Must be overly polite" }
+
+[[openscadgen.instances]]
+params = { textAround = "GRUG GRUG GRUG GRUG GRUG GRUG", textContent = "GRUG", textSubContent = "Refer to everyone as [modifier] Grug", textSubContentSize="2" }
