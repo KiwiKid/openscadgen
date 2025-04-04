@@ -6,13 +6,13 @@ description = """\
 
 """
 
-export_name_format = "{designFileName}-{height}"
+export_name_format = "{designFileName}-{height}-{hook_angle}"
 
 output_path = "./export/"
 version = "v0.1"
 
 [[openscadgen.input_paths]]
-path = "./carovan-cupboard-hook.scad"
+path = "./carovan-cupboard-hook-v2..scad"
 
 [[openscadgen.instances]]
-params = { height = "1,40,100"}
+params = { height = "1,10,20,30,60,80,100", hook_angle = "40, 50, 70"}

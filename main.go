@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"log"
+	"github.com/kiwikid/openscadgen/pkg/models"
 
 	"github.com/kiwikid/openscadgen/pkg"
 )
@@ -12,7 +14,7 @@ import (
 
 func main() {
 
-	cmdFlags := pkg.CmdFlags{}
+	cmdFlags := models.CmdFlags{}
 
 	// Parse command-line flags into the struct
 	flag.StringVar(&cmdFlags.ConfigFile, "config", "", "Path to config file")
@@ -24,6 +26,9 @@ func main() {
 
 	flag.StringVar(&cmdFlags.InitProjectName, "init", "", "Initialize a new project at the current directory with the given name")
 	flag.StringVar(&cmdFlags.InitProjectName, "i", "", "Alias for -init")
+
+	flag.StringVar(&cmdFlags.InitProjectNameExtended, "init-extended", "", "Initialize a new project at the current directory with the given name - with bosl2 and renderSlicing support")
+	flag.StringVar(&cmdFlags.InitProjectNameExtended, "ie", "", "Alias for -init")
 
 	flag.StringVar(&cmdFlags.RegexPattern, "regex", "", "Regex pattern to filter instances by name")
 	flag.StringVar(&cmdFlags.RegexPattern, "r", "", "Alias for -regex")
@@ -54,6 +59,9 @@ func main() {
 	flag.BoolVar(&cmdFlags.IncludeExportLog, "include-export-log-file", false, "Include the export log in the README.md file")
 	flag.BoolVar(&cmdFlags.IncludeExportLog, "el", false, "Alias for -include-export-log-file")
 
+	flag.BoolVar(&cmdFlags.FullExport, "full-export", false, "Include the the config file and extended output ")
+	flag.BoolVar(&cmdFlags.FullExport, "fe", false, "Alias for -full-export")
+
 	flag.BoolVar(&cmdFlags.OverwriteExisting, "ow", false, "Overrwite existing files")
 	flag.BoolVar(&cmdFlags.OverwriteExisting, "overwrite", false, "Alias for -ow")
 
@@ -71,7 +79,10 @@ func main() {
 
 	flag.Parse()
 
-	pkg.Process(cmdFlags)
+	err := pkg.Process(cmdFlags)
+	if err != nil {
+		log.Fatalf("Error: %v", err)
+	}
 
 	// Use the openscadgen package to generate STL files
 	// ...

@@ -1,4 +1,6 @@
-$fn = 20;
+$fa = .01;
+$fs = $preview ? 5 : 1;
+$fn = 200;
 /*
     A cup holder upgrade sizer for the toyota rav4 (v1.4)
 

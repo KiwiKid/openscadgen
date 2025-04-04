@@ -3,7 +3,10 @@ $fa = .01;
 $fs = $preview ? 5 : 1;
 $fn = 200;
 
-module wedge_with_box (height=100, width=100, depth = 2, sphere_radius =3, box_height = 13) {
+  renderType = "bottom_gap";
+
+
+module wedge_with_box (height=100, wedge_height =60, width=100, depth = 2, sphere_radius =3, box_height = 14) {
 
 difference(){
 union(){
@@ -16,7 +19,7 @@ union(){
     sphere(sphere_radius);
     
     // bottom left
-    down(height)
+    down(wedge_height)
     sphere(sphere_radius);
     
     back(height)
@@ -38,7 +41,7 @@ union(){
    fwd(depth)
    sphere(sphere_radius);
     
-   down(height)
+   down(wedge_height)
    left(width)
   // back(height)
     sphere(sphere_radius);
@@ -90,17 +93,17 @@ union(){
         
         
         
-     cylider_radius_1 = 47;
+     cylider_radius_1 = 45;
       
      cylider_drop_1 = 2;
      
         cylider_radius_2 = 27;
- cylider_drop_2 = 18;
+ cylider_drop_2 = 16;
  
  
 
  cylider_radius_3 = 40;
-   cylider_drop_3 = 10;
+   cylider_drop_3 = 8;
 
         left(width/2)
         back(height/2+1)
@@ -173,10 +176,10 @@ union(){
          }
          
          
-         phone_holder_rotate = [0,80,35];
+         phone_holder_rotate = [0,80,30];
          phone_holder_translate = [-30,55,55];
 
-         phone_holder_size = [110,150,23];
+         phone_holder_size = [120,160,20];
          
          translate(phone_holder_translate)
         rotate(phone_holder_rotate)
@@ -189,13 +192,13 @@ union(){
             cuboid(phone_holder_size, rounding=2);
         }
         
-        
-        move([-50,0,-70])
-        cuboid([70,300,100], rounding=4);
+        if(renderType == "bottom_gap"){
+            move([-width/2,40,-70])
+            cuboid([70,100,100], rounding=4);
+        }
         }
   }
   
-  renderType = "";
   
   if(renderType == "horz-slice"){
       intersection(){

@@ -14,25 +14,16 @@ Be-aware of the limitations of the material you are using, PLA can have a very l
 \n\n
 Project file includes:
 \n
-- Cup Adapter without cut - an “All-in-on” print - uses more supports & time, stronger, with no assembly (~14h print time & 560g of PLA filament)
-\n
-- Cut the Cup Adapter with a dowel cut - Minimise print/build time via splitting the cup holder to a separate part (~10h print time & 470g of PLA filament)
- - Parametric .scad file for customisation 
+- 1 -> 2 Cup Adapter with two larger cup holders
+- 1 -> 1 Cup Adapter with one larger and one smaller cup holder
+- a cup holder sizer to confirm the size of your cup holder
+- Parametric .scad file for customisation 
 \n\n\n
-v1.1
-- Making the cup shorter and wider at the top (remove the need for tape)
-- Slightly narrower cup holder diameter at the brim and base
-- Reduce sharp edges (better align cup & phone holders in the center)
 
-v3.0
--- Added angle to the bottom cup holder to avoid the layer line causing a weakness in the attachement of the cup holder to the center console & make easier to print
--- Added cutout for charging cable
--- Added cutout blockers to reduce filiment usage
--
 """
 
 
-export_name_format = "{cup_holders_mode}/{designFileName}-{name}"
+export_name_format = "{designFileName}/{cup_holders_mode}-{name}"
 
 output_path = "./export/"
 version = "v3.1"

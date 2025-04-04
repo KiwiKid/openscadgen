@@ -5,11 +5,14 @@ $fn = 20;
 name = "Your Name Here";
 
 text_angle = 60;
-
-base_size = [130, 30, 20];
+ base_width = !is_undef(base_width) ? base_width : 130 ;
+base_size = [base_width, 30, 20];
 
 difference(){
 union(){
+
+
+
 rotate([-text_angle,0,0])
 cylindrical_extrude(or=140, ir=110)
  text(text=name, size=12, halign="center", valign="center");
