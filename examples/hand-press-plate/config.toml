@@ -1,0 +1,22 @@
+[openscadgen]
+name = "hand-press-plate"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}-{renderType}"
+
+global_params = { renderType = "horzSlice,vertSlice,all"}
+
+[[openscadgen.input_paths]]
+path = "./hand-press-plate.scad"
+
+# [[openscadgen.input_paths]]
+# path = "./a-second-related-openscad-file.scad"
+# ignore_param_when_processing = "param3" # dont process param3 when generating instances for this file 
+
+# [[openscadgen.instances]]
+# params = {renderType = "horzSlice,vertSlice,all", param1 = "a-custom-value" }
+
+# [[openscadgen.instances]]
+# params = { renderType = "horzSlice,vertSlice,all", param1 = "a-diff-custom-value" }
