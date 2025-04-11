@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+
 	"github.com/kiwikid/openscadgen/pkg/models"
 
 	"github.com/kiwikid/openscadgen/pkg"
@@ -79,7 +80,36 @@ func main() {
 
 	flag.Parse()
 
-	err := pkg.Process(cmdFlags)
+	// Initialize logger before loading config
+	if err := pkg.InitLogger("memory"); err != nil {
+		log.Fatalf("Failed to initialize logger: %v", err)
+	}
+
+	if cmdFlags.Version {
+		version := pkg.GetVersion()
+		log.Printf("OpenSCADGen Version: %s", version.OpenSCADGen)
+		log.Printf("OpenSCAD Version: %s", version.OpenSCAD)
+		return
+	}
+
+	if cmdFlags.InitProjectName != "" {
+		log.Printf("Initializing project: %s", cmdFlags.InitProjectName)
+		pkg.InitConfig(cmdFlags.InitProjectName, false)
+		return
+	}
+
+	if cmdFlags.InitProjectNameExtended != "" {
+		log.Printf("Initializing project: %s", cmdFlags.InitProjectNameExtended)
+		pkg.InitConfig(cmdFlags.InitProjectNameExtended, true)
+		return
+	}
+
+	config, err := pkg.LoadConfig(cmdFlags)
+	if err != nil {
+		log.Fatalf("Error: %v", err)
+	}
+
+	err = pkg.Process(config)
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}

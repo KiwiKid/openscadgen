@@ -4,33 +4,29 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
 	"reflect"
-	"regexp"
 	"runtime"
+	"slices"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
-	"slices"
 
 	"github.com/BurntSushi/toml"
 	"github.com/go-playground/validator/v10"
+	"github.com/kiwikid/openscadgen/pkg/models"
 	"github.com/kiwikid/openscadgen/pkg/templates"
 	"github.com/pkg/xattr"
-	"github.com/kiwikid/openscadgen/pkg/models"
 )
 
-
-
-func getOutputPaths(config models.Config) models.OutputPaths {
+func getOutputPaths(config *models.Config) models.OutputPaths {
 	// Get the directory containing the config file - this is our anchor point
 	configDir := filepath.Dir(config.ConfigFile)
 
@@ -44,6 +40,8 @@ func getOutputPaths(config models.Config) models.OutputPaths {
 			log.Panicf("Could not resolve absolute path: %s", err)
 		}
 	}
+
+	versionPathSafe := strings.ReplaceAll(config.Design.Version, ".", "_")
 
 	if config.Design.OutputPath != "" {
 		// When output path is explicitly specified, use it relative to config dir
@@ -59,12 +57,12 @@ func getOutputPaths(config models.Config) models.OutputPaths {
 		}
 
 		return models.OutputPaths{
-			OutputPath:            filepath.Join(absOutputPath, config.Design.Version),
-			ExportFolderPath:      filepath.Join(absOutputPath, config.Design.Version),
-			LowQualityWarningPath: filepath.Join(absOutputPath, config.Design.Version, "LOW_QUALITY_WARNING.md"),
-			ReadmePath:            filepath.Join(absOutputPath, config.Design.Version, "README.md"),
-			LogOutputPath:         filepath.Join(absOutputPath, config.Design.Version, fmt.Sprintf("export_log_%s.log", time.Now().Format("2006-01-02_15-04-05"))),
-			ReportPath:            filepath.Join(absOutputPath, config.Design.Version, "report.html"),
+			OutputPath:            filepath.Join(absOutputPath, "export", versionPathSafe),
+			ExportFolderPath:      filepath.Join(absOutputPath, "export", versionPathSafe),
+			LowQualityWarningPath: filepath.Join(absOutputPath, "export", versionPathSafe, "LOW_QUALITY_WARNING.md"),
+			ReadmePath:            filepath.Join(absOutputPath, "export", versionPathSafe, "README.md"),
+			LogOutputPath:         filepath.Join(absOutputPath, "export", versionPathSafe, "export_log.log"),
+			ReportPath:            filepath.Join(absOutputPath, "export", versionPathSafe, "report.html"),
 		}
 	}
 
@@ -77,22 +75,22 @@ func getOutputPaths(config models.Config) models.OutputPaths {
 	if filepath.IsAbs(config.ConfigFile) {
 		// For absolute config file paths, maintain the original structure
 		return models.OutputPaths{
-			OutputPath:            filepath.Join(".", filepath.Dir(absInputPath), "export", config.Design.Version, designName, "export", config.Design.Version),
-			ExportFolderPath:      filepath.Join(filepath.Dir(absInputPath), "export", config.Design.Version),
-			LowQualityWarningPath: filepath.Join(filepath.Dir(absInputPath), "export", config.Design.Version, designName, "LOW_QUALITY_WARNING.md"),
-			ReadmePath:            filepath.Join(filepath.Dir(absInputPath), "export", config.Design.Version, designName, "README.md"),
-			LogOutputPath:         filepath.Join(filepath.Dir(absInputPath), "export", config.Design.Version, designName, "export_log.log"),
-			ReportPath:            filepath.Join(filepath.Dir(absInputPath), "export", config.Design.Version, designName, "report.html"),
+			OutputPath:            filepath.Join(filepath.Dir(absInputPath), "export", versionPathSafe, designName),
+			ExportFolderPath:      filepath.Join(filepath.Dir(absInputPath), "export", versionPathSafe),
+			LowQualityWarningPath: filepath.Join(filepath.Dir(absInputPath), "export", versionPathSafe, designName, "LOW_QUALITY_WARNING.md"),
+			ReadmePath:            filepath.Join(filepath.Dir(absInputPath), "export", versionPathSafe, designName, "README.md"),
+			LogOutputPath:         filepath.Join(filepath.Dir(absInputPath), "export", versionPathSafe, designName, "export_log.log"),
+			ReportPath:            filepath.Join(filepath.Dir(absInputPath), "export", versionPathSafe, designName, "report.html"),
 		}
 	} else {
 		// For relative config file paths, use paths relative to the config file directory
 		return models.OutputPaths{
-			OutputPath:            filepath.Join(configDir, "export", config.Design.Version),
-			ExportFolderPath:      filepath.Join(configDir, "export", config.Design.Version),
-			LowQualityWarningPath: filepath.Join(configDir, "export", config.Design.Version, "LOW_QUALITY_WARNING.md"),
-			ReadmePath:            filepath.Join(configDir, "export", config.Design.Version, "README.md"),
-			LogOutputPath:         filepath.Join(configDir, "export", config.Design.Version, "export_log.log"),
-			ReportPath:            filepath.Join(configDir, "export", config.Design.Version, "report.html"),
+			OutputPath:            filepath.Join(configDir, "export", versionPathSafe),
+			ExportFolderPath:      filepath.Join(configDir, "export", versionPathSafe),
+			LowQualityWarningPath: filepath.Join(configDir, "export", versionPathSafe, "LOW_QUALITY_WARNING.md"),
+			ReadmePath:            filepath.Join(configDir, "export", versionPathSafe, "README.md"),
+			LogOutputPath:         filepath.Join(configDir, "export", versionPathSafe, "export_log.log"),
+			ReportPath:            filepath.Join(configDir, "export", versionPathSafe, "report.html"),
 		}
 	}
 }
@@ -131,363 +129,169 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.1.0-BETA"
+const VERSION = "v2.2.0-BETA"
 
-func Process(cmdFlags models.CmdFlags) error {
+type Version struct {
+	OpenSCADGen string
+	OpenSCAD    string
+}
 
-	startTime := time.Now()
-
-	if cmdFlags.ShowMan {
-		flag.PrintDefaults()
-		return nil
+func GetVersion() Version {
+	return Version{
+		OpenSCADGen: VERSION,
+		OpenSCAD:    findOpenSCAD(),
 	}
+}
 
-	if cmdFlags.InitProjectName != "" {
-		initLogger("memory")
-		initConfig(cmdFlags.InitProjectName, false)
-		return nil
-	}
+func Process(config *models.Config) error {
 
-	if cmdFlags.InitProjectNameExtended != "" {
-		initLogger("memory")
-		initConfig(cmdFlags.InitProjectNameExtended, true)
-		return nil
-	}
-
-	initLogger("memory")
-
-	openscadPath := findOpenSCAD()
-
-	cmd := exec.Command("openscad", "--version")
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &out
-	findScadErr := cmd.Run()
-	if findScadErr != nil {
-		log.Panicf(colorRed+"Failed to get openscad version: %s"+colorReset, findScadErr)
-	}
-
-	openscadVersion := strings.TrimSuffix(out.String(), "\n")
-	openscadVersionNumberStr := strings.Replace(openscadVersion, "OpenSCAD version ", "", 1)
-
-	if cmdFlags.Version {
-		log.Printf("Openscadgen version %s", VERSION)
-		log.Printf("Openscad version %s", openscadVersion)
-		os.Exit(0)
-	}
-
-	// Load configuration
-
-	config, err := LoadConfig(cmdFlags)
-	if err != nil {
-		msg := fmt.Sprintf("Failed to load config: %v", err)
-		logWarn(msg, true)
-		fmt.Fprintf(os.Stderr, colorRed+"Failed to load config: %v\n"+colorReset, err)
-		os.Exit(1)
-	}
-
+	// Get output paths
+	outputPaths := getOutputPaths(config)
 	if config.Debug {
-		log.Printf("Loaded config %+v", config)
+		logStage("Output paths")
+		logKeyValuePair("Output path", outputPaths.OutputPath)
+		logKeyValuePair("Export folder path", outputPaths.ExportFolderPath)
+		logKeyValuePair("Low quality warning path", outputPaths.LowQualityWarningPath)
+		logKeyValuePair("Readme path", outputPaths.ReadmePath)
+		logKeyValuePair("Log output path", outputPaths.LogOutputPath)
+		logKeyValuePair("Report path", outputPaths.ReportPath)
 	}
 
-	if cmdFlags.Debug {
-		logStage("Loading config file")
-		if cmdFlags.Debug {
-			log.Printf("Config file %s", cmdFlags.ConfigFile)
-			logKeyValuePair("Config file", cmdFlags.ConfigFile)
+	clearExportFolder(config, outputPaths)
+
+	if len(config.Design.ConfiguredInstanceConfig) == 0 {
+		config.Design.ConfiguredInstanceConfig = []models.ConfiguredInstanceConfig{
+			{
+				Name:   "default",
+				Params: map[string]interface{}{},
+			},
 		}
 	}
-
-	//	os.Setenv("PATH", openscadPath+":"+os.Getenv("PATH"))
-
-	if config.Debug {
-		log.Printf("Openscad path: %s", openscadPath)
-	}
-
-	// Split the version string to parse the year
-	versionParts := strings.Split(openscadVersionNumberStr, ".")
-	if len(versionParts) < 1 {
-		log.Panic(colorRed + "Invalid OpenSCAD version format. Please check the version output." + colorReset)
-	}
-
-	openscadYear, err := strconv.Atoi(versionParts[0])
-	if err != nil {
-		log.Printf(colorRed+"Failed to parse OpenSCAD year from version %s: %s"+colorReset, openscadVersion, err)
-	}
-
-	if len(openscadVersion) == 0 {
-		log.Panic(colorRed + "OpenSCAD version output is empty. Please check if OpenSCAD is installed and accessible." + colorReset)
-	} else if !cmdFlags.Quiet {
-		if config.Debug {
-			logKeyValuePair("OpenSCAD version", openscadVersion)
-			logKeyValuePair("OpenSCAD year", fmt.Sprintf("%d", openscadYear))
-			logKeyValuePair("OpenSCAD version to", fmt.Sprintf("%d", openscadYear))
-		}
-		if openscadYear < OPENSCAD_VERSION_WARN_IF_OLDER_THAN {
-			logWarn("OpenSCAD version is older than the latest available (2024), consider updating to the latest version of OpenSCAD as it has more features and improved rendering time", true)
-		}
-
-	}
-
-	design := config.Design
-
-	if design.Name == "" {
-		log.Panic(colorRed + "Design name is required, please set the Name field in the config file")
-	}
-
-	dynamicInstances := generateInstances(config)
-
-	for _, instance := range dynamicInstances {
-		if instance.PartIDLetter == "" {
-			log.Panicf(colorRed + "PartIDLetter is required for dynamic instances, please set the PartIDLetter field for each instance")
-		}
-	}
-
-	if !config.Quiet {
-
-		log.Printf(colorBlue+"Config provided %d possible instances "+colorYellow+"(%d dynamic)"+colorBlue+" to generate from scad file '%s'"+colorReset, len(dynamicInstances), len(dynamicInstances), design.Name)
-
-		if design.InputPath != "" {
-			logKeyValuePair("Input File", design.InputPath)
-		} else {
-			for i, inputPath := range design.InputPaths {
-				logKeyValuePair(fmt.Sprintf("Input File [%d/%d]", i+1, len(design.InputPaths)), inputPath.Path)
-			}
-		}
-		logKeyValuePair("Design Version", design.Version)
-		if config.MaxInstances > 0 {
-			logWarn(fmt.Sprintf("Max Limit of %d instances", config.MaxInstances), false)
-		}
-		if config.RegexPattern != "" {
-			logWarn(fmt.Sprintf("Filter to: %s", config.RegexPattern), false)
-		}
-		if config.Debug {
-			logKeyValuePair("Input Flags", fmt.Sprintf("%+v", cmdFlags))
-			logKeyValuePair("Config File", cmdFlags.ConfigFile)
-			logKeyValuePair("Export Location", design.OutputPath)
-		}
-	}
-	// Compile regex if provided
-	var regex *regexp.Regexp
-	if config.RegexPattern != "" {
-		regex, err = regexp.Compile(config.RegexPattern)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, colorRed+"Invalid regex pattern: %v\n"+colorReset, err)
-			os.Exit(1)
-		}
-	}
-
-	if cmdFlags.Version {
-		log.Printf("Openscadgen version %s", VERSION)
-		log.Printf("Openscad version %s", openscadVersion)
-		os.Exit(0)
-	}
-
-	if cmdFlags.ConfigFile == "" {
-		flag.PrintDefaults()
-
-		logWarn("No config file provided, use -c or -config to specify a config file", true)
-		os.Exit(1)
-	}
-
-	if cmdFlags.Debug && cmdFlags.Quiet {
-		log.Print("**whispers**WHAT DO YOU WANT FROM ME? Being quiet (-q) and debug (-v) is not supported (defaulting to debug)")
-		cmdFlags.Quiet = false
-	}
-
-	// New message indicating config file location and number of instances
-	if !cmdFlags.Quiet {
-
-		log.Println(`   ___                                     _                      `)
-		log.Println(`  / _ \ _ __   ___ _ __  ___  ___ __ _  __| | __ _  ___ _ __      `)
-		log.Println(" | | | | '_ \\ / _ \\ '_ \\/ __|/ __/ _` |/ _` |/ _` |/ _ \\ '_ \\     ")
-		log.Println(` | |_| | |_) |  __/ | | \__ \ (_| (_| | (_| | (_| |  __/ | | |    `)
-		log.Println(`  \___/| .__/ \___|_| |_|___/\___\__,_|\__,_|\__, |\___|_| |_|    `)
-		log.Println(` 	    |_|                                   |___/                `)
-
-		log.Printf(colorGreen + "Welcome to openscadgen" + colorReset)
-		logWarn("You are running an ALPHA version, this software is being worked on and not yet stable, please report any bugs to https://github.com/KiwiKid/openscadgen/issues", false)
-		log.Printf("Openscadgen version %s", VERSION)
-	}
-
-	pathsToProcess := config.GetInputPaths()
-
-	for _, path := range pathsToProcess {
-
-		// First try relative to config file location
-		configDir := filepath.Dir(cmdFlags.ConfigFile)
-		absPath := filepath.Join(configDir, path.Path)
-
-		// If file doesn't exist at config-relative path, try absolute/working dir
-		if _, err := os.Stat(absPath); os.IsNotExist(err) {
-			absPath, err = filepath.Abs(path.Path)
+	var instances []models.InstanceConfig
+	for _, dynamicInstance := range config.Design.ConfiguredInstanceConfig {
+		for _, inputPath := range config.Design.InputPaths {
+			newInstances, err := generateInstances(config, dynamicInstance, inputPath, outputPaths.ExportFolderPath)
 			if err != nil {
-				logWarn(fmt.Sprintf("Could not resolve absolute path: %s", err), true)
-				os.Exit(1)
+				return fmt.Errorf("failed to generate instances: %w", err)
 			}
+			instances = append(instances, newInstances...)
+		}
+	}
+
+	// Generate STL files
+	var stlResults []models.GenerateSTLResult
+	for i, instance := range instances {
+		// Set PartIDLetter
+		instance.PartIDLetter = getPartIDLetter(i)
+
+		// Set OutputPathV2 using the instance's parameters
+		exportNameFormat := config.Design.ExportNameFormat
+		if exportNameFormat == "" {
+			log.Panicf("exportNameFormat: '%s' is invalid, could not get formatToUse", exportNameFormat)
+		} else if config.Debug {
+			logKeyValuePair("generate-instance:exportNameFormat", exportNameFormat)
 		}
 
-		designFileExists, err := os.Stat(absPath)
+		result, err := generateSTL(&instance, config, outputPaths.ExportFolderPath)
 		if err != nil {
-
-			logWarn(fmt.Sprintf("Could not find scad file: at '%s' %s", absPath, err), true)
-			logKeyValuePair("Config File", cmdFlags.ConfigFile)
-			logKeyValuePair("Design File Path", path.Path)
-			os.Exit(1)
-		} else if designFileExists == nil {
-			logWarn(fmt.Sprintf("Design file %s does not exist", path.Path), true)
-			os.Exit(1)
+			return fmt.Errorf("failed to generate STL: %w", err)
 		}
+
+		if result.Error != "" {
+			logWarn(fmt.Sprintf("Warning: %s", result.Error), false)
+		}
+
+		stlResults = append(stlResults, result)
 	}
 
-	if !config.Quiet {
-		logStage("Starting STL generation")
-		if config.RegexPattern != "" {
-			logWarn(fmt.Sprintf("Filter: Only generating file matching pattern %s", config.RegexPattern), false)
-		}
-		if config.MaxInstances > 0 {
-			logWarn(fmt.Sprintf("Limit: Only generating first %d instances", config.MaxInstances), false)
-		}
-	}
-
-	outputPaths := getOutputPaths(*config)
-
-	getOrMakeExportFolder(config, outputPaths)
-
-	initLogger(outputPaths.LogOutputPath)
-
-	// Generate STL files for dynamic instances
-	if len(dynamicInstances) > 0 && !config.Quiet {
-		logStage(fmt.Sprintf("Found Dynamic %d Instances", len(dynamicInstances)))
-		for _, instance := range dynamicInstances {
-			logKeyValuePair("Dynamic Instance", instance.Name)
-		}
-	}
-
-	if config.Debug {
-		logStage(fmt.Sprintf("Got %d paths to process", len(pathsToProcess)))
-	}
-
-	processedCount := 0
-	skippedCount := 0
-	stlResults := []models.GenerateSTLResult{}
-	for pathIndex, path := range pathsToProcess {
-		stlIndex := 0
-
-		if !config.Quiet {
-			logStage(fmt.Sprintf("Starting Dynamic %d Instances - %s", len(dynamicInstances), path.Path))
-		}
-		for diIndex, instance := range dynamicInstances {
-			if config.Debug {
-				logStage(fmt.Sprintf("\t\tDynamic Model - (path:[%d/%d]-instance:[%d/%d]) [%d processed] - '%s' %s ", pathIndex+1, len(pathsToProcess), diIndex+1, len(dynamicInstances), processedCount, instance.PartIDLetter, instance.AutoName))
-			}
-			if regex != nil && !regex.MatchString(instance.Name) {
-				if !config.Quiet && config.Debug {
-					log.Printf(colorYellow+"Skipping instance %s as it does not match the regex pattern", instance.Name)
+	// Generate images if configured
+	var imageResults []models.GenerateImageResult
+	if config.Design.ExportImages != nil && len(config.Design.ExportImages) > 0 {
+		for _, instance := range instances {
+			for _, camera := range config.Design.ExportImages {
+				result, err := generateImage(&instance, config, outputPaths.ExportFolderPath, camera)
+				if err != nil {
+					if config.ContinueOnError {
+						logWarn(fmt.Sprintf("Warning: failed to generate image: %v", err), false)
+						continue
+					}
+					return fmt.Errorf("failed to generate image: %w", err)
 				}
-				skippedCount++
-				continue
-			}
 
-			if !config.Quiet {
-				logStage(fmt.Sprintf("Dynamic Model - (path:[%d/%d]-instance:[%d/%d]) [%d processed] - '%s' %s ", pathIndex, len(pathsToProcess), diIndex, len(dynamicInstances), processedCount, instance.PartIDLetter, instance.AutoName))
-				logKeyValuePair("InputPath", instance.InputPath)
-				logKeyValuePair("AutoName", instance.AutoName)
-				if config.IncludePartIDLetter || !config.Design.NoPartIDLetter {
-					logKeyValuePair("PartIDLetter", instance.PartIDLetter)
+				if result.Error != "" {
+					logWarn(fmt.Sprintf("Warning: %s", result.Error), false)
 				}
-				if config.Debug {
-					logKeyValuePair("Params", fmt.Sprintf("%+v", instance.Params))
-				}
-			}
 
-			if config.MaxInstances > 0 && processedCount >= config.MaxInstances {
-				log.Printf(colorBlue+"Max instance of %d processed, stopping", config.MaxInstances)
-				break
-			} else if config.Debug {
-				logStage("Max instance check passed")
-				logKeyValuePair("Max instances", fmt.Sprintf("%d", config.MaxInstances))
-				logKeyValuePair("Processed instances", fmt.Sprintf("%d", processedCount))
+				imageResults = append(imageResults, result)
 			}
-
-			if config.NoProcessing {
-				log.Printf(colorBlue+"No processing requested, skipping instance '%s'", instance.Name)
-				continue
-			}
-
-			stlResult, err := generateSTL(instance, config, outputPaths.ExportFolderPath)
-			if err != nil {
-				logWarn(fmt.Sprintf("Error generating STL for instance '%s': %v", instance.Name, err), false)
-			} else {
-				processedCount++
-				stlResults = append(stlResults, stlResult)
-			}
-
-			stlIndex++
 		}
-
 	}
 
-	generateReadme(config, dynamicInstances, VERSION, openscadVersion, outputPaths.ReadmePath)
-
-	// Generate HTML report
-	if err := GenerateOutputReport(config, dynamicInstances, VERSION, openscadVersion, outputPaths.ReportPath, outputPaths, stlResults); err != nil {
-		logWarn(fmt.Sprintf("Failed to generate HTML report: %v", err), false)
-	}
-
-	generateLowQualityWarningFile(config, outputPaths.LowQualityWarningPath)
-
-	if !config.Quiet {
-
-		msg := ""
-		if skippedCount > 0 {
-			msg += fmt.Sprintf(colorYellow+"%d instances were skipped as they did not match the regex pattern\n\n"+colorReset, skippedCount)
-		}
-		fileFormat := "stl"
-		if config.Design.CustomOpenSCADOutputFormat != "" {
-			fileFormat = config.Design.CustomOpenSCADOutputFormat
-		}
-
-		if processedCount > 0 {
-			msg += fmt.Sprintf(colorGreen+"openscadgen completed! at %s\n\n%d %s files generated in %s\n\nthanks for using openscadgen! "+colorReset, time.Now().Format("2006-01-02 15:04:05"), processedCount, fileFormat, time.Since(startTime))
-
-		} else if config.NoProcessing {
-			log.Printf(colorBlue + "(as requested) No instances were processed" + colorReset)
-		} else {
-			logWarn("No instances were processed, please check the log, config and scad file and try again", true)
-		}
-
-		log.Print(msg)
+	// Generate output report
+	if err := GenerateOutputReport(config, instances, outputPaths, stlResults, imageResults); err != nil {
+		return fmt.Errorf("failed to generate output report: %w", err)
 	}
 
 	return nil
 }
 
-func generateConfFieldMap(conf interface{}) map[string]struct{} {
-	fieldMap := make(map[string]struct{})
-	val := reflect.ValueOf(conf)
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
-	if val.Kind() != reflect.Struct {
-		return fieldMap
-	}
+func clearExportFolder(config *models.Config, outputPaths models.OutputPaths) {
 
-	typ := val.Type()
-	for i := 0; i < typ.NumField(); i++ {
-		field := typ.Field(i)
-		tomlTag := field.Tag.Get("toml")
-		if tomlTag != "" {
-			fieldMap[tomlTag] = struct{}{}
+	if files, err := os.ReadDir(outputPaths.ExportFolderPath); err == nil && len(files) > 0 {
+		filesStr := ""
+		for i, file := range files {
+			if i < 5 {
+				filesStr += fmt.Sprintf("\t- %s\n", file.Name())
+			} else {
+				filesStr += fmt.Sprintf("\tand %d other files ...\n", len(files)-5)
+				break
+			}
+		}
+
+		/*		// get the absolute path
+				absPath, err := filepath.Abs(outputPaths.ExportFolderPath)
+				if err != nil {
+					logWarn(fmt.Sprintf("Could not get absolute path for export folder: %s", err), true)
+					os.Exit(1)
+				}
+		*/
+		if config.NoProcessing {
+			log.Printf(colorBlue + "No processing requested, skipping export folder actions" + colorReset)
+			return
+		} else if !config.Quiet {
+			logKeyValuePair("[processing] Export folder", outputPaths.ExportFolderPath)
+		}
+
+		if !config.OverwriteExisting {
+			logWarn(fmt.Sprintf("\nThe export folder (%s) has %d existing files: \n%s\n\n(the '-ow' flag will skip this check)\n\n(tip: if you want to keep the existing stl export files, cancel this run and update the 'version' in the config file, this will generate a new folder and keep the existing files)", outputPaths.ExportFolderPath, len(files), filesStr), false)
+
+			logWarn(fmt.Sprintf(" %d files will be deleted from: \n\n\t%s\n\nDo you want to continue? (y/n):", len(files), outputPaths.ExportFolderPath), true)
+
+			reader := bufio.NewReader(os.Stdin)
+			response, _ := reader.ReadString('\n')
+			if response != "y\n" && response != "Y\n" {
+				fmt.Println("Aborting operation.")
+				os.Exit(1)
+			}
+		} else if config.Debug {
+			logKeyValuePair("OverwriteExisting set, skipping check", outputPaths.ExportFolderPath)
+		}
+
+		err := os.RemoveAll(outputPaths.ExportFolderPath)
+		if err != nil {
+			log.Panicf(colorRed+"Failed to delete export folder: %s", err)
 		}
 	}
-	return fieldMap
 }
 
 // loadConfig reads the configuration file and populates the Config struct
 func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 	var conf models.Config
-	data, err := ioutil.ReadFile(flags.ConfigFile)
+	if flags.ConfigFile == "" {
+		log.Printf(colorRed + "No config file provided - use '-c' like '-c you-project/config.toml' to specify a config file" + colorReset)
+		return nil, fmt.Errorf("no config file provided")
+	}
+	data, err := os.ReadFile(flags.ConfigFile)
 	if err != nil {
 		log.Printf(colorRed+"Failed to read config file at path '%s': %v", flags.ConfigFile, err)
 		return nil, err
@@ -515,7 +319,7 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 		return nil, err
 	}
 
-	if !flags.Quiet {
+	if !flags.Debug {
 		log.Printf("Loaded config")
 	}
 
@@ -578,56 +382,67 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 		}
 	}
 
-	if conf.Design.DynamicInstanceConfig != nil {
-		if len(conf.Design.DynamicInstanceConfig) > 0 {
-			for dynamicInstanceIndex, dynamicInstance := range conf.Design.DynamicInstanceConfig {
-				for paramName, paramValue := range dynamicInstance.Params {
-					if config.Debug {
-						logKeyValuePair("LoadConfig:Param name", paramName)
-						logKeyValuePair("LoadConfig:Param value", fmt.Sprintf("%v", paramValue))
-					}
+	config.OpenSCADVersion = findOpenSCAD()
+	config.OpenScadGenVersion = VERSION
+	/* (temp disabled instance validation for now)
+		if conf.Design.ConfiguredInstanceConfig != nil {
+			if len(conf.Design.ConfiguredInstanceConfig) > 0 {
+				for dynamicInstanceIndex, dynamicInstance := range conf.Design.ConfiguredInstanceConfig {
+					for paramName, paramValue := range dynamicInstance.Params {
+						if config.Debug {
+							logKeyValuePair("LoadConfig:Param name", paramName)
+							logKeyValuePair("LoadConfig:Param value", fmt.Sprintf("%v", paramValue))
+						}
 
-					paramHasMoreThanOneValue := false
-					if reflect.TypeOf(paramValue).Kind() == reflect.Slice {
-						paramHasMoreThanOneValue = true
-					} else {
-						paramHasMoreThanOneValue = strings.Contains(fmt.Sprintf("%v", paramValue), ",") || strings.Contains(fmt.Sprintf("%v", paramValue), "-")
-					}
+						paramHasMoreThanOneValue := false
+						if reflect.TypeOf(paramValue).Kind() == reflect.Slice {
+							paramHasMoreThanOneValue = true
+						} else {
+							paramHasMoreThanOneValue = strings.Contains(fmt.Sprintf("%v", paramValue), ",") || strings.Contains(fmt.Sprintf("%v", paramValue), "-")
+						}
 
-					if !paramHasMoreThanOneValue {
-						continue
-					}
+						if !paramHasMoreThanOneValue {
+							continue
+						}
 
-					if len(conf.Design.InputPaths) > 1 {
-						nameHasDesignFileName := strings.Contains(exportNameFormat, "{designFileName}")
-						if !nameHasDesignFileName {
-							logWarn("If more than one input is specified, the export_name_format need to include designFileName (add {designFileName} to the export_name_format)", true)
-							logKeyValuePair("ExportNameFormat missing {designFileName}", exportNameFormat)
-							logKeyValuePair("from config file:", flags.ConfigFile)
+						if len(conf.Design.InputPaths) > 1 {
+							nameHasDesignFileName := strings.Contains(exportNameFormat, "{designFileName}")
+							if !nameHasDesignFileName {
+								logWarn("If more than one input is specified, the export_name_format need to include designFileName (add {designFileName} to the export_name_format)", true)
+								logKeyValuePair("ExportNameFormat missing {designFileName}", exportNameFormat)
+								logKeyValuePair("from config file:", flags.ConfigFile)
+								os.Exit(1)
+							}
+						}
+
+						nameIsNumberated := false
+						for _, key := range strings.Split(dynamicInstance.ParamNumberationKeys, ",") {
+							if key == paramName {
+								nameIsNumberated = true
+								break
+							}
+						}
+
+						nameHasParams := strings.Contains(exportNameFormat, fmt.Sprintf("{%s}", paramName))
+						if !nameHasParams && paramHasMoreThanOneValue && !nameIsNumberated {
+							logKeyValuePair("Dynamic instance index 1", fmt.Sprintf("%d", dynamicInstanceIndex))
+							logKeyValuePair("Export Name Format", exportNameFormat)
+							logKeyValuePair("Missing Param name", paramName)
+							logKeyValuePair("Param value", fmt.Sprintf("%v", paramValue))
+							logKeyValuePair("Config file", flags.ConfigFile)
+							logWarn(fmt.Sprintf(`Export instance name:
+							   %s
+
+							   does not contain param:
+							    {%s}
+
+							   Include every param in the export_name_format (in the format '{param_name}') to ensure all instances are generated to unique files.`, dynamicInstance.Name, paramName), true)
 							os.Exit(1)
 						}
-					}
-
-					nameHasParams := strings.Contains(exportNameFormat, fmt.Sprintf("{%s}", paramName))
-					if !nameHasParams && paramHasMoreThanOneValue {
-						logKeyValuePair("Dynamic instance index 1", fmt.Sprintf("%d", dynamicInstanceIndex))
-						logKeyValuePair("Export Name Format", exportNameFormat)
-						logKeyValuePair("Missing Param name", paramName)
-						logKeyValuePair("Param value", fmt.Sprintf("%v", paramValue))
-						logKeyValuePair("Config file", flags.ConfigFile)
-						logWarn(fmt.Sprintf(`Export instance name:
-						   %s
-
-						   does not contain param:
-						    {%s}
-
-						   Include every param in the export_name_format (in the format '{param_name}') to ensure all instances are generated to unique files.`, dynamicInstance.Name, paramName), true)
-						os.Exit(1)
 					}
 				}
 			}
 		}
-	}
 
 	// confirm all params in the export_name_format are in the params
 	for _, paramName := range strings.Split(exportNameFormat, "{") {
@@ -644,7 +459,7 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 	// Add validation for export_name_format
 	if err := validateExportNameFormat(&conf); err != nil {
 		return nil, fmt.Errorf("export name format validation failed: %w", err)
-	}
+	}	*/
 
 	return &conf, nil
 }
@@ -652,9 +467,9 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 func validateExportNameFormat(config *models.Config) error {
 	// Get all parameters that have multiple values
 	multiValueParams := make(map[string]bool)
-	
+
 	// Check dynamic instances for multi-value parameters
-	for _, instance := range config.Design.DynamicInstanceConfig {
+	for _, instance := range config.Design.ConfiguredInstanceConfig {
 		for paramName, paramValue := range instance.Params {
 			if reflect.TypeOf(paramValue).Kind() == reflect.Slice {
 				multiValueParams[paramName] = true
@@ -666,13 +481,13 @@ func validateExportNameFormat(config *models.Config) error {
 
 	// Get the export name format to validate
 	exportNameFormat := config.Design.ExportNameFormat
-	
+
 	// Check each input path's export name format if specified
 	for _, inputPath := range config.Design.InputPaths {
 		if inputPath.ExportNameFormat != "" {
 			exportNameFormat = inputPath.ExportNameFormat
 		}
-		
+
 		// Validate that all multi-value parameters are included in the export name format
 		for paramName := range multiValueParams {
 			if strings.Contains(inputPath.IgnoreParamsWhenProcessing, paramName) {
@@ -719,7 +534,7 @@ func generateLowQualityWarningFile(config *models.Config, outputPath string) {
 
 }
 
-func generateReadme(config *models.Config, dynamicInstances []models.InstanceConfig, version string, openscadVersion string, readmePath string) {
+func generateReadme(config *models.Config, dynamicInstances []*models.InstanceConfig, version string, openscadVersion string, readmePath string) {
 	if config.SkipReadme {
 		log.Printf(colorYellow + "Skipping readme generation" + colorReset)
 		return
@@ -772,9 +587,6 @@ func generateReadme(config *models.Config, dynamicInstances []models.InstanceCon
 
 }
 
-
-
-
 func getExportNameFormat(config *models.Config) string {
 
 	exportNameFormat := config.Design.ExportNameFormat
@@ -802,284 +614,549 @@ func getExportNameFormatParams(exportNameFormat string) []string {
 	return params
 }
 
+// Helper function to parse a single parameter value
+func parseParamValue(value interface{}) ([]interface{}, error) {
+	var parsedValues []interface{}
 
-
-func getAllParams(dynamicInstance models.DynamicInstanceConfig, ignoreParams string, globalParams map[string]interface{}) (map[string]interface{}, []string) {
-	params := make(map[string]interface{})
-	
-	// First add global parameters if they exist
-	if globalParams != nil {
-		for key, value := range globalParams {
-			params[key] = value
+	switch v := value.(type) {
+	case []interface{}:
+		return v, nil
+	case string:
+		// Handle string values that contain ranges or comma-separated values
+		values := strings.Split(v, ",")
+		for _, val := range values {
+			val = strings.TrimSpace(val)
+			if strings.Contains(val, "-") {
+				// Handle numeric ranges
+				rangeValues := strings.Split(val, "-")
+				if len(rangeValues) != 2 {
+					return nil, fmt.Errorf("invalid range format: %s", val)
+				}
+				start, err := strconv.ParseFloat(rangeValues[0], 64)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse start value: %s", err)
+				}
+				end, err := strconv.ParseFloat(rangeValues[1], 64)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse end value: %s", err)
+				}
+				for i := start; i <= end; i++ {
+					parsedValues = append(parsedValues, float64(i))
+				}
+			} else if val == "true" || val == "false" {
+				// Handle boolean values
+				parsedValues = append(parsedValues, val == "true")
+			} else if num, err := strconv.ParseFloat(val, 64); err == nil {
+				// Handle numeric values
+				parsedValues = append(parsedValues, num)
+			} else {
+				// Handle string values
+				parsedValues = append(parsedValues, val)
+			}
 		}
-	}
-	
-	// Then add instance parameters, which will override global parameters if they have the same key
-	for key, value := range dynamicInstance.Params {
-		// If the value is already a slice, use it directly
-		if reflect.TypeOf(value).Kind() == reflect.Slice {
-			params[key] = value
+		if len(parsedValues) == 0 {
+			parsedValues = append(parsedValues, value)
+		}
+	default:
+		// For non-slice, non-string values, try to convert to float64 if numeric
+		if num, ok := v.(int); ok {
+			parsedValues = append(parsedValues, float64(num))
+		} else if num, ok := v.(float64); ok {
+			parsedValues = append(parsedValues, num)
 		} else {
-			params[key] = value
+			parsedValues = append(parsedValues, value)
 		}
 	}
 
-	if dynamicInstance.Name != "" {
-		params["name"] = dynamicInstance.Name
-	}
-	
-	ignoredKeys := []string{}
-	paramsToIgnore := strings.Split(ignoreParams, ",")
-	for _, ignoreParam := range paramsToIgnore {
-		ignoredKeys = append(ignoredKeys, ignoreParam)
-		delete(params, ignoreParam)
-	}
-
-	return params, ignoredKeys
+	return parsedValues, nil
 }
 
-func generateInstances(config *models.Config) []models.InstanceConfig {
-	instances := []models.InstanceConfig{}
-	params := make(map[string]interface{})
+// Helper function to convert a map of parameters to a map of parameter combinations
+func convertToParamCombinations(params map[string]interface{}, ignoredParams map[string]bool) (map[string][]interface{}, error) {
+	result := make(map[string][]interface{})
+	for k, v := range params {
+		// Skip ignored parameters
+		if ignoredParams[k] {
+			continue
+		}
+		parsedValues, err := parseParamValue(v)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing parameter %s: %w", k, err)
+		}
+		result[k] = parsedValues
+	}
+	return result, nil
+}
 
-	if len(config.Design.DynamicInstanceConfig) == 0 {
-		config.Design.DynamicInstanceConfig = []models.DynamicInstanceConfig{
-			{
-				Name:        "default",
-				Description: "Default dynamic instance",
-				Params:      params,
-			},
+// Helper function to check if all numbers in a slice are whole numbers
+func areAllWholeNumbers(values []float64) bool {
+	for _, v := range values {
+		if v != float64(int(v)) {
+			return false
+		}
+	}
+	return true
+}
+
+func getAllParams(dynamicInstance models.ConfiguredInstanceConfig, globalParams map[string]interface{}, paramSets []models.ParamSet, inputPath models.InputPath) (map[string]interface{}, map[string][]interface{}, []string) {
+	params := make(map[string]interface{})
+	globalParamsMap := make(map[string][]interface{})
+	var ignoredKeys []string
+
+	// Parse ignored parameters
+	if inputPath.IgnoreParamsWhenProcessing != "" {
+		ignoredKeys = strings.Split(inputPath.IgnoreParamsWhenProcessing, ",")
+		for i, key := range ignoredKeys {
+			ignoredKeys[i] = strings.TrimSpace(key)
 		}
 	}
 
-	inputPaths := config.GetInputPaths()
-
-	for _, inputPath := range inputPaths {
-		// Check if the input path exists
-		configDir := filepath.Dir(config.ConfigFile)
-		absPath := filepath.Join(configDir, inputPath.Path)
-
-		// If file doesn't exist at config-relative path, try absolute/working dir
-		if _, err := os.Stat(absPath); os.IsNotExist(err) {
-			absPath, err = filepath.Abs(inputPath.Path)
-			if err != nil {
-				logWarn(fmt.Sprintf("Could not resolve absolute path: %s", err), true)
-				continue
+	for _, paramSet := range paramSets {
+		if slices.Contains(strings.Split(inputPath.ParamSets, ","), paramSet.Name) {
+			for k, v := range paramSet.Params {
+				if slices.Contains(ignoredKeys, k) {
+					continue
+				}
+				params[k] = v
 			}
 		}
 
-		if _, err := os.Stat(absPath); os.IsNotExist(err) {
-			logWarn(fmt.Sprintf("Input path does not exist: %s", inputPath.Path), true)
-			os.Exit(1)
+		if slices.Contains(strings.Split(dynamicInstance.ParamSets, ","), paramSet.Name) {
+			for k, v := range paramSet.Params {
+				if slices.Contains(ignoredKeys, k) {
+					continue
+				}
+				params[k] = v
+			}
+		}
+	}
+
+	// Process global parameters
+	for key, value := range globalParams {
+		// Skip if this parameter should be ignored
+		shouldSkip := false
+		for _, ignoredKey := range ignoredKeys {
+			if key == ignoredKey {
+				shouldSkip = true
+				break
+			}
+		}
+		if shouldSkip {
 			continue
 		}
 
-		// Get the filename for this input path
-		fileName := models.GetFileName(inputPath.Path)
-		if strings.Contains(fileName, ".") {
-			fileName = fileName[:strings.LastIndex(fileName, ".")]
+		if strValue, ok := value.(string); ok && strings.Contains(strValue, ",") {
+			values := strings.Split(strValue, ",")
+			var parsedValues []interface{}
+			for _, val := range values {
+				val = strings.TrimSpace(val)
+				parsedValues = append(parsedValues, val)
+			}
+			globalParamsMap[key] = parsedValues
+		} else {
+			globalParamsMap[key] = []interface{}{value}
 		}
-		if fileName == "" || fileName == "." {
-			log.Panicf("designFileName is invalid for input path %s", inputPath.Path)
-		}
+	}
+	paramSetsKeys := append(strings.Split(dynamicInstance.ParamSets, ","), strings.Split(inputPath.ParamSets, ",")...)
 
-		// Reset PartIDLetter for each new filepath
-		for diIndex, dynamicInstance := range config.Design.DynamicInstanceConfig {
-			paramCombinations := map[string][]interface{}{}
-			configError := ""
-
-			// Get all parameters including global parameters
-			params, ignoredKeys := getAllParams(dynamicInstance, inputPath.IgnoreParamsWhenProcessing, config.Design.GlobalParams)
-
-			if len(ignoredKeys) > 0 {
-				for _, param := range ignoredKeys {
-					delete(params, param)
-					splitOptions := []string{"-", "_", ""}
-					for _, splitOption := range splitOptions {
-						inputPath.ExportNameFormat = strings.ReplaceAll(inputPath.ExportNameFormat, fmt.Sprintf("{%s}%s", param, splitOption), "")
+	for _, paramSet := range config.Design.ParamSets {
+		if slices.Contains(paramSetsKeys, paramSet.Name) {
+			for k, v := range paramSet.Params {
+				shouldSkip := false
+				for _, ignoredKey := range ignoredKeys {
+					if k == ignoredKey {
+						shouldSkip = true
+						break
 					}
 				}
-			}
-
-			for key, value := range params {
-				var parsedValues []interface{}
-				
-				// Convert value to string and handle both array and comma formats
-				valueStr := fmt.Sprintf("%v", value)
-				// Remove array brackets if present
-				valueStr = strings.TrimPrefix(valueStr, "[")
-				valueStr = strings.TrimSuffix(valueStr, "]")
-				
-				// Split by comma if present, otherwise by space
-				var values []string
-				if strings.Contains(valueStr, ",") {
-					values = strings.Split(valueStr, ",")
-				} else {
-					values = strings.Fields(valueStr)
+				if shouldSkip {
+					continue
 				}
-				
-				for _, val := range values {
-					val = strings.TrimSpace(val)
-					if val == "" {
+				params[k] = v
+			}
+		}
+	}
+	/*
+		// Process parameters from ParamSets
+		if len(paramSets) > 0 {
+			for _, paramSet := range paramSets {
+				for k, v := range paramSet.Params {
+					// Skip if this parameter should be ignored
+
+					if shouldSkip {
 						continue
 					}
-					if strings.Contains(val, "-") && isNumericRange(val) {
-						// parse the value (1-5) into a range of specific values
-						rangeValues := strings.Split(val, "-")
-						start, err := strconv.Atoi(rangeValues[0])
-						if err != nil {
-							configError = fmt.Sprintf("Failed to parse start value for dynamic instance %d: %s", diIndex, dynamicInstance.Name)
-							log.Printf(colorRed+"Failed to parse start value for dynamic instance %d: %s", diIndex, dynamicInstance.Name)
-							continue
-						}
-						end, err := strconv.Atoi(rangeValues[1])
-						if err != nil {
-							configError = fmt.Sprintf("Failed to parse end value for dynamic instance %d: %s", diIndex, dynamicInstance.Name)
-							log.Printf(colorRed+"Failed to parse end value for dynamic instance %d: %s", diIndex, dynamicInstance.Name)
-							continue
-						}
-						for i := start; i <= end; i++ {
-							parsedValues = append(parsedValues, float64(i))
-						}
-					} else if val == "true" || val == "false" {
-						// handle boolean values
-						parsedValues = append(parsedValues, val == "true")
-					} else if num, err := strconv.ParseFloat(val, 64); err == nil {
-						// handle integer values
-						parsedValues = append(parsedValues, num)
-					} else {
-						// handle string values
-						parsedValues = append(parsedValues, val)
-					}
-				}
-				paramCombinations[key] = parsedValues
-			}
-
-			// Generate all combinations of parameter values
-			keys := make([]string, 0, len(paramCombinations))
-			for k := range paramCombinations {
-				keys = append(keys, k)
-			}
-
-			var generateCombinations func(map[string]interface{}, int)
-			generateCombinations = func(current map[string]interface{}, index int) {
-				if index == len(keys) {
-					instanceName := dynamicInstance.Name
-					if instanceName == "" {
-						instanceName = config.Design.ExportNameFormat
-					}
-					
-					// Create a new params map for this instance
-					instanceParams := make(map[string]interface{})
-					
-					// Add global parameters first
-					if config.Design.GlobalParams != nil {
-						for key, value := range config.Design.GlobalParams {
-							instanceParams[key] = value
-						}
-					}
-					
-					// Then add instance parameters
-					for k, v := range current {
-						placeholder := fmt.Sprintf("{%s}", k)
-						instanceName = strings.ReplaceAll(instanceName, placeholder, fmt.Sprintf("%v", v))
-						instanceParams[k] = v
-					}
-
-					// Always set designFileName
-					instanceParams["designFileName"] = fileName
-
-					if strings.Contains(instanceName, "{designFileName}") {
-						instanceName = strings.ReplaceAll(instanceName, "{designFileName}", fileName)
-					}
-
-					if strings.Contains(instanceName, "{version}") {
-						instanceName = strings.ReplaceAll(instanceName, "{version}", config.Design.Version)
-						instanceParams["version"] = config.Design.Version
-					}
-
-					exportNameFormat := inputPath.ExportNameFormat
-					if exportNameFormat == "" {
-						exportNameFormat = config.Design.ExportNameFormat
-					}
-
-					if dynamicInstance.ParamSets != "" {
-						for paramSetIndex, paramSet := range strings.Split(dynamicInstance.ParamSets, ",") {
-							paramSetParams := config.Design.ParamSets[paramSetIndex]
-							if len(paramSetParams.Params) > 0 {
-								for key, value := range paramSetParams.Params {
-									instanceParams[key] = value
-								}
-							}else {
-								log.Printf(colorRed+"Param set %s not found", paramSet)
-								continue
-							}
-						}
-					}
-
-					// Old way of ignoring params
-					if inputPath.IgnoreParamsWhenProcessing != "" {
-						for _, param := range strings.Split(inputPath.IgnoreParamsWhenProcessing, ",") {
-							delete(instanceParams, param)
-							splitOptions := []string{"-", "_", ""}
-							for _, splitOption := range splitOptions {
-								exportNameFormat = strings.ReplaceAll(exportNameFormat, fmt.Sprintf("{%s}%s", param, splitOption), "")
-							}
-						}
-					}
-
-					newInstance := models.InstanceConfig{
-						UniqueID:         dynamicInstance.Name+":"+instanceName+":"+inputPath.Path,
-						Name:             dynamicInstance.Name,
-						AutoName:         instanceName,
-						Description:      dynamicInstance.Description,
-						InputPath:        absPath,
-						Params:           instanceParams,
-						ExportNameFormat: exportNameFormat,
-						ConfigError:      configError,
-					}
-					if config.Debug {
-						logKeyValuePair("newInstance", fmt.Sprintf("%+v", newInstance))
-					}
-
-					instances = append(instances, newInstance)
-					return
-				}
-
-				key := keys[index]
-				for _, value := range paramCombinations[key] {
-					current[key] = value
-					generateCombinations(current, index+1)
+					params[k] = v
 				}
 			}
-
-			generateCombinations(make(map[string]interface{}), 0)
 		}
-
-		// Each new filepath should reset the pathId lettering
-		for index, instance := range instances {
-			letter := getPartIDLetter(index)
-			instances[index].PartIDLetter = letter
-			if !config.Design.NoPartIDLetter {
-				instances[index].Name = fmt.Sprintf("%s_%s", instances[index].Name, letter)
+	*/
+	// Process instance-specific parameters
+	for k, v := range dynamicInstance.Params {
+		// Skip if this parameter should be ignored
+		shouldSkip := false
+		for _, ignoredKey := range ignoredKeys {
+			if k == ignoredKey {
+				shouldSkip = true
+				break
 			}
-			if config.Debug {
-				logKeyValuePair(fmt.Sprintf("Generated PartIDLetter from index (%d) for instance %s", index, instance.Name), letter)
+		}
+		if shouldSkip {
+			continue
+		}
+		params[k] = v
+	}
+
+	for k, v := range inputPath.Params {
+		params[k] = v
+	}
+
+	// Convert numeric values to float64
+	for k, v := range params {
+		switch val := v.(type) {
+		case int:
+			params[k] = float64(val)
+		case string:
+			if numValue, err := strconv.ParseFloat(val, 64); err == nil {
+				params[k] = numValue
 			}
 		}
 	}
 
-	return instances
+	return params, globalParamsMap, ignoredKeys
 }
 
-func isNumericRange(val string) bool {
-	parts := strings.Split(val, "-")
-	if len(parts) != 2 {
-		return false
+func generateInstances(config *models.Config, configuredInstanceConfig models.ConfiguredInstanceConfig, inputPath models.InputPath, exportFolderPath string) ([]models.InstanceConfig, error) {
+	if config.Debug {
+		logStage("=== Generating Instances === ")
 	}
-	_, err1 := strconv.Atoi(parts[0])
-	_, err2 := strconv.Atoi(parts[1])
-	return err1 == nil && err2 == nil
+
+	if inputPath.Path == "" {
+		return nil, fmt.Errorf("generateInstances - input path is empty")
+	}
+
+	// Create a map of parameters that should be ignored
+	ignoredParams := make(map[string]bool)
+	if inputPath.IgnoreParamsWhenProcessing != "" {
+		for _, key := range strings.Split(inputPath.IgnoreParamsWhenProcessing, ",") {
+			ignoredParams[strings.TrimSpace(key)] = true
+		}
+	}
+
+	// Get all parameters and filter out ignored ones
+	params, globalParamsMap, ignoredParamsKeys := getAllParams(configuredInstanceConfig, config.Design.GlobalParams, config.Design.ParamSets, inputPath)
+
+	for _, key := range ignoredParamsKeys {
+		ignoredParams[key] = true
+	}
+
+	log.Printf("params from getAllParams: %v", params)
+	log.Printf("globalParamsMap: %v", globalParamsMap)
+
+	// Filter out ignored parameters from both params and globalParamsMap
+	filteredParams := make(map[string]interface{})
+	for k, v := range params {
+		if !ignoredParams[k] {
+			filteredParams[k] = v
+		}
+	}
+
+	filteredGlobalParamsMap := make(map[string][]interface{})
+	for k, v := range globalParamsMap {
+		if !ignoredParams[k] {
+			filteredGlobalParamsMap[k] = v
+		}
+	}
+
+	log.Printf("ignoredParamsKeys: %v", ignoredParamsKeys)
+	log.Printf("ignoredParams: %v", ignoredParams)
+	log.Printf("filteredParams: %v", filteredParams)
+	log.Printf("filteredGlobalParamsMap: %v", filteredGlobalParamsMap)
+	// Convert parameters to combinations
+	paramCombos, err := convertToParamCombinations(filteredParams, make(map[string]bool))
+	if err != nil {
+		return nil, fmt.Errorf("error converting parameters: %v", err)
+	}
+
+	// Generate all possible combinations
+	var instances []models.InstanceConfig
+
+	// If no parameters have multiple values, create a single instance
+	if len(paramCombos) == 0 && len(filteredGlobalParamsMap) == 0 {
+		instance := models.InstanceConfig{
+			Name:      configuredInstanceConfig.Name,
+			Params:    make(map[string]interface{}),
+			InputPath: inputPath,
+		}
+
+		// Add all non-ignored parameters
+		for k, v := range filteredParams {
+			instance.Params[k] = v
+		}
+
+		// Add required parameters
+		instance.Params["designFileName"] = strings.TrimSuffix(filepath.Base(inputPath.Path), filepath.Ext(inputPath.Path))
+		instance.Params["instanceName"] = configuredInstanceConfig.Name
+
+		instance.Params["version"] = config.Design.Version
+
+		// Create version subdirectory
+		//		versionDir := strings.ReplaceAll(config.Design.Version, ".", "_")
+
+		// Set output path
+		instance.OutputPathV2 = filepath.Join(exportFolderPath, formatExportName(config.Design.ExportNameFormat, instance.Params, ignoredParams))
+
+		for k, _ := range ignoredParams {
+			instance.IgnoredParams = append(instance.IgnoredParams, k)
+		}
+
+		return []models.InstanceConfig{instance}, nil
+	}
+
+	// Generate combinations for parameters
+	var parameterCombos []map[string]interface{}
+	if len(paramCombos) > 0 {
+		parameterCombos = generateCombinations(paramCombos)
+	} else {
+		parameterCombos = []map[string]interface{}{{}}
+	}
+
+	// Generate combinations for global parameters
+	var globalCombos []map[string]interface{}
+	if len(filteredGlobalParamsMap) > 0 {
+		globalCombos = generateCombinations(filteredGlobalParamsMap)
+	} else {
+		globalCombos = []map[string]interface{}{{}}
+	}
+
+	// Combine all parameter combinations
+	for _, paramCombo := range parameterCombos {
+		for _, globalCombo := range globalCombos {
+			instance := models.InstanceConfig{
+				Name:      configuredInstanceConfig.Name,
+				Params:    make(map[string]interface{}),
+				InputPath: inputPath,
+			}
+
+			// Add non-ignored parameters that don't have multiple values
+			for k, v := range filteredParams {
+				if !paramHasMultipleValues(v) {
+					instance.Params[k] = v
+				}
+			}
+
+			// Add parameter combination values
+			for k, v := range paramCombo {
+				instance.Params[k] = v
+			}
+
+			// Add global parameter combination values
+			for k, v := range globalCombo {
+				instance.Params[k] = v
+			}
+
+			// Add required parameters
+			instance.Params["designFileName"] = strings.TrimSuffix(filepath.Base(inputPath.Path), filepath.Ext(inputPath.Path))
+			instance.Params["name"] = configuredInstanceConfig.Name
+			instance.Params["version"] = config.Design.Version
+
+			// Create version subdirectory
+			//versionDir := strings.ReplaceAll(config.Design.Version, ".", "_")
+
+			if config.Debug {
+				logStage("=== Generate OutputPathV2 === ")
+				logKeyValuePair("exportFolderPath", exportFolderPath)
+				logKeyValuePair("ExportNameFormat", config.Design.ExportNameFormat)
+				logKeyValuePair("ExportNameFormat", config.Design.OutputPath)
+				logKeyValuePair("formatExportName", formatExportName(config.Design.ExportNameFormat, instance.Params, ignoredParams))
+				logKeyValuePair("instance.Params", fmt.Sprintf("%v", instance.Params))
+				logKeyValuePair("instance.IgnoredParams", fmt.Sprintf("%v", instance.IgnoredParams))
+			}
+			instance.OutputPathV2 = filepath.Join(exportFolderPath, formatExportName(config.Design.ExportNameFormat, instance.Params, ignoredParams))
+
+			instances = append(instances, instance)
+		}
+	}
+
+	if config.Debug {
+		logStage(fmt.Sprintf("=== Finished Generating %d Instances === ", len(instances)))
+	}
+
+	return instances, nil
+}
+
+// Helper function to check if a parameter has multiple values
+func paramHasMultipleValues(value interface{}) bool {
+	if strValue, ok := value.(string); ok {
+		return strings.Contains(strValue, ",") || strings.Contains(strValue, "-")
+	}
+	return false
+}
+
+// formatExportName replaces placeholders in the format string with actual parameter values
+func formatExportName(format string, params map[string]interface{}, ignoredParams map[string]bool) string {
+	result := format
+
+	logStage("=== formatExportName === ")
+	log.Printf("formatExportName:format: %s", format)
+	log.Printf("formatExportName:params: %v", params)
+	log.Printf("formatExportName:ignoredParams: %v", ignoredParams)
+
+	// Replace version placeholder with sanitized version
+	if version, ok := params["version"].(string); ok {
+		result = strings.ReplaceAll(result, "{version}", strings.ReplaceAll(version, ".", "_"))
+	}
+
+	paramsToProcess := make(map[string]interface{})
+	for k, v := range params {
+		paramsToProcess[k] = v
+	}
+
+	for k, _ := range ignoredParams {
+		paramsToProcess[k] = ""
+	}
+
+	// Replace other placeholders
+	for key, value := range paramsToProcess {
+		placeholder := fmt.Sprintf("{%s}", key)
+		var strValue string
+		if ignoredParams[key] {
+			strValue = ""
+		} else {
+			if key == "version" {
+				continue // Already handled above
+			}
+			if strings.Contains(result, placeholder) {
+				// Convert value to string while preserving $ characters
+				switch v := value.(type) {
+				case string:
+					strValue = v
+				case float64:
+					strValue = fmt.Sprintf("%g", v)
+				case bool:
+					strValue = fmt.Sprintf("%v", v)
+				default:
+					strValue = fmt.Sprintf("%v", v)
+				}
+			}
+		}
+		result = strings.ReplaceAll(result, placeholder, strValue)
+
+	}
+
+	log.Printf("formatExportName:result: %s", result)
+	return result + ".stl"
+}
+
+// Helper function to generate all possible combinations of parameters
+func generateCombinations(paramCombos map[string][]interface{}) []map[string]interface{} {
+	if len(paramCombos) == 0 {
+		return []map[string]interface{}{{}}
+	}
+
+	// Get all keys and sort them for consistent ordering
+	keys := make([]string, 0, len(paramCombos))
+	for k := range paramCombos {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	// Get values in the same order as sorted keys
+	values := make([][]interface{}, 0, len(paramCombos))
+	for _, k := range keys {
+		values = append(values, paramCombos[k])
+	}
+
+	// Generate all possible combinations
+	var combinations []map[string]interface{}
+	generateCombinationsHelper(keys, values, 0, make(map[string]interface{}), &combinations)
+	return combinations
+}
+
+func generateCombinationsHelper(keys []string, values [][]interface{}, index int, current map[string]interface{}, combinations *[]map[string]interface{}) {
+	if index == len(keys) {
+		// Create a copy of the current combination
+		combination := make(map[string]interface{})
+		for k, v := range current {
+			combination[k] = v
+		}
+		*combinations = append(*combinations, combination)
+		return
+	}
+
+	// Try each value for the current key
+	for _, value := range values[index] {
+		current[keys[index]] = value
+		generateCombinationsHelper(keys, values, index+1, current, combinations)
+	}
+}
+
+func getAllInputPaths(config *models.Config) []models.InputPath {
+	if len(config.Design.InputPaths) > 0 {
+		return config.Design.InputPaths
+	}
+	return []models.InputPath{{Path: config.Design.InputPath}}
+}
+
+func getAbsPath(configFile, inputPath string) string {
+	// Check if the input path exists relative to config file
+	configDir := filepath.Dir(configFile)
+	absPath := filepath.Join(configDir, inputPath)
+
+	// If file doesn't exist at config-relative path, try absolute/working dir
+	if _, err := os.Stat(absPath); os.IsNotExist(err) {
+		absPath, err = filepath.Abs(inputPath)
+		if err != nil {
+			log.Printf("Could not resolve absolute path: %s", err)
+			return inputPath
+		}
+	}
+
+	if _, err := os.Stat(absPath); os.IsNotExist(err) {
+		log.Printf("Input path does not exist: %s", inputPath)
+		os.Exit(1)
+	}
+
+	return absPath
+}
+
+func isNumericRange(val map[string]interface{}) bool {
+	_, hasStart := val["start"]
+	_, hasEnd := val["end"]
+	_, hasStep := val["step"]
+	return hasStart && hasEnd && hasStep
+}
+
+func getNumericValue(val interface{}) interface{} {
+	switch v := val.(type) {
+	case float64:
+		return v
+	case int:
+		return float64(v)
+	case string:
+		if num, err := strconv.ParseFloat(v, 64); err == nil {
+			return num
+		}
+		return nil
+	default:
+		return nil
+	}
+}
+
+func generateNumericRange(start, end, step float64) []float64 {
+	var values []float64
+	for i := start; i <= end; i += step {
+		values = append(values, i)
+	}
+	return values
+}
+
+func interfaceSlice(values []float64) []interface{} {
+	result := make([]interface{}, len(values))
+	for i, v := range values {
+		result[i] = v
+	}
+	return result
 }
 
 func copyMap(original map[string]interface{}) map[string]interface{} {
@@ -1112,7 +1189,7 @@ func findOpenSCAD() string {
 	if err != nil {
 		log.Fatal("OpenSCAD not found in PATH.")
 	}
-	return string(output)
+	return strings.TrimSpace(string(output))
 }
 
 var configTemplate = `[openscadgen]
@@ -1140,41 +1217,87 @@ path = "./{{projectName}}.scad"
 # params = { renderType = "horzSlice,vertSlice,all", param1 = "a-diff-custom-value" }
 `
 
-func openScadTemplateExtended (projectNameUnderLined string) string {
+func openScadTemplateExtended(projectNameUnderLined string) string {
 	return fmt.Sprintf(`
-include <BOSL2/std.scad>;
+
+	include <BOSL2/std.scad>;
 
 	$fa = .01;
 	$fs = $preview ? 5 : 1;
 	$fn = 200;
 
-	renderType = "horzSlice"; // horzSlice, vertSlice, all
 
-	module %s(){
+	module test_create(){
 		cuboid([100,100,100]);
 	}
 
 
-	if (renderType == "horzSlice") {
-		intersection(){
-			%s(); 
-			fwd(500)
-			left(500)
-			cube([1000,1000,0.3]);
-		}
-	} else if(renderType == "vertSlice") {
-		intersection(){
-			%s();
-			rotate([90,0,90])
-			fwd(500)
-			left(500)
-			down(50)
-			cube([1000,1000,0.3]);
-		}
-	} else { 
-		%s();
-	}
-`, projectNameUnderLined, projectNameUnderLined, projectNameUnderLined, projectNameUnderLined)
+    sliced(renderType="horzSlice") {
+        test_create();
+    }
+        
+        
+module sliced(
+    renderType = "horzSlice",        // "horzSlice", "vertSlice", or "all"
+    sliceSize = 1000,
+    sliceThickness = 0.3,
+    showRawSlices = false,
+    horzSlicePos = [-500, -500, 0],
+    vertSlicePos = [0, -500, -500]
+) {
+
+    if (is_undef(children)) {
+        echo("⚠️  sliced() called without children! Wrap what you would like to slice in brackets like this: sliced() { object(); }");
+    }
+    
+
+    module horz_slice(raw=false) {
+        if (raw) {
+            translate(horzSlicePos)
+                cube([sliceSize, sliceSize, sliceThickness], center=false);
+        } else {
+            intersection() {
+                children();
+                translate(horzSlicePos)
+                    cube([sliceSize, sliceSize, sliceThickness], center=false);
+            }
+        }
+    }
+
+    module vert_slice(raw=false) {
+        if (raw) {
+            translate(vertSlicePos)
+                cube([sliceThickness, sliceSize, sliceSize], center=false);
+        } else {
+            intersection() {
+                children();
+                translate(vertSlicePos)
+                    cube([sliceThickness, sliceSize, sliceSize], center=false);
+            }
+        }
+    }
+
+    if (renderType == "horzSlice") {
+        horz_slice(raw=showRawSlices){
+            children();
+        }
+    } else if (renderType == "vertSlice") {
+        vert_slice(raw=showRawSlices){
+            children();
+        }
+    } else if (renderType == "all") {
+        // show raw slices for reference
+        horz_slice(raw=true);
+        vert_slice(raw=true);
+        // show full object
+        children();
+    } else {
+        // show full object
+        children();
+    }
+}
+
+`, projectNameUnderLined, projectNameUnderLined)
 }
 
 var openScadTemplate = `
@@ -1185,7 +1308,7 @@ $fs = $preview ? 5 : 1;
 $fn = 200;
 `
 
-func initConfig(projectName string, extended bool) error {
+func InitConfig(projectName string, extended bool) error {
 	// make a directory at current working directory with the name of the initPath
 	os.Mkdir(projectName, 0755)
 
@@ -1193,9 +1316,9 @@ func initConfig(projectName string, extended bool) error {
 
 	os.Create(filepath.Join(projectName, "config.toml"))
 	os.WriteFile(filepath.Join(projectName, "config.toml"), []byte(configTemplate), 0644)
-	
+
 	os.Create(filepath.Join(projectName, projectName+".scad"))
-	
+
 	if extended {
 		projectNameUnderLined := strings.NewReplacer(
 			"-", "_",
@@ -1210,7 +1333,7 @@ func initConfig(projectName string, extended bool) error {
 	return nil
 }
 
-func initLogger(logFilePath string) error {
+func InitLogger(logFilePath string) error {
 	if logFilePath == "memory" {
 		logToMemory = true
 		logger = log.New(io.MultiWriter(os.Stdout, &logBuffer), "", log.Ldate|log.Ltime|log.Lshortfile)
@@ -1431,7 +1554,7 @@ func SetMetadata(fileName string, metadata map[string]string, config *models.Con
 }
 
 // Set all the attributes against the file in the metadata
-func setBuildInfoInFileAttributes(outputPath string, config *models.Config, instance models.InstanceConfig) {
+func setBuildInfoInFileAttributes(outputPath string, config *models.Config, instance *models.InstanceConfig) {
 	metadata := make(map[string]string)
 	metadata["openscadgen.version"] = config.Design.Version
 	metadata["openscadgen.instance"] = instance.Name
@@ -1440,93 +1563,59 @@ func setBuildInfoInFileAttributes(outputPath string, config *models.Config, inst
 	}
 	SetMetadata(outputPath, metadata, config)
 }
-/*
-func generateImages(instance models.InstanceConfig, config *models.Config, outputPath string) ([]string, error) {
-	if !config.Quiet {
-		logStage("Generating preview images")
-	}
-	
-	generatedImages := []string{}
-	
-	for _, imageConfig := range config.Design.ExportImages {
-		if config.Debug {
-			logKeyValuePair("Generating image for camera", imageConfig.CameraName)
-		}
-		
-		// Construct output image path - same as STL but with .png extension and camera name
-		imageBasePath := strings.TrimSuffix(outputPath, filepath.Ext(outputPath))
-		imagePath := fmt.Sprintf("%s_%s.png", imageBasePath, imageConfig.CameraName)
-		
-		if config.Design.ExportImageQuality == "" {
-			config.Design.ExportImageQuality = "1920,1080"
-		}
 
-		// Prepare OpenSCAD command arguments
-		args := []string{
-			"--render",
-			"--camera", imageConfig.CameraCoordinates,
-			"--imgsize", config.Design.ExportImageQuality,  // Default HD resolution
-			"--autocenter",
-			"--viewall",
-			"-o", imagePath,
-			instance.InputPath,
-		}
-
-		// Add any instance parameters
-		for name, value := range instance.Params {
-			if reflect.TypeOf(value).Kind() == reflect.String {
-				args = append(args, "-D", fmt.Sprintf("'%s=\"%v\"'", name, value))
-			} else {
-				args = append(args, "-D", fmt.Sprintf("'%s=\"%v\"'", name, value))
-			}
-		}
-
-		if config.Debug {
-			logKeyValuePair("OpenSCAD command", fmt.Sprintf("openscad %s", strings.Join(args, " ")))
-		}
-
-		cmd := exec.Command("openscad", args...)
-		var stderr bytes.Buffer
-		cmd.Stderr = &stderr
-
-		if err := cmd.Run(); err != nil {
-			logWarn(fmt.Sprintf("Failed to generate image for camera %s: %v\n%s", 
-				imageConfig.CameraName, err, stderr.String()), false)
-			continue
-		}
-
-		generatedImages = append(generatedImages, imagePath)
-		
-		if !config.Quiet {
-			logCreation(fmt.Sprintf("Generated image: %s", imagePath))
-		}
-	}
-	
-	return generatedImages, nil
-}*/
-
-func generateSTL(instance models.InstanceConfig, config *models.Config, exportFolderPath string) (models.GenerateSTLResult, error) {
-
+func generateSTL(instance *models.InstanceConfig, config *models.Config, exportFolderPath string) (models.GenerateSTLResult, error) {
 	result := models.GenerateSTLResult{
-		InstanceConfig: instance,
+		InstanceConfig: *instance,
 		OutputPath:     "",
 		Command:        "",
 		Skipped:        false,
 		LowQuality:     false,
 		Error:          "",
+		AppliedParams:  make(map[string]interface{}),
 	}
 
 	if !config.Quiet {
 		logStage("Generating STL")
-		logKeyValuePair("inputPath", instance.InputPath)
+		logKeyValuePair("inputPath", instance.InputPath.Path)
 		logKeyValuePair("exportFolderPath", exportFolderPath)
+	}
+
+	// Find the matching input path to get its IgnoreParamsWhenProcessing
+	var ignoredKeys []string
+	for _, inputPath := range config.Design.InputPaths {
+		if inputPath.Path == instance.InputPath.Path {
+			if inputPath.IgnoreParamsWhenProcessing != "" {
+				ignoredKeys = strings.Split(inputPath.IgnoreParamsWhenProcessing, ",")
+				for i, key := range ignoredKeys {
+					ignoredKeys[i] = strings.TrimSpace(key)
+				}
+			}
+			break
+		}
+	}
+
+	// Copy parameters, skipping ignored ones
+	for k, v := range instance.Params {
+		// Skip if this parameter should be ignored
+		shouldSkip := false
+		for _, ignoredKey := range ignoredKeys {
+			if k == ignoredKey {
+				shouldSkip = true
+				break
+			}
+		}
+		if shouldSkip {
+			continue
+		}
+		result.AppliedParams[k] = v
 	}
 
 	name := instance.Name
 	if name == "" {
-		name = filepath.Base(instance.InputPath)
+		name = filepath.Base(instance.InputPath.Path)
 	}
-	outputPath := path.Join(exportFolderPath, name)
+	outputPath := path.Join(exportFolderPath)
 	if !config.Quiet && config.Debug {
 		logKeyValuePair("outputPath", outputPath)
 	}
@@ -1535,9 +1624,12 @@ func generateSTL(instance models.InstanceConfig, config *models.Config, exportFo
 		logKeyValuePair("exportFolderPath to check:", exportFolderPath)
 	}
 	if _, exportFolderExists := os.Stat(exportFolderPath); os.IsNotExist(exportFolderExists) {
-
 		if _, outputPathExists := os.Stat(outputPath); os.IsNotExist(outputPathExists) {
-			log.Panicf(colorRed+"Failed to create instance output path as it does not exists, \n check the folder exists at: \n\n\t%s \n%+v ", outputPath, outputPathExists)
+			//log.Panicf(colorRed+"Failed to create instance output path (%s) as it does not exists, \n check the folder exists at: \n\n\t%s \n%+v ", outputPath, outputPath, outputPathExists)
+			err := os.MkdirAll(outputPath, 0755)
+			if err != nil {
+				log.Panicf(colorRed+"Failed to create instance output path (%s) as it does not exists, \n check the folder exists at: \n\n\t%s \n%+v ", outputPath, outputPath, outputPathExists)
+			}
 		} else if !config.Quiet {
 			logStage("Creating export folder")
 			if !config.Quiet {
@@ -1549,9 +1641,9 @@ func generateSTL(instance models.InstanceConfig, config *models.Config, exportFo
 			}
 		}
 	}
-	// get file name from input path
-	fileName := path.Base(instance.InputPath)
 
+	// get file name from input path
+	fileName := path.Base(instance.InputPath.Path)
 	designFileCopyPath := path.Join(exportFolderPath, fileName)
 
 	// Ensure the directory structure for the design file copy path exists
@@ -1562,13 +1654,12 @@ func generateSTL(instance models.InstanceConfig, config *models.Config, exportFo
 			logCreation(fmt.Sprintf("Created design folder: %s", designFileCopyPath))
 		}
 	}
-	
-	configFileName := strings.Split(config.ConfigFile, "/")[len(strings.Split(config.ConfigFile, "/"))-1]
 
-	configCopyPath := path.Join(path.Dir(exportFolderPath), config.Design.Version, configFileName)
+	configFileName := strings.Split(config.ConfigFile, "/")[len(strings.Split(config.ConfigFile, "/"))-1]
+	versionPathSafe := strings.ReplaceAll(config.Design.Version, ".", "_")
+	configCopyPath := path.Join(path.Dir(exportFolderPath), versionPathSafe, configFileName)
 
 	if _, err := os.Stat(configCopyPath); os.IsNotExist(err) {
-
 		if config.Debug {
 			log.Printf("Copying config file from \n\nconfig.ConfigFile: \t%s\n\n to \n\nconfigCopyPath:\t%s", config.ConfigFile, configCopyPath)
 		}
@@ -1584,19 +1675,12 @@ func generateSTL(instance models.InstanceConfig, config *models.Config, exportFo
 		logKeyValuePair("config exists in export", configCopyPath)
 	}
 
-	designFileName := strings.Split(filepath.Base(instance.InputPath), ".")[0]
-
-	/*outputFileName := fmt.Sprintf("%s", designFileName)
-	for name, value := range instance.Params {
-		outputFileName += fmt.Sprintf("_%s%v", name, value)
-	}*/
+	designFileName := strings.Split(filepath.Base(instance.InputPath.Path), ".")[0]
 	if config.Debug {
 		logKeyValuePair("Design file name", designFileName)
 	}
 
-
 	paths := instance.GetInstancePaths(config)
-
 	if config.Debug {
 		logStage("(in-progress) Instance paths")
 		logKeyValuePair("Instance paths", fmt.Sprintf("%+v", paths))
@@ -1607,13 +1691,12 @@ func generateSTL(instance models.InstanceConfig, config *models.Config, exportFo
 		os.Exit(1)
 	}
 
-	outputPath = models.GetInstanceConfigSaveLocation(config, &instance)
-	args := []string{"-o", fmt.Sprintf("\"./%s\"", outputPath)}
+	args := []string{"-o", instance.OutputPathV2}
 
 	if config.Debug {
-		logKeyValuePair("creating output folder", outputPath)
+		logKeyValuePair("creating output folder", instance.OutputPathV2)
 	}
-	outputFolder := filepath.Dir(outputPath)
+	outputFolder := filepath.Dir(instance.OutputPathV2)
 	if _, err := os.Stat(outputFolder); os.IsNotExist(err) {
 		os.MkdirAll(outputFolder, 0755)
 		if config.Debug {
@@ -1629,7 +1712,8 @@ func generateSTL(instance models.InstanceConfig, config *models.Config, exportFo
 		args = append(args, "-q")
 	}
 
-	for name, value := range instance.Params {
+	// Add parameters to command, skipping ignored ones
+	for name, value := range result.AppliedParams {
 		if config.Debug {
 			logKeyValuePair(fmt.Sprintf("CustomParameter [%s]", name), fmt.Sprintf("%v", value))
 		}
@@ -1642,13 +1726,13 @@ func generateSTL(instance models.InstanceConfig, config *models.Config, exportFo
 			if config.Debug {
 				logKeyValuePair(fmt.Sprintf("[Number] CustomParameter [%s]", name), fmt.Sprintf("%v", value))
 			}
-
 			args = append(args, "-D", fmt.Sprintf("'%s=%v'", name, value))
 		}
 	}
 
 	if config.IncludePartIDLetter || !config.Design.NoPartIDLetter {
 		args = append(args, "-D", fmt.Sprintf("'part_id_letter=\"%s\"'", instance.PartIDLetter))
+		result.AppliedParams["part_id_letter"] = instance.PartIDLetter
 		if config.Debug {
 			logKeyValuePair("OptionalPartIDLetter set on model", instance.PartIDLetter)
 		}
@@ -1660,15 +1744,16 @@ func generateSTL(instance models.InstanceConfig, config *models.Config, exportFo
 
 	if config.OverrideFN > 0 {
 		args = append(args, "-D", fmt.Sprintf("'$fn=%d'", config.OverrideFN))
+		result.AppliedParams["$fn"] = config.OverrideFN
 		if config.Debug {
 			logKeyValuePair("OverrideFN", fmt.Sprintf("%d", config.OverrideFN))
 		}
 	}
 
 	if config.Debug {
-		logKeyValuePair("InputPath", instance.InputPath)
+		logKeyValuePair("InputPath", instance.InputPath.Path)
 	}
-	args = append(args, instance.InputPath)
+	args = append(args, fmt.Sprintf("\"%s\"", paths.InputPath))
 
 	if config.Design.CustomOpenSCADOutputFormat != "" {
 		if !config.Quiet {
@@ -1701,7 +1786,6 @@ func generateSTL(instance models.InstanceConfig, config *models.Config, exportFo
 			}
 		}
 	} else {
-		//	args = append(args, "--export-format", "binstl")
 		args = append(args, "--backend=manifold")
 	}
 
@@ -1748,71 +1832,183 @@ func generateSTL(instance models.InstanceConfig, config *models.Config, exportFo
 	}
 
 	if config.SetBuildInfoInFileAttributes {
-		setBuildInfoInFileAttributes(outputPath, config, instance)
+		setBuildInfoInFileAttributes(instance.OutputPathV2, config, instance)
 		if config.Debug {
-			logKeyValuePair("Set build info in file attributes", outputPath)
+			logKeyValuePair("Set build info in file attributes", instance.OutputPathV2)
 		}
 	}
 
-	if config.Design.ExportImages != nil {
-		log.Panicf("ExportImages is not implemented yet. Remove [[openscadgen.export_images]] to continue")
-		//generateImages(instance, config, outputPath)
-	}
-
-	_, fileErr := os.Stat(outputPath)
+	_, fileErr := os.Stat(instance.OutputPathV2)
 	if os.IsNotExist(fileErr) {
-		logWarn(fmt.Sprintf("warning: file '%s' does not exist", outputPath), false)
-		result.Error = fmt.Sprintf("warning: file '%s' does not exist", outputPath)
+		logWarn(fmt.Sprintf("warning: file '%s' does not exist", instance.OutputPathV2), false)
+		result.Error = fmt.Sprintf("warning: file '%s' does not exist", instance.OutputPathV2)
 	} else if err != nil {
-		logWarn(fmt.Sprintf("warning: error accessing file '%s': %v", outputPath, err), false)
-		result.Error = fmt.Sprintf("error accessing file '%s': %v", outputPath, err)
+		logWarn(fmt.Sprintf("warning: error accessing file '%s': %v", instance.OutputPathV2, err), false)
+		result.Error = fmt.Sprintf("error accessing file '%s': %v", instance.OutputPathV2, err)
 	}
 
 	if config.Debug {
 		logStage("Finished generating STL in ")
-		logKeyValuePair("MetaData set on Path", outputPath)
+		logKeyValuePair("MetaData set on Path", instance.OutputPathV2)
+	}
+
+	result.OutputPath = instance.OutputPathV2
+	return result, nil
+}
+
+func generateImage(instance *models.InstanceConfig, config *models.Config, exportFolderPath string, camera models.ExportCameraCoordinates) (models.GenerateImageResult, error) {
+	result := models.GenerateImageResult{
+		InstanceConfig: *instance,
+		OutputPath:     "",
+		Command:        "",
+		Skipped:        false,
+		Error:          "",
+		AppliedParams:  make(map[string]interface{}),
+		CameraName:     camera.CameraName,
+		CameraCoords:   camera.CameraCoordinates,
+	}
+
+	if !config.Quiet {
+		logStage("Generating Image")
+		logKeyValuePair("inputPath", instance.InputPath.Path)
+		logKeyValuePair("exportFolderPath", exportFolderPath)
+		logKeyValuePair("cameraName", camera.CameraName)
+		logKeyValuePair("cameraCoordinates", camera.CameraCoordinates)
+	}
+
+	// Find the matching input path to get its IgnoreParamsWhenProcessing
+	var ignoredKeys []string
+	for _, inputPath := range config.Design.InputPaths {
+		if inputPath.Path == instance.InputPath.Path {
+			if inputPath.IgnoreParamsWhenProcessing != "" {
+				ignoredKeys = strings.Split(inputPath.IgnoreParamsWhenProcessing, ",")
+				for i, key := range ignoredKeys {
+					ignoredKeys[i] = strings.TrimSpace(key)
+				}
+			}
+			break
+		}
+	}
+
+	if config.Debug {
+		log.Printf("Ignored keys for image generation: %v", ignoredKeys)
+	}
+
+	// Copy parameters, skipping ignored ones
+	for k, v := range instance.Params {
+		// Skip if this parameter should be ignored
+		shouldSkip := false
+		for _, ignoredKey := range ignoredKeys {
+			if k == ignoredKey {
+				shouldSkip = true
+				break
+			}
+		}
+		if shouldSkip {
+			if config.Debug {
+				log.Printf("Skipping parameter %s for image generation", k)
+			}
+			continue
+		}
+		result.AppliedParams[k] = v
+	}
+
+	if config.Debug {
+		log.Printf("Applied parameters for image generation: %v", result.AppliedParams)
+	}
+
+	name := instance.Name
+	if name == "" {
+		name = filepath.Base(instance.InputPath.Path)
+	}
+
+	// Get instance paths
+	paths := instance.GetInstancePaths(config)
+
+	// Create output path for PNG
+	outputPath := strings.TrimSuffix(instance.OutputPathV2, ".stl") + "-" + camera.CameraName + ".png"
+	if !config.Quiet && config.Debug {
+		logKeyValuePair("outputPath", outputPath)
+	}
+
+	// Ensure output directory exists
+	if err := os.MkdirAll(filepath.Dir(outputPath), 0755); err != nil {
+		return result, fmt.Errorf("failed to create output directory: %w", err)
+	}
+
+	// Build OpenSCAD command
+	openscadCmd := FindOpenSCAD()
+	if openscadCmd == "" {
+		return result, fmt.Errorf("openscad command not found")
+	}
+
+	if config.Debug {
+		log.Printf("Using OpenSCAD command: %s", openscadCmd)
+	}
+
+	// Start timing
+	startTime := time.Now()
+
+	// Build command arguments
+	args := []string{
+		"-o", outputPath,
+		"--imgsize", "1920,1080", // Use a default image size
+		"--projection", "perspective",
+		"--camera", camera.CameraCoordinates,
+		"--preview", // Add preview mode for faster rendering
+	}
+
+	// Add custom OpenSCAD arguments if provided
+	if config.Design.CustomOpenSCADArgs != "" {
+		args = append(args, strings.Split(config.Design.CustomOpenSCADArgs, " ")...)
+	}
+
+	for name, value := range result.AppliedParams {
+		if reflect.TypeOf(value).Kind() == reflect.String && value != "true" && value != "false" {
+			args = append(args, "-D", fmt.Sprintf("'%s=\"%v\"'", name, value))
+		} else {
+			args = append(args, "-D", fmt.Sprintf("'%s=%v'", name, value))
+		}
+	}
+
+	// Add input file using the correct path
+	args = append(args, paths.InputPath)
+
+	// Create command string
+	commandStr := fmt.Sprintf("%s %s", openscadCmd, strings.Join(args, " "))
+	if !config.Quiet {
+		log.Printf("Running image generation command: %s", commandStr)
+	}
+
+	// Run command through shell
+	cmd := exec.Command("sh", "-c", commandStr)
+
+	// Capture both stdout and stderr
+	output, err := cmd.CombinedOutput()
+	result.Command = commandStr
+	result.TimeTaken = time.Since(startTime)
+
+	if err != nil {
+		result.Error = fmt.Sprintf("error running openscad: %v\nOutput: %s", err, string(output))
+		if config.Debug {
+			log.Printf("OpenSCAD command failed with error: %v", err)
+			log.Printf("Command output: %s", string(output))
+		}
+		return result, err
+	}
+
+	// Check if file was created
+	if _, err := os.Stat(outputPath); os.IsNotExist(err) {
+		result.Error = fmt.Sprintf("output file was not created: %s", outputPath)
+		if config.Debug {
+			log.Printf("Output file was not created at: %s", outputPath)
+		}
+		return result, err
 	}
 
 	result.OutputPath = outputPath
 	return result, nil
 }
-
-/*
-func saveReleaseFile(filePath string, data []byte) error {
-	// Check if the file exists and is not empty
-	fileInfo, err := os.Stat(filePath)
-	if err == nil && fileInfo.Size() > 0 {
-		filesStr := ""
-		fileNames := fileInfo.Name()
-		for i, file := range fileNames {
-			if i < 5 {
-				filesStr += fmt.Sprintf("%s\n", file)
-			} else {
-				filesStr += "...\n"
-				break
-			}
-		}
-		// File is not empty, prompt the user for confirmation
-		logWarn("The export folder is not empty", false)
-		logKeyValuePair("(non-empty) Export Folder", filePath)
-		logKeyValuePair("Files", filesStr)
-		fmt.Printf("These files here will be deleted: %s \n %s \n Do you want to continue? (y/n): ", filePath, filesStr)
-		reader := bufio.NewReader(os.Stdin)
-		response, _ := reader.ReadString('\n')
-		if response != "y\n" && response != "Y\n" {
-			fmt.Println("Aborting save operation.")
-			return nil
-		}
-	}
-
-	// Proceed with saving the file
-	err = os.WriteFile(filePath, data, 0644)
-	if err != nil {
-		return fmt.Errorf("failed to save file: %w", err)
-	}
-	fmt.Println("File saved successfully.")
-	return nil
-}*/
 
 func FindOpenSCAD() string {
 	// Try to find openscad using `which` command
@@ -1821,40 +2017,45 @@ func FindOpenSCAD() string {
 	if err != nil {
 		log.Fatal("OpenSCAD not found in PATH.")
 	}
-	return string(output)
+	return strings.TrimSpace(string(output))
 }
 
-func GenerateOutputReport(config *models.Config, instances []models.InstanceConfig, version string, openscadVersion string, outputPath string, outputPaths models.OutputPaths, stlResults []models.GenerateSTLResult) error {
+func GenerateOutputReport(config *models.Config, instances []models.InstanceConfig, outputPaths models.OutputPaths, stlResults []models.GenerateSTLResult, imageResults []models.GenerateImageResult) error {
 	if !config.Quiet {
-
-		logKeyValuePair("Generating HTML report at", outputPath)
+		logKeyValuePair("Generating HTML report at", outputPaths.ReportPath)
 	}
 
 	// Create output directory if it doesn't exist
-	if err := os.MkdirAll(filepath.Dir(outputPath), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(outputPaths.ReportPath), 0755); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
 
 	// Create the HTML file
-	htmlFile, err := os.Create(outputPath)
+	htmlFile, err := os.Create(outputPaths.ReportPath)
 	if err != nil {
 		return fmt.Errorf("failed to create HTML file: %w", err)
 	}
 	defer htmlFile.Close()
 
-	allParamNames := []string{}
+	// Get all parameter names
+	var allParamNames []string
 	for _, instance := range instances {
 		for paramName := range instance.Params {
-			if !slices.Contains(allParamNames, paramName) {
+			found := false
+			for _, existingName := range allParamNames {
+				if existingName == paramName {
+					found = true
+					break
+				}
+			}
+			if !found {
 				allParamNames = append(allParamNames, paramName)
 			}
 		}
 	}
-	
 
-
-	// Generate HTML content
-	htmlContent := templates.Report(config, instances, version, openscadVersion, outputPaths, stlResults, allParamNames)
+	// Generate HTML content for both STL and image results
+	htmlContent := templates.Report(config, instances, outputPaths, stlResults, imageResults, allParamNames)
 
 	// Write the HTML content to the file
 	if err := htmlContent.Render(context.Background(), htmlFile); err != nil {
@@ -1862,9 +2063,9 @@ func GenerateOutputReport(config *models.Config, instances []models.InstanceConf
 	}
 
 	if !config.Quiet {
-		absPath, err := filepath.Abs(outputPath)
+		absPath, err := filepath.Abs(outputPaths.ReportPath)
 		if err != nil {
-			log.Printf("HTML report generated at: file://%s", outputPath)
+			log.Printf("HTML report generated at: file://%s", outputPaths.ReportPath)
 		} else {
 			log.Printf("HTML report generated at: file://%s", absPath)
 		}

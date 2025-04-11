@@ -6,7 +6,8 @@ import (
     "github.com/kiwikid/openscadgen/pkg/models"
 )
 
-templ Report(config *models.Config, instances []models.InstanceConfig, version string, openscadVersion string, outputPaths models.OutputPaths, stlResults []models.GenerateSTLResult, allParamNames []string) {
+
+templ Report(config *models.Config, instances []models.InstanceConfig, outputPaths models.OutputPaths, stlResults []models.GenerateSTLResult, imageResults []models.GenerateImageResult, allParamNames []string) {
     <!DOCTYPE html>
     <html lang="en" x-data="{ darkMode: false }" x-init="
         darkMode = localStorage.getItem('darkMode') === 'true' || 
@@ -92,6 +93,12 @@ templ Report(config *models.Config, instances []models.InstanceConfig, version s
                     background-color: var(--card-bg);
                     color: var(--text-color);
                 }
+                .image-preview {
+                    max-width: 200px;
+                    max-height: 200px;
+                    border: 1px solid var(--border-color);
+                    border-radius: 4px;
+                }
             </style>
         </head>
         <body>
@@ -111,9 +118,11 @@ templ Report(config *models.Config, instances []models.InstanceConfig, version s
                     <p>{ config.Design.Description }</p>
                 </div>
 
-                <h2 class="is-size-4">Global Parameters</h2>
+                if len(config.Design.GlobalParams) > 0 {
+
+                    <h2 class="is-size-4">Global Parameters</h2>
                 <div class="table-container">
-                    <table class="table is-striped is-fullwidth">
+                    <table class="table is-fullwidth">
                         <thead>
                             <tr>
                                 <th>Parameter</th>
@@ -128,13 +137,17 @@ templ Report(config *models.Config, instances []models.InstanceConfig, version s
                                 </tr>
                             }
                         </tbody>
-                    </table>
-                </div>
+                        </table>
+                    </div>
+                } else {
+                    <div>No Global Parameters [global_params]</div>
+                }
 
-                <h2 class="is-size-4">Input Paths</h2>
-                <div class="table-container">
-                    <table class="table is-striped is-fullwidth">
-                        <thead>
+                if len(config.GetInputPaths()) > 0 {
+                    <h2 class="is-size-4">Input Paths</h2>
+                    <div class="table-container">
+                        <table class="table is-fullwidth">
+                            <thead>
                             <tr>
                                 <th>Path</th>
                             </tr>
@@ -142,25 +155,43 @@ templ Report(config *models.Config, instances []models.InstanceConfig, version s
                         <tbody>
                             for _, inputPath := range config.GetInputPaths() {
                                 <tr>
-                                    <td><a href={templ.SafeURL(fmt.Sprintf("file://%s", inputPath.Path))}>{ inputPath.Path }</a></td>
+                                    <td>{ inputPath.Path }</td>
                                 </tr>
                             }
                         </tbody>
-                    </table>
-                </div>
+                        </table>
+                    </div>
+                } else {
+                    <div>No Input Paths
+                    
+                    <details><summary>[[openscadgen.input_paths]]</summary>
+                        <pre><code>
+                        [[openscadgen.input_paths]]
+                        path = "./examples/cup-holder-plus/carHolderPlus.scad"
+
+                        [[openscadgen.input_paths]]
+                        path = "./examples/cup-holder-plus/carHolderPlus-cup-holder-sizer.scad"
+                        ignore_param_when_processing = "cup_holders_mode"
+                        export_name_format = "cup-holder-sizer/%7BdesignFileName%7D-%7Bname%7D"
+                        </code></pre>
+                    </details>
+                    </div>
+                }
 
 
-                <h2 class="is-size-4">STL Generation Results</h2>
-                <div>Generate { fmt.Sprintf("%d",len(stlResults)) }</div>
-                <div class="table-container">
-                    <table class="table is-striped is-fullwidth">
+                if len(stlResults) > 0 {
+                    <h2 class="is-size-4">STL Generation Results</h2>
+                    <div>Generated { fmt.Sprintf("%d",len(stlResults)) } stl files</div>
+                    <div class="table-container">
+                        <table class="table is-fullwidth">
                         <thead>
                             <tr>
                                 <th>Instance</th>
                                 <th>Output Path</th>
                                 <th>Command</th>
                                 <th>Time Taken</th>
-                                <th>Config Error</th>
+                                <th>Params</th>
+                                <th>Error</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -170,12 +201,129 @@ templ Report(config *models.Config, instances []models.InstanceConfig, version s
                                     <td>{ stlResult.OutputPath }</td>
                                     <td>{ stlResult.Command }</td>
                                     <td>{ fmt.Sprintf("%v", stlResult.TimeTaken) }</td>
-                                    <td>{ stlResult.Error }</td>
+                                    if len(stlResult.AppliedParams) > 0 {
+                                    <td><details><summary>Params</summary>
+                                    <pre><code>
+                                    for name, value := range stlResult.AppliedParams {
+                                        switch v := value.(type) {
+                                        case string:
+                                            { fmt.Sprintf("%s = \"%s\";\n", name, v) }
+                                        case int, int64, float64:
+                                            { fmt.Sprintf("%s = %v;\n", name, v) }
+                                        case bool:
+                                            { fmt.Sprintf("%s = %v;\n", name, v) }
+                                        default:
+                                            { fmt.Sprintf("%s = \"%v\";\n", name, v) }
+                                        }
+                                    }
+                                    </code></pre>
+                                    </details></td>
+                                    } else {
+                                        <td><pre><code>{ fmt.Sprintf("%v", stlResult.InstanceConfig.Params) }</code></pre></td>
+                                    }
+                                    if stlResult.Error != "" {
+                                        <td class="is-danger">{ stlResult.Error }</td>
+                                    } else {
+                                        <td></td>
+                                    }
                                 </tr>
                             }
                         </tbody>
-                    </table>
-                </div>
+                        </table>
+                    </div>
+                } else {
+                    <div class="is-danger">No STL Generation Results</div>
+                }
+
+                if len(imageResults) > 0 {
+                    <h2 class="is-size-4">Image Generation Results</h2>
+                    <div>Generated { fmt.Sprintf("%d",len(imageResults)) } images</div>
+                    <div class="table-container">
+                        <table class="table is-fullwidth">
+                        <thead>
+                            <tr>
+                                <th>Instance</th>
+                                <th>Camera</th>
+                                <th>Output Path</th>
+                                <th>Command</th>
+                                <th>Time Taken</th>
+                                <th>Preview</th>
+                                <th>Error</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            for _, imageResult := range imageResults {
+                                <tr>
+                                    <td>{ imageResult.InstanceConfig.Name }</td>
+                                    <td>{ imageResult.CameraName }</td>
+                                    <td>{ imageResult.OutputPath }</td>
+                                    <td>{ imageResult.Command }</td>
+                                    <td>{ fmt.Sprintf("%v", imageResult.TimeTaken) }</td>
+                                    <td>
+                                        if imageResult.Error == "" {
+                                            <img src={ imageResult.OutputPath } alt={ fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName) } class="image-preview"/>
+                                        } else {
+                                            <span class="tag is-danger">Failed</span>
+                                        }
+                                    </td>
+                                    if imageResult.Error != "" {
+                                        <td class="is-danger">{ imageResult.Error }</td>
+                                    } else {
+                                        <td></td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                        </table>
+                    </div>
+                } else {
+                    <div>No Image Generation Results</div>
+                }
+
+                if len(instances) > 0 {
+                    <div>
+                    <h2 class="is-size-4">Generated Instances</h2>
+                    <div class="table-container">
+                        <table class="table is-fullwidth">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Output Path</th>
+                                    <th>Ignored Params</th>
+                                    for _, paramName := range allParamNames {
+                                        <th>{ paramName }</th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                for _, instance := range instances {
+                                    <tr>
+                                        <td>{ instance.Name }</td>
+                                        <td>{ instance.Description }</td>
+                                        <td>{ instance.OutputPathV2 }</td>
+                                        <td>{ fmt.Sprintf("%v", instance.IgnoredParams) }</td>
+                                        for _, paramName := range allParamNames {
+                                            if value, ok := instance.Params[paramName]; ok {
+                                                <td>{ fmt.Sprintf("%v", value) }</td>
+                                            } else {
+                                                <td>No Param Set for { paramName }</td>
+                                            }
+                                        }
+                                    </tr>
+                                    if instance.ConfigError != "" {
+                                        <tr>        
+                                            <td colspan={ fmt.Sprintf("%d", len(allParamNames) + 2) } class="is-danger">{ instance.ConfigError }</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    </div>
+                } else {
+                    <div class="is-danger">No Instances Generated</div>
+                }
 
                 <h2 class="is-size-4">Configuration Details</h2>
                 <div class="instance">
@@ -187,7 +335,10 @@ templ Report(config *models.Config, instances []models.InstanceConfig, version s
                             <strong>Output Path:</strong> { config.Design.OutputPath }
                         </div>
                         <div class="param">
-                            <strong>OpenSCAD Version:</strong> { openscadVersion }
+                            <strong>OpenSCAD Version:</strong> { config.OpenSCADVersion }
+                        </div>
+                        <div class="param">
+                            <strong>OpenSCADGen Version:</strong> { config.OpenScadGenVersion }
                         </div>
                         <div class="param">
                             <strong>Quality:</strong> { config.Quality }
@@ -200,7 +351,7 @@ templ Report(config *models.Config, instances []models.InstanceConfig, version s
 
                         if config.CustomOpenSCADCommand != "" {
                             <div class="param">
-                                <strong>Export Images:</strong> { config.CustomOpenSCADCommand }
+                                <strong>Custom OpenSCAD Command:</strong> { config.CustomOpenSCADCommand }
                             </div>
                         }
 
@@ -288,9 +439,11 @@ templ Report(config *models.Config, instances []models.InstanceConfig, version s
                     <div class="param">
                         <strong>ExportFolderPath:</strong> { outputPaths.ExportFolderPath }
                     </div>
-                    <div class="param">
-                        <strong>LowQualityWarningPath:</strong> { outputPaths.LowQualityWarningPath }
-                    </div>
+                    if config.Quality == "low" {
+                        <div class="param">
+                            <strong>LowQualityWarningPath:</strong> { outputPaths.LowQualityWarningPath }
+                        </div>
+                    }
                     <div class="param">
                         <strong>ReadmePath:</strong> { outputPaths.ReadmePath }
                     </div>
@@ -299,41 +452,8 @@ templ Report(config *models.Config, instances []models.InstanceConfig, version s
                     </div>
                 </div>
 
-                <h2 class="is-size-4">Generated Instances</h2>
-                <div class="table-container">
-                    <table class="table is-striped is-fullwidth">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Part ID</th>
-                                <th>Input Path</th>
-                                <th>Param Sets</th>
-
-                                for _, paramName := range allParamNames {
-                                    <th>{ paramName }</th>
-                                }
-                            </tr>
-                        </thead>
-                        <tbody>
-                            for _, instance := range instances {
-                                <tr>
-                                    <td>{ instance.Name }</td>
-                                    <td>{ instance.Description }</td>
-                                    for _, paramName := range allParamNames {
-                                        if value, ok := instance.Params[paramName]; ok {
-                                            <td>{ fmt.Sprintf("%v", value) }</td>
-                                        } else {
-                                            <td>No Param Set for { paramName }</td>
-                                        }
-                                    }
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-
                 <div class="footer">
-                    <p>Generated by openscadgen { version } at { time.Now().Format("2006-01-02 15:04:05") }</p>
+                    <p>Generated by openscadgen { config.OpenSCADVersion } at { time.Now().Format("2006-01-02 15:04:05") }</p>
                 </div>
             </div>
         </body>
