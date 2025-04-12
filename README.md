@@ -17,10 +17,8 @@ Core concepts to understand:
 - Instances - "What .stl files you want to generate"
 [[openscadgen.instances]] - Given a simple config file and a .scad design file, generate a set of .stl files, image preview and a html file containing the results of the generation
 
-- Input Path - "The source .scad file(s) you want 
-  - [single] - the input .scad file - defined under the [openscadgen] tag
-  OR 
-  - [multiple] input .scad file via [[openscadgen.input_paths]] element. Multiple Input Paths allow you to use the same 'params' (i.e. all the ones from "Instances") as input for each openscad defined (see the 'cup-holder-plus' for an example of this )
+- Input Path - [[openscadgen.input_paths]] = The source .scad file(s) you want 
+  - input .scad file(s) - Multiple Input Paths allow you to use the same 'params' (i.e. all the ones from "Instances") as input for each openscad defined (see the 'cup-holder-plus' for an example of this)
 
 - Export File Name format - top level define the folder/file paths to export the files to,  i.e. "clip-{handle_diameter}mm-wide-{handle_offset}mm-tall"  (if there are multiple files you need to in include {designFileName})
 
