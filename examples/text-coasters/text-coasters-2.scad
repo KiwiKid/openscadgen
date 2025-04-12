@@ -86,7 +86,7 @@ path = path3d(arc(100, r=textAroundRadius, angle=[0, 400]));
      right(540)
     fwd(24)
     up(0)
-    import("/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text-coasters/can.stl");
+    import("can.stl");
     
 } 
 

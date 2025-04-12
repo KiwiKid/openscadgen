@@ -120,7 +120,7 @@ union(){
     fwd(24)
     up(4)
     scale([can_xy_scale, can_xy_scale, 1])
-    import("/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text-coasters/can.stl");
+    import("can.stl");
     
     
     // Bottom Flattener
