@@ -114,7 +114,4 @@ func main() {
 		log.Fatalf("Error: %v", err)
 	}
 
-	// Use the openscadgen package to generate STL files
-	// ...
-
 }

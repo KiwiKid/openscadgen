@@ -5,53 +5,88 @@ include <BOSL2/std.scad>;
 	$fs = $preview ? 5 : 1;
 	$fn = 200;
 
-	renderType = "all-all"; // horzSlice, vertSlice, all
+	renderType = "adll"; // horzSlice, vertSlice, all
     
-    screwHolesUp = 10;
-    screwHoles = [0, 5, 10, 15, 20, 25, 30];
+    screwHolesUp = 20;
+    screwHoles = [5, 7.5, 10, 12.5, 15, 17.5, 20, 22.5, 25, 27.5];
 
-	module hand_press_plate(plateWidth=100, plateHeight=100, plateAttachDepth=34, attachCyliderRadius=20, attachCyliderHeight=50, screwHoleDiameter=4, holderScrewDimpleDepth=3){
+	module hand_press_plate(plateWidth=70, plateDepth=70, plateAttachHeight=32, attachCyliderRadius=18, attachCyliderHeight=25, attachCyliderZOffset=10, screwHoleDiameter=2, holderScrewDimpleDepth=3){
 		
         difference(){
         union(){
+        down(plateAttachHeight+attachCyliderZOffset)
             cyl(l=attachCyliderHeight, d=attachCyliderRadius, rounding=2);
-            up(attachCyliderHeight-4)
             rotate([180,0,0])
-            prismoid(size1=[plateWidth,plateHeight], size2=[attachCyliderRadius*0.8,attachCyliderRadius*0.8], h=plateAttachDepth, rounding=7);
+            prismoid(size1=[plateWidth,plateDepth], size2=[plateWidth*0.4,plateDepth*0.4], h=plateAttachHeight, rounding=1);
         }
         
         for (pos = screwHoles) {
-            rotate([90, 90, 0])
-            translate([pos-screwHolesUp, 0, attachCyliderRadius/2 - 1])  // adjust as needed
+            rotate([90, -90, 0])
+            translate([pos-screwHolesUp-attachCyliderZOffset-plateAttachHeight, 0, attachCyliderRadius/2 ])  // adjust as needed
             
             cyl(l=holderScrewDimpleDepth, d=screwHoleDiameter, rounding=1);
         }
         }
         
 	}
-
-
-	if (renderType == "horzSlice" || renderType == "all-all") {
-		intersection(){
-			hand_press_plate(); 
-			fwd(500)
-			left(500)
-			
-    #cube([1000,1000,0.3]);
-		}
-	}
-    if(renderType == "vertSlice" || renderType == "all-all") {
-		#intersection(){
-			hand_press_plate();
-			rotate([90,0,90])
-			fwd(500)
-			left(500)
-			down(0)
-			#cube([1000,1000,0.3]);
-		}
-	} 
-   
-   if(renderType == "all" || renderType == "all-all") {
-		hand_press_plate();
-	}
     
+    
+    sliced(renderType=renderType){
+        hand_press_plate();
+    }
+
+     
+module sliced(
+    renderType = "horzSlice",        // "horzSlice", "vertSlice", or "all"
+    sliceSize = 1000,
+    sliceThickness = 0.3,
+    showRawSlices = false,
+    horzSlicePos = [-500, -500, 0],
+    vertSlicePos = [0, -500, -500]
+) {
+   
+    module horz_slice(raw=false) {
+        if (raw) {
+            translate(horzSlicePos)
+                cube([sliceSize, sliceSize, sliceThickness], center=false);
+        } else {
+            intersection() {
+                children();
+                translate(horzSlicePos)
+                    cube([sliceSize, sliceSize, sliceThickness], center=false);
+            }
+        }
+    }
+
+    module vert_slice(raw=false) {
+        if (raw) {
+            translate(vertSlicePos)
+                cube([sliceThickness, sliceSize, sliceSize], center=false);
+        } else {
+            intersection() {
+                children();
+                translate(vertSlicePos)
+                    cube([sliceThickness, sliceSize, sliceSize], center=false);
+            }
+        }
+    }
+
+    if (renderType == "horzSlice") {
+        horz_slice(raw=showRawSlices){
+            children();
+        }
+    } else if (renderType == "vertSlice") {
+        vert_slice(raw=showRawSlices){
+            children();
+        }
+    } else if (renderType == "all") {
+        // show raw slices for reference
+        horz_slice(raw=true);
+        vert_slice(raw=true);
+        // show full object
+        children();
+    } else {
+        // show full object
+        children();
+    }
+}

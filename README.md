@@ -10,18 +10,26 @@ A simpler alterative to programmatic wrappers like AnchorSCAD or LuaCAD and more
 https://github.com/user-attachments/assets/61d605fa-3b5a-43c0-98d2-71357f96fc32
 
 
-> [!NOTE]
+> [!WARNING]
 > Early days and still in active development, please let me know if you encounter any issues
 
 Core concepts to understand:
 - Instances - "What .stl files you want to generate"
-[[openscadgen.instances]] - These define one (or multiple) stl file "instances" to be generated, you can customize via 'params' (single or comma separated) to define input params to be created
+[[openscadgen.instances]] - Given a simple config file and a .scad design file, generate a set of .stl files, image preview and a html file containing the results of the generation
 
 - Input Path - "The source .scad file(s) you want 
   - [single] - the input .scad file - defined under the [openscadgen] tag
   OR 
   - [multiple] input .scad file via [[openscadgen.input_paths]] element. Multiple Input Paths allow you to use the same 'params' (i.e. all the ones from "Instances") as input for each openscad defined (see the 'cup-holder-plus' for an example of this )
+
 - Export File Name format - top level define the folder/file paths to export the files to,  i.e. "clip-{handle_diameter}mm-wide-{handle_offset}mm-tall"  (if there are multiple files you need to in include {designFileName})
+
+- Param Sets - Configurable sets of parameters that can be passed into instances via add 'param_set = "myParamSetName,myOtherParamSetName' to an instance
+
+- Export Camera Coordinates ([[openscadgen.export_images]]) - Used to define the camera details for the images you would like to generate of your stl file. Presets (only need the name) are "top,bottom,left,right,front,back"
+
+
+> 💡 **Tip:** I've found Param Sets scale more effectively as your design and outputs get more complex
 
 The config file format uses [toml](https://toml.io/en/) and some examples are include below and more are in the 'examples' directory
 
@@ -113,7 +121,7 @@ Be-aware of the limitations of the material you are using, PLA can have a very l
 \n\n
 Project file includes:
 \n
-- Cup Adapter without cut - an “All-in-on” print - uses more supports & time, stronger, with no assembly (~14h print time & 560g of PLA filament)
+- Cup Adapter without cut - an "All-in-on" print - uses more supports & time, stronger, with no assembly (~14h print time & 560g of PLA filament)
 \n
 - Cut the Cup Adapter with a dowel cut - Minimise print/build time via splitting the cup holder to a separate part (~10h print time & 470g of PLA filament)
  - Parametric .scad file for customisation 
@@ -159,8 +167,6 @@ git push && git push --tags
 
 ## TODO/Project Ideas
 - [ ] Better validation/messaging around config issues
-- [ ] Better handling of params with Spaces in them (i.e. name= "My Name" -> "My-Name.stl")
-- [ ] Add a HTML export file + image generation
 - [ ] Allow for concurrent openscad runs
 - [ ] Directory generation (i.e. dynamically find and generate all the instance configs in a directory)
 - [ ] (maybe) Add ability to generate instances via annotations in the scad file (i.e. remove need for config file). Something like:
@@ -174,15 +180,17 @@ handle_offset = 10
 - [ ] Allow for setting of part id in the static instance config
 - [ ] Allow for exporting a set of images
 - [ ] (maybe) Configure option to automatically create a horizontal and/or vertical cross-sectional slice of the part
-- [ ] (maybe) make stl builds parallel to speed up processing time 
 - [ ] Add clean-up option for old versions
 - [ ] (maybe) Add configurable watch mode to automatically re-run the tool when the scad file is changed
 - [ ] Tidy/Improve logging and log handling
 - [ ] Tools to ease handling of common openscad external libraries (i.e. BOSL2 etc)
+- [-] Better handling of params with Spaces in them (i.e. name= "My Name" -> "My-Name.stl")
+- [-] Better handling of params with Spaces in them (i.e. name= "My Name" -> "My-Name.stl")
+- [-] Add a HTML export file + image generation
 - [-] Warn when replacing existing stl export files
 - [-] Add ability to configure ranges of parameters in config file with auto-naming (i.e. i want models for each handle_diameter from 5 to 10, with )
 - [-] Allow for multi-part builds in the same config file (i.e. multiple scad files, generated with the same input parameters)
 - [-] Add config file generation quickstart command (to initialize a openscadgen config file from a scad file) (`openscadgen i new-project-name`)
 
 
-If you have any ideas/bugs/etc, please let me know and i'll try and fix them where possible. I do want to keep the goals of the project simple and specific (i have)
+If you have any ideas/bugs/etc, please let me know and i'll try and fix them where possible. I do want to keep the goals of the project simple and specific

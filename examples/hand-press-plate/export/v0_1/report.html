@@ -1,0 +1,95 @@
+<!doctype html><html lang="en" x-data="{ darkMode: false }" x-init="
+        darkMode = localStorage.getItem(&#39;darkMode&#39;) === &#39;true&#39; || 
+                  (!localStorage.getItem(&#39;darkMode&#39;) &amp;&amp; window.matchMedia(&#39;(prefers-color-scheme: dark)&#39;).matches);
+        $watch(&#39;darkMode&#39;, value =&gt; {
+            localStorage.setItem(&#39;darkMode&#39;, value);
+            document.documentElement.classList.toggle(&#39;dark&#39;, value);
+        });
+    "><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>hand-press-plate - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><style>
+                :root {
+                    --bg-color: #ffffff;
+                    --text-color: #333333;
+                    --card-bg: #ffffff;
+                    --border-color: #eee;
+                }
+
+                .dark {
+                    --bg-color: #1a1a1a;
+                    --text-color: #f5f5f5;
+                    --card-bg: #2d2d2d;
+                    --border-color: #404040;
+                }
+
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                    line-height: 1.6;
+                    margin: 0;
+                    padding: 20px;
+                    color: var(--text-color);
+                    background-color: var(--bg-color);
+                }
+                .container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                }
+                h1, h2, h3 {
+                    color: var(--text-color);
+                }
+                .header {
+                    margin-bottom: 30px;
+                }
+                .params {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                    gap: 10px;
+                    margin-top: 10px;
+                }
+                .param {
+                    background: var(--card-bg);
+                    padding: 10px;
+                    border-radius: 4px;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                }
+                .footer {
+                    margin-top: 30px;
+                    padding-top: 20px;
+                    border-top: 1px solid var(--border-color);
+                    font-size: 0.9em;
+                    color: var(--text-color);
+                }
+                .table-container {
+                    margin: 20px 0;
+                    overflow-x: auto;
+                }
+                .table {
+                    background-color: var(--card-bg);
+                    min-width: 1200px;
+                }
+                .table th {
+                    color: var(--text-color);
+                }
+                .table td {
+                    color: var(--text-color);
+                }
+                .tag {
+                    background-color: var(--card-bg);
+                    color: var(--text-color);
+                }
+                .image-preview {
+                    max-width: 200px;
+                    max-height: 200px;
+                    border: 1px solid var(--border-color);
+                    border-radius: 4px;
+                    object-fit: contain;
+                }
+                .image-error {
+                    color: var(--text-color);
+                    font-style: italic;
+                    font-size: 0.9em;
+                }
+            </style></head><body><div class="container"><div class="header"><div class="level"><div class="level-left"><h1>hand-press-plate</h1></div><div class="level-right"><button class="button" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button></div></div><p></p></div><h2 class="is-size-4">Global Parameters</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Parameter</th><th>Value</th></tr></thead> <tbody><tr><td>renderType</td><td></td></tr></tbody></table></div><h2 class="is-size-4">Input Paths</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Path</th></tr></thead> <tbody><tr><td>./hand-press-plate.scad</td></tr></tbody></table></div><h2 class="is-size-4">STL Generation Results</h2><div>Generated 1 stl files</div><div class="table-container"><table class="table is-fullwidth"><thead><tr><th style="width: 150px;">Instance</th><th style="width: 200px;">Output Path</th><th style="width: 200px;">Command</th><th style="width: 100px;">Time Taken</th><th style="width: 200px;">Params</th><th style="width: 150px;">Error</th></tr></thead> <tbody><tr><td>default</td><td>hand-press-plate/export/v0_1/hand-press-plate-.stl</td><td>openscad -o hand-press-plate/export/v0_1/hand-press-plate-.stl -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;renderType=&#34;&#34;&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;default&#34;&#39; -D &#39;part_id_letter=&#34;A&#34;&#39; &#34;./hand-press-plate/hand-press-plate.scad&#34; --render --backend=manifold</td><td>7.755110875s</td><td><details><summary>Params</summary><pre><code>version = &#34;v0.1&#34;;
+renderType = &#34;&#34;;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;default&#34;;
+part_id_letter = &#34;A&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td></tr></tbody></table></div><h2 class="is-size-4">Image Generation Results</h2><div>Generated 7 images</div><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Instance</th><th>Camera</th><th>Output Path</th><th>Command</th><th>Time Taken</th><th>Preview</th><th>Error</th></tr></thead> <tbody><tr><td>default</td><td>top</td><td>hand-press-plate/export/v0_1/hand-press-plate--top.png</td><td>/opt/homebrew/bin/openscad -o hand-press-plate/export/v0_1/hand-press-plate--top.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,300 --preview -D &#39;renderType=&#34;&#34;&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;default&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; ./hand-press-plate/hand-press-plate.scad</td><td>5.257870916s</td><td><img src="hand-press-plate--top.png" alt="Preview of default from top" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate--top.png</div></td><td></td></tr><tr><td>default</td><td>left</td><td>hand-press-plate/export/v0_1/hand-press-plate--left.png</td><td>/opt/homebrew/bin/openscad -o hand-press-plate/export/v0_1/hand-press-plate--left.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,90,0,300 --preview -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;renderType=&#34;&#34;&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;default&#34;&#39; ./hand-press-plate/hand-press-plate.scad</td><td>5.185558875s</td><td><img src="hand-press-plate--left.png" alt="Preview of default from left" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate--left.png</div></td><td></td></tr><tr><td>default</td><td>right</td><td>hand-press-plate/export/v0_1/hand-press-plate--right.png</td><td>/opt/homebrew/bin/openscad -o hand-press-plate/export/v0_1/hand-press-plate--right.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,300 --preview -D &#39;renderType=&#34;&#34;&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;default&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; ./hand-press-plate/hand-press-plate.scad</td><td>5.192812542s</td><td><img src="hand-press-plate--right.png" alt="Preview of default from right" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate--right.png</div></td><td></td></tr><tr><td>default</td><td>back</td><td>hand-press-plate/export/v0_1/hand-press-plate--back.png</td><td>/opt/homebrew/bin/openscad -o hand-press-plate/export/v0_1/hand-press-plate--back.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,270,0,0,300 --preview -D &#39;renderType=&#34;&#34;&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;default&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; ./hand-press-plate/hand-press-plate.scad</td><td>5.171145292s</td><td><img src="hand-press-plate--back.png" alt="Preview of default from back" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate--back.png</div></td><td></td></tr><tr><td>default</td><td>front</td><td>hand-press-plate/export/v0_1/hand-press-plate--front.png</td><td>/opt/homebrew/bin/openscad -o hand-press-plate/export/v0_1/hand-press-plate--front.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,90,0,0,300 --preview -D &#39;name=&#34;default&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;renderType=&#34;&#34;&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; ./hand-press-plate/hand-press-plate.scad</td><td>5.238203625s</td><td><img src="hand-press-plate--front.png" alt="Preview of default from front" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate--front.png</div></td><td></td></tr><tr><td>default</td><td>bottom</td><td>hand-press-plate/export/v0_1/hand-press-plate--bottom.png</td><td>/opt/homebrew/bin/openscad -o hand-press-plate/export/v0_1/hand-press-plate--bottom.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,180,0,0,300 --preview -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;renderType=&#34;&#34;&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;default&#34;&#39; ./hand-press-plate/hand-press-plate.scad</td><td>5.167027167s</td><td><img src="hand-press-plate--bottom.png" alt="Preview of default from bottom" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate--bottom.png</div></td><td></td></tr><tr><td>default</td><td>custom</td><td>hand-press-plate/export/v0_1/hand-press-plate--custom.png</td><td>/opt/homebrew/bin/openscad -o hand-press-plate/export/v0_1/hand-press-plate--custom.png --imgsize 1920,1080 --projection perspective --camera 0,0,130,130,130,0,300 --preview -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;default&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;renderType=&#34;&#34;&#39; ./hand-press-plate/hand-press-plate.scad</td><td>5.183222333s</td><td><img src="hand-press-plate--custom.png" alt="Preview of default from custom" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate--custom.png</div></td><td></td></tr></tbody></table></div><div><h2 class="is-size-4">Generated Instances</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Name</th><th>Description</th><th>Output Path</th><th>Ignored Params</th><th>designFileName</th><th>name</th><th>version</th><th>renderType</th></tr></thead> <tbody><tr><td>default</td><td></td><td>hand-press-plate/export/v0_1/hand-press-plate-.stl</td><td>[]</td><td>hand-press-plate</td><td>default</td><td>v0.1</td><td></td><td></td></tr></tbody></table></div></div><h2 class="is-size-4">Configuration Details</h2><div class="instance"><div class="params"><div class="param"><strong>Version:</strong> v0.1</div><div class="param"><strong>Output Path:</strong> </div><div class="param"><strong>OpenSCAD Version:</strong> </div><div class="param"><strong>OpenSCADGen Version:</strong> </div><div class="param"><strong>Quality:</strong>  </div><div class="param"><strong>Set Build Info In File Attributes</strong></div></div></div><h2 class="is-size-4">Output Paths</h2><div class="instance"><div class="param"><strong>OutputPath:</strong> hand-press-plate/export/v0_1</div><div class="param"><strong>ExportFolderPath:</strong> hand-press-plate/export/v0_1</div><div class="param"><strong>ReadmePath:</strong> hand-press-plate/export/v0_1/README.md</div><div class="param"><strong>LogOutputPath:</strong> hand-press-plate/export/v0_1/export_log.log</div></div><div class="footer"><p>Generated by openscadgen  at 2025-04-12 12:00:29</p></div></div></body></html>

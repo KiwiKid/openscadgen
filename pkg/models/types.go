@@ -11,8 +11,9 @@ import (
 )
 
 type ExportCameraCoordinates struct {
-	CameraName        string `toml:"camera_name"`
-	CameraCoordinates string `toml:"camera_coordinates"`
+	CameraName        string `toml:"name"`
+	CameraCoordinates string `toml:"coord"`
+	ImageSize         string `toml:"image_size"`
 }
 
 type ParamSet struct {
@@ -46,6 +47,7 @@ type ConfiguredInstanceConfig struct {
 	Params               map[string]interface{} `toml:"params"`
 	ParamSets            string                 `toml:"param_sets"`             // comma separated list of param sets to use
 	ParamNumberationKeys string                 `toml:"param_numberation_keys"` // comma separated list of keys to number
+	SkipImages           bool                   `toml:"skip_images"`
 }
 
 // Define a struct to hold the command-line flags
@@ -141,6 +143,9 @@ type InstanceConfig struct {
 	ConfigError      string
 	OutputPathV2     string
 	IgnoredParams    []string
+	ImageResults     []GenerateImageResult
+	SkipImages       bool
+	SkippedReason    string
 }
 
 type GenerateSTLResult struct {

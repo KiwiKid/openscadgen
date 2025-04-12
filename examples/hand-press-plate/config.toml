@@ -6,10 +6,33 @@ version = "v0.1"
 
 export_name_format = "{designFileName}-{renderType}"
 
-global_params = { renderType = "horzSlice,vertSlice,all"}
+global_params = { renderType = ""}
 
 [[openscadgen.input_paths]]
 path = "./hand-press-plate.scad"
+
+[[openscadgen.export_images]]
+name = "top"
+
+[[openscadgen.export_images]]
+name = "left"
+
+[[openscadgen.export_images]]
+name = "right"
+
+[[openscadgen.export_images]]
+name = "back"
+
+[[openscadgen.export_images]]
+name = "front"
+
+[[openscadgen.export_images]]
+name = "bottom"
+
+[[openscadgen.export_images]]
+name = "custom"
+coord = "0,0,130,130,130,0,300"
+
 
 # [[openscadgen.input_paths]]
 # path = "./a-second-related-openscad-file.scad"

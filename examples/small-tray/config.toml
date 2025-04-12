@@ -23,13 +23,13 @@ ignore_param_when_processing = "ignored_param_1"
 # export_name_format = "custom-export-name-for-this-file/{designFileName}-{name}"
 
 [[openscadgen.export_images]]
-camera_name = "front"
-camera_coordinates = "0,0,0,0,0,0,300"
+name = "front"
+coord = "0,0,0,0,0,0,300"
 image_size = "1920,1080"
 
 [[openscadgen.export_images]]
-camera_name = "back"
-camera_coordinates = "0,0,0,180,0,0,300"
+name = "back"
+coord = "0,0,0,180,0,0,300"
 image_size = "1920,1080"
 
 

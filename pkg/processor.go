@@ -129,7 +129,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.2.0-BETA"
+const VERSION = "v2.2.3-BETA"
 
 type Version struct {
 	OpenSCADGen string
@@ -204,10 +204,15 @@ func Process(config *models.Config) error {
 		stlResults = append(stlResults, result)
 	}
 
+	config.Design.ExportImages = getPresetExportImages(config.Design.ExportImages)
+
 	// Generate images if configured
 	var imageResults []models.GenerateImageResult
 	if config.Design.ExportImages != nil && len(config.Design.ExportImages) > 0 {
 		for _, instance := range instances {
+			if instance.SkipImages {
+				continue
+			}
 			for _, camera := range config.Design.ExportImages {
 				result, err := generateImage(&instance, config, outputPaths.ExportFolderPath, camera)
 				if err != nil {
@@ -221,6 +226,8 @@ func Process(config *models.Config) error {
 				if result.Error != "" {
 					logWarn(fmt.Sprintf("Warning: %s", result.Error), false)
 				}
+
+				instance.ImageResults = append(instance.ImageResults, result)
 
 				imageResults = append(imageResults, result)
 			}
@@ -282,6 +289,77 @@ func clearExportFolder(config *models.Config, outputPaths models.OutputPaths) {
 			log.Panicf(colorRed+"Failed to delete export folder: %s", err)
 		}
 	}
+}
+
+var PRESET_EXPORT_IMAGES = []models.ExportCameraCoordinates{
+	{
+		CameraName:        "top",
+		CameraCoordinates: "0,0,0,0,0,0,300",
+	},
+	{
+		CameraName:        "bottom",
+		CameraCoordinates: "0,0,0,180,0,0,300",
+	},
+	{
+		CameraName:        "front",
+		CameraCoordinates: "0,0,0,90,0,0,300",
+	},
+	{
+		CameraName:        "back",
+		CameraCoordinates: "0,0,0,270,0,0,300",
+	},
+	{
+		CameraName:        "left",
+		CameraCoordinates: "0,0,0,0,90,0,300",
+	},
+	{
+		CameraName:        "right",
+		CameraCoordinates: "0,0,0,0,0,0,300",
+	},
+}
+
+func getPresetExportImages(exportImages []models.ExportCameraCoordinates) []models.ExportCameraCoordinates {
+	allExportImages := []models.ExportCameraCoordinates{}
+
+	// First, handle any "all" camera requests
+	for _, exportImage := range exportImages {
+		if exportImage.CameraName == "all" {
+			// If "all" is specified, add all preset cameras
+			allExportImages = append(allExportImages, PRESET_EXPORT_IMAGES...)
+			break
+		}
+	}
+
+	// Then process each export image request
+	for _, exportImage := range exportImages {
+		// Skip "all" as it's already handled
+		if exportImage.CameraName == "all" {
+			continue
+		}
+
+		// If custom coordinates are provided, use them directly
+		if exportImage.CameraCoordinates != "" {
+			allExportImages = append(allExportImages, exportImage)
+			continue
+		}
+
+		// Look for matching preset camera
+		found := false
+		for _, preset := range PRESET_EXPORT_IMAGES {
+			if preset.CameraName == exportImage.CameraName {
+				allExportImages = append(allExportImages, preset)
+				found = true
+				break
+			}
+		}
+
+		// If no preset found and no coordinates provided, log an error
+		if !found {
+			log.Panicf("Camera '%s' is not a preset and has no coordinates specified", exportImage.CameraName)
+		}
+	}
+
+	return allExportImages
 }
 
 // loadConfig reads the configuration file and populates the Config struct
@@ -826,6 +904,13 @@ func getAllParams(dynamicInstance models.ConfiguredInstanceConfig, globalParams 
 	return params, globalParamsMap, ignoredKeys
 }
 
+func checkInstancesSkip(config *models.Config, countSoFar int) string {
+	if config.MaxInstances > 0 && countSoFar >= config.MaxInstances {
+		return fmt.Sprintf("Max instances reached: %d", config.MaxInstances)
+	}
+	return ""
+}
+
 func generateInstances(config *models.Config, configuredInstanceConfig models.ConfiguredInstanceConfig, inputPath models.InputPath, exportFolderPath string) ([]models.InstanceConfig, error) {
 	if config.Debug {
 		logStage("=== Generating Instances === ")
@@ -850,8 +935,10 @@ func generateInstances(config *models.Config, configuredInstanceConfig models.Co
 		ignoredParams[key] = true
 	}
 
-	log.Printf("params from getAllParams: %v", params)
-	log.Printf("globalParamsMap: %v", globalParamsMap)
+	if config.Debug {
+		log.Printf("params from getAllParams: %v", params)
+		log.Printf("globalParamsMap: %v", globalParamsMap)
+	}
 
 	// Filter out ignored parameters from both params and globalParamsMap
 	filteredParams := make(map[string]interface{})
@@ -868,10 +955,12 @@ func generateInstances(config *models.Config, configuredInstanceConfig models.Co
 		}
 	}
 
-	log.Printf("ignoredParamsKeys: %v", ignoredParamsKeys)
-	log.Printf("ignoredParams: %v", ignoredParams)
-	log.Printf("filteredParams: %v", filteredParams)
-	log.Printf("filteredGlobalParamsMap: %v", filteredGlobalParamsMap)
+	if config.Debug {
+		log.Printf("ignoredParamsKeys: %v", ignoredParamsKeys)
+		log.Printf("ignoredParams: %v", ignoredParams)
+		log.Printf("filteredParams: %v", filteredParams)
+		log.Printf("filteredGlobalParamsMap: %v", filteredGlobalParamsMap)
+	}
 	// Convert parameters to combinations
 	paramCombos, err := convertToParamCombinations(filteredParams, make(map[string]bool))
 	if err != nil {
@@ -884,9 +973,11 @@ func generateInstances(config *models.Config, configuredInstanceConfig models.Co
 	// If no parameters have multiple values, create a single instance
 	if len(paramCombos) == 0 && len(filteredGlobalParamsMap) == 0 {
 		instance := models.InstanceConfig{
-			Name:      configuredInstanceConfig.Name,
-			Params:    make(map[string]interface{}),
-			InputPath: inputPath,
+			Name:          configuredInstanceConfig.Name,
+			Params:        make(map[string]interface{}),
+			InputPath:     inputPath,
+			SkipImages:    configuredInstanceConfig.SkipImages,
+			SkippedReason: checkInstancesSkip(config, len(instances)),
 		}
 
 		// Add all non-ignored parameters
@@ -910,7 +1001,9 @@ func generateInstances(config *models.Config, configuredInstanceConfig models.Co
 			instance.IgnoredParams = append(instance.IgnoredParams, k)
 		}
 
-		return []models.InstanceConfig{instance}, nil
+		return []models.InstanceConfig{
+			instance,
+		}, nil
 	}
 
 	// Generate combinations for parameters
@@ -933,9 +1026,11 @@ func generateInstances(config *models.Config, configuredInstanceConfig models.Co
 	for _, paramCombo := range parameterCombos {
 		for _, globalCombo := range globalCombos {
 			instance := models.InstanceConfig{
-				Name:      configuredInstanceConfig.Name,
-				Params:    make(map[string]interface{}),
-				InputPath: inputPath,
+				Name:          configuredInstanceConfig.Name,
+				Params:        make(map[string]interface{}),
+				InputPath:     inputPath,
+				SkipImages:    configuredInstanceConfig.SkipImages,
+				SkippedReason: checkInstancesSkip(config, len(instances)),
 			}
 
 			// Add non-ignored parameters that don't have multiple values
@@ -1236,7 +1331,11 @@ func openScadTemplateExtended(projectNameUnderLined string) string {
         test_create();
     }
         
-        
+       sliced(renderType=renderType){
+        hand_press_plate();
+    }
+
+     
 module sliced(
     renderType = "horzSlice",        // "horzSlice", "vertSlice", or "all"
     sliceSize = 1000,
@@ -1245,12 +1344,7 @@ module sliced(
     horzSlicePos = [-500, -500, 0],
     vertSlicePos = [0, -500, -500]
 ) {
-
-    if (is_undef(children)) {
-        echo("⚠️  sliced() called without children! Wrap what you would like to slice in brackets like this: sliced() { object(); }");
-    }
-    
-
+   
     module horz_slice(raw=false) {
         if (raw) {
             translate(horzSlicePos)
@@ -1309,7 +1403,12 @@ $fn = 200;
 `
 
 func InitConfig(projectName string, extended bool) error {
-	// make a directory at current working directory with the name of the initPath
+
+	// check if the project name is already taken
+	if _, err := os.Stat(projectName); os.IsNotExist(err) {
+		return fmt.Errorf("project name already taken")
+	}
+
 	os.Mkdir(projectName, 0755)
 
 	configTemplate = strings.ReplaceAll(configTemplate, "{{projectName}}", projectName)
@@ -1857,6 +1956,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config, exportF
 }
 
 func generateImage(instance *models.InstanceConfig, config *models.Config, exportFolderPath string, camera models.ExportCameraCoordinates) (models.GenerateImageResult, error) {
+
 	result := models.GenerateImageResult{
 		InstanceConfig: *instance,
 		OutputPath:     "",
@@ -1926,13 +2026,13 @@ func generateImage(instance *models.InstanceConfig, config *models.Config, expor
 	paths := instance.GetInstancePaths(config)
 
 	// Create output path for PNG
-	outputPath := strings.TrimSuffix(instance.OutputPathV2, ".stl") + "-" + camera.CameraName + ".png"
+	outputImgPath := strings.TrimSuffix(instance.OutputPathV2, ".stl") + "-" + camera.CameraName + ".png"
 	if !config.Quiet && config.Debug {
-		logKeyValuePair("outputPath", outputPath)
+		logKeyValuePair("outputPath", outputImgPath)
 	}
 
 	// Ensure output directory exists
-	if err := os.MkdirAll(filepath.Dir(outputPath), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(outputImgPath), 0755); err != nil {
 		return result, fmt.Errorf("failed to create output directory: %w", err)
 	}
 
@@ -1949,13 +2049,18 @@ func generateImage(instance *models.InstanceConfig, config *models.Config, expor
 	// Start timing
 	startTime := time.Now()
 
+	imageSize := "1920,1080"
+	if camera.ImageSize != "" {
+		imageSize = camera.ImageSize
+	}
+
 	// Build command arguments
 	args := []string{
-		"-o", outputPath,
-		"--imgsize", "1920,1080", // Use a default image size
+		"-o", outputImgPath,
+		"--imgsize", imageSize, // Use a default image size
 		"--projection", "perspective",
 		"--camera", camera.CameraCoordinates,
-		"--preview", // Add preview mode for faster rendering
+		"--preview",
 	}
 
 	// Add custom OpenSCAD arguments if provided
@@ -1998,15 +2103,15 @@ func generateImage(instance *models.InstanceConfig, config *models.Config, expor
 	}
 
 	// Check if file was created
-	if _, err := os.Stat(outputPath); os.IsNotExist(err) {
-		result.Error = fmt.Sprintf("output file was not created: %s", outputPath)
+	if _, err := os.Stat(outputImgPath); os.IsNotExist(err) {
+		result.Error = fmt.Sprintf("output image file was not created: %s", outputImgPath)
 		if config.Debug {
-			log.Printf("Output file was not created at: %s", outputPath)
+			log.Printf("Output file was not created at: %s", outputImgPath)
 		}
 		return result, err
 	}
 
-	result.OutputPath = outputPath
+	result.OutputPath = outputImgPath
 	return result, nil
 }
 
