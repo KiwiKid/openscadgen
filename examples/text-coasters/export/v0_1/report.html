@@ -1,0 +1,364 @@
+<!doctype html><html lang="en" x-data="{ darkMode: true, searchQuery: &#39;&#39; }" x-init="
+        darkMode = localStorage.getItem(&#39;darkMode&#39;) === &#39;true&#39; || 
+                  (!localStorage.getItem(&#39;darkMode&#39;) &amp;&amp; window.matchMedia(&#39;(prefers-color-scheme: dark)&#39;).matches);
+        $watch(&#39;darkMode&#39;, value =&gt; {
+            localStorage.setItem(&#39;darkMode&#39;, value);
+            document.documentElement.classList.toggle(&#39;dark&#39;, value);
+        });
+    "><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>car-holder-plus - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><script>
+                function copyDetailsContent() {
+                    const button = $el.querySelector('button');
+                    const codeBlock = $el.querySelector('pre code');
+                    const content = codeBlock.textContent;
+                    navigator.clipboard.writeText(content).then(() => {
+                        const originalText = button.textContent;
+                        button.textContent = 'Copied!';
+                        setTimeout(() => {
+                            button.textContent = originalText;
+                        }, 1000);
+                    });
+                }
+            </script><style>
+                :root {
+                    --bg-color: #ffffff;
+                    --text-color: #333333;
+                    --card-bg: #ffffff;
+                    --border-color: #eee;
+                }
+
+                .dark {
+                    --bg-color: #1a1a1a;
+                    --text-color: #f5f5f5 !important;
+                    --card-bg: #2d2d2d;
+                    --border-color: #404040;
+                    color: #f5f5f5 !important;
+                }
+
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    background-color: var(--bg-color);
+                    color: var(--text-color);
+                }
+                .container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }
+                .global-header {
+                    position: sticky;
+                    top: 0;
+                    background-color: var(--bg-color);
+                    z-index: 1000;
+                    padding: 1rem;
+                    border-bottom: 1px solid var(--border-color);
+                    margin-bottom: 2rem;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+                .global-header .container {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 0;
+                }
+                .search-box {
+                    flex: 1;
+                    max-width: 400px;
+                    margin: 0 1rem;
+                }
+                .table-container {
+                    margin: 20px 0;
+                    overflow-x: auto;
+                    position: relative;
+                }
+                .table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 20px 0;
+                    background-color: var(--card-bg);
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+                }
+                .table thead {
+                    position: sticky;
+                    top: 0;
+                    z-index: 10;
+                }
+                .table th {
+                    background-color: var(--card-bg);
+                    font-weight: bold;
+                    padding: 12px;
+                    text-align: left;
+                    border-bottom: 2px solid var(--border-color);
+                }
+                h1 {
+                    color: #333;
+                    border-bottom: 2px solid #333;
+                    padding-bottom: 10px;
+                }
+                h2, h3 {
+                    color: var(--text-color);
+                }
+                .header {
+                    margin-bottom: 30px;
+                    position: sticky;
+                    top: 0;
+                    background-color: var(--bg-color);
+                    z-index: 100;
+                    padding: 1rem 0;
+                    border-bottom: 1px solid var(--border-color);
+                }
+                .header .level {
+                    margin-bottom: 0;
+                }
+                .params {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                    gap: 10px;
+                    margin-top: 10px;
+                }
+                .param {
+                    background: var(--card-bg);
+                    padding: 10px;
+                    border-radius: 4px;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                }
+                .footer {
+                    margin-top: 30px;
+                    padding-top: 20px;
+                    border-top: 1px solid var(--border-color);
+                    font-size: 0.9em;
+                    color: var(--text-color);
+                }
+                th, td {
+                    padding: 12px;
+                    text-align: left;
+                    border-bottom: 1px solid #ddd;
+                }
+                tr:hover {
+                    background-color: #f5f5f5;
+                }
+                .error {
+                    color: red;
+                }
+                .success {
+                    color: green;
+                }
+                .camera-coords {
+                    background-color: #f8f9fa;
+                    padding: 10px;
+                    border-radius: 4px;
+                    margin: 5px 0;
+                }
+                .camera-coords ul {
+                    margin: 5px 0;
+                    padding-left: 20px;
+                }
+                .camera-coords p {
+                    margin: 5px 0;
+                }
+                details {
+                    cursor: pointer;
+                }
+                details summary {
+                    color: #0066cc;
+                }
+                details summary:hover {
+                    text-decoration: underline;
+                }
+                .image-preview {
+                    max-width: 200px;
+                    max-height: 200px;
+                    border: 1px solid var(--border-color);
+                    border-radius: 4px;
+                    object-fit: contain;
+                }
+                .image-error {
+                    color: var(--text-color);
+                    font-style: italic;
+                    font-size: 0.9em;
+                }
+            </style></head><body><div class="global-header"><div class="container"><h1 class="title is-4">car-holder-plus</h1><div class="search-box"><div class="field"><div class="control"><input class="input" type="text" placeholder="Search..." x-model="searchQuery"></div></div></div><button class="button" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button></div></div><div class="container"><div class="header"><p>A simple model that creates a coaster with text on it. Three text options are available: - textContent: The main text on the coaster (adjust through textContentSize - default 16) - textSubContent: The subtext on the coaster (adjust through textSubContentSize - default 3) - textAround: The text around the outside edge of the coaster (adjust through textAroundSize - default 1)The coaster is designed to be printed on a flat surface, with the text on the outside edge of the coaster.</p></div><div>No Global Parameters [global_params]</div><h2 class="is-size-4">Input Paths</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Path</th><th>OpenSCAD Code</th></tr></thead> <tbody><tr><td>./text-coasters.scad</td><td><details><summary>OpenSCAD Code</summary> </details></td></tr></tbody></table></div><h2 class="is-size-4">STL Generation Results</h2><div>Generated 10 stl files</div><div class="table-container"><table class="table is-fullwidth"><thead><tr><th style="width: 150px;">Instance</th><th style="width: 200px;">Output Path</th><th style="width: 200px;">Command</th><th style="width: 100px;">Time Taken</th><th style="width: 200px;">Params</th><th style="width: 150px;">Error</th></tr></thead> <tbody><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/text-coasters/export/v0_1/text-coasters_?????_with-strike.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/text-coasters/export/v0_1/text-coasters_?????_with-strike.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/text-coasters/export/v0_1/text-coasters_?????_with-strike.stl -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;textAround=&#34;NO QUESTIONS NO QUESTIONS NO QUESTIONS&#34;&#39; -D &#39;textContent=&#34;?????&#34;&#39; -D &#39;mainTextStrike=&#34;with-strike&#34;&#39; -D &#39;textSubContent=&#34;No Asking Questions&#34;&#39; -D &#39;designFileName=&#34;text-coasters&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;part_id_letter=&#34;H&#34;&#39; &#34;./examples/text-coasters/text-coasters.scad&#34; --render --backend=manifold</details></td><td>61.090125ms</td><td><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>designFileName = &#34;text-coasters&#34;;
+mainTextStrike = &#34;with-strike&#34;;
+name = &#34;&#34;;
+part_id_letter = &#34;H&#34;;
+textAround = &#34;NO QUESTIONS NO QUESTIONS NO QUESTIONS&#34;;
+textContent = &#34;?????&#34;;
+textSubContent = &#34;No Asking Questions&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td class="is-danger">warning: file &#39;examples/text-coasters/export/v0_1/text-coasters_?????_with-strike.stl&#39; does not exist</td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/text-coasters/export/v0_1/text-coasters_FANCY_na.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/text-coasters/export/v0_1/text-coasters_FANCY_na.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/text-coasters/export/v0_1/text-coasters_FANCY_na.stl -D &#39;textSubContent=&#34;Drink with Pinky Out&#34;&#39; -D &#39;mainTextStrike=&#34;na&#34;&#39; -D &#39;textAround=&#34;PINKY OUT PINKY OUT PINKY OUT&#34;&#39; -D &#39;designFileName=&#34;text-coasters&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;textContent=&#34;FANCY&#34;&#39; -D &#39;part_id_letter=&#34;F&#34;&#39; &#34;./examples/text-coasters/text-coasters.scad&#34; --render --backend=manifold</details></td><td>8.544405834s</td><td><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>designFileName = &#34;text-coasters&#34;;
+mainTextStrike = &#34;na&#34;;
+name = &#34;&#34;;
+part_id_letter = &#34;F&#34;;
+textAround = &#34;PINKY OUT PINKY OUT PINKY OUT&#34;;
+textContent = &#34;FANCY&#34;;
+textSubContent = &#34;Drink with Pinky Out&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/text-coasters/export/v0_1/text-coasters_GRUG_{mainTextStrike}.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/text-coasters/export/v0_1/text-coasters_GRUG_{mainTextStrike}.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/text-coasters/export/v0_1/text-coasters_GRUG_{mainTextStrike}.stl -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;textAround=&#34;GRUG GRUG GRUG GRUG GRUG GRUG&#34;&#39; -D &#39;textContent=&#34;GRUG&#34;&#39; -D &#39;textSubContent=&#34;Refer to everyone as [modifier] Grug&#34;&#39; -D &#39;textSubContentSize=2&#39; -D &#39;designFileName=&#34;text-coasters&#34;&#39; -D &#39;part_id_letter=&#34;J&#34;&#39; &#34;./examples/text-coasters/text-coasters.scad&#34; --render --backend=manifold</details></td><td>8.352651667s</td><td><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>designFileName = &#34;text-coasters&#34;;
+name = &#34;&#34;;
+part_id_letter = &#34;J&#34;;
+textAround = &#34;GRUG GRUG GRUG GRUG GRUG GRUG&#34;;
+textContent = &#34;GRUG&#34;;
+textSubContent = &#34;Refer to everyone as [modifier] Grug&#34;;
+textSubContentSize = 2;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/text-coasters/export/v0_1/text-coasters_LAUGH_with-strike.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/text-coasters/export/v0_1/text-coasters_LAUGH_with-strike.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/text-coasters/export/v0_1/text-coasters_LAUGH_with-strike.stl -D &#39;textAround=&#34;NO LAUGHING NO LAUGHING NO LAUGHING&#34;&#39; -D &#39;textContent=&#34;LAUGH&#34;&#39; -D &#39;mainTextStrike=&#34;with-strike&#34;&#39; -D &#39;textSubContent=&#34;Drink if You Laugh&#34;&#39; -D &#39;designFileName=&#34;text-coasters&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;part_id_letter=&#34;E&#34;&#39; &#34;./examples/text-coasters/text-coasters.scad&#34; --render --backend=manifold</details></td><td>6.570634167s</td><td><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>designFileName = &#34;text-coasters&#34;;
+mainTextStrike = &#34;with-strike&#34;;
+name = &#34;&#34;;
+part_id_letter = &#34;E&#34;;
+textAround = &#34;NO LAUGHING NO LAUGHING NO LAUGHING&#34;;
+textContent = &#34;LAUGH&#34;;
+textSubContent = &#34;Drink if You Laugh&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/text-coasters/export/v0_1/text-coasters_LEFTY_na.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/text-coasters/export/v0_1/text-coasters_LEFTY_na.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/text-coasters/export/v0_1/text-coasters_LEFTY_na.stl -D &#39;textSubContent=&#34;Only Left Hand&#34;&#39; -D &#39;mainTextStrike=&#34;na&#34;&#39; -D &#39;designFileName=&#34;text-coasters&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;textAround=&#34;LEFT LEFT LEFT LEFT LEFT LEFT LEF&#34;&#39; -D &#39;textContent=&#34;LEFTY&#34;&#39; -D &#39;part_id_letter=&#34;A&#34;&#39; &#34;./examples/text-coasters/text-coasters.scad&#34; --render --backend=manifold</details></td><td>7.500797167s</td><td><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>designFileName = &#34;text-coasters&#34;;
+mainTextStrike = &#34;na&#34;;
+name = &#34;&#34;;
+part_id_letter = &#34;A&#34;;
+textAround = &#34;LEFT LEFT LEFT LEFT LEFT LEFT LEF&#34;;
+textContent = &#34;LEFTY&#34;;
+textSubContent = &#34;Only Left Hand&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/text-coasters/export/v0_1/text-coasters_PHONE_with-strike.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/text-coasters/export/v0_1/text-coasters_PHONE_with-strike.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/text-coasters/export/v0_1/text-coasters_PHONE_with-strike.stl -D &#39;textAround=&#34;NO PHONES   NO PHONES   NO PHONES&#34;&#39; -D &#39;textContent=&#34;PHONE&#34;&#39; -D &#39;designFileName=&#34;text-coasters&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;mainTextStrike=&#34;with-strike&#34;&#39; -D &#39;textSubContent=&#34;No Phone&#34;&#39; -D &#39;part_id_letter=&#34;G&#34;&#39; &#34;./examples/text-coasters/text-coasters.scad&#34; --render --backend=manifold</details></td><td>7.984555s</td><td><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>designFileName = &#34;text-coasters&#34;;
+mainTextStrike = &#34;with-strike&#34;;
+name = &#34;&#34;;
+part_id_letter = &#34;G&#34;;
+textAround = &#34;NO PHONES   NO PHONES   NO PHONES&#34;;
+textContent = &#34;PHONE&#34;;
+textSubContent = &#34;No Phone&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/text-coasters/export/v0_1/text-coasters_RIGHTY_na.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/text-coasters/export/v0_1/text-coasters_RIGHTY_na.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/text-coasters/export/v0_1/text-coasters_RIGHTY_na.stl -D &#39;textSubContent=&#34;Only Right Hand&#34;&#39; -D &#39;mainTextStrike=&#34;na&#34;&#39; -D &#39;designFileName=&#34;text-coasters&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;textAround=&#34;RIGHT RIGHT RIGHT RIGHT RIGHT RI&#34;&#39; -D &#39;textContent=&#34;RIGHTY&#34;&#39; -D &#39;part_id_letter=&#34;B&#34;&#39; &#34;./examples/text-coasters/text-coasters.scad&#34; --render --backend=manifold</details></td><td>7.019703125s</td><td><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>designFileName = &#34;text-coasters&#34;;
+mainTextStrike = &#34;na&#34;;
+name = &#34;&#34;;
+part_id_letter = &#34;B&#34;;
+textAround = &#34;RIGHT RIGHT RIGHT RIGHT RIGHT RI&#34;;
+textContent = &#34;RIGHTY&#34;;
+textSubContent = &#34;Only Right Hand&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/text-coasters/export/v0_1/text-coasters_SWEAR_na.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/text-coasters/export/v0_1/text-coasters_SWEAR_na.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/text-coasters/export/v0_1/text-coasters_SWEAR_na.stl -D &#39;textContent=&#34;SWEAR&#34;&#39; -D &#39;textSubContent=&#34;Include a Swear Word with each drink&#34;&#39; -D &#39;textSubContentSize=2&#39; -D &#39;mainTextStrike=&#34;na&#34;&#39; -D &#39;textAround=&#34;MUST SWEAR MUST SWEAR MUST SWEAR&#34;&#39; -D &#39;designFileName=&#34;text-coasters&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;part_id_letter=&#34;D&#34;&#39; &#34;./examples/text-coasters/text-coasters.scad&#34; --render --backend=manifold</details></td><td>6.862167166s</td><td><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>designFileName = &#34;text-coasters&#34;;
+mainTextStrike = &#34;na&#34;;
+name = &#34;&#34;;
+part_id_letter = &#34;D&#34;;
+textAround = &#34;MUST SWEAR MUST SWEAR MUST SWEAR&#34;;
+textContent = &#34;SWEAR&#34;;
+textSubContent = &#34;Include a Swear Word with each drink&#34;;
+textSubContentSize = 2;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/text-coasters/export/v0_1/text-coasters_SWEAR_with-strike.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/text-coasters/export/v0_1/text-coasters_SWEAR_with-strike.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/text-coasters/export/v0_1/text-coasters_SWEAR_with-strike.stl -D &#39;textAround=&#34;NO SWEARING NO SWEARING NO SWEARING&#34;&#39; -D &#39;textContent=&#34;SWEAR&#34;&#39; -D &#39;designFileName=&#34;text-coasters&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;mainTextStrike=&#34;with-strike&#34;&#39; -D &#39;textSubContent=&#34;Drink if You Swear&#34;&#39; -D &#39;part_id_letter=&#34;C&#34;&#39; &#34;./examples/text-coasters/text-coasters.scad&#34; --render --backend=manifold</details></td><td>6.857926916s</td><td><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>designFileName = &#34;text-coasters&#34;;
+mainTextStrike = &#34;with-strike&#34;;
+name = &#34;&#34;;
+part_id_letter = &#34;C&#34;;
+textAround = &#34;NO SWEARING NO SWEARING NO SWEARING&#34;;
+textContent = &#34;SWEAR&#34;;
+textSubContent = &#34;Drink if You Swear&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/text-coasters/export/v0_1/text-coasters_UMMMM_with-strike.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/text-coasters/export/v0_1/text-coasters_UMMMM_with-strike.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/text-coasters/export/v0_1/text-coasters_UMMMM_with-strike.stl -D &#39;textAround=&#34;UMM UHHH UMM UHHH UMM UHHH&#34;&#39; -D &#39;textContent=&#34;UMMMM&#34;&#39; -D &#39;mainTextStrike=&#34;with-strike&#34;&#39; -D &#39;designFileName=&#34;text-coasters&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;textSubContent=&#34;No &#39;Umm&#39; or &#39;Uhh&#39;&#34;&#39; -D &#39;part_id_letter=&#34;I&#34;&#39; &#34;./examples/text-coasters/text-coasters.scad&#34; --render --backend=manifold</details></td><td>8.229827209s</td><td><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>designFileName = &#34;text-coasters&#34;;
+mainTextStrike = &#34;with-strike&#34;;
+name = &#34;&#34;;
+part_id_letter = &#34;I&#34;;
+textAround = &#34;UMM UHHH UMM UHHH UMM UHHH&#34;;
+textContent = &#34;UMMMM&#34;;
+textSubContent = &#34;No &#39;Umm&#39; or &#39;Uhh&#39;&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr></tbody></table></div><details><summary>No Image Generation Results</summary><div>Add export images to the config file to generate images for each instance:<pre><code>[[openscadgen.export_images]] name = "front" coord = "0,0,0,0,0,0,100"</code></pre></div></details> <div><h2 class="is-size-4">Generated Instances</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Name</th><th>Description</th><th>Output Path</th><th>Ignored Params</th><th>Skipped Reason</th><th>Images</th><th>version</th><th>textAround</th><th>textContent</th><th>textSubContent</th><th>mainTextStrike</th><th>designFileName</th><th>name</th><th>textSubContentSize</th></tr></thead> <tbody><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/text-coasters/export/v0_1/text-coasters_LEFTY_na.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/text-coasters/export/v0_1/text-coasters_LEFTY_na.stl</td><td>[]</td><td></td><td>no images generated</td><td>v0.1</td><td>LEFT LEFT LEFT LEFT LEFT LEFT LEF</td><td>LEFTY</td><td>Only Left Hand</td><td>na</td><td>text-coasters</td><td></td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/text-coasters/export/v0_1/text-coasters_RIGHTY_na.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/text-coasters/export/v0_1/text-coasters_RIGHTY_na.stl</td><td>[]</td><td></td><td>no images generated</td><td>v0.1</td><td>RIGHT RIGHT RIGHT RIGHT RIGHT RI</td><td>RIGHTY</td><td>Only Right Hand</td><td>na</td><td>text-coasters</td><td></td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/text-coasters/export/v0_1/text-coasters_SWEAR_with-strike.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/text-coasters/export/v0_1/text-coasters_SWEAR_with-strike.stl</td><td>[]</td><td></td><td>no images generated</td><td>v0.1</td><td>NO SWEARING NO SWEARING NO SWEARING</td><td>SWEAR</td><td>Drink if You Swear</td><td>with-strike</td><td>text-coasters</td><td></td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/text-coasters/export/v0_1/text-coasters_SWEAR_na.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/text-coasters/export/v0_1/text-coasters_SWEAR_na.stl</td><td>[]</td><td></td><td>no images generated</td><td>v0.1</td><td>MUST SWEAR MUST SWEAR MUST SWEAR</td><td>SWEAR</td><td>Include a Swear Word with each drink</td><td>na</td><td>text-coasters</td><td></td><td>2</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/text-coasters/export/v0_1/text-coasters_LAUGH_with-strike.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/text-coasters/export/v0_1/text-coasters_LAUGH_with-strike.stl</td><td>[]</td><td></td><td>no images generated</td><td>v0.1</td><td>NO LAUGHING NO LAUGHING NO LAUGHING</td><td>LAUGH</td><td>Drink if You Laugh</td><td>with-strike</td><td>text-coasters</td><td></td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/text-coasters/export/v0_1/text-coasters_FANCY_na.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/text-coasters/export/v0_1/text-coasters_FANCY_na.stl</td><td>[]</td><td></td><td>no images generated</td><td>v0.1</td><td>PINKY OUT PINKY OUT PINKY OUT</td><td>FANCY</td><td>Drink with Pinky Out</td><td>na</td><td>text-coasters</td><td></td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/text-coasters/export/v0_1/text-coasters_PHONE_with-strike.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/text-coasters/export/v0_1/text-coasters_PHONE_with-strike.stl</td><td>[]</td><td></td><td>no images generated</td><td>v0.1</td><td>NO PHONES   NO PHONES   NO PHONES</td><td>PHONE</td><td>No Phone</td><td>with-strike</td><td>text-coasters</td><td></td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/text-coasters/export/v0_1/text-coasters_?????_with-strike.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/text-coasters/export/v0_1/text-coasters_?????_with-strike.stl</td><td>[]</td><td></td><td>no images generated</td><td>v0.1</td><td>NO QUESTIONS NO QUESTIONS NO QUESTIONS</td><td>?????</td><td>No Asking Questions</td><td>with-strike</td><td>text-coasters</td><td></td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/text-coasters/export/v0_1/text-coasters_UMMMM_with-strike.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/text-coasters/export/v0_1/text-coasters_UMMMM_with-strike.stl</td><td>[]</td><td></td><td>no images generated</td><td>v0.1</td><td>UMM UHHH UMM UHHH UMM UHHH</td><td>UMMMM</td><td>No &#39;Umm&#39; or &#39;Uhh&#39;</td><td>with-strike</td><td>text-coasters</td><td></td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/text-coasters/export/v0_1/text-coasters_GRUG_{mainTextStrike}.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/text-coasters/export/v0_1/text-coasters_GRUG_{mainTextStrike}.stl</td><td>[]</td><td></td><td>no images generated</td><td>v0.1</td><td>GRUG GRUG GRUG GRUG GRUG GRUG</td><td>GRUG</td><td>Refer to everyone as [modifier] Grug</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td>text-coasters</td><td></td><td>2</td></tr></tbody></table></div></div><h2 class="is-size-4">Configuration Details</h2><div class="instance"><div class="params"><div class="param"><strong>Version:</strong> v0.1</div><div class="param"><strong>Output Path:</strong> </div><div class="param"><strong>OpenSCAD Version:</strong> </div><div class="param"><strong>OpenSCADGen Version:</strong> </div><div class="param"><strong>Build Info Set In File Attributes</strong></div></div></div><h2 class="is-size-4">Config Reference</h2><details><summary>Example Config File</summary><pre><code>
+[[openscadgen]]
+name = &#34;My Design&#34;
+description = &#34;A simple example design&#34;
+input_path = &#34;./designs/my_design.scad&#34;
+version = &#34;v1.0&#34;
+export_name_format = &#34;{designFileName}-{version}-{name}&#34;
+
+# Global parameters that apply to all instances
+[openscadgen.global_params]
+material = &#34;PLA&#34;
+color = &#34;white&#34;
+
+# Define parameter sets that can be reused
+[[openscadgen.param_sets]]
+name = &#34;small&#34;
+params = { width %3D 10, height %3D 20 }
+
+[[openscadgen.param_sets]]
+name = &#34;large&#34;
+params = { width %3D 20, height %3D 40 }
+
+# Define instances to generate
+[[openscadgen.instances]]
+name = &#34;default&#34;
+param_sets = &#34;small&#34;
+
+[[openscadgen.instances]]
+name = &#34;large&#34;
+param_sets = &#34;large&#34;
+
+# Define camera positions for image generation
+[[openscadgen.export_images]]
+name = &#34;front&#34;
+coord = &#34;0,0,0,0,0,0,100&#34;
+image_size = &#34;1920,1080&#34;</code></pre></details> <details><summary>Complete Design Config Reference</summary><pre><code>
+[[openscadgen]]
+# Required: Name of the design
+name = &#34;string&#34;                    # Required, minimum length 1
+
+# Optional: Description of the design
+description = &#34;string&#34;             # Optional description
+
+# Optional: Single input path (deprecated, use input_paths instead)
+input_path = &#34;string&#34;             # Path to the OpenSCAD file
+
+# Optional: Multiple input paths
+[[openscadgen.input_paths]]
+path = &#34;string&#34;                    # Required, path to OpenSCAD file
+export_name_format = &#34;string&#34;      # Optional, format for exported files
+param_sets = &#34;string&#34;             # Optional, comma-separated list of param sets
+params = {}                        # Optional, map of parameters
+skip_images = false               # Optional, whether to skip image generation
+ignore_param_when_processing = &#34;string&#34;  # Optional, params to ignore when processing
+
+# Optional: Output path for generated files
+
+# Optional: Version string
+version = &#34;string&#34;                # Version of the design
+
+# Optional: Whether to include part ID letter in filenames
+no_part_id_letter = false         # If true, excludes part ID letter
+
+# Optional: Format for exported filenames
+export_name_format = &#34;string&#34;     # Format string with {param} placeholders
+
+# Optional: Global parameters applied to all instances
+[openscadgen.global_params]
+param1 = &#34;value1&#34;
+param2 = 42
+
+# Optional: Reusable parameter sets
+[[openscadgen.param_sets]]
+name = &#34;string&#34;                   # Name of the parameter set
+params = {}                       # Map of parameters
+
+# Optional: Custom OpenSCAD output format
+custom_openscad_output_format = &#34;string&#34;  # e.g., &#34;stl&#34;, &#34;3mf&#34;
+
+# Optional: Custom OpenSCAD arguments
+custom_openscad_args = &#34;string&#34;   # Additional OpenSCAD command line arguments
+
+# Optional: Image export quality
+export_image_quality = &#34;string&#34;   # Quality setting for exported images
+
+# Optional: Camera positions for image generation
+[[openscadgen.export_images]]
+name = &#34;string&#34;                   # Name of the camera position
+coord = &#34;string&#34;                  # Camera coordinates (x,y,z,rotx,roty,rotz,distance)
+image_size = &#34;string&#34;             # Optional, image dimensions (width,height)
+param_filter = {}                 # Optional, filter parameters for this camera
+
+# Optional: Instance configurations
+[[openscadgen.instances]]
+name = &#34;string&#34;                   # Name of the instance
+description = &#34;string&#34;            # Optional description
+params = {}                       # Optional, map of parameters
+param_sets = &#34;string&#34;             # Optional, comma-separated list of param sets
+param_numberation_keys = &#34;string&#34; # Optional, comma-separated list of keys to number
+skip_images = false              # Optional, whether to skip image generation
+
+# Optional: Whether to use manifold operations
+dont_use_manifold = false         # If true, disables manifold operations
+</code></pre></details><h2 class="is-size-4">Output Paths</h2><div class="instance"><div class="param"><strong>OutputPath:</strong> examples/text-coasters/export/v0_1</div><div class="param"><strong>ExportFolderPath:</strong> examples/text-coasters/export/v0_1</div><div class="param"><strong>ReadmePath:</strong> examples/text-coasters/export/v0_1/README.md</div><div class="param"><strong>LogOutputPath:</strong> examples/text-coasters/export/v0_1/export_log.log</div></div><div class="footer"><p>Generated by openscadgen  at 2025-04-19 17:01:43</p></div></div></body></html>

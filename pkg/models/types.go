@@ -11,9 +11,10 @@ import (
 )
 
 type ExportCameraCoordinates struct {
-	CameraName        string `toml:"name"`
-	CameraCoordinates string `toml:"coord"`
-	ImageSize         string `toml:"image_size"`
+	CameraName        string                 `toml:"name"`
+	CameraCoordinates string                 `toml:"coord"`
+	ImageSize         string                 `toml:"image_size"`
+	ParamFilter       map[string]interface{} `toml:"param_filter"`
 }
 
 type ParamSet struct {
@@ -29,8 +30,9 @@ type DesignConfig struct {
 	OutputPath     string      `toml:"output_path"`
 	Version        string      `toml:"version"`
 	NoPartIDLetter bool        `toml:"no_part_id_letter"`
+	RunType        string      `toml:"run_type"` // 'clearAndCreate', 'appendOrOverwrite'
 	// @@ deprecated
-	ExportNameFormat           string                    `toml:"export_name_format"`
+	ExportNameFormat           string                    `toml:"export_name_format" validate:"required,min=1"`
 	GlobalParams               map[string]interface{}    `toml:"global_params"`
 	ParamSets                  []ParamSet                `toml:"param_sets"`
 	CustomOpenSCADOutputFormat string                    `toml:"custom_openscad_output_format"`
@@ -39,15 +41,21 @@ type DesignConfig struct {
 	ExportImages               []ExportCameraCoordinates `toml:"export_images"` // 'all', 'front' 'back', 'front,back' etc
 	// Instances             []InstanceConfig        `toml:"instances"`
 	ConfiguredInstanceConfig []ConfiguredInstanceConfig `toml:"instances"`
+	DontUseManifold          bool                       `toml:"dont_use_manifold"`
+}
+
+func (d *DesignConfig) ClearVersion(version string) string {
+	return strings.ReplaceAll(version, "/", "-")
 }
 
 type ConfiguredInstanceConfig struct {
-	Name                 string                 `toml:"name"`
-	Description          string                 `toml:"description,omitempty"`
-	Params               map[string]interface{} `toml:"params"`
-	ParamSets            string                 `toml:"param_sets"`             // comma separated list of param sets to use
-	ParamNumberationKeys string                 `toml:"param_numberation_keys"` // comma separated list of keys to number
-	SkipImages           bool                   `toml:"skip_images"`
+	Name                 string                    `toml:"name"`
+	Description          string                    `toml:"description,omitempty"`
+	Params               map[string]interface{}    `toml:"params"`
+	ParamSets            string                    `toml:"param_sets"`             // comma separated list of param sets to use
+	ParamNumberationKeys string                    `toml:"param_numberation_keys"` // comma separated list of keys to number
+	ExportImages         []ExportCameraCoordinates `toml:"export_images"`
+	SkipImages           bool                      `toml:"skip_images"`
 }
 
 // Define a struct to hold the command-line flags
@@ -60,7 +68,6 @@ type CmdFlags struct {
 	MaxInstances                 int
 	ContinueOnError              bool
 	IncludeExportLog             bool
-	FullExport                   bool
 	OverwriteExisting            bool
 	ShowMan                      bool
 	InitProjectName              string
@@ -91,27 +98,29 @@ type OutputPaths struct {
 // Config holds the overall configuration structure
 type Config struct {
 	Design                       DesignConfig `toml:"openscadgen"`
-	ConfigFile                   string       `flag:"c,config"`
-	Quiet                        bool         `flag:"q"`
-	Debug                        bool         `flag:"d"`
-	NoProcessing                 bool         `flag:"np"`
-	Quality                      string       `flag:"quality"`
-	Version                      bool         `flag:"v"`
-	RegexPattern                 string       `flag:"f"`
-	MaxInstances                 int          `flag:"n"`
-	ContinueOnError              bool         `flag:"co"`
-	IncludeExportLog             bool         `flag:"el"`
-	FullExport                   bool         `flag:"fe"`
-	Overwrite                    bool         `flag:"r"`
-	SkipRender                   bool         `flag:"sr"`
-	OverwriteExisting            bool         `flag:"ow"`
-	SkipReadme                   bool         `flag:"skip-readme"`
-	CustomOpenSCADCommand        string       `flag:"cmd"`
-	Concurrent                   bool         `flag:"p"`
-	MaxConcurrentRequests        int          `flag:"pn"`
-	IncludePartIDLetter          bool         `flag:"pid"`
-	OverrideFN                   int          `flag:"fn"`
-	SetBuildInfoInFileAttributes bool         `flag:"fi"`
+	RawConfigFile                string
+	ConfigFile                   string `flag:"c,config"`
+	Quiet                        bool   `flag:"q"`
+	Debug                        bool   `flag:"d"`
+	NoProcessing                 bool   `flag:"np"`
+	Quality                      string `flag:"quality"`
+	Version                      bool   `flag:"v"`
+	RegexPattern                 string `flag:"f"`
+	MaxInstances                 int    `flag:"n"`
+	ContinueOnError              bool   `flag:"coe"`
+	IncludeExportLog             bool   `flag:"el"`
+	Overwrite                    bool   `flag:"r"`
+	SkipRender                   bool   `flag:"sr"`
+	OverwriteExisting            bool   `flag:"ow"`
+	SkipReadme                   bool   `flag:"skip-readme"`
+	CustomOpenSCADCommand        string `flag:"cmd"`
+	Concurrent                   bool   `flag:"p"`
+	MaxConcurrentRequests        int    `flag:"pn"`
+	IncludePartIDLetter          bool   `flag:"pid"`
+	OverrideFN                   int    `flag:"fn"`
+	OnlyImages                   bool   `flag:"oi"`
+	OnlyExport                   bool   `flag:"oe"`
+	SetBuildInfoInFileAttributes bool   `flag:"fi"`
 	OpenSCADVersion              string
 	OpenScadGenVersion           string
 	InitProjectName              string
@@ -120,9 +129,11 @@ type Config struct {
 
 type InputPath struct {
 	Path             string                 `toml:"path" validate:"required"`
+	RawOpenSCADFile  string                 `toml:"raw_openscad_file"`
 	ExportNameFormat string                 `toml:"export_name_format"`
 	ParamSets        string                 `toml:"param_sets"`
 	Params           map[string]interface{} `toml:"params"`
+	SkipImages       bool                   `toml:"skip_images"`
 	/*
 		IgnoreParamsWhenProcessing are params that will be ignored when processing this input path
 	*/
@@ -131,21 +142,24 @@ type InputPath struct {
 
 // InstanceConfig represents a single instance configuration
 type InstanceConfig struct {
-	Name             string
-	AutoName         string
-	Description      string
-	ExportNameFormat string
-	InputPath        InputPath
-	Params           map[string]interface{}
-	PartIDLetter     string
-	isDynamic        bool
-	UniqueID         string
-	ConfigError      string
-	OutputPathV2     string
-	IgnoredParams    []string
-	ImageResults     []GenerateImageResult
-	SkipImages       bool
-	SkippedReason    string
+	ID                 string
+	Name               string
+	AutoName           string
+	Description        string
+	ExportNameFormat   string
+	InputPath          InputPath
+	Params             map[string]interface{}
+	PartIDLetter       string
+	isDynamic          bool
+	UniqueID           string
+	ConfigError        string
+	OutputPathV2       string
+	IgnoredParams      []string
+	ImageResults       []GenerateImageResult
+	ExportImages       []ExportCameraCoordinates
+	SkipImages         bool
+	SkippedReason      string
+	SkippedImageReason string
 }
 
 type GenerateSTLResult struct {
@@ -157,6 +171,7 @@ type GenerateSTLResult struct {
 	TimeTaken      time.Duration
 	Skipped        bool
 	LowQuality     bool
+	SkippedReason  string
 }
 
 type GenerateImageResult struct {
@@ -193,10 +208,10 @@ func (instance *InstanceConfig) GetInstancePaths(config *Config) *InstancePaths 
 	}
 
 	if _, err := os.Stat(absPath); os.IsNotExist(err) {
-		log.Panicf("Input path does not exist: %s", instance.InputPath)
+		log.Panicf("Input path does not exist: %s", instance.InputPath.Path)
 	}
 
-	versionPathSafe := strings.ReplaceAll(config.Design.Version, ".", "_")
+	versionPathSafe := config.Design.ClearVersion(config.Design.Version)
 
 	outputFolderPath := path.Join(config.Design.OutputPath, versionPathSafe)
 
@@ -204,7 +219,6 @@ func (instance *InstanceConfig) GetInstancePaths(config *Config) *InstancePaths 
 	relativeOutputPath := strings.TrimPrefix(instance.OutputPathV2, outputFolderPath)
 	relativeOutputPath = strings.TrimPrefix(relativeOutputPath, string(filepath.Separator))
 
-	versionPathSafe = strings.ReplaceAll(config.Design.Version, ".", "_")
 	return &InstancePaths{
 		InputPath:        "./" + absPath,
 		OutputFolderPath: outputFolderPath,
@@ -282,13 +296,12 @@ func makeFileNameReplacements(globalParams map[string]interface{}, instanceParam
 			formatToUse = strings.ReplaceAll(formatToUse, "${"+key+"}", "")
 		}
 	}
-	versionPathSafe := strings.ReplaceAll(version, ".", "_")
 
 	// Replace special placeholders
 	formatToUse = strings.ReplaceAll(formatToUse, "{designFileName}", fileName)
 	formatToUse = strings.ReplaceAll(formatToUse, "${designFileName}", fileName)
-	formatToUse = strings.ReplaceAll(formatToUse, "{version}", versionPathSafe)
-	formatToUse = strings.ReplaceAll(formatToUse, "${version}", versionPathSafe)
+	//	formatToUse = strings.ReplaceAll(formatToUse, "{version}", versionPathSafe)
+	//	formatToUse = strings.ReplaceAll(formatToUse, "${version}", versionPathSafe)
 	formatToUse = strings.ReplaceAll(formatToUse, "{part_id_letter}", partIdLetter)
 	formatToUse = strings.ReplaceAll(formatToUse, "${part_id_letter}", partIdLetter)
 

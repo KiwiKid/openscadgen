@@ -2,37 +2,22 @@
 name = "small-tray"
 description = ""
 
-output_path = "./export/"
+
 version = "v0.1"
 
-export_name_format = "{tray_height}-{designFileName}-{partType}"
-global_params = { "ignored_param_1" = "1,2,3", partType = "one,two,three" }
-
-[[openscadgen.param_sets]]
-name = "param_set_1"
-params = { "ignored_param_1" = "1,2,3", partType = "one,two,three" }
+export_name_format = "{designFileName}-{instanceName}/{partType}"
+global_params = { partType = "box,startBox,endBox" }
 
 [[openscadgen.input_paths]]
 path = "./small-tray.scad"
-ignore_param_when_processing = "ignored_param_1"
-
-
-# [[openscadgen.input_paths]]
-# path = "./a-second-related-openscad-file.scad"
-# ignore_param_when_processing = "param3" # dont process param3 when generating instances for this file 
-# export_name_format = "custom-export-name-for-this-file/{designFileName}-{name}"
-
-[[openscadgen.export_images]]
-name = "front"
-coord = "0,0,0,0,0,0,300"
-image_size = "1920,1080"
-
-[[openscadgen.export_images]]
-name = "back"
-coord = "0,0,0,180,0,0,300"
-image_size = "1920,1080"
-
 
 [[openscadgen.instances]]
-params = { tray_height = "80" }
-param_set = "param_set_1"
+name = "small-tray"
+params = { tray_width = 46, tray_height = 50, height = 28 }
+
+[[openscadgen.instances]]
+name = "large-tray"
+params = {  tray_width = 230, tray_height = 250 }
+ 
+[[openscadgen.instances.export_images]]
+name = "front"

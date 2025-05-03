@@ -25,7 +25,7 @@ Project file includes:
 
 export_name_format = "{designFileName}/{cup_holders_mode}-{name}"
 
-output_path = "./export/"
+
 version = "v3.1"
 
 [[openscadgen.input_paths]]

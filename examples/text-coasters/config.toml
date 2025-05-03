@@ -13,9 +13,9 @@ The coaster is designed to be printed on a flat surface, with the text on the ou
 
 """
 
-export_name_format = "{designFileName}_{textContent}_{mainTextStrike}"
+export_name_format = "{designFileName}-{mainTextStrike}-{textContent}"
 
-output_path = "./export/"
+
 version = "v0.1"
 
 [[openscadgen.input_paths]]
@@ -53,19 +53,13 @@ params = { textAround = "NO LAUGHING NO LAUGHING NO LAUGHING", textContent = "LA
 params = { textAround = "PINKY OUT PINKY OUT PINKY OUT", textContent = "FANCY", textSubContent = "Drink with Pinky Out", mainTextStrike="na"  }
 
 [[openscadgen.instances]]
-params = { textAround = "NO PHONES NO PHONES NO PHONES", textContent = "PHONES", mainTextStrike="with-strike", textSubContent = "No Checking Phones"  }
+params = { textAround = "NO PHONES   NO PHONES   NO PHONES", textContent = "PHONE", mainTextStrike="with-strike", textSubContent = "No Phone"  }
 
 [[openscadgen.instances]]
 params = { textAround = "NO QUESTIONS NO QUESTIONS NO QUESTIONS", textContent = "?????",  mainTextStrike="with-strike", textSubContent = "No Asking Questions" }
 
 [[openscadgen.instances]]
 params = { textAround = "UMM UHHH UMM UHHH UMM UHHH", textContent = "UMMMM",  mainTextStrike="with-strike", textSubContent = "No 'Umm' or 'Uhh'" }
-
-[[openscadgen.instances]]
-params = { textAround = "TIDY TITAN TIDY TITAN TIDY TITAN", textContent = "SPILL",  mainTextStrike="with-strike", textSubContent = "Drink if You Spill" }
-
-[[openscadgen.instances]]
-params = { textAround = "CIVILIZED CIVILIZED CIVILIZED", textContent = "CIVIL",  mainTextStrike="with-strike", textSubContent = "Must be overly polite" }
 
 [[openscadgen.instances]]
 params = { textAround = "GRUG GRUG GRUG GRUG GRUG GRUG", textContent = "GRUG", textSubContent = "Refer to everyone as [modifier] Grug", textSubContentSize="2" }

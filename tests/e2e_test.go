@@ -1,0 +1,444 @@
+package tests
+
+import (
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"testing"
+)
+
+var binaryPath string
+
+const (
+	defaultDesign  = "default"
+	defaultDesign2 = "default2"
+	invalidDesign  = "invalid"
+	defaultConfig  = `[openscadgen]
+name = "test"
+version = "1.0"
+description = "Test design"
+export_name_format = "{instanceName}"
+
+[[openscadgen.input_paths]]
+path = "default_design.scad"
+`
+	defaultConfigPath = "config.toml"
+)
+
+func TestMain(m *testing.M) {
+	// Get the current directory
+	currentDir, err := os.Getwd()
+	if err != nil {
+		os.Stderr.WriteString("Failed to get current directory: " + err.Error() + "\n")
+		os.Exit(1)
+	}
+
+	// Change to the parent directory to build
+	parentDir := filepath.Dir(currentDir)
+	if err := os.Chdir(parentDir); err != nil {
+		os.Stderr.WriteString("Failed to change directory: " + err.Error() + "\n")
+		os.Exit(1)
+	}
+
+	// Build the binary
+	cmd := exec.Command("go", "build", "-o", "openscadgen", ".")
+	if err := cmd.Run(); err != nil {
+		os.Stderr.WriteString("Failed to build binary: " + err.Error() + "\n")
+		os.Exit(1)
+	}
+
+	// Get the absolute path to the binary
+	binaryPath, err = filepath.Abs("openscadgen")
+	if err != nil {
+		os.Stderr.WriteString("Failed to get binary path: " + err.Error() + "\n")
+		os.Exit(1)
+	}
+
+	// Change back to the original directory
+	if err := os.Chdir(currentDir); err != nil {
+		os.Stderr.WriteString("Failed to change back to original directory: " + err.Error() + "\n")
+		os.Exit(1)
+	}
+
+	// Run the tests
+	code := m.Run()
+
+	// Clean up
+	//os.Remove(binaryPath)
+
+	os.Exit(code)
+}
+
+type testCase struct {
+	name          string
+	configContent string
+	scadContent   string
+	scadContent2  string
+	command       string
+	expectedFiles []string
+	shouldFail    bool
+}
+
+// printDirectoryContents prints the contents of a directory and its subdirectories
+func printDirectoryContents(t *testing.T, dir string) {
+	printDirectoryContentsRecursive(t, dir, 0)
+}
+
+// printDirectoryContentsRecursive is a helper function that recursively prints directory contents
+func printDirectoryContentsRecursive(t *testing.T, dir string, depth int) {
+	contents, err := os.ReadDir(dir)
+	if err != nil {
+		t.Errorf("Failed to read directory %s: %v", dir, err)
+		return
+	}
+
+	// Print header only for the root directory
+	if depth == 0 {
+		t.Logf("\n===== Directory Contents:  =====\n (%s)\n", dir)
+	}
+
+	// Create indentation based on depth
+	indent := strings.Repeat("  ", depth)
+
+	for _, entry := range contents {
+		if entry.IsDir() {
+			t.Logf("%s📁 %s/\n", indent, entry.Name())
+			// Recursively print subdirectory contents
+			subDir := filepath.Join(dir, entry.Name())
+			printDirectoryContentsRecursive(t, subDir, depth+1)
+		} else {
+			t.Logf("%s📄 %s\n", indent, entry.Name())
+		}
+	}
+
+	// Print footer only for the root directory
+	if depth == 0 {
+		t.Logf("=============================\n")
+	}
+}
+
+var extraArgs = " -d" //"-d"
+
+var scadFileInputExamples = map[string]string{
+	defaultDesign: `
+	module cubeDefault(size) {
+    cube([size, size, size]);
+}
+	
+cubeDefault(size=10);
+	`,
+	defaultDesign2: `
+	module cylinderDefault(size) {
+		cylinder(d=size, h=size);
+	}
+
+cylinderDefault(size=10);
+`,
+	invalidDesign: `
+	module invalidDesign(size) {
+		HMM_IS_THAT_A_VALID_METHOD_NAME___NO([size, size, size]);
+	}
+
+	invalidDesign(size=10);
+	`,
+}
+
+func TestOpenSCADGenE2E(t *testing.T) {
+	testCases := []testCase{
+		{
+			name:          "Default design",
+			configContent: defaultConfig,
+			scadContent:   scadFileInputExamples[defaultDesign],
+			command:       binaryPath + " -c " + defaultConfigPath + " -ow",
+			expectedFiles: []string{
+				"config.toml",
+				"default_design.scad",
+				"export/1.0/default.stl",
+				"export/1.0/report.html",
+			},
+		},
+		{
+			name: "Default design 2",
+			configContent: `
+				[openscadgen]
+				name = "test"
+				version = "1.0"
+				description = "Test design"
+				export_name_format = "{instanceName}-{size}"
+
+				global_params = { size = "10,20" }
+
+				[[openscadgen.input_paths]]
+				path = "default_design.scad"
+			`,
+			scadContent: scadFileInputExamples[defaultDesign2],
+			command:     binaryPath + " -c " + defaultConfigPath + " -ow",
+			expectedFiles: []string{
+				"export/1.0/default-10.stl",
+				"export/1.0/default-20.stl",
+				"export/1.0/report.html",
+			},
+		},
+		{
+			name: "Basic config with default output",
+			configContent: `[openscadgen]
+name = "test-project"
+version = "1.0"
+export_name_format = "{designFileName}-{instanceName}-{size}"
+
+global_params = { size = "10,20" }
+
+[[openscadgen.input_paths]]       
+path = "./default_design.scad"
+
+[[openscadgen.instances]]
+name = "instance-name"
+`,
+			scadContent: scadFileInputExamples[defaultDesign],
+			command:     binaryPath + " -c ./config.toml",
+			expectedFiles: []string{
+				"default_design.scad",
+				"config.toml",
+				"export/1.0/report.html",
+				"export/1.0/default_design-instance-name-10.stl",
+				"export/1.0/default_design-instance-name-20.stl",
+			},
+			shouldFail: false,
+		},
+		{
+			name: "Run with regex pattern on instance name",
+			configContent: `[openscadgen]
+		name = "test-project"
+		version = "1.0"
+		export_name_format = "{designFileName}-{instanceName}"
+
+		[[openscadgen.input_paths]]
+		path = "./default_design.scad"
+
+		[[openscadgen.instances]]
+		name = "instance-name"
+
+		[[openscadgen.instances]]
+		name = "instance-name-2"
+		`,
+			scadContent: scadFileInputExamples[defaultDesign],
+			command:     binaryPath + " -c ./config.toml -r instance-name-2 ",
+			expectedFiles: []string{
+				"default_design.scad",
+				"config.toml",
+				"export/1.0/report.html",
+				"export/1.0/default_design-instance-name-2.stl",
+			},
+			shouldFail: false,
+		},
+		{
+			name: "Run with regex pattern on path name",
+			configContent: `[openscadgen]
+		name = "test-project"
+		version = "1.0"
+		export_name_format = "{designFileName}-{instanceName}"
+
+		[[openscadgen.input_paths]]
+		path = "./default_design.scad"
+
+		[[openscadgen.input_paths]]
+		path = "./default_design_2.scad"
+
+		[[openscadgen.instances]]
+		name = "instance-name"
+
+		[[openscadgen.instances]]
+		name = "instance-name-2"
+		`,
+			scadContent:  scadFileInputExamples[defaultDesign],
+			scadContent2: scadFileInputExamples[defaultDesign2],
+			command:      binaryPath + " -c ./config.toml -r default_design_2 ",
+			expectedFiles: []string{
+				"default_design.scad",
+				"config.toml",
+				"export/1.0/report.html",
+				"export/1.0/default_design_2-instance-name.stl",
+				"export/1.0/default_design_2-instance-name-2.stl",
+			},
+			shouldFail: false,
+		},
+		{
+			name: "Invalid config key",
+			configContent: `[openscadgen]
+		name = "test-project"
+		INVAID_CONFIG_KEY = "INVALID_CONFIG_KEY"
+		`,
+			command:    binaryPath + " -c ./config.toml",
+			shouldFail: true,
+		},
+		{
+			name: "Multiple size parameters with different formats",
+			configContent: `[openscadgen]
+		name = "test-project"
+		version = "1.0"
+		export_name_format = "{designFileName}-{instanceName}-{size}"
+
+		[[openscadgen.input_paths]]
+		path = "./default_design.scad"
+
+		[[openscadgen.instances]]
+		name = "instance-name"
+		params = { size = "40,50" }
+
+		[[openscadgen.instances]]
+		name = "instance-name"
+		params = { size = "10,20,30" }
+		`,
+			scadContent: scadFileInputExamples[defaultDesign],
+			command:     binaryPath + " -c ./config.toml",
+			expectedFiles: []string{
+				"default_design.scad",
+				"config.toml",
+				"export/1.0/report.html",
+				"export/1.0/default_design-instance-name-40.stl",
+				"export/1.0/default_design-instance-name-50.stl",
+				"export/1.0/default_design-instance-name-10.stl",
+				"export/1.0/default_design-instance-name-20.stl",
+				"export/1.0/default_design-instance-name-30.stl",
+			},
+			shouldFail: false,
+		},
+		{
+			name:          "invalid design",
+			configContent: defaultConfig,
+			scadContent:   scadFileInputExamples[invalidDesign],
+			command:       binaryPath + " -c " + defaultConfigPath + " -ow",
+			expectedFiles: []string{
+				"config.toml",
+				"default_design.scad",
+				"export/1.0/report.html",
+			},
+			shouldFail: false,
+		},
+		{
+			name: "Invalid extra parameter in instances",
+			configContent: `[openscadgen]
+		name = "test-project"
+		version = "1.0"
+		export_name_format = "{designFileName}-{instanceName}"
+
+		[[openscadgen.input_paths]]
+		path = "./default_design.scad"
+
+		[[openscadgen.instances]]
+		name = "instance-name"
+		size = "40,50"  # This is an invalid extra parameter
+		`,
+			scadContent: scadFileInputExamples[defaultDesign],
+			command:     binaryPath + " -c ./config.toml",
+			shouldFail:  true,
+		},
+		{
+			name: "Invalid field in instances",
+			configContent: `[openscadgen]
+		name = "test-project"
+		version = "1.0"
+		export_name_format = "{designFileName}-{instanceName}"
+
+		[[openscadgen.input_paths]]
+		path = "./default_design.scad"
+
+		[[openscadgen.instances]]
+		name = "instance-name"
+		invalid_field = "this should fail"  # This is an invalid field
+		`,
+			scadContent: scadFileInputExamples[defaultDesign],
+			command:     binaryPath + " -c ./config.toml",
+			shouldFail:  true,
+		},
+	}
+
+	var onlyRunTestIndex = -1
+
+	for index, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if onlyRunTestIndex != -1 {
+				if onlyRunTestIndex != index {
+					t.Skipf("Skipping test case: %s", tc.name)
+					return
+				}
+			}
+			t.Logf("\n\n\n======== Running test case: %s", tc.name)
+			tempDir, err := os.MkdirTemp("", "openscadgen-test-*")
+			if err != nil {
+				t.Fatalf("Failed to create temp dir: %v", err)
+			}
+			defer os.RemoveAll(tempDir)
+
+			// Change to temp directory
+			oldDir, err := os.Getwd()
+			if err != nil {
+				t.Fatalf("Failed to get current directory: %v", err)
+			}
+			defer os.Chdir(oldDir)
+			os.Chdir(tempDir)
+
+			// Write config file
+			if err := os.WriteFile("config.toml", []byte(tc.configContent), 0644); err != nil {
+				t.Fatalf("Failed to write config file: %v", err)
+			}
+
+			// Write SCAD file
+			if err := os.WriteFile("default_design.scad", []byte(tc.scadContent), 0644); err != nil {
+				t.Fatalf("Failed to write SCAD file: %v", err)
+			}
+			if tc.scadContent2 != "" {
+				if err := os.WriteFile("default_design_2.scad", []byte(tc.scadContent2), 0644); err != nil {
+					t.Fatalf("Failed to write SCAD file: %v", err)
+				}
+			}
+
+			if tc.command == "" {
+				t.Fatalf("Command is empty for %s", tc.name)
+			}
+
+			t.Logf("Running command: %s", tc.command+" "+extraArgs)
+
+			// Run openscadgen
+			cmd := exec.Command("sh", "-c", tc.command+" "+extraArgs)
+			output, err := cmd.CombinedOutput()
+			//if tc.logOutput {
+			t.Logf("Command output:\n%s", output)
+			//	}
+			if tc.shouldFail {
+				if err == nil {
+					t.Errorf("Expected command to fail but it succeeded")
+				} else {
+					t.Logf("Command failed as expected: %v", err)
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("Command failed: %v\nOutput: %s", err, output)
+				return
+			}
+
+			fileCount := 0
+			for _, file := range tc.expectedFiles {
+				filePath := filepath.Join(tempDir, file)
+				if _, err := os.Stat(filePath); os.IsNotExist(err) {
+					t.Errorf("Expected file :\n\t'%s' \n does not exist", file)
+					printDirectoryContents(t, tempDir)
+				}
+				fileCount++
+			}
+			if fileCount != len(tc.expectedFiles) {
+				t.Errorf("Expected %d files but got %d", len(tc.expectedFiles), fileCount)
+				printDirectoryContents(t, tempDir)
+			}
+		})
+	}
+	/*
+		t.Run("confirm onlyRunTestIndex is set to run all tests", func(t *testing.T) {
+			if onlyRunTestIndex != -1 {
+				t.Errorf("onlyRunTestIndex is set to %d, expected -1", onlyRunTestIndex)
+			}
+		})
+	*/
+}

@@ -1,0 +1,227 @@
+<!doctype html><html lang="en" x-data="{ darkMode: true, searchQuery: &#39;&#39; }" x-init="
+        darkMode = localStorage.getItem(&#39;darkMode&#39;) === &#39;true&#39; || 
+                  (!localStorage.getItem(&#39;darkMode&#39;) &amp;&amp; window.matchMedia(&#39;(prefers-color-scheme: dark)&#39;).matches);
+        $watch(&#39;darkMode&#39;, value =&gt; {
+            localStorage.setItem(&#39;darkMode&#39;, value);
+            document.documentElement.classList.toggle(&#39;dark&#39;, value);
+        });
+    "><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>holder-vase - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><style>
+                :root {
+                    --bg-color: #ffffff;
+                    --text-color: #333333;
+                    --card-bg: #ffffff;
+                    --border-color: #eee;
+                }
+
+                .dark {
+                    --bg-color: #1a1a1a;
+                    --text-color: #f5f5f5 !important;
+                    --card-bg: #2d2d2d;
+                    --border-color: #404040;
+                    color: #f5f5f5 !important;
+                }
+
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    background-color: var(--bg-color);
+                    color: var(--text-color);
+                }
+                .container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }
+                .global-header {
+                    position: sticky;
+                    top: 0;
+                    background-color: var(--bg-color);
+                    z-index: 1000;
+                    padding: 1rem;
+                    border-bottom: 1px solid var(--border-color);
+                    margin-bottom: 2rem;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+                .global-header .container {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 0;
+                }
+                .search-box {
+                    flex: 1;
+                    max-width: 400px;
+                    margin: 0 1rem;
+                }
+                .table-container {
+                    margin: 20px 0;
+                    overflow-x: auto;
+                    position: relative;
+                }
+                .table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 20px 0;
+                    background-color: var(--card-bg);
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+                }
+                .table thead {
+                    position: sticky;
+                    top: 0;
+                    z-index: 10;
+                }
+                .table th {
+                    background-color: var(--card-bg);
+                    font-weight: bold;
+                    padding: 12px;
+                    text-align: left;
+                    border-bottom: 2px solid var(--border-color);
+                }
+                h1 {
+                    color: #333;
+                    border-bottom: 2px solid #333;
+                    padding-bottom: 10px;
+                }
+                h2, h3 {
+                    color: var(--text-color);
+                }
+                .header {
+                    margin-bottom: 30px;
+                    position: sticky;
+                    top: 0;
+                    background-color: var(--bg-color);
+                    z-index: 100;
+                    padding: 1rem 0;
+                    border-bottom: 1px solid var(--border-color);
+                }
+                .header .level {
+                    margin-bottom: 0;
+                }
+                .params {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                    gap: 10px;
+                    margin-top: 10px;
+                }
+                .param {
+                    background: var(--card-bg);
+                    padding: 10px;
+                    border-radius: 4px;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                }
+                .footer {
+                    margin-top: 30px;
+                    padding-top: 20px;
+                    border-top: 1px solid var(--border-color);
+                    font-size: 0.9em;
+                    color: var(--text-color);
+                }
+                th, td {
+                    padding: 12px;
+                    text-align: left;
+                    border-bottom: 1px solid #ddd;
+                }
+                tr:hover {
+                    background-color: #f5f5f5;
+                }
+                .error {
+                    color: red;
+                }
+                .success {
+                    color: green;
+                }
+                .camera-coords {
+                    background-color: #f8f9fa;
+                    padding: 10px;
+                    border-radius: 4px;
+                    margin: 5px 0;
+                }
+                .camera-coords ul {
+                    margin: 5px 0;
+                    padding-left: 20px;
+                }
+                .camera-coords p {
+                    margin: 5px 0;
+                }
+                details {
+                    cursor: pointer;
+                }
+                details summary {
+                    color: #0066cc;
+                }
+                details summary:hover {
+                    text-decoration: underline;
+                }
+                .image-preview {
+                    max-width: 200px;
+                    max-height: 200px;
+                    border: 1px solid var(--border-color);
+                    border-radius: 4px;
+                    object-fit: contain;
+                }
+                .image-error {
+                    color: var(--text-color);
+                    font-style: italic;
+                    font-size: 0.9em;
+                }
+            </style></head><body><div class="global-header"><div class="container"><h1 class="title is-4">holder-vase</h1><div class="search-box"><div class="field"><div class="control"><input class="input" type="text" placeholder="Search..." x-model="searchQuery"></div></div></div><button class="button" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button></div></div><div class="container"><div class="header"><p></p></div><div>No Global Parameters [global_params]</div><h2 class="is-size-4">Input Paths</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Path</th></tr></thead> <tbody><tr><td>./holder-vase.scad</td></tr></tbody></table></div><h2 class="is-size-4">STL Generation Results</h2><div>Generated 10 stl files</div><div class="table-container"><table class="table is-fullwidth"><thead><tr><th style="width: 150px;">Instance</th><th style="width: 200px;">Output Path</th><th style="width: 200px;">Command</th><th style="width: 100px;">Time Taken</th><th style="width: 200px;">Params</th><th style="width: 150px;">Error</th></tr></thead> <tbody><tr x-show="searchQuery === &#39;&#39; || (&#39; holder-vase/export/v0_1/holder-vase-height-40-wall-bump-rate-20.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>holder-vase/export/v0_1/holder-vase-height-40-wall-bump-rate-20.stl</td><td>openscad -o holder-vase/export/v0_1/holder-vase-height-40-wall-bump-rate-20.stl -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;height=40&#39; -D &#39;wall_bump_rate=20&#39; -D &#39;designFileName=&#34;holder-vase&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;part_id_letter=&#34;A&#34;&#39; &#34;./holder-vase/holder-vase.scad&#34; --render</td><td>1.861016416s</td><td><details><summary>Params</summary><pre><code>height = 40;
+wall_bump_rate = 20;
+designFileName = &#34;holder-vase&#34;;
+name = &#34;&#34;;
+version = &#34;v0.1&#34;;
+part_id_letter = &#34;A&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td class="is-danger">warning: file &#39;holder-vase/export/v0_1/holder-vase-height-40-wall-bump-rate-20.stl&#39; does not exist</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; holder-vase/export/v0_1/holder-vase-height-40-wall-bump-rate-10.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>holder-vase/export/v0_1/holder-vase-height-40-wall-bump-rate-10.stl</td><td>openscad -o holder-vase/export/v0_1/holder-vase-height-40-wall-bump-rate-10.stl -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;height=40&#39; -D &#39;wall_bump_rate=10&#39; -D &#39;designFileName=&#34;holder-vase&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;part_id_letter=&#34;B&#34;&#39; &#34;./holder-vase/holder-vase.scad&#34; --render</td><td>1.740893125s</td><td><details><summary>Params</summary><pre><code>designFileName = &#34;holder-vase&#34;;
+name = &#34;&#34;;
+part_id_letter = &#34;B&#34;;
+version = &#34;v0.1&#34;;
+height = 40;
+wall_bump_rate = 10;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td class="is-danger">warning: file &#39;holder-vase/export/v0_1/holder-vase-height-40-wall-bump-rate-10.stl&#39; does not exist</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; holder-vase/export/v0_1/holder-vase-height-70-wall-bump-rate-100.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>holder-vase/export/v0_1/holder-vase-height-70-wall-bump-rate-100.stl</td><td>openscad -o holder-vase/export/v0_1/holder-vase-height-70-wall-bump-rate-100.stl -D &#39;wall_bump_rate=100&#39; -D &#39;designFileName=&#34;holder-vase&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;height=70&#39; -D &#39;part_id_letter=&#34;C&#34;&#39; &#34;./holder-vase/holder-vase.scad&#34; --render</td><td>5.406523792s</td><td><details><summary>Params</summary><pre><code>name = &#34;&#34;;
+version = &#34;v0.1&#34;;
+part_id_letter = &#34;C&#34;;
+height = 70;
+wall_bump_rate = 100;
+designFileName = &#34;holder-vase&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; holder-vase/export/v0_1/holder-vase-height-70-wall-bump-rate-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>holder-vase/export/v0_1/holder-vase-height-70-wall-bump-rate-50.stl</td><td>openscad -o holder-vase/export/v0_1/holder-vase-height-70-wall-bump-rate-50.stl -D &#39;wall_bump_rate=50&#39; -D &#39;height=70&#39; -D &#39;designFileName=&#34;holder-vase&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;part_id_letter=&#34;D&#34;&#39; &#34;./holder-vase/holder-vase.scad&#34; --render</td><td>5.533277333s</td><td><details><summary>Params</summary><pre><code>wall_bump_rate = 50;
+height = 70;
+designFileName = &#34;holder-vase&#34;;
+name = &#34;&#34;;
+version = &#34;v0.1&#34;;
+part_id_letter = &#34;D&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; holder-vase/export/v0_1/holder-vase-height-70-wall-bump-rate-20.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>holder-vase/export/v0_1/holder-vase-height-70-wall-bump-rate-20.stl</td><td>openscad -o holder-vase/export/v0_1/holder-vase-height-70-wall-bump-rate-20.stl -D &#39;height=70&#39; -D &#39;wall_bump_rate=20&#39; -D &#39;designFileName=&#34;holder-vase&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;part_id_letter=&#34;E&#34;&#39; &#34;./holder-vase/holder-vase.scad&#34; --render</td><td>5.896355s</td><td><details><summary>Params</summary><pre><code>name = &#34;&#34;;
+version = &#34;v0.1&#34;;
+part_id_letter = &#34;E&#34;;
+height = 70;
+wall_bump_rate = 20;
+designFileName = &#34;holder-vase&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; holder-vase/export/v0_1/holder-vase-height-70-wall-bump-rate-200.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>holder-vase/export/v0_1/holder-vase-height-70-wall-bump-rate-200.stl</td><td>openscad -o holder-vase/export/v0_1/holder-vase-height-70-wall-bump-rate-200.stl -D &#39;height=70&#39; -D &#39;wall_bump_rate=200&#39; -D &#39;designFileName=&#34;holder-vase&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;part_id_letter=&#34;F&#34;&#39; &#34;./holder-vase/holder-vase.scad&#34; --render</td><td>6.397497291s</td><td><details><summary>Params</summary><pre><code>name = &#34;&#34;;
+part_id_letter = &#34;F&#34;;
+version = &#34;v0.1&#34;;
+height = 70;
+wall_bump_rate = 200;
+designFileName = &#34;holder-vase&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; holder-vase/export/v0_1/holder-vase-height-100-wall-bump-rate-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>holder-vase/export/v0_1/holder-vase-height-100-wall-bump-rate-50.stl</td><td>openscad -o holder-vase/export/v0_1/holder-vase-height-100-wall-bump-rate-50.stl -D &#39;wall_bump_rate=50&#39; -D &#39;height=100&#39; -D &#39;designFileName=&#34;holder-vase&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;part_id_letter=&#34;G&#34;&#39; &#34;./holder-vase/holder-vase.scad&#34; --render</td><td>6.158932958s</td><td><details><summary>Params</summary><pre><code>height = 100;
+designFileName = &#34;holder-vase&#34;;
+name = &#34;&#34;;
+part_id_letter = &#34;G&#34;;
+version = &#34;v0.1&#34;;
+wall_bump_rate = 50;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; holder-vase/export/v0_1/holder-vase-height-100-wall-bump-rate-10.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>holder-vase/export/v0_1/holder-vase-height-100-wall-bump-rate-10.stl</td><td>openscad -o holder-vase/export/v0_1/holder-vase-height-100-wall-bump-rate-10.stl -D &#39;wall_bump_rate=10&#39; -D &#39;designFileName=&#34;holder-vase&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;height=100&#39; -D &#39;part_id_letter=&#34;H&#34;&#39; &#34;./holder-vase/holder-vase.scad&#34; --render</td><td>6.256778666s</td><td><details><summary>Params</summary><pre><code>version = &#34;v0.1&#34;;
+height = 100;
+part_id_letter = &#34;H&#34;;
+wall_bump_rate = 10;
+designFileName = &#34;holder-vase&#34;;
+name = &#34;&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; holder-vase/export/v0_1/holder-vase-height-100-wall-bump-rate-100.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>holder-vase/export/v0_1/holder-vase-height-100-wall-bump-rate-100.stl</td><td>openscad -o holder-vase/export/v0_1/holder-vase-height-100-wall-bump-rate-100.stl -D &#39;wall_bump_rate=100&#39; -D &#39;designFileName=&#34;holder-vase&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;height=100&#39; -D &#39;part_id_letter=&#34;I&#34;&#39; &#34;./holder-vase/holder-vase.scad&#34; --render</td><td>5.736111458s</td><td><details><summary>Params</summary><pre><code>height = 100;
+wall_bump_rate = 100;
+designFileName = &#34;holder-vase&#34;;
+name = &#34;&#34;;
+version = &#34;v0.1&#34;;
+part_id_letter = &#34;I&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; holder-vase/export/v0_1/holder-vase-height-100-wall-bump-rate-200.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>holder-vase/export/v0_1/holder-vase-height-100-wall-bump-rate-200.stl</td><td>openscad -o holder-vase/export/v0_1/holder-vase-height-100-wall-bump-rate-200.stl -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;height=100&#39; -D &#39;wall_bump_rate=200&#39; -D &#39;designFileName=&#34;holder-vase&#34;&#39; -D &#39;part_id_letter=&#34;J&#34;&#39; &#34;./holder-vase/holder-vase.scad&#34; --render</td><td>6.887290583s</td><td><details><summary>Params</summary><pre><code>version = &#34;v0.1&#34;;
+height = 100;
+wall_bump_rate = 200;
+designFileName = &#34;holder-vase&#34;;
+name = &#34;&#34;;
+part_id_letter = &#34;J&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td></tr></tbody></table></div><details><summary>No Image Generation Results</summary><div>Add export images to the config file to generate images for each instance:<pre><code>[[openscadgen.export_images]] name = "front" coord = "0,0,0,0,0,0,100"</code></pre></div></details> <div><h2 class="is-size-4">Generated Instances</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Name</th><th>Description</th><th>Output Path</th><th>Ignored Params</th><th>Skipped Reason</th><th>Images</th><th>designFileName</th><th>name</th><th>version</th><th>height</th><th>wall_bump_rate</th></tr></thead> <tbody><tr x-show="searchQuery === &#39;&#39; || (&#39; holder-vase/export/v0_1/holder-vase-height-40-wall-bump-rate-20.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>holder-vase/export/v0_1/holder-vase-height-40-wall-bump-rate-20.stl</td><td>[]</td><td></td><td>no images generated</td><td>holder-vase</td><td></td><td>v0.1</td><td>40</td><td>20</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; holder-vase/export/v0_1/holder-vase-height-40-wall-bump-rate-10.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>holder-vase/export/v0_1/holder-vase-height-40-wall-bump-rate-10.stl</td><td>[]</td><td></td><td>no images generated</td><td>holder-vase</td><td></td><td>v0.1</td><td>40</td><td>10</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; holder-vase/export/v0_1/holder-vase-height-70-wall-bump-rate-100.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>holder-vase/export/v0_1/holder-vase-height-70-wall-bump-rate-100.stl</td><td>[]</td><td></td><td>no images generated</td><td>holder-vase</td><td></td><td>v0.1</td><td>70</td><td>100</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; holder-vase/export/v0_1/holder-vase-height-70-wall-bump-rate-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>holder-vase/export/v0_1/holder-vase-height-70-wall-bump-rate-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>holder-vase</td><td></td><td>v0.1</td><td>70</td><td>50</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; holder-vase/export/v0_1/holder-vase-height-70-wall-bump-rate-20.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>holder-vase/export/v0_1/holder-vase-height-70-wall-bump-rate-20.stl</td><td>[]</td><td></td><td>no images generated</td><td>holder-vase</td><td></td><td>v0.1</td><td>70</td><td>20</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; holder-vase/export/v0_1/holder-vase-height-70-wall-bump-rate-200.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>holder-vase/export/v0_1/holder-vase-height-70-wall-bump-rate-200.stl</td><td>[]</td><td></td><td>no images generated</td><td>holder-vase</td><td></td><td>v0.1</td><td>70</td><td>200</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; holder-vase/export/v0_1/holder-vase-height-100-wall-bump-rate-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>holder-vase/export/v0_1/holder-vase-height-100-wall-bump-rate-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>holder-vase</td><td></td><td>v0.1</td><td>100</td><td>50</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; holder-vase/export/v0_1/holder-vase-height-100-wall-bump-rate-10.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>holder-vase/export/v0_1/holder-vase-height-100-wall-bump-rate-10.stl</td><td>[]</td><td></td><td>no images generated</td><td>holder-vase</td><td></td><td>v0.1</td><td>100</td><td>10</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; holder-vase/export/v0_1/holder-vase-height-100-wall-bump-rate-100.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>holder-vase/export/v0_1/holder-vase-height-100-wall-bump-rate-100.stl</td><td>[]</td><td></td><td>no images generated</td><td>holder-vase</td><td></td><td>v0.1</td><td>100</td><td>100</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; holder-vase/export/v0_1/holder-vase-height-100-wall-bump-rate-200.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>holder-vase/export/v0_1/holder-vase-height-100-wall-bump-rate-200.stl</td><td>[]</td><td></td><td>no images generated</td><td>holder-vase</td><td></td><td>v0.1</td><td>100</td><td>200</td></tr></tbody></table></div></div><h2 class="is-size-4">Configuration Details</h2><div class="instance"><div class="params"><div class="param"><strong>Version:</strong> v0.1</div><div class="param"><strong>Output Path:</strong> </div><div class="param"><strong>OpenSCAD Version:</strong> </div><div class="param"><strong>OpenSCADGen Version:</strong> </div><div class="param"><strong>Build Info Set In File Attributes</strong></div></div></div><h2 class="is-size-4">Output Paths</h2><div class="instance"><div class="param"><strong>OutputPath:</strong> holder-vase/export/v0_1</div><div class="param"><strong>ExportFolderPath:</strong> holder-vase/export/v0_1</div><div class="param"><strong>ReadmePath:</strong> holder-vase/export/v0_1/README.md</div><div class="param"><strong>LogOutputPath:</strong> holder-vase/export/v0_1/export_log.log</div></div><div class="footer"><p>Generated by openscadgen  at 2025-04-14 09:50:42</p></div></div></body></html>

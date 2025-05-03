@@ -1,11 +1,24 @@
-<!doctype html><html lang="en" x-data="{ darkMode: false }" x-init="
+<!doctype html><html lang="en" x-data="{ darkMode: true, searchQuery: &#39;&#39; }" x-init="
         darkMode = localStorage.getItem(&#39;darkMode&#39;) === &#39;true&#39; || 
                   (!localStorage.getItem(&#39;darkMode&#39;) &amp;&amp; window.matchMedia(&#39;(prefers-color-scheme: dark)&#39;).matches);
         $watch(&#39;darkMode&#39;, value =&gt; {
             localStorage.setItem(&#39;darkMode&#39;, value);
             document.documentElement.classList.toggle(&#39;dark&#39;, value);
         });
-    "><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>hand-press-plate - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><style>
+    "><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>hand-press-plate - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><script>
+                function copyDetailsContent() {
+                    const button = $el.querySelector('button');
+                    const codeBlock = $el.querySelector('pre code');
+                    const content = codeBlock.textContent;
+                    navigator.clipboard.writeText(content).then(() => {
+                        const originalText = button.textContent;
+                        button.textContent = 'Copied!';
+                        setTimeout(() => {
+                            button.textContent = originalText;
+                        }, 1000);
+                    });
+                }
+            </script><style>
                 :root {
                     --bg-color: #ffffff;
                     --text-color: #333333;
@@ -15,28 +28,87 @@
 
                 .dark {
                     --bg-color: #1a1a1a;
-                    --text-color: #f5f5f5;
+                    --text-color: #f5f5f5 !important;
                     --card-bg: #2d2d2d;
                     --border-color: #404040;
+                    color: #f5f5f5 !important;
                 }
 
                 body {
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-                    line-height: 1.6;
+                    font-family: Arial, sans-serif;
                     margin: 0;
-                    padding: 20px;
-                    color: var(--text-color);
                     background-color: var(--bg-color);
+                    color: var(--text-color);
                 }
                 .container {
                     max-width: 1200px;
                     margin: 0 auto;
+                    padding: 20px;
                 }
-                h1, h2, h3 {
+                .global-header {
+                    position: sticky;
+                    top: 0;
+                    background-color: var(--bg-color);
+                    z-index: 1000;
+                    padding: 1rem;
+                    border-bottom: 1px solid var(--border-color);
+                    margin-bottom: 2rem;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+                .global-header .container {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 0;
+                }
+                .search-box {
+                    flex: 1;
+                    max-width: 400px;
+                    margin: 0 1rem;
+                }
+                .table-container {
+                    margin: 20px 0;
+                    overflow-x: auto;
+                    position: relative;
+                }
+                .table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 20px 0;
+                    background-color: var(--card-bg);
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+                }
+                .table thead {
+                    position: sticky;
+                    top: 0;
+                    z-index: 10;
+                }
+                .table th {
+                    background-color: var(--card-bg);
+                    font-weight: bold;
+                    padding: 12px;
+                    text-align: left;
+                    border-bottom: 2px solid var(--border-color);
+                }
+                h1 {
+                    color: #333;
+                    border-bottom: 2px solid #333;
+                    padding-bottom: 10px;
+                }
+                h2, h3 {
                     color: var(--text-color);
                 }
                 .header {
                     margin-bottom: 30px;
+                    position: sticky;
+                    top: 0;
+                    background-color: var(--bg-color);
+                    z-index: 100;
+                    padding: 1rem 0;
+                    border-bottom: 1px solid var(--border-color);
+                }
+                .header .level {
+                    margin-bottom: 0;
                 }
                 .params {
                     display: grid;
@@ -57,23 +129,41 @@
                     font-size: 0.9em;
                     color: var(--text-color);
                 }
-                .table-container {
-                    margin: 20px 0;
-                    overflow-x: auto;
+                th, td {
+                    padding: 12px;
+                    text-align: left;
+                    border-bottom: 1px solid #ddd;
                 }
-                .table {
-                    background-color: var(--card-bg);
-                    min-width: 1200px;
+                tr:hover {
+                    background-color: #f5f5f5;
                 }
-                .table th {
-                    color: var(--text-color);
+                .error {
+                    color: red;
                 }
-                .table td {
-                    color: var(--text-color);
+                .success {
+                    color: green;
                 }
-                .tag {
-                    background-color: var(--card-bg);
-                    color: var(--text-color);
+                .camera-coords {
+                    background-color: #f8f9fa;
+                    padding: 10px;
+                    border-radius: 4px;
+                    margin: 5px 0;
+                }
+                .camera-coords ul {
+                    margin: 5px 0;
+                    padding-left: 20px;
+                }
+                .camera-coords p {
+                    margin: 5px 0;
+                }
+                details {
+                    cursor: pointer;
+                }
+                details summary {
+                    color: #0066cc;
+                }
+                details summary:hover {
+                    text-decoration: underline;
                 }
                 .image-preview {
                     max-width: 200px;
@@ -87,9 +177,288 @@
                     font-style: italic;
                     font-size: 0.9em;
                 }
-            </style></head><body><div class="container"><div class="header"><div class="level"><div class="level-left"><h1>hand-press-plate</h1></div><div class="level-right"><button class="button" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button></div></div><p></p></div><h2 class="is-size-4">Global Parameters</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Parameter</th><th>Value</th></tr></thead> <tbody><tr><td>renderType</td><td></td></tr></tbody></table></div><h2 class="is-size-4">Input Paths</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Path</th></tr></thead> <tbody><tr><td>./hand-press-plate.scad</td></tr></tbody></table></div><h2 class="is-size-4">STL Generation Results</h2><div>Generated 1 stl files</div><div class="table-container"><table class="table is-fullwidth"><thead><tr><th style="width: 150px;">Instance</th><th style="width: 200px;">Output Path</th><th style="width: 200px;">Command</th><th style="width: 100px;">Time Taken</th><th style="width: 200px;">Params</th><th style="width: 150px;">Error</th></tr></thead> <tbody><tr><td>default</td><td>hand-press-plate/export/v0_1/hand-press-plate-.stl</td><td>openscad -o hand-press-plate/export/v0_1/hand-press-plate-.stl -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;renderType=&#34;&#34;&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;default&#34;&#39; -D &#39;part_id_letter=&#34;A&#34;&#39; &#34;./hand-press-plate/hand-press-plate.scad&#34; --render --backend=manifold</td><td>7.755110875s</td><td><details><summary>Params</summary><pre><code>version = &#34;v0.1&#34;;
-renderType = &#34;&#34;;
+            </style></head><body><div class="global-header"><div class="container"><h1 class="title is-4">hand-press-plate</h1><div class="search-box"><div class="field"><div class="control"><input class="input" type="text" placeholder="Search..." x-model="searchQuery"></div></div></div><button class="button" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button></div></div><div class="container"><div class="header"><p></p></div><div>No Global Parameters [global_params]</div><h2 class="is-size-4">Input Paths</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Path</th></tr></thead> <tbody><tr><td>./hand-press-plate.scad</td></tr></tbody></table></div><h2 class="is-size-4">STL Generation Results</h2><div>Generated 6 stl files</div><div class="table-container"><table class="table is-fullwidth"><thead><tr><th style="width: 150px;">Instance</th><th style="width: 200px;">Output Path</th><th style="width: 200px;">Command</th><th style="width: 100px;">Time Taken</th><th style="width: 200px;">Params</th><th style="width: 150px;">Error</th></tr></thead> <tbody><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30.stl -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=30&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;part_id_letter=&#34;A&#34;&#39; &#34;./examples/hand-press-plate/hand-press-plate.scad&#34; --render --backend=manifold</details></td><td>9.486725666s</td><td><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
 designFileName = &#34;hand-press-plate&#34;;
-name = &#34;default&#34;;
+name = &#34;&#34;;
 part_id_letter = &#34;A&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</details></td></tr></tbody></table></div><h2 class="is-size-4">Image Generation Results</h2><div>Generated 7 images</div><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Instance</th><th>Camera</th><th>Output Path</th><th>Command</th><th>Time Taken</th><th>Preview</th><th>Error</th></tr></thead> <tbody><tr><td>default</td><td>top</td><td>hand-press-plate/export/v0_1/hand-press-plate--top.png</td><td>/opt/homebrew/bin/openscad -o hand-press-plate/export/v0_1/hand-press-plate--top.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,300 --preview -D &#39;renderType=&#34;&#34;&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;default&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; ./hand-press-plate/hand-press-plate.scad</td><td>5.257870916s</td><td><img src="hand-press-plate--top.png" alt="Preview of default from top" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate--top.png</div></td><td></td></tr><tr><td>default</td><td>left</td><td>hand-press-plate/export/v0_1/hand-press-plate--left.png</td><td>/opt/homebrew/bin/openscad -o hand-press-plate/export/v0_1/hand-press-plate--left.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,90,0,300 --preview -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;renderType=&#34;&#34;&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;default&#34;&#39; ./hand-press-plate/hand-press-plate.scad</td><td>5.185558875s</td><td><img src="hand-press-plate--left.png" alt="Preview of default from left" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate--left.png</div></td><td></td></tr><tr><td>default</td><td>right</td><td>hand-press-plate/export/v0_1/hand-press-plate--right.png</td><td>/opt/homebrew/bin/openscad -o hand-press-plate/export/v0_1/hand-press-plate--right.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,300 --preview -D &#39;renderType=&#34;&#34;&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;default&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; ./hand-press-plate/hand-press-plate.scad</td><td>5.192812542s</td><td><img src="hand-press-plate--right.png" alt="Preview of default from right" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate--right.png</div></td><td></td></tr><tr><td>default</td><td>back</td><td>hand-press-plate/export/v0_1/hand-press-plate--back.png</td><td>/opt/homebrew/bin/openscad -o hand-press-plate/export/v0_1/hand-press-plate--back.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,270,0,0,300 --preview -D &#39;renderType=&#34;&#34;&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;default&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; ./hand-press-plate/hand-press-plate.scad</td><td>5.171145292s</td><td><img src="hand-press-plate--back.png" alt="Preview of default from back" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate--back.png</div></td><td></td></tr><tr><td>default</td><td>front</td><td>hand-press-plate/export/v0_1/hand-press-plate--front.png</td><td>/opt/homebrew/bin/openscad -o hand-press-plate/export/v0_1/hand-press-plate--front.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,90,0,0,300 --preview -D &#39;name=&#34;default&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;renderType=&#34;&#34;&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; ./hand-press-plate/hand-press-plate.scad</td><td>5.238203625s</td><td><img src="hand-press-plate--front.png" alt="Preview of default from front" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate--front.png</div></td><td></td></tr><tr><td>default</td><td>bottom</td><td>hand-press-plate/export/v0_1/hand-press-plate--bottom.png</td><td>/opt/homebrew/bin/openscad -o hand-press-plate/export/v0_1/hand-press-plate--bottom.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,180,0,0,300 --preview -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;renderType=&#34;&#34;&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;default&#34;&#39; ./hand-press-plate/hand-press-plate.scad</td><td>5.167027167s</td><td><img src="hand-press-plate--bottom.png" alt="Preview of default from bottom" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate--bottom.png</div></td><td></td></tr><tr><td>default</td><td>custom</td><td>hand-press-plate/export/v0_1/hand-press-plate--custom.png</td><td>/opt/homebrew/bin/openscad -o hand-press-plate/export/v0_1/hand-press-plate--custom.png --imgsize 1920,1080 --projection perspective --camera 0,0,130,130,130,0,300 --preview -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;default&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;renderType=&#34;&#34;&#39; ./hand-press-plate/hand-press-plate.scad</td><td>5.183222333s</td><td><img src="hand-press-plate--custom.png" alt="Preview of default from custom" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate--custom.png</div></td><td></td></tr></tbody></table></div><div><h2 class="is-size-4">Generated Instances</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Name</th><th>Description</th><th>Output Path</th><th>Ignored Params</th><th>designFileName</th><th>name</th><th>version</th><th>renderType</th></tr></thead> <tbody><tr><td>default</td><td></td><td>hand-press-plate/export/v0_1/hand-press-plate-.stl</td><td>[]</td><td>hand-press-plate</td><td>default</td><td>v0.1</td><td></td><td></td></tr></tbody></table></div></div><h2 class="is-size-4">Configuration Details</h2><div class="instance"><div class="params"><div class="param"><strong>Version:</strong> v0.1</div><div class="param"><strong>Output Path:</strong> </div><div class="param"><strong>OpenSCAD Version:</strong> </div><div class="param"><strong>OpenSCADGen Version:</strong> </div><div class="param"><strong>Quality:</strong>  </div><div class="param"><strong>Set Build Info In File Attributes</strong></div></div></div><h2 class="is-size-4">Output Paths</h2><div class="instance"><div class="param"><strong>OutputPath:</strong> hand-press-plate/export/v0_1</div><div class="param"><strong>ExportFolderPath:</strong> hand-press-plate/export/v0_1</div><div class="param"><strong>ReadmePath:</strong> hand-press-plate/export/v0_1/README.md</div><div class="param"><strong>LogOutputPath:</strong> hand-press-plate/export/v0_1/export_log.log</div></div><div class="footer"><p>Generated by openscadgen  at 2025-04-12 12:00:29</p></div></div></body></html>
+plateHeight = 30;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35.stl -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=35&#39; -D &#39;part_id_letter=&#34;B&#34;&#39; &#34;./examples/hand-press-plate/hand-press-plate.scad&#34; --render --backend=manifold</details></td><td>9.236029625s</td><td><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+part_id_letter = &#34;B&#34;;
+plateHeight = 35;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40.stl -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=40&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;part_id_letter=&#34;C&#34;&#39; &#34;./examples/hand-press-plate/hand-press-plate.scad&#34; --render --backend=manifold</details></td><td>9.435056375s</td><td><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+part_id_letter = &#34;C&#34;;
+plateHeight = 40;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45.stl -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=45&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;part_id_letter=&#34;D&#34;&#39; &#34;./examples/hand-press-plate/hand-press-plate.scad&#34; --render --backend=manifold</details></td><td>9.962523s</td><td><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+part_id_letter = &#34;D&#34;;
+plateHeight = 45;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50.stl -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=50&#39; -D &#39;part_id_letter=&#34;E&#34;&#39; &#34;./examples/hand-press-plate/hand-press-plate.scad&#34; --render --backend=manifold</details></td><td>9.854577083s</td><td><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+part_id_letter = &#34;E&#34;;
+plateHeight = 50;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}.stl -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;none&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;part_id_letter=&#34;F&#34;&#39; &#34;./examples/hand-press-plate/hand-press-plate.scad&#34; --render --backend=manifold</details></td><td>8.619779125s</td><td><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+part_id_letter = &#34;F&#34;;
+plateType = &#34;none&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td></tr></tbody></table></div><h2 class="is-size-4">Image Generation Results</h2><div>Generated 24 images</div><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Instance</th><th>Camera</th><th>Output Path</th><th>Command</th><th>Time Taken</th><th>Camera Coordinates</th><th>Preview</th><th>Error</th></tr></thead> <tbody><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30-top.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30-top.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,300 --preview -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=30&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>6.567318042s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,0,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateHeight = 30;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30-top.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30-left.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>left</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30-left.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30-left.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,90,0,300 --preview -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=30&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>6.634917083s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,90,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateHeight = 30;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30-left.png" alt="Preview of  from left" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30-left.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30-top.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30-top.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,300 --preview -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=30&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>6.611286625s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,0,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateHeight = 30;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30-top.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30-left.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>left</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30-left.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30-left.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,90,0,300 --preview -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=30&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;large&#34;&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>6.629617875s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,90,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateHeight = 30;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30-left.png" alt="Preview of  from left" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30-left.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35-top.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35-top.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,300 --preview -D &#39;plateHeight=35&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>6.579775292s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,0,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateHeight = 35;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35-top.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35-left.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>left</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35-left.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35-left.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,90,0,300 --preview -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=35&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;large&#34;&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>6.744069625s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,90,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateHeight = 35;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35-left.png" alt="Preview of  from left" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35-left.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35-top.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35-top.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,300 --preview -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=35&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>6.771346959s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,0,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateHeight = 35;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35-top.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35-left.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>left</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35-left.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35-left.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,90,0,300 --preview -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=35&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;large&#34;&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>6.837301875s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,90,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateHeight = 35;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35-left.png" alt="Preview of  from left" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35-left.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40-top.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40-top.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,300 --preview -D &#39;plateHeight=40&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>6.755673875s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,0,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateHeight = 40;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40-top.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40-left.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>left</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40-left.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40-left.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,90,0,300 --preview -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=40&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>6.695336458s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,90,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateHeight = 40;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40-left.png" alt="Preview of  from left" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40-left.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40-top.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40-top.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,300 --preview -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=40&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>6.664558792s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,0,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateHeight = 40;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40-top.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40-left.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>left</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40-left.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40-left.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,90,0,300 --preview -D &#39;plateHeight=40&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>6.591076083s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,90,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateHeight = 40;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40-left.png" alt="Preview of  from left" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40-left.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45-top.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45-top.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,300 --preview -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=45&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>6.653765833s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,0,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateHeight = 45;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45-top.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45-left.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>left</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45-left.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45-left.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,90,0,300 --preview -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=45&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>6.671652458s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,90,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateHeight = 45;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45-left.png" alt="Preview of  from left" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45-left.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45-top.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45-top.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,300 --preview -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=45&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>6.906720375s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,0,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateHeight = 45;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45-top.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45-left.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>left</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45-left.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45-left.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,90,0,300 --preview -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=45&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>6.736185167s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,90,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateHeight = 45;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45-left.png" alt="Preview of  from left" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45-left.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50-top.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50-top.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,300 --preview -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=50&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>6.843836625s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,0,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateHeight = 50;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50-top.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50-left.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>left</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50-left.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50-left.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,90,0,300 --preview -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=50&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>6.772359166s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,90,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateHeight = 50;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50-left.png" alt="Preview of  from left" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50-left.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50-top.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50-top.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,300 --preview -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=50&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>6.829227959s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,0,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateHeight = 50;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50-top.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50-left.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>left</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50-left.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50-left.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,90,0,300 --preview -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;large&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;plateHeight=50&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>6.835382167s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,90,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateHeight = 50;
+plateType = &#34;large&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50-left.png" alt="Preview of  from left" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50-left.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}-top.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}-top.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,300 --preview -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;none&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>5.752822458s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,0,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateType = &#34;none&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}-top.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}-left.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>left</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}-left.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}-left.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,90,0,300 --preview -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;plateType=&#34;none&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>5.692517709s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,90,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateType = &#34;none&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}-left.png" alt="Preview of  from left" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}-left.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}-top.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}-top.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,300 --preview -D &#39;plateType=&#34;none&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>5.700953958s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,0,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateType = &#34;none&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}-top.png</div></td><td></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}-left.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>left</td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}-left.png</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}-left.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,90,0,300 --preview -D &#39;plateType=&#34;none&#34;&#39; -D &#39;attachCyliderHeight=25&#39; -D &#39;designFileName=&#34;hand-press-plate&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; ./examples/hand-press-plate/hand-press-plate.scad</details></td><td>5.822237458s</td><td><details><summary>View Camera Coordinates</summary><div class="camera-coords"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: 0,0,0,0,90,0,300</p></div></details><details><summary>Params <div class="is-pulled-right"><button class="button is-small is-info" @click="copyDetailsContent()">Copy</button></div></summary><pre><code>attachCyliderHeight = 25;
+designFileName = &#34;hand-press-plate&#34;;
+name = &#34;&#34;;
+plateType = &#34;none&#34;;
+version = &#34;v0.1&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><img src="hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}-left.png" alt="Preview of  from left" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}-left.png</div></td><td></td></tr></tbody></table></div><div><h2 class="is-size-4">Generated Instances</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Name</th><th>Description</th><th>Output Path</th><th>Ignored Params</th><th>Skipped Reason</th><th>Images</th><th>plateType</th><th>attachCyliderHeight</th><th>plateHeight</th><th>designFileName</th><th>name</th><th>version</th></tr></thead> <tbody><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-30.stl</td><td>[]</td><td></td><td></td><td>large</td><td>25</td><td>30</td><td>hand-press-plate</td><td></td><td>v0.1</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-35.stl</td><td>[]</td><td></td><td></td><td>large</td><td>25</td><td>35</td><td>hand-press-plate</td><td></td><td>v0.1</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-40.stl</td><td>[]</td><td></td><td></td><td>large</td><td>25</td><td>40</td><td>hand-press-plate</td><td></td><td>v0.1</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-45.stl</td><td>[]</td><td></td><td></td><td>large</td><td>25</td><td>45</td><td>hand-press-plate</td><td></td><td>v0.1</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-large-25-{plateAttachHeight}-50.stl</td><td>[]</td><td></td><td></td><td>large</td><td>25</td><td>50</td><td>hand-press-plate</td><td></td><td>v0.1</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/hand-press-plate/export/v0_1/hand-press-plate-{renderType}-none-25-{plateAttachHeight}-{plateHeight}.stl</td><td>[]</td><td></td><td></td><td>none</td><td>25</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td>hand-press-plate</td><td></td><td>v0.1</td></tr></tbody></table></div></div><h2 class="is-size-4">Configuration Details</h2><div class="instance"><div class="params"><div class="param"><strong>Version:</strong> v0.1</div><div class="param"><strong>Output Path:</strong> </div><div class="param"><strong>OpenSCAD Version:</strong> </div><div class="param"><strong>OpenSCADGen Version:</strong> </div><div class="param"><strong>Build Info Set In File Attributes</strong></div></div></div><h2 class="is-size-4">Config Reference</h2><details><summary>Example Config File</summary><pre><code>
+[[openscadgen]]
+name = &#34;My Design&#34;
+description = &#34;A simple example design&#34;
+input_path = &#34;./designs/my_design.scad&#34;
+version = &#34;v1.0&#34;
+export_name_format = &#34;{designFileName}-{version}-{name}&#34;
+
+# Global parameters that apply to all instances
+[openscadgen.global_params]
+material = &#34;PLA&#34;
+color = &#34;white&#34;
+
+# Define parameter sets that can be reused
+[[openscadgen.param_sets]]
+name = &#34;small&#34;
+params = { width %3D 10, height %3D 20 }
+
+[[openscadgen.param_sets]]
+name = &#34;large&#34;
+params = { width %3D 20, height %3D 40 }
+
+# Define instances to generate
+[[openscadgen.instances]]
+name = &#34;default&#34;
+param_sets = &#34;small&#34;
+
+[[openscadgen.instances]]
+name = &#34;large&#34;
+param_sets = &#34;large&#34;
+
+# Define camera positions for image generation
+[[openscadgen.export_images]]
+name = &#34;front&#34;
+coord = &#34;0,0,0,0,0,0,100&#34;
+image_size = &#34;1920,1080&#34;</code></pre></details> <details><summary>Complete Design Config Reference</summary><pre><code>
+[[openscadgen]]
+# Required: Name of the design
+name = &#34;string&#34;                    # Required, minimum length 1
+
+# Optional: Description of the design
+description = &#34;string&#34;             # Optional description
+
+# Optional: Single input path (deprecated, use input_paths instead)
+input_path = &#34;string&#34;             # Path to the OpenSCAD file
+
+# Optional: Multiple input paths
+[[openscadgen.input_paths]]
+path = &#34;string&#34;                    # Required, path to OpenSCAD file
+export_name_format = &#34;string&#34;      # Optional, format for exported files
+param_sets = &#34;string&#34;             # Optional, comma-separated list of param sets
+params = {}                        # Optional, map of parameters
+skip_images = false               # Optional, whether to skip image generation
+ignore_param_when_processing = &#34;string&#34;  # Optional, params to ignore when processing
+
+# Optional: Output path for generated files
+
+# Optional: Version string
+version = &#34;string&#34;                # Version of the design
+
+# Optional: Whether to include part ID letter in filenames
+no_part_id_letter = false         # If true, excludes part ID letter
+
+# Optional: Format for exported filenames
+export_name_format = &#34;string&#34;     # Format string with {param} placeholders
+
+# Optional: Global parameters applied to all instances
+[openscadgen.global_params]
+param1 = &#34;value1&#34;
+param2 = 42
+
+# Optional: Reusable parameter sets
+[[openscadgen.param_sets]]
+name = &#34;string&#34;                   # Name of the parameter set
+params = {}                       # Map of parameters
+
+# Optional: Custom OpenSCAD output format
+custom_openscad_output_format = &#34;string&#34;  # e.g., &#34;stl&#34;, &#34;3mf&#34;
+
+# Optional: Custom OpenSCAD arguments
+custom_openscad_args = &#34;string&#34;   # Additional OpenSCAD command line arguments
+
+# Optional: Image export quality
+export_image_quality = &#34;string&#34;   # Quality setting for exported images
+
+# Optional: Camera positions for image generation
+[[openscadgen.export_images]]
+name = &#34;string&#34;                   # Name of the camera position
+coord = &#34;string&#34;                  # Camera coordinates (x,y,z,rotx,roty,rotz,distance)
+image_size = &#34;string&#34;             # Optional, image dimensions (width,height)
+param_filter = {}                 # Optional, filter parameters for this camera
+
+# Optional: Instance configurations
+[[openscadgen.instances]]
+name = &#34;string&#34;                   # Name of the instance
+description = &#34;string&#34;            # Optional description
+params = {}                       # Optional, map of parameters
+param_sets = &#34;string&#34;             # Optional, comma-separated list of param sets
+param_numberation_keys = &#34;string&#34; # Optional, comma-separated list of keys to number
+skip_images = false              # Optional, whether to skip image generation
+
+# Optional: Whether to use manifold operations
+dont_use_manifold = false         # If true, disables manifold operations
+</code></pre></details><h2 class="is-size-4">Output Paths</h2><div class="instance"><div class="param"><strong>OutputPath:</strong> examples/hand-press-plate/export/v0_1</div><div class="param"><strong>ExportFolderPath:</strong> examples/hand-press-plate/export/v0_1</div><div class="param"><strong>ReadmePath:</strong> examples/hand-press-plate/export/v0_1/README.md</div><div class="param"><strong>LogOutputPath:</strong> examples/hand-press-plate/export/v0_1/export_log.log</div></div><div class="footer"><p>Generated by openscadgen  at 2025-04-18 09:17:12</p></div></div></body></html>

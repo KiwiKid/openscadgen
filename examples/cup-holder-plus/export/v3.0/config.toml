@@ -34,7 +34,7 @@ v3.0
 
 export_name_format = "{cup_holders_mode}/{designFileName}-{name}"
 
-output_path = "./export/"
+
 version = "v3.0"
 
 [[openscadgen.input_paths]]

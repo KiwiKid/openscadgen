@@ -5,6 +5,8 @@ import (
     "time"
     "github.com/kiwikid/openscadgen/pkg/models"
     "strings"
+    "html"
+    "sort"
 )
 
 // Helper function to get relative image path
@@ -14,9 +16,68 @@ func getRelativeImagePath(outputPath string, exportFolderPath string) string {
     return strings.TrimPrefix(relativePath, "/")
 }
 
+// Helper function to sort STL results by name first, then alphabetically
+func sortSTLResults(results []models.GenerateSTLResult) []models.GenerateSTLResult {
+    sorted := make([]models.GenerateSTLResult, len(results))
+    copy(sorted, results)
+    sort.Slice(sorted, func(i, j int) bool {
+        // First sort by name
+        if sorted[i].InstanceConfig.Name != sorted[j].InstanceConfig.Name {
+            return sorted[i].InstanceConfig.Name < sorted[j].InstanceConfig.Name
+        }
+        // Then sort alphabetically by output path
+        return sorted[i].OutputPath < sorted[j].OutputPath
+    })
+    return sorted
+}
+
+// Helper function to get sorted parameter names
+func getSortedParamNames(params map[string]interface{}) []string {
+    names := make([]string, 0, len(params))
+    for name := range params {
+        names = append(names, name)
+    }
+    sort.Strings(names)
+    return names
+}
+
+templ Collapsable(title string, isOpen bool) {
+    <div x-data={ fmt.Sprintf(`{ isOpen: %v }`, isOpen) }>
+        <button class="button" @click="isOpen = !isOpen">
+            <span x-show="!isOpen">+</span>
+            <span x-show="isOpen">-</span>
+            { title }
+        </button>
+        <div x-show="isOpen">
+           { children... }
+        </div>
+    </div>
+}
+
+templ RenderParams(params map[string]interface{}) {
+    <details><summary>Params </summary>
+    <!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> -->
+        <pre><code>
+        for _, name := range getSortedParamNames(params) {
+            switch v := params[name].(type) {
+            case string:
+                { fmt.Sprintf("%s = \"%s\";\n", name, v) }
+            case int, int64, float64:
+                { fmt.Sprintf("%s = %v;\n", name, v) }
+            case bool:
+                { fmt.Sprintf("%s = %v;\n", name, v) }
+            default:
+                { fmt.Sprintf("%s = \"%v\";\n", name, v) }
+            }
+        }
+    </code></pre>
+    (copy these into the openscad editor to tweak this instance)
+    </details>
+}
+
 templ Report(config *models.Config, instances []models.InstanceConfig, outputPaths models.OutputPaths, stlResults []models.GenerateSTLResult, imageResults []models.GenerateImageResult, allParamNames []string) {
     <!DOCTYPE html>
-    <html lang="en" x-data="{ darkMode: false }" x-init="
+    <html lang="en" x-data="{ darkMode: true, searchQuery: '' }" x-init="
         darkMode = localStorage.getItem('darkMode') === 'true' || 
                   (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
         $watch('darkMode', value => {
@@ -32,6 +93,20 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
             
             <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+            <script>
+                function copyDetailsContent() {
+                    const button = $el.querySelector('button');
+                    const codeBlock = $el.querySelector('pre code');
+                    const content = codeBlock.textContent;
+                    navigator.clipboard.writeText(content).then(() => {
+                        const originalText = button.textContent;
+                        button.textContent = 'Copied!';
+                        setTimeout(() => {
+                            button.textContent = originalText;
+                        }, 1000);
+                    });
+                }
+            </script>
             <style>
                 :root {
                     --bg-color: #ffffff;
@@ -42,19 +117,67 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
 
                 .dark {
                     --bg-color: #1a1a1a;
-                    --text-color: #f5f5f5;
+                    --text-color: #f5f5f5 !important;
                     --card-bg: #2d2d2d;
                     --border-color: #404040;
+                    color: #f5f5f5 !important;
                 }
 
                 body {
                     font-family: Arial, sans-serif;
-                    margin: 20px;
-                    background-color: #f5f5f5;
+                    margin: 0;
+                    background-color: var(--bg-color);
+                    color: var(--text-color);
                 }
                 .container {
                     max-width: 1200px;
                     margin: 0 auto;
+                    padding: 20px;
+                }
+                .global-header {
+                    position: sticky;
+                    top: 0;
+                    background-color: var(--bg-color);
+                    z-index: 1000;
+                    padding: 1rem;
+                    border-bottom: 1px solid var(--border-color);
+                    margin-bottom: 2rem;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+                .global-header .container {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 0;
+                }
+                .search-box {
+                    flex: 1;
+                    max-width: 400px;
+                    margin: 0 1rem;
+                }
+                .table-container {
+                    margin: 20px 0;
+                    overflow-x: auto;
+                    position: relative;
+                }
+                .table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 20px 0;
+                    background-color: var(--card-bg);
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+                }
+                .table thead {
+                    position: sticky;
+                    top: 0;
+                    z-index: 10;
+                }
+                .table th {
+                    background-color: var(--card-bg);
+                    font-weight: bold;
+                    padding: 12px;
+                    text-align: left;
+                    border-bottom: 2px solid var(--border-color);
                 }
                 h1 {
                     color: #333;
@@ -66,6 +189,15 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
                 }
                 .header {
                     margin-bottom: 30px;
+                    position: sticky;
+                    top: 0;
+                    background-color: var(--bg-color);
+                    z-index: 100;
+                    padding: 1rem 0;
+                    border-bottom: 1px solid var(--border-color);
+                }
+                .header .level {
+                    margin-bottom: 0;
                 }
                 .params {
                     display: grid;
@@ -86,25 +218,10 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
                     font-size: 0.9em;
                     color: var(--text-color);
                 }
-                .table-container {
-                    margin: 20px 0;
-                    overflow-x: auto;
-                }
-                .table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin: 20px 0;
-                    background-color: white;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-                }
                 th, td {
                     padding: 12px;
                     text-align: left;
                     border-bottom: 1px solid #ddd;
-                }
-                th {
-                    background-color: #f8f9fa;
-                    font-weight: bold;
                 }
                 tr:hover {
                     background-color: #f5f5f5;
@@ -152,19 +269,24 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
             </style>
         </head>
         <body>
-            <div class="container">
-                <div class="header">
-                    <div class="level">
-                        <div class="level-left">
-                            <h1>{ config.Design.Name }</h1>
-                        </div>
-                        <div class="level-right">
-                            <button class="button" @click="darkMode = !darkMode">
-                                <span x-show="!darkMode">🌙</span>
-                                <span x-show="darkMode">☀️</span>
-                            </button>
+            <div class="global-header">
+                <div class="container">
+                    <h1 class="title is-4">{ config.Design.Name }</h1>
+                    <div class="search-box">
+                        <div class="field">
+                            <div class="control">
+                                <input class="input" type="text" placeholder="Search..." x-model="searchQuery">
+                            </div>
                         </div>
                     </div>
+                    <button class="button" @click="darkMode = !darkMode">
+                        <span x-show="!darkMode">🌙</span>
+                        <span x-show="darkMode">☀️</span>
+                    </button>
+                </div>
+            </div>
+            <div class="container">
+                <div class="header">
                     <p>{ config.Design.Description }</p>
                 </div>
 
@@ -199,12 +321,15 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
                             <thead>
                             <tr>
                                 <th>Path</th>
+                                <!--NEXT-VERSION: <th>OpenSCAD Code</th> -->
                             </tr>
                         </thead>
                         <tbody>
                             for _, inputPath := range config.GetInputPaths() {
                                 <tr>
                                     <td>{ inputPath.Path }</td>
+                                    <!-- NEXT-VERSION: <td><details><summary>OpenSCAD Code</summary>
+                                    { inputPath.RawOpenSCADFile }</details></td> -->
                                 </tr>
                             }
                         </tbody>
@@ -226,61 +351,66 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
                     </details>
                     </div>
                 }
-
-
+               @Collapsable("STL Generation Results", true) {
                 if len(stlResults) > 0 {
-                    <h2 class="is-size-4">STL Generation Results</h2>
-                    <div>Generated { fmt.Sprintf("%d",len(stlResults)) } stl files</div>
-                    <div class="table-container">
-                        <table class="table is-fullwidth">
-                        <thead>
-                            <tr>
-                                <th style="width: 150px;">Instance</th>
-                                <th style="width: 200px;">Output Path</th>
-                                <th style="width: 200px;">Command</th>
-                                <th style="width: 100px;">Time Taken</th>
-                                <th style="width: 200px;">Params</th>
-                                <th style="width: 150px;">Error</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            for _, stlResult := range stlResults {
-                                <tr>
-                                    <td>{ stlResult.InstanceConfig.Name }</td>
-                                    <td>{ stlResult.OutputPath }</td>
-                                    <td>{ stlResult.Command }</td>
-                                    <td>{ fmt.Sprintf("%v", stlResult.TimeTaken) }</td>
-                                    if len(stlResult.AppliedParams) > 0 {
-                                    <td><details><summary>Params</summary>
-                                    <pre><code>
-                                    for name, value := range stlResult.AppliedParams {
-                                        switch v := value.(type) {
-                                        case string:
-                                            { fmt.Sprintf("%s = \"%s\";\n", name, v) }
-                                        case int, int64, float64:
-                                            { fmt.Sprintf("%s = %v;\n", name, v) }
-                                        case bool:
-                                            { fmt.Sprintf("%s = %v;\n", name, v) }
-                                        default:
-                                            { fmt.Sprintf("%s = \"%v\";\n", name, v) }
-                                        }
-                                    }
-                                    </code></pre>
-                                    (copy these into the openscad editor to tweak this instance)
-                                    </details></td>
-                                    } else {
-                                        <td><pre><code>{ fmt.Sprintf("%v", stlResult.InstanceConfig.Params) }</code></pre></td>
-                                    }
-                                    if stlResult.Error != "" {
-                                        <td class="is-danger">{ stlResult.Error }</td>
-                                    } 
+                        <div class="table-container">
+                            <table class="table is-fullwidth">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 150px;">Instance</th>
+                                    <th style="width: 200px;">Output Path</th>
+                                    <th style="width: 200px;">Command</th>
+                                    <th style="width: 100px;">Time Taken</th>
+                                    <th style="width: 200px;">Params</th>
+                                    <th style="width: 150px;">Error</th>
                                 </tr>
-                            }
-                        </tbody>
-                        </table>
-                    </div>
-                } else {
-                    <div class="is-danger">No STL Generation Results</div>
+                            </thead>
+                            <tbody>
+                                for _, stlResult := range sortSTLResults(stlResults) {
+                                    <tr x-show={ fmt.Sprintf(`searchQuery === '' || ('%s %s').toLowerCase().includes(searchQuery.toLowerCase())`, stlResult.InstanceConfig.Name, stlResult.OutputPath) }>
+                                        <td>{ stlResult.InstanceConfig.Name }</td>
+                                        <td>{ stlResult.OutputPath }</td>
+                                        <td><details><summary>{ fmt.Sprintf("%.15s...", stlResult.Command) }</summary>
+                                        { stlResult.Command }</details></td>
+                                        <td>{ fmt.Sprintf("%v", stlResult.TimeTaken) }</td>
+                                        if len(stlResult.AppliedParams) > 0 {
+                                            <td> @RenderParams(stlResult.AppliedParams) </td>
+                                        } else {
+                                            <td><pre><code>{ fmt.Sprintf("%v", stlResult.InstanceConfig.Params) }</code></pre></td>
+                                        }
+                                        if stlResult.Error != "" {
+                                            <td class="is-danger">{ stlResult.Error }</td>
+                                        }
+                                        <td>
+                                            <details>
+                                                <summary>OpenSCAD Code</summary>
+                                                <pre><code>{ stlResult.InstanceConfig.InputPath.RawOpenSCADFile }</code></pre>
+                                            </details>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                            </table>
+                        </div>
+                    } else {
+                        <details><summary>No STL Generation Results</summary>
+                        <div>
+                        if config.RegexPattern != "" {
+                            <div class="is-warning">[ Skipped based on provided regex pattern: { config.RegexPattern } ]</div>
+                        }
+
+                        if config.MaxInstances > 0 {
+                            <div>Max instances: { fmt.Sprintf("%d", config.MaxInstances) } blocked all instances from being generated?</div>
+                        }
+
+                        Add stl generation to the config file to generate stl files for each instance:
+                        <pre><code>
+                        [[openscadgen.instances]]
+                        name = "default"
+                        </code></pre>
+                        </div>
+                        </details>
+                    }
                 }
 
                 if len(imageResults) > 0 {
@@ -302,11 +432,12 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
                         </thead>
                         <tbody>
                             for _, imageResult := range imageResults {
-                                <tr>
+                                <tr x-show={ fmt.Sprintf(`searchQuery === '' || ('%s %s').toLowerCase().includes(searchQuery.toLowerCase())`, imageResult.InstanceConfig.Name, imageResult.OutputPath) }>
                                     <td>{ imageResult.InstanceConfig.Name }</td>
                                     <td>{ imageResult.CameraName }</td>
                                     <td>{ imageResult.OutputPath }</td>
-                                    <td>{ imageResult.Command }</td>
+                                    <td><details><summary>{ fmt.Sprintf("%.15s...", imageResult.Command) }</summary>
+                                    { imageResult.Command }</details></td>
                                     <td>{ fmt.Sprintf("%v", imageResult.TimeTaken) }</td>
                                     <td>
                                         <details>
@@ -321,6 +452,7 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
                                                 <p>Coordinates: {imageResult.CameraCoords}</p>
                                             </div>
                                         </details>
+                                        @RenderParams(imageResult.AppliedParams)
                                     </td>
                                     <td>
                                         if imageResult.Error == "" {
@@ -345,9 +477,19 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
                         </table>
                     </div>
                 } else {
-                    <div>No Image Generation Results</div>
+                    <details><summary>No Image Generation Results</summary>
+                    <div>
+                    Add export images to the config file to generate images for each instance:
+                    <pre><code>
+                    [[openscadgen.export_images]]
+                    name = "front"
+                    coord = "0,0,0,0,0,0,100"
+                    </code></pre>
+                    </div>
+                    </details>
                 }
 
+                @Collapsable("Generated Instances", true) {
                 if len(instances) > 0 {
                     <div>
                     <h2 class="is-size-4">Generated Instances</h2>
@@ -359,30 +501,38 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
                                     <th>Description</th>
                                     <th>Output Path</th>
                                     <th>Ignored Params</th>
+                                    <th>Skipped Reason</th>
+                                    <th>Images</th>
                                     for _, paramName := range allParamNames {
                                         <th>{ paramName }</th>
                                     }
+                                    
                                 </tr>
                             </thead>
                             <tbody>
                                 for _, instance := range instances {
-                                    <tr>
+                                    <tr x-show={ fmt.Sprintf(`searchQuery === '' || ('%s %s').toLowerCase().includes(searchQuery.toLowerCase())`, instance.Name, instance.OutputPathV2) }>
                                         <td>{ instance.Name }</td>
                                         <td>{ instance.Description }</td>
                                         <td>{ instance.OutputPathV2 }</td>
                                         <td>{ fmt.Sprintf("%v", instance.IgnoredParams) }</td>
+                                        <td>{ instance.SkippedReason }</td>
+                                        <td>
+                                            if len(imageResults) > 0 {
+                                                for _, imageResult := range instance.ImageResults {
+                                                    { imageResult.OutputPath }
+                                                }
+                                            } else {
+                                                no images generated
+                                            }
+                                        </td>
                                         for _, paramName := range allParamNames {
                                             if value, ok := instance.Params[paramName]; ok {
                                                 <td>{ fmt.Sprintf("%v", value) }</td>
                                             } else {
-                                                <td>No Param for { paramName }</td>
+                                                <td class="is-italic" title="No Param for { paramName }">N/A</td>
                                             }
                                         }
-                                        <td>
-                                        for _, imageResult := range instance.ImageResults {
-                                            <td>{ imageResult.OutputPath }</td>
-                                        }
-                                        </td>
                                     </tr>
                                     if instance.ConfigError != "" {
                                         <tr>        
@@ -396,6 +546,7 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
                     </div>
                 } else {
                     <div class="is-danger">No Instances Generated</div>
+                }
                 }
 
                 <h2 class="is-size-4">Configuration Details</h2>
@@ -413,6 +564,7 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
                         <div class="param">
                             <strong>OpenSCADGen Version:</strong> { config.OpenScadGenVersion }
                         </div>
+                        if config.Quality != "" {
                         <div class="param">
                             <strong>Quality:</strong> { config.Quality }
                             if config.Quality == "low" {
@@ -421,6 +573,7 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
                                 <span class="tag is-success">High Quality</span>
                             }
                         </div>
+                        }
 
                         if config.CustomOpenSCADCommand != "" {
                             <div class="param">
@@ -453,45 +606,37 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
                             </div>
                         }
 
-
-                        if config.FullExport {
-                            <div class="param">
-                                <strong>Full Export</strong>
-                            </div>
-                        }
-
-
                         if config.OverwriteExisting {
                             <div class="param">
-                                <strong>Overwrite Existing</strong>
+                                <strong>Auto Overwrite Existing</strong>
                             </div>
                         }
 
 
                         if config.SkipRender {
                             <div class="param">
-                                <strong>Skip Render</strong>
+                                <strong>Render Skipped</strong>
                             </div>
                         }
 
 
                         if config.SkipReadme {
                             <div class="param">
-                                <strong>Skip Readme</strong>
+                                <strong>Readme Skipped</strong>
                             </div>
                         }
 
 
                         if config.IncludePartIDLetter {
                             <div class="param">
-                                <strong>Include Part ID Letter</strong>
+                                <strong>Part ID Letter Included</strong>
                             </div>
                         }
 
 
                         if config.SetBuildInfoInFileAttributes {
                             <div class="param">
-                                <strong>Set Build Info In File Attributes</strong>
+                                <strong>Build Info Set In File Attributes</strong>
                             </div>
                         }
 
@@ -504,6 +649,128 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
                         
                     </div>
                 </div>
+
+                @Collapsable("Config Reference", true) {
+                <h2 class="is-size-4">Config Reference</h2>
+                <details>
+                    <summary>Example Config File</summary>
+                    <pre><code>
+                    { html.UnescapeString(html.EscapeString(`
+[[openscadgen]]
+name = "My Design"
+description = "A simple example design"
+input_path = "./designs/my_design.scad"
+version = "v1.0"
+output_path = "./export"
+export_name_format = "{designFileName}-{version}-{name}"
+
+# Global parameters that apply to all instances
+[openscadgen.global_params]
+material = "PLA"
+color = "white"
+
+# Define parameter sets that can be reused
+[[openscadgen.param_sets]]
+name = "small"
+params = { width %3D 10, height %3D 20 }
+
+[[openscadgen.param_sets]]
+name = "large"
+params = { width %3D 20, height %3D 40 }
+
+# Define instances to generate
+[[openscadgen.instances]]
+name = "default"
+param_sets = "small"
+
+[[openscadgen.instances]]
+name = "large"
+param_sets = "large"
+
+# Define camera positions for image generation
+[[openscadgen.export_images]]
+name = "front"
+coord = "0,0,0,0,0,0,100"
+image_size = "1920,1080"`)) } 
+                    </code></pre>
+                </details>
+
+                <details>
+                    <summary>Complete Design Config Reference</summary>
+                    <pre><code>
+                    { html.UnescapeString(html.EscapeString(`
+[[openscadgen]]
+# Required: Name of the design
+name = "string"                    # Required, minimum length 1
+
+# Optional: Description of the design
+description = "string"             # Optional description
+
+# Optional: Single input path (deprecated, use input_paths instead)
+input_path = "string"             # Path to the OpenSCAD file
+
+# Optional: Multiple input paths
+[[openscadgen.input_paths]]
+path = "string"                    # Required, path to OpenSCAD file
+export_name_format = "string"      # Optional, format for exported files
+param_sets = "string"             # Optional, comma-separated list of param sets
+params = {}                        # Optional, map of parameters
+skip_images = false               # Optional, whether to skip image generation
+ignore_param_when_processing = "string"  # Optional, params to ignore when processing
+
+# Optional: Output path for generated files
+output_path = "string"            # Path where files will be exported
+
+# Optional: Version string
+version = "string"                # Version of the design
+
+# Optional: Whether to include part ID letter in filenames
+no_part_id_letter = false         # If true, excludes part ID letter
+
+# Optional: Format for exported filenames
+export_name_format = "string"     # Format string with {param} placeholders
+
+# Optional: Global parameters applied to all instances
+[openscadgen.global_params]
+param1 = "value1"
+param2 = 42
+
+# Optional: Reusable parameter sets
+[[openscadgen.param_sets]]
+name = "string"                   # Name of the parameter set
+params = {}                       # Map of parameters
+
+# Optional: Custom OpenSCAD output format
+custom_openscad_output_format = "string"  # e.g., "stl", "3mf"
+
+# Optional: Custom OpenSCAD arguments
+custom_openscad_args = "string"   # Additional OpenSCAD command line arguments
+
+# Optional: Image export quality
+export_image_quality = "string"   # Quality setting for exported images
+
+# Optional: Camera positions for image generation
+[[openscadgen.export_images]]
+name = "string"                   # Name of the camera position
+coord = "string"                  # Camera coordinates (x,y,z,rotx,roty,rotz,distance)
+image_size = "string"             # Optional, image dimensions (width,height)
+param_filter = {}                 # Optional, filter parameters for this camera
+
+# Optional: Instance configurations
+[[openscadgen.instances]]
+name = "string"                   # Name of the instance
+description = "string"            # Optional description
+params = {}                       # Optional, map of parameters
+param_sets = "string"             # Optional, comma-separated list of param sets
+param_numberation_keys = "string" # Optional, comma-separated list of keys to number
+skip_images = false              # Optional, whether to skip image generation
+
+# Optional: Whether to use manifold operations
+dont_use_manifold = false         # If true, disables manifold operations
+`)) } 
+                    </code></pre>
+                </details>
+                }
                  <h2 class="is-size-4">Output Paths</h2>
                     <div class="instance">
                     <div class="param">
@@ -512,6 +779,7 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
                     <div class="param">
                         <strong>ExportFolderPath:</strong> { outputPaths.ExportFolderPath }
                     </div>
+                    
                     if config.Quality == "low" {
                         <div class="param">
                             <strong>LowQualityWarningPath:</strong> { outputPaths.LowQualityWarningPath }

@@ -1,3 +1,5 @@
+
+include <BOSL2/std.scad>;
 /**
    mulit-size upholstery screw-in button
    
@@ -8,7 +10,8 @@
 
 $fn = 100;
 
-
+partType = "oneSided";
+holeType = "hex";
 
 // Size of the screw hole
 screw_hole_radius_size = 2.5;
@@ -69,11 +72,20 @@ difference(){
     translate([0, 0, -100])
     cylinder(h=all_the_way, r = screw_hole_radius_size);
     
-    translate([0, 0, screw_hole_guard_depth-button_width])
-    cylinder(h=all_the_way, r = screw_head_hole_radius_size);
     
+    if(holeType == "hex"){
+        translate([0, 0, screw_hole_guard_depth-button_width])
+        up(all_the_way/2)
+        tube(or=screw_head_hole_radius_size, ir=0, h=all_the_way, $fn=6, rounding_fn=64, rounding=0.1);
+    } else {
+        translate([0, 0, screw_hole_guard_depth-button_width])
+        cylinder(h=all_the_way, r = screw_head_hole_radius_size);
+    }
     
-    
+    if(partType == "oneSided") {
+        back_half()
+        tube(ir=screw_hole_radius_size*3.5, or=button_radius, h=100);
+    }
   
     // (optional) part label to help with identification
     label_text(optional_part_id_letter);

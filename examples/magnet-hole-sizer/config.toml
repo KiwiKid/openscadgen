@@ -1,0 +1,28 @@
+[openscadgen]
+name = "magnet-hole-sizer"
+description = ""
+
+
+version = "v0.1"
+
+export_name_format = "{designFileName}-{name}"
+
+# export_name_format = "custom-export-name-for-this-file/{designFileName}-{name}"
+
+[[openscadgen.input_paths]]
+path = "./magnet-hole-sizer.scad"
+
+# [[openscadgen.input_paths]]
+# path = "./a-second-related-openscad-file.scad"
+
+[[openscadgen.instances]]
+name = "default"
+params = {magnetHoleDiameter = "8.14", magnetHoleDepth = "1.5" }
+
+[[openscadgen.instances]]
+name = "thick"
+params = { magnetHoleDiameter = "5.85", magnetHoleDepth = "3" }
+
+[[openscadgen.instances]]
+name = "thin"
+params = { magnetHoleDiameter = "8.10", magnetHoleDepth = "1.2" }

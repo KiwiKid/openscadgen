@@ -9,7 +9,7 @@ description = """\
 
 export_name_format = "{designFileName}"
 
-output_path = "./export/"
+
 version = "v0.1"
 
 [[openscadgen.input_paths]]

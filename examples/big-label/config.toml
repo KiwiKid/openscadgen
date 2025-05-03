@@ -1,0 +1,21 @@
+[openscadgen]
+name = "big-label"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}"
+
+# export_name_format = "custom-export-name-for-this-file/{designFileName}-{name}"
+
+[[openscadgen.input_paths]]
+path = "./big-label.scad"
+
+# [[openscadgen.input_paths]]
+# path = "./a-second-related-openscad-file.scad"
+
+# [[openscadgen.instances]]
+# params = {renderType = "horzSlice,vertSlice,all", param1 = "a-custom-value" }
+
+# [[openscadgen.instances]]
+# params = { renderType = "horzSlice,vertSlice,all", param1 = "a-diff-custom-value" }

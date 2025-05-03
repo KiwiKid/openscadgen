@@ -1,0 +1,1018 @@
+<!doctype html><html lang="en" x-data="{ darkMode: true, searchQuery: &#39;&#39; }" x-init="
+        darkMode = localStorage.getItem(&#39;darkMode&#39;) === &#39;true&#39; || 
+                  (!localStorage.getItem(&#39;darkMode&#39;) &amp;&amp; window.matchMedia(&#39;(prefers-color-scheme: dark)&#39;).matches);
+        $watch(&#39;darkMode&#39;, value =&gt; {
+            localStorage.setItem(&#39;darkMode&#39;, value);
+            document.documentElement.classList.toggle(&#39;dark&#39;, value);
+        });
+    "><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>screw-in-button - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><script>
+                function copyDetailsContent() {
+                    const button = $el.querySelector('button');
+                    const codeBlock = $el.querySelector('pre code');
+                    const content = codeBlock.textContent;
+                    navigator.clipboard.writeText(content).then(() => {
+                        const originalText = button.textContent;
+                        button.textContent = 'Copied!';
+                        setTimeout(() => {
+                            button.textContent = originalText;
+                        }, 1000);
+                    });
+                }
+            </script><style>
+                :root {
+                    --bg-color: #ffffff;
+                    --text-color: #333333;
+                    --card-bg: #ffffff;
+                    --border-color: #eee;
+                }
+
+                .dark {
+                    --bg-color: #1a1a1a;
+                    --text-color: #f5f5f5 !important;
+                    --card-bg: #2d2d2d;
+                    --border-color: #404040;
+                    color: #f5f5f5 !important;
+                }
+
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    background-color: var(--bg-color);
+                    color: var(--text-color);
+                }
+                .container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }
+                .global-header {
+                    position: sticky;
+                    top: 0;
+                    background-color: var(--bg-color);
+                    z-index: 1000;
+                    padding: 1rem;
+                    border-bottom: 1px solid var(--border-color);
+                    margin-bottom: 2rem;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+                .global-header .container {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 0;
+                }
+                .search-box {
+                    flex: 1;
+                    max-width: 400px;
+                    margin: 0 1rem;
+                }
+                .table-container {
+                    margin: 20px 0;
+                    overflow-x: auto;
+                    position: relative;
+                }
+                .table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 20px 0;
+                    background-color: var(--card-bg);
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+                }
+                .table thead {
+                    position: sticky;
+                    top: 0;
+                    z-index: 10;
+                }
+                .table th {
+                    background-color: var(--card-bg);
+                    font-weight: bold;
+                    padding: 12px;
+                    text-align: left;
+                    border-bottom: 2px solid var(--border-color);
+                }
+                h1 {
+                    color: #333;
+                    border-bottom: 2px solid #333;
+                    padding-bottom: 10px;
+                }
+                h2, h3 {
+                    color: var(--text-color);
+                }
+                .header {
+                    margin-bottom: 30px;
+                    position: sticky;
+                    top: 0;
+                    background-color: var(--bg-color);
+                    z-index: 100;
+                    padding: 1rem 0;
+                    border-bottom: 1px solid var(--border-color);
+                }
+                .header .level {
+                    margin-bottom: 0;
+                }
+                .params {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                    gap: 10px;
+                    margin-top: 10px;
+                }
+                .param {
+                    background: var(--card-bg);
+                    padding: 10px;
+                    border-radius: 4px;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                }
+                .footer {
+                    margin-top: 30px;
+                    padding-top: 20px;
+                    border-top: 1px solid var(--border-color);
+                    font-size: 0.9em;
+                    color: var(--text-color);
+                }
+                th, td {
+                    padding: 12px;
+                    text-align: left;
+                    border-bottom: 1px solid #ddd;
+                }
+                tr:hover {
+                    background-color: #f5f5f5;
+                }
+                .error {
+                    color: red;
+                }
+                .success {
+                    color: green;
+                }
+                .camera-coords {
+                    background-color: #f8f9fa;
+                    padding: 10px;
+                    border-radius: 4px;
+                    margin: 5px 0;
+                }
+                .camera-coords ul {
+                    margin: 5px 0;
+                    padding-left: 20px;
+                }
+                .camera-coords p {
+                    margin: 5px 0;
+                }
+                details {
+                    cursor: pointer;
+                }
+                details summary {
+                    color: #0066cc;
+                }
+                details summary:hover {
+                    text-decoration: underline;
+                }
+                .image-preview {
+                    max-width: 200px;
+                    max-height: 200px;
+                    border: 1px solid var(--border-color);
+                    border-radius: 4px;
+                    object-fit: contain;
+                }
+                .image-error {
+                    color: var(--text-color);
+                    font-style: italic;
+                    font-size: 0.9em;
+                }
+            </style></head><body><div class="global-header"><div class="container"><h1 class="title is-4">screw-in-button</h1><div class="search-box"><div class="field"><div class="control"><input class="input" type="text" placeholder="Search..." x-model="searchQuery"></div></div></div><button class="button" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button></div></div><div class="container"><div class="header"><p>   mulit-size upholstery screw-in button
+   
+   Source: https://github.com/KiwiKid/openscaden/
+   Author: KiwiKid
+
+   Used for upholstery buttons to secure older fabric in a carovan, could be useful for other purposes. 
+    Has openSCAD parametric code for editing and a number of default &#34;button&#34; profiles that allow for attachment via standard sized screws.
+
+    Note: This is not a reference for best practices for writing openSCAD code  (includes hardcoded values, hidden dependencies between variables, non-modular etc.)
+
+
+    Be aware of the operating conditions of the buttons and the limitations of the materials you are using - PLA is not recommended for long term/high-stress/high-temp use.
+</p></div><h2 class="is-size-4">Global Parameters</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Parameter</th><th>Value</th></tr></thead> <tbody><tr><td>partType</td><td>oneSided,twoSided</td></tr><tr><td>holeType</td><td>hex,round</td></tr></tbody></table></div><h2 class="is-size-4">Input Paths</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Path</th><!--NEXT-VERSION: <th>OpenSCAD Code</th> --></tr></thead> <tbody><tr><td>./button.scad</td><!-- NEXT-VERSION: <td><details><summary>OpenSCAD Code</summary>
+                                    { inputPath.RawOpenSCADFile }</details></td> --></tr></tbody></table></div><div x-data="{ isOpen: true }"><button class="button" @click="isOpen = !isOpen"><span x-show="!isOpen">+</span> <span x-show="isOpen">-</span> STL Generation Results</button><div x-show="isOpen"><div class="table-container"><table class="table is-fullwidth"><thead><tr><th style="width: 150px;">Instance</th><th style="width: 200px;">Output Path</th><th style="width: 200px;">Command</th><th style="width: 100px;">Time Taken</th><th style="width: 200px;">Params</th><th style="width: 150px;">Error</th></tr></thead> <tbody><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-1-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-1-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/hex/button-height-1-width-10-button-profile-50.stl -D &#39;button_height=1&#39; -D &#39;button_width=10&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;part_id_letter=&#34;E&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>302.120083ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 1;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;E&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-1-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-1-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/hex/button-height-1-width-5-button-profile-50.stl -D &#39;button_width=5&#39; -D &#39;button_height=1&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;part_id_letter=&#34;A&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>309.330334ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 1;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;A&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-10-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-10-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/hex/button-height-10-width-10-button-profile-50.stl -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_width=10&#39; -D &#39;button_height=10&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;part_id_letter=&#34;AC&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>313.4445ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 10;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;AC&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-10-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-10-width-10-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/hex/button-height-10-width-10-button-profile-90.stl -D &#39;button_width=10&#39; -D &#39;button_height=10&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;part_id_letter=&#34;BI&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>348.239167ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 10;
+button_radius = 90;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;BI&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-10-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-10-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/hex/button-height-10-width-5-button-profile-50.stl -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_height=10&#39; -D &#39;button_width=5&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;part_id_letter=&#34;Y&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>287.382792ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 10;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;Y&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-10-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-10-width-5-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/hex/button-height-10-width-5-button-profile-90.stl -D &#39;button_height=10&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_width=5&#39; -D &#39;part_id_letter=&#34;BE&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>290.486459ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 10;
+button_radius = 90;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;BE&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-20-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-20-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/hex/button-height-20-width-10-button-profile-50.stl -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_height=20&#39; -D &#39;button_width=10&#39; -D &#39;part_id_letter=&#34;AK&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>283.847584ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 20;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;AK&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-20-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-20-width-10-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/hex/button-height-20-width-10-button-profile-90.stl -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_width=10&#39; -D &#39;button_height=20&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;part_id_letter=&#34;BQ&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>273.033ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 20;
+button_radius = 90;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;BQ&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-20-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-20-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/hex/button-height-20-width-5-button-profile-50.stl -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_width=5&#39; -D &#39;button_height=20&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;part_id_letter=&#34;AG&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>292.938917ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 20;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;AG&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-20-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-20-width-5-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/hex/button-height-20-width-5-button-profile-90.stl -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_height=20&#39; -D &#39;button_width=5&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;part_id_letter=&#34;BM&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>276.165916ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 20;
+button_radius = 90;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;BM&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-3-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-3-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/hex/button-height-3-width-10-button-profile-50.stl -D &#39;button_radius=50&#39; -D &#39;button_height=3&#39; -D &#39;button_width=10&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;part_id_letter=&#34;M&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>326.942833ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 3;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;M&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-3-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-3-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/hex/button-height-3-width-5-button-profile-50.stl -D &#39;button_radius=50&#39; -D &#39;button_height=3&#39; -D &#39;button_width=5&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;part_id_letter=&#34;I&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>435.748167ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 3;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;I&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-5-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-5-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/hex/button-height-5-width-10-button-profile-50.stl -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_height=5&#39; -D &#39;button_width=10&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;part_id_letter=&#34;U&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>281.2645ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 5;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;U&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-5-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-5-width-10-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/hex/button-height-5-width-10-button-profile-90.stl -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_height=5&#39; -D &#39;button_width=10&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;part_id_letter=&#34;BA&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>297.368708ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 5;
+button_radius = 90;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;BA&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-5-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-5-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/hex/button-height-5-width-5-button-profile-50.stl -D &#39;button_radius=50&#39; -D &#39;button_width=5&#39; -D &#39;button_height=5&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;part_id_letter=&#34;Q&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>397.1085ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 5;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;Q&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-5-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-5-width-5-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/hex/button-height-5-width-5-button-profile-90.stl -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_height=5&#39; -D &#39;button_width=5&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;part_id_letter=&#34;AW&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>286.77525ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 5;
+button_radius = 90;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;AW&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-50-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-50-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/hex/button-height-50-width-10-button-profile-50.stl -D &#39;button_radius=50&#39; -D &#39;button_height=50&#39; -D &#39;button_width=10&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;part_id_letter=&#34;AS&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>272.215375ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 50;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;AS&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-50-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-50-width-10-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/hex/button-height-50-width-10-button-profile-90.stl -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_width=10&#39; -D &#39;button_height=50&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;part_id_letter=&#34;BY&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>269.3985ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 50;
+button_radius = 90;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;BY&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-50-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-50-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/hex/button-height-50-width-5-button-profile-50.stl -D &#39;button_width=5&#39; -D &#39;button_height=50&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;part_id_letter=&#34;AO&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>271.1955ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 50;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;AO&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-50-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-50-width-5-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/hex/button-height-50-width-5-button-profile-90.stl -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_height=50&#39; -D &#39;button_width=5&#39; -D &#39;part_id_letter=&#34;BU&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>351.75075ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 50;
+button_radius = 90;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;BU&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-1-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-1-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/round/button-height-1-width-10-button-profile-50.stl -D &#39;button_width=10&#39; -D &#39;button_height=1&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;part_id_letter=&#34;G&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>235.599208ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 1;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;G&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-1-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-1-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/round/button-height-1-width-5-button-profile-50.stl -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_height=1&#39; -D &#39;button_width=5&#39; -D &#39;part_id_letter=&#34;C&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>241.415166ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 1;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;C&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-10-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-10-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/round/button-height-10-width-10-button-profile-50.stl -D &#39;button_width=10&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_height=10&#39; -D &#39;part_id_letter=&#34;AE&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>284.398792ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 10;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;AE&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-10-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-10-width-10-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/round/button-height-10-width-10-button-profile-90.stl -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_height=10&#39; -D &#39;button_width=10&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;part_id_letter=&#34;BK&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>454.651791ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 10;
+button_radius = 90;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;BK&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-10-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-10-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/round/button-height-10-width-5-button-profile-50.stl -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_width=5&#39; -D &#39;button_height=10&#39; -D &#39;part_id_letter=&#34;AA&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>254.358792ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 10;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;AA&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-10-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-10-width-5-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/round/button-height-10-width-5-button-profile-90.stl -D &#39;button_radius=90&#39; -D &#39;button_width=5&#39; -D &#39;button_height=10&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;part_id_letter=&#34;BG&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>374.384375ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 10;
+button_radius = 90;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;BG&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-20-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-20-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/round/button-height-20-width-10-button-profile-50.stl -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_height=20&#39; -D &#39;button_width=10&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;part_id_letter=&#34;AM&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>255.107834ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 20;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;AM&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-20-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-20-width-10-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/round/button-height-20-width-10-button-profile-90.stl -D &#39;button_height=20&#39; -D &#39;button_width=10&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;part_id_letter=&#34;BS&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>299.85075ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 20;
+button_radius = 90;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;BS&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-20-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-20-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/round/button-height-20-width-5-button-profile-50.stl -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_width=5&#39; -D &#39;button_height=20&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;part_id_letter=&#34;AI&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>247.476167ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 20;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;AI&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-20-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-20-width-5-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/round/button-height-20-width-5-button-profile-90.stl -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_height=20&#39; -D &#39;button_width=5&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;part_id_letter=&#34;BO&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>412.119334ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 20;
+button_radius = 90;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;BO&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-3-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-3-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/round/button-height-3-width-10-button-profile-50.stl -D &#39;button_width=10&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_height=3&#39; -D &#39;part_id_letter=&#34;O&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>249.634958ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 3;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;O&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-3-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-3-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/round/button-height-3-width-5-button-profile-50.stl -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_height=3&#39; -D &#39;button_width=5&#39; -D &#39;part_id_letter=&#34;K&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>232.178958ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 3;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;K&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-5-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-5-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/round/button-height-5-width-10-button-profile-50.stl -D &#39;button_radius=50&#39; -D &#39;button_height=5&#39; -D &#39;button_width=10&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;part_id_letter=&#34;W&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>280.010167ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 5;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;W&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-5-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-5-width-10-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/round/button-height-5-width-10-button-profile-90.stl -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_width=10&#39; -D &#39;button_height=5&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;part_id_letter=&#34;BC&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>294.914375ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 5;
+button_radius = 90;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;BC&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-5-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-5-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/round/button-height-5-width-5-button-profile-50.stl -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_width=5&#39; -D &#39;button_height=5&#39; -D &#39;part_id_letter=&#34;S&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>321.603667ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 5;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;S&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-5-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-5-width-5-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/round/button-height-5-width-5-button-profile-90.stl -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_height=5&#39; -D &#39;button_width=5&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;part_id_letter=&#34;AY&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>288.833917ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 5;
+button_radius = 90;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;AY&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-50-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-50-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/round/button-height-50-width-10-button-profile-50.stl -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_height=50&#39; -D &#39;button_width=10&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;part_id_letter=&#34;AU&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>277.028875ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 50;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;AU&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-50-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-50-width-10-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/round/button-height-50-width-10-button-profile-90.stl -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_height=50&#39; -D &#39;button_width=10&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;part_id_letter=&#34;CA&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>252.012459ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 50;
+button_radius = 90;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;CA&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-50-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-50-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/round/button-height-50-width-5-button-profile-50.stl -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_width=5&#39; -D &#39;button_height=50&#39; -D &#39;part_id_letter=&#34;AQ&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>253.307667ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 50;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;AQ&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-50-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-50-width-5-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/oneSided/round/button-height-50-width-5-button-profile-90.stl -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_height=50&#39; -D &#39;button_width=5&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;oneSided&#34;&#39; -D &#39;part_id_letter=&#34;BW&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>356.52975ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 50;
+button_radius = 90;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;oneSided&#34;;
+part_id_letter = &#34;BW&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-1-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-1-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/hex/button-height-1-width-10-button-profile-50.stl -D &#39;button_height=1&#39; -D &#39;button_width=10&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;part_id_letter=&#34;F&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>238.248083ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 1;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;F&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-1-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-1-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/hex/button-height-1-width-5-button-profile-50.stl -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_height=1&#39; -D &#39;button_width=5&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;part_id_letter=&#34;B&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>247.301166ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 1;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;B&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-10-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-10-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/hex/button-height-10-width-10-button-profile-50.stl -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_width=10&#39; -D &#39;button_height=10&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;part_id_letter=&#34;AD&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>288.124708ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 10;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;AD&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-10-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-10-width-10-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/hex/button-height-10-width-10-button-profile-90.stl -D &#39;button_radius=90&#39; -D &#39;button_width=10&#39; -D &#39;button_height=10&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;part_id_letter=&#34;BJ&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>287.303083ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 10;
+button_radius = 90;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;BJ&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-10-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-10-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/hex/button-height-10-width-5-button-profile-50.stl -D &#39;button_radius=50&#39; -D &#39;button_height=10&#39; -D &#39;button_width=5&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;part_id_letter=&#34;Z&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>246.153125ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 10;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;Z&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-10-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-10-width-5-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/hex/button-height-10-width-5-button-profile-90.stl -D &#39;button_radius=90&#39; -D &#39;button_height=10&#39; -D &#39;button_width=5&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;part_id_letter=&#34;BF&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>243.510166ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 10;
+button_radius = 90;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;BF&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-20-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-20-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/hex/button-height-20-width-10-button-profile-50.stl -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_height=20&#39; -D &#39;button_width=10&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;part_id_letter=&#34;AL&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>243.459958ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 20;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;AL&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-20-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-20-width-10-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/hex/button-height-20-width-10-button-profile-90.stl -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_height=20&#39; -D &#39;button_width=10&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;part_id_letter=&#34;BR&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>297.344417ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 20;
+button_radius = 90;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;BR&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-20-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-20-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/hex/button-height-20-width-5-button-profile-50.stl -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_width=5&#39; -D &#39;button_height=20&#39; -D &#39;part_id_letter=&#34;AH&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>250.689125ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 20;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;AH&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-20-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-20-width-5-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/hex/button-height-20-width-5-button-profile-90.stl -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_height=20&#39; -D &#39;button_width=5&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;part_id_letter=&#34;BN&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>279.000208ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 20;
+button_radius = 90;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;BN&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-3-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-3-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/hex/button-height-3-width-10-button-profile-50.stl -D &#39;button_height=3&#39; -D &#39;button_width=10&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;part_id_letter=&#34;N&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>331.215875ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 3;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;N&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-3-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-3-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/hex/button-height-3-width-5-button-profile-50.stl -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_height=3&#39; -D &#39;button_width=5&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;part_id_letter=&#34;J&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>227.848542ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 3;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;J&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-5-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-5-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/hex/button-height-5-width-10-button-profile-50.stl -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_height=5&#39; -D &#39;button_width=10&#39; -D &#39;part_id_letter=&#34;V&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>307.23975ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 5;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;V&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-5-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-5-width-10-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/hex/button-height-5-width-10-button-profile-90.stl -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_height=5&#39; -D &#39;button_width=10&#39; -D &#39;part_id_letter=&#34;BB&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>257.136167ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 5;
+button_radius = 90;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;BB&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-5-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-5-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/hex/button-height-5-width-5-button-profile-50.stl -D &#39;button_radius=50&#39; -D &#39;button_width=5&#39; -D &#39;button_height=5&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;part_id_letter=&#34;R&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>257.194334ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 5;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;R&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-5-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-5-width-5-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/hex/button-height-5-width-5-button-profile-90.stl -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_width=5&#39; -D &#39;button_height=5&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;part_id_letter=&#34;AX&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>254.048333ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 5;
+button_radius = 90;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;AX&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-50-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-50-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/hex/button-height-50-width-10-button-profile-50.stl -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_height=50&#39; -D &#39;button_width=10&#39; -D &#39;part_id_letter=&#34;AT&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>272.415667ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 50;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;AT&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-50-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-50-width-10-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/hex/button-height-50-width-10-button-profile-90.stl -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_width=10&#39; -D &#39;button_height=50&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;part_id_letter=&#34;BZ&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>257.746541ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 50;
+button_radius = 90;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;BZ&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-50-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-50-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/hex/button-height-50-width-5-button-profile-50.stl -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_width=5&#39; -D &#39;button_height=50&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;part_id_letter=&#34;AP&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>254.492208ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 50;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;AP&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-50-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-50-width-5-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/hex/button-height-50-width-5-button-profile-90.stl -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_height=50&#39; -D &#39;button_width=5&#39; -D &#39;holeType=&#34;hex&#34;&#39; -D &#39;part_id_letter=&#34;BV&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>342.448666ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 50;
+button_radius = 90;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;hex&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;BV&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-1-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-1-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/round/button-height-1-width-10-button-profile-50.stl -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_height=1&#39; -D &#39;button_width=10&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;part_id_letter=&#34;H&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>230.198333ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 1;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;H&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-1-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-1-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/round/button-height-1-width-5-button-profile-50.stl -D &#39;button_width=5&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_height=1&#39; -D &#39;part_id_letter=&#34;D&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>300.325916ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 1;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;D&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-10-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-10-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/round/button-height-10-width-10-button-profile-50.stl -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_width=10&#39; -D &#39;button_height=10&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;part_id_letter=&#34;AF&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>273.451ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 10;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;AF&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-10-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-10-width-10-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/round/button-height-10-width-10-button-profile-90.stl -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_width=10&#39; -D &#39;button_height=10&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;part_id_letter=&#34;BL&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>250.254041ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 10;
+button_radius = 90;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;BL&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-10-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-10-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/round/button-height-10-width-5-button-profile-50.stl -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_width=5&#39; -D &#39;button_height=10&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;part_id_letter=&#34;AB&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>257.462792ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 10;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;AB&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-10-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-10-width-5-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/round/button-height-10-width-5-button-profile-90.stl -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_width=5&#39; -D &#39;button_height=10&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;part_id_letter=&#34;BH&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>323.527625ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 10;
+button_radius = 90;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;BH&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-20-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-20-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/round/button-height-20-width-10-button-profile-50.stl -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_height=20&#39; -D &#39;button_width=10&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;part_id_letter=&#34;AN&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>239.738334ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 20;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;AN&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-20-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-20-width-10-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/round/button-height-20-width-10-button-profile-90.stl -D &#39;holeType=&#34;round&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_width=10&#39; -D &#39;button_height=20&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;part_id_letter=&#34;BT&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>395.686875ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 20;
+button_radius = 90;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;BT&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-20-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-20-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/round/button-height-20-width-5-button-profile-50.stl -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_height=20&#39; -D &#39;button_width=5&#39; -D &#39;part_id_letter=&#34;AJ&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>242.733666ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 20;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;AJ&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-20-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-20-width-5-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/round/button-height-20-width-5-button-profile-90.stl -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_height=20&#39; -D &#39;button_width=5&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;part_id_letter=&#34;BP&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>278.72675ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 20;
+button_radius = 90;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;BP&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-3-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-3-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/round/button-height-3-width-10-button-profile-50.stl -D &#39;button_height=3&#39; -D &#39;button_width=10&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;part_id_letter=&#34;P&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>300.619709ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 3;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;P&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-3-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-3-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/round/button-height-3-width-5-button-profile-50.stl -D &#39;button_width=5&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_height=3&#39; -D &#39;part_id_letter=&#34;L&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>223.641ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 3;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;L&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-5-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-5-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/round/button-height-5-width-10-button-profile-50.stl -D &#39;button_width=10&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_height=5&#39; -D &#39;part_id_letter=&#34;X&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>242.853083ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 5;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;X&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-5-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-5-width-10-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/round/button-height-5-width-10-button-profile-90.stl -D &#39;button_radius=90&#39; -D &#39;button_height=5&#39; -D &#39;button_width=10&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;part_id_letter=&#34;BD&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>441.144125ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 5;
+button_radius = 90;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;BD&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-5-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-5-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/round/button-height-5-width-5-button-profile-50.stl -D &#39;button_radius=50&#39; -D &#39;button_width=5&#39; -D &#39;button_height=5&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;part_id_letter=&#34;T&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>292.905917ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 5;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;T&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-5-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-5-width-5-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/round/button-height-5-width-5-button-profile-90.stl -D &#39;button_width=5&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_height=5&#39; -D &#39;part_id_letter=&#34;AZ&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>244.811917ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 5;
+button_radius = 90;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;AZ&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-50-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-50-width-10-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/round/button-height-50-width-10-button-profile-50.stl -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_height=50&#39; -D &#39;button_width=10&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;part_id_letter=&#34;AV&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>244.82975ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 50;
+button_radius = 50;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;AV&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-50-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-50-width-10-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/round/button-height-50-width-10-button-profile-90.stl -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_height=50&#39; -D &#39;button_width=10&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;part_id_letter=&#34;CB&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>250.38725ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 50;
+button_radius = 90;
+button_width = 10;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;CB&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-50-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-50-width-5-button-profile-50.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/round/button-height-50-width-5-button-profile-50.stl -D &#39;button_height=50&#39; -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=50&#39; -D &#39;button_width=5&#39; -D &#39;part_id_letter=&#34;AR&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>253.130542ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 50;
+button_radius = 50;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;AR&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-50-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-50-width-5-button-profile-90.stl</td><td><details><summary>openscad -o exa...</summary> openscad -o examples/screw-in-button/export/v1.18/twoSided/round/button-height-50-width-5-button-profile-90.stl -D &#39;partType=&#34;twoSided&#34;&#39; -D &#39;designFileName=&#34;button&#34;&#39; -D &#39;name=&#34;&#34;&#39; -D &#39;version=&#34;v1.18&#34;&#39; -D &#39;button_radius=90&#39; -D &#39;button_height=50&#39; -D &#39;button_width=5&#39; -D &#39;holeType=&#34;round&#34;&#39; -D &#39;part_id_letter=&#34;BX&#34;&#39; &#34;./examples/screw-in-button/button.scad&#34; --render --backend=manifold --enable=fast-csg --enable=experimental --enable=fast-csg-debug-corefinement</details></td><td>371.560209ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>button_height = 50;
+button_radius = 90;
+button_width = 5;
+designFileName = &#34;button&#34;;
+holeType = &#34;round&#34;;
+name = &#34;&#34;;
+partType = &#34;twoSided&#34;;
+part_id_letter = &#34;BX&#34;;
+version = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></tr></tbody></table></div></div></div><details><summary>No Image Generation Results</summary><div>Add export images to the config file to generate images for each instance:<pre><code>[[openscadgen.export_images]] name = "front" coord = "0,0,0,0,0,0,100"</code></pre></div></details> <div><h2 class="is-size-4">Generated Instances</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Name</th><th>Description</th><th>Output Path</th><th>Ignored Params</th><th>Skipped Reason</th><th>Images</th><th>button_radius</th><th>button_width</th><th>button_height</th><th>partType</th><th>holeType</th><th>designFileName</th><th>name</th><th>version</th></tr></thead> <tbody><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-1-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-1-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>1</td><td>oneSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-1-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-1-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>1</td><td>twoSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-1-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-1-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>1</td><td>oneSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-1-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-1-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>1</td><td>twoSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-1-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-1-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>1</td><td>oneSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-1-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-1-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>1</td><td>twoSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-1-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-1-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>1</td><td>oneSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-1-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-1-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>1</td><td>twoSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-3-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-3-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>3</td><td>oneSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-3-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-3-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>3</td><td>twoSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-3-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-3-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>3</td><td>oneSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-3-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-3-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>3</td><td>twoSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-3-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-3-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>3</td><td>oneSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-3-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-3-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>3</td><td>twoSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-3-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-3-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>3</td><td>oneSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-3-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-3-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>3</td><td>twoSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-5-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-5-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>5</td><td>oneSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-5-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-5-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>5</td><td>twoSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-5-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-5-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>5</td><td>oneSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-5-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-5-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>5</td><td>twoSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-5-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-5-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>5</td><td>oneSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-5-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-5-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>5</td><td>twoSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-5-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-5-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>5</td><td>oneSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-5-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-5-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>5</td><td>twoSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-10-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-10-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>10</td><td>oneSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-10-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-10-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>10</td><td>twoSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-10-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-10-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>10</td><td>oneSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-10-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-10-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>10</td><td>twoSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-10-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-10-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>10</td><td>oneSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-10-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-10-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>10</td><td>twoSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-10-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-10-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>10</td><td>oneSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-10-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-10-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>10</td><td>twoSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-20-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-20-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>20</td><td>oneSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-20-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-20-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>20</td><td>twoSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-20-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-20-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>20</td><td>oneSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-20-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-20-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>20</td><td>twoSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-20-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-20-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>20</td><td>oneSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-20-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-20-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>20</td><td>twoSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-20-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-20-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>20</td><td>oneSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-20-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-20-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>20</td><td>twoSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-50-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-50-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>50</td><td>oneSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-50-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-50-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>50</td><td>twoSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-50-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-50-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>50</td><td>oneSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-50-width-5-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-50-width-5-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>5</td><td>50</td><td>twoSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-50-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-50-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>50</td><td>oneSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-50-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-50-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>50</td><td>twoSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-50-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-50-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>50</td><td>oneSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-50-width-10-button-profile-50.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-50-width-10-button-profile-50.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>10</td><td>50</td><td>twoSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-5-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-5-width-5-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>5</td><td>5</td><td>oneSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-5-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-5-width-5-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>5</td><td>5</td><td>twoSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-5-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-5-width-5-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>5</td><td>5</td><td>oneSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-5-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-5-width-5-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>5</td><td>5</td><td>twoSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-5-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-5-width-10-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>10</td><td>5</td><td>oneSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-5-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-5-width-10-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>10</td><td>5</td><td>twoSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-5-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-5-width-10-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>10</td><td>5</td><td>oneSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-5-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-5-width-10-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>10</td><td>5</td><td>twoSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-10-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-10-width-5-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>5</td><td>10</td><td>oneSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-10-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-10-width-5-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>5</td><td>10</td><td>twoSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-10-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-10-width-5-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>5</td><td>10</td><td>oneSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-10-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-10-width-5-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>5</td><td>10</td><td>twoSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-10-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-10-width-10-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>10</td><td>10</td><td>oneSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-10-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-10-width-10-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>10</td><td>10</td><td>twoSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-10-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-10-width-10-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>10</td><td>10</td><td>oneSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-10-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-10-width-10-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>10</td><td>10</td><td>twoSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-20-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-20-width-5-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>5</td><td>20</td><td>oneSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-20-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-20-width-5-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>5</td><td>20</td><td>twoSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-20-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-20-width-5-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>5</td><td>20</td><td>oneSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-20-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-20-width-5-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>5</td><td>20</td><td>twoSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-20-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-20-width-10-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>10</td><td>20</td><td>oneSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-20-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-20-width-10-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>10</td><td>20</td><td>twoSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-20-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-20-width-10-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>10</td><td>20</td><td>oneSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-20-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-20-width-10-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>10</td><td>20</td><td>twoSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-50-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-50-width-5-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>5</td><td>50</td><td>oneSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-50-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-50-width-5-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>5</td><td>50</td><td>twoSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-50-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-50-width-5-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>5</td><td>50</td><td>oneSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-50-width-5-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-50-width-5-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>5</td><td>50</td><td>twoSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/hex/button-height-50-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/hex/button-height-50-width-10-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>10</td><td>50</td><td>oneSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/hex/button-height-50-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/hex/button-height-50-width-10-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>10</td><td>50</td><td>twoSided</td><td>hex</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/oneSided/round/button-height-50-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/oneSided/round/button-height-50-width-10-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>10</td><td>50</td><td>oneSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/round/button-height-50-width-10-button-profile-90.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/round/button-height-50-width-10-button-profile-90.stl</td><td>[]</td><td></td><td>no images generated</td><td>90</td><td>10</td><td>50</td><td>twoSided</td><td>round</td><td>button</td><td></td><td>v1.18</td></tr></tbody></table></div></div><h2 class="is-size-4">Configuration Details</h2><div class="instance"><div class="params"><div class="param"><strong>Version:</strong> v1.18</div><div class="param"><strong>Output Path:</strong> </div><div class="param"><strong>OpenSCAD Version:</strong> </div><div class="param"><strong>OpenSCADGen Version:</strong> </div><div class="param"><strong>Build Info Set In File Attributes</strong></div></div></div><div x-data="{ isOpen: true }"><button class="button" @click="isOpen = !isOpen"><span x-show="!isOpen">+</span> <span x-show="isOpen">-</span> Config Reference</button><div x-show="isOpen"><h2 class="is-size-4">Config Reference</h2><details><summary>Example Config File</summary><pre><code>
+[[openscadgen]]
+name = &#34;My Design&#34;
+description = &#34;A simple example design&#34;
+input_path = &#34;./designs/my_design.scad&#34;
+version = &#34;v1.0&#34;
+output_path = &#34;./export&#34;
+export_name_format = &#34;{designFileName}-{version}-{name}&#34;
+
+# Global parameters that apply to all instances
+[openscadgen.global_params]
+material = &#34;PLA&#34;
+color = &#34;white&#34;
+
+# Define parameter sets that can be reused
+[[openscadgen.param_sets]]
+name = &#34;small&#34;
+params = { width %3D 10, height %3D 20 }
+
+[[openscadgen.param_sets]]
+name = &#34;large&#34;
+params = { width %3D 20, height %3D 40 }
+
+# Define instances to generate
+[[openscadgen.instances]]
+name = &#34;default&#34;
+param_sets = &#34;small&#34;
+
+[[openscadgen.instances]]
+name = &#34;large&#34;
+param_sets = &#34;large&#34;
+
+# Define camera positions for image generation
+[[openscadgen.export_images]]
+name = &#34;front&#34;
+coord = &#34;0,0,0,0,0,0,100&#34;
+image_size = &#34;1920,1080&#34;</code></pre></details> <details><summary>Complete Design Config Reference</summary><pre><code>
+[[openscadgen]]
+# Required: Name of the design
+name = &#34;string&#34;                    # Required, minimum length 1
+
+# Optional: Description of the design
+description = &#34;string&#34;             # Optional description
+
+# Optional: Single input path (deprecated, use input_paths instead)
+input_path = &#34;string&#34;             # Path to the OpenSCAD file
+
+# Optional: Multiple input paths
+[[openscadgen.input_paths]]
+path = &#34;string&#34;                    # Required, path to OpenSCAD file
+export_name_format = &#34;string&#34;      # Optional, format for exported files
+param_sets = &#34;string&#34;             # Optional, comma-separated list of param sets
+params = {}                        # Optional, map of parameters
+skip_images = false               # Optional, whether to skip image generation
+ignore_param_when_processing = &#34;string&#34;  # Optional, params to ignore when processing
+
+# Optional: Output path for generated files
+output_path = &#34;string&#34;            # Path where files will be exported
+
+# Optional: Version string
+version = &#34;string&#34;                # Version of the design
+
+# Optional: Whether to include part ID letter in filenames
+no_part_id_letter = false         # If true, excludes part ID letter
+
+# Optional: Format for exported filenames
+export_name_format = &#34;string&#34;     # Format string with {param} placeholders
+
+# Optional: Global parameters applied to all instances
+[openscadgen.global_params]
+param1 = &#34;value1&#34;
+param2 = 42
+
+# Optional: Reusable parameter sets
+[[openscadgen.param_sets]]
+name = &#34;string&#34;                   # Name of the parameter set
+params = {}                       # Map of parameters
+
+# Optional: Custom OpenSCAD output format
+custom_openscad_output_format = &#34;string&#34;  # e.g., &#34;stl&#34;, &#34;3mf&#34;
+
+# Optional: Custom OpenSCAD arguments
+custom_openscad_args = &#34;string&#34;   # Additional OpenSCAD command line arguments
+
+# Optional: Image export quality
+export_image_quality = &#34;string&#34;   # Quality setting for exported images
+
+# Optional: Camera positions for image generation
+[[openscadgen.export_images]]
+name = &#34;string&#34;                   # Name of the camera position
+coord = &#34;string&#34;                  # Camera coordinates (x,y,z,rotx,roty,rotz,distance)
+image_size = &#34;string&#34;             # Optional, image dimensions (width,height)
+param_filter = {}                 # Optional, filter parameters for this camera
+
+# Optional: Instance configurations
+[[openscadgen.instances]]
+name = &#34;string&#34;                   # Name of the instance
+description = &#34;string&#34;            # Optional description
+params = {}                       # Optional, map of parameters
+param_sets = &#34;string&#34;             # Optional, comma-separated list of param sets
+param_numberation_keys = &#34;string&#34; # Optional, comma-separated list of keys to number
+skip_images = false              # Optional, whether to skip image generation
+
+# Optional: Whether to use manifold operations
+dont_use_manifold = false         # If true, disables manifold operations
+</code></pre></details></div></div><h2 class="is-size-4">Output Paths</h2><div class="instance"><div class="param"><strong>OutputPath:</strong> examples/screw-in-button/export/v1.18</div><div class="param"><strong>ExportFolderPath:</strong> examples/screw-in-button/export/v1.18</div><div class="param"><strong>ReadmePath:</strong> examples/screw-in-button/export/v1.18/README.md</div><div class="param"><strong>LogOutputPath:</strong> examples/screw-in-button/export/v1.18/export_log.log</div></div><div class="footer"><p>Generated by openscadgen  at 2025-04-21 11:47:46</p></div></div></body></html>

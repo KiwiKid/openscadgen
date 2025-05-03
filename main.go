@@ -18,8 +18,9 @@ func main() {
 	cmdFlags := models.CmdFlags{}
 
 	// Parse command-line flags into the struct
-	flag.StringVar(&cmdFlags.ConfigFile, "config", "", "Path to config file")
-	flag.StringVar(&cmdFlags.ConfigFile, "c", "", "Alias for -config")
+	configDesc := "Path to config file \n the absolute or relative path to the .toml config file"
+	flag.StringVar(&cmdFlags.ConfigFile, "config", "", configDesc)
+	flag.StringVar(&cmdFlags.ConfigFile, "c", "", configDesc)
 
 	flag.BoolVar(&cmdFlags.ShowMan, "man", false, "Display help message")
 	flag.BoolVar(&cmdFlags.ShowMan, "m", false, "Alias for -man")
@@ -31,7 +32,7 @@ func main() {
 	flag.StringVar(&cmdFlags.InitProjectNameExtended, "init-extended", "", "Initialize a new project at the current directory with the given name - with bosl2 and renderSlicing support")
 	flag.StringVar(&cmdFlags.InitProjectNameExtended, "ie", "", "Alias for -init")
 
-	flag.StringVar(&cmdFlags.RegexPattern, "regex", "", "Regex pattern to filter instances by name")
+	flag.StringVar(&cmdFlags.RegexPattern, "regex", "", "Regex pattern to only run a specific instances when generating files")
 	flag.StringVar(&cmdFlags.RegexPattern, "r", "", "Alias for -regex")
 
 	flag.BoolVar(&cmdFlags.Quiet, "quiet", false, "quiet mode, no log output")
@@ -46,22 +47,19 @@ func main() {
 	flag.BoolVar(&cmdFlags.Version, "version", false, "just output the openscadgen and openscad version number")
 	flag.BoolVar(&cmdFlags.Version, "v", false, "Alias for -version")
 
-	flag.BoolVar(&cmdFlags.SkipRender, "manifold", false, "Dont run a render before export")
-	flag.BoolVar(&cmdFlags.SkipRender, "rm", false, "Alias for -manifold")
+	flag.BoolVar(&cmdFlags.SkipRender, "skip-render", false, "Dont run a render before export")
+	flag.BoolVar(&cmdFlags.SkipRender, "sr", false, "Alias for -skip-render")
 
-	flag.BoolVar(&cmdFlags.SkipReadme, "skip-readme", false, "Skip generating a README.md file")
-	flag.BoolVar(&cmdFlags.SkipReadme, "sr", false, "Alias for -skip-readme")
+	flag.BoolVar(&cmdFlags.SkipReadme, "skip-docs", false, "Skip generating a README.md file")
+	flag.BoolVar(&cmdFlags.SkipReadme, "sd", false, "Alias for -skip-readme")
 
 	flag.IntVar(&cmdFlags.MaxInstances, "n", 0, "Maximum number of instances to process")
 
-	flag.BoolVar(&cmdFlags.ContinueOnError, "co", false, "Continue on error")
+	flag.BoolVar(&cmdFlags.ContinueOnError, "coe", false, "Continue on error")
 	flag.BoolVar(&cmdFlags.ContinueOnError, "continue-on-error", false, "Alias for -co")
 
 	flag.BoolVar(&cmdFlags.IncludeExportLog, "include-export-log-file", false, "Include the export log in the README.md file")
 	flag.BoolVar(&cmdFlags.IncludeExportLog, "el", false, "Alias for -include-export-log-file")
-
-	flag.BoolVar(&cmdFlags.FullExport, "full-export", false, "Include the the config file and extended output ")
-	flag.BoolVar(&cmdFlags.FullExport, "fe", false, "Alias for -full-export")
 
 	flag.BoolVar(&cmdFlags.OverwriteExisting, "ow", false, "Overrwite existing files")
 	flag.BoolVar(&cmdFlags.OverwriteExisting, "overwrite", false, "Alias for -ow")
@@ -85,10 +83,10 @@ func main() {
 		log.Fatalf("Failed to initialize logger: %v", err)
 	}
 
+	version := pkg.GetVersion()
+	log.Printf("OpenSCADGen Version: %s", version.OpenSCADGen)
+	log.Printf("OpenSCAD Version: %s", version.OpenSCAD)
 	if cmdFlags.Version {
-		version := pkg.GetVersion()
-		log.Printf("OpenSCADGen Version: %s", version.OpenSCADGen)
-		log.Printf("OpenSCAD Version: %s", version.OpenSCAD)
 		return
 	}
 
@@ -99,8 +97,21 @@ func main() {
 	}
 
 	if cmdFlags.InitProjectNameExtended != "" {
-		log.Printf("Initializing project: %s", cmdFlags.InitProjectNameExtended)
+		log.Printf("Initializing extended project: %s", cmdFlags.InitProjectNameExtended)
 		pkg.InitConfig(cmdFlags.InitProjectNameExtended, true)
+		return
+	}
+
+	if cmdFlags.Debug {
+		pkg.LogKeys(cmdFlags)
+	}
+
+	if !cmdFlags.Quiet {
+		pkg.LogInit()
+	}
+
+	if cmdFlags.ShowMan {
+		pkg.ShowMan()
 		return
 	}
 

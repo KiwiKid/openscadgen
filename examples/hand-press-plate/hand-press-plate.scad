@@ -9,17 +9,30 @@ include <BOSL2/std.scad>;
     
     screwHolesUp = 20;
     screwHoles = [5, 7.5, 10, 12.5, 15, 17.5, 20, 22.5, 25, 27.5];
+    plateAttachHeight = 60;
+    
+    plateHeight = 50;
 
-	module hand_press_plate(plateWidth=70, plateDepth=70, plateAttachHeight=32, attachCyliderRadius=18, attachCyliderHeight=25, attachCyliderZOffset=10, screwHoleDiameter=2, holderScrewDimpleDepth=3){
+    plateType = "small"; // large small
+    attachCyliderHeight = 18;
+    plateBottomSize = 20;
+
+	module hand_press_plate(plateWidth=30, plateDepth=30, plateAttachHeight=29, attachCyliderRadius=18, attachCyliderHeight=25, attachCyliderZOffset=4, screwHoleDiameter=2, holderScrewDimpleDepth=3, plateType=plateType){
 		
         difference(){
         union(){
-        down(plateAttachHeight+attachCyliderZOffset)
+        down(plateHeight+attachCyliderZOffset)
             cyl(l=attachCyliderHeight, d=attachCyliderRadius, rounding=2);
             rotate([180,0,0])
-            prismoid(size1=[plateWidth,plateDepth], size2=[plateWidth*0.4,plateDepth*0.4], h=plateAttachHeight, rounding=1);
+            if (plateType == "large"){
+                prismoid(size1=[plateWidth,plateDepth], size2=[plateBottomSize,plateBottomSize], h=plateHeight, rounding=1);
+            } else if (plateType == "small"){
+                prismoid(size1=[plateWidth,plateDepth], size2=[plateBottomSize,plateBottomSize], h=plateHeight, rounding=1);
+            } else if (plateType == "none"){
+                //
+            }
         }
-        
+
         for (pos = screwHoles) {
             rotate([90, -90, 0])
             translate([pos-screwHolesUp-attachCyliderZOffset-plateAttachHeight, 0, attachCyliderRadius/2 ])  // adjust as needed
@@ -32,7 +45,7 @@ include <BOSL2/std.scad>;
     
     
     sliced(renderType=renderType){
-        hand_press_plate();
+        hand_press_plate(plateType=plateType,  attachCyliderHeight=attachCyliderHeight, plateAttachHeight=plateAttachHeight);
     }
 
      

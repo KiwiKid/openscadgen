@@ -4,34 +4,26 @@ description = ""
 
 version = "v0.1"
 
-export_name_format = "{designFileName}-{renderType}"
+export_name_format = "{designFileName}-{renderType}-{plateType}-{attachCyliderHeight}-{plateAttachHeight}-{plateHeight}"
 
-global_params = { renderType = ""}
+#global_params = { renderType = "", plateType = "large,none" }
 
 [[openscadgen.input_paths]]
 path = "./hand-press-plate.scad"
+
+[[openscadgen.instances]]
+params = {  plateType = "large", attachCyliderHeight = 25, plateHeight = "30, 35, 40, 45, 50" }
+
+[[openscadgen.instances]]
+params = { plateType = "none", attachCyliderHeight = 25  }
+
+
 
 [[openscadgen.export_images]]
 name = "top"
 
 [[openscadgen.export_images]]
 name = "left"
-
-[[openscadgen.export_images]]
-name = "right"
-
-[[openscadgen.export_images]]
-name = "back"
-
-[[openscadgen.export_images]]
-name = "front"
-
-[[openscadgen.export_images]]
-name = "bottom"
-
-[[openscadgen.export_images]]
-name = "custom"
-coord = "0,0,130,130,130,0,300"
 
 
 # [[openscadgen.input_paths]]

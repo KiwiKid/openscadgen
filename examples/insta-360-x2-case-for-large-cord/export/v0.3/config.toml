@@ -15,7 +15,6 @@ Tip: Print the cap first to confirm the size of the elastic cord (3.5 fits a sli
 
 Created with openscadgen
 """
-output_path = "./examples/insta-360-x2-case-for-large-cord/export"
 export_name_format = "includeGoProMount-{includeGoProMount}/cylinderWidth-{cylinderWidth}/{designFileName}"
 version = "v0.3"
 custom_openscad_args = "--summary"

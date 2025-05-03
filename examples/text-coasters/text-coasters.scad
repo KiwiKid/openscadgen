@@ -9,10 +9,11 @@ coasterRadius = 33;
 
 can_xy_scale = 1.001;
 
-textMainSize = 13;
-textMainDepth = 5;
-textContent = "LEFTY";
-//mainTextStrike = is_undef(mainTextStrike) ?  mainTextStrike :  "false";
+textTranslateZ = 9;
+textMainSize = 9;
+textMainDepth = 40;
+textContent = "PHONE";
+mainTextStrike = "with-strike";
 
 
 textSubContentSize = 4;
@@ -21,7 +22,7 @@ textSubDepth = 6;
 subContentStartAngle = 180;
 subContentEndAngle = 360;
 
-textSubZOffset = 10;
+textSubYOffset = 10;
 
 textAround = "LEFT LEFT LEFT LEFT LEFT LEFT LEF";
 
@@ -39,7 +40,9 @@ stackingRimHeight = 30;
 stackingRimBaseRadius = 10;
 stackingRimTopRadius = 7;
 
-textAroundRadius = stackingRimBaseRadius+18;
+
+textAroundRadiusDifference = 19.7; 
+textAroundRadius = stackingRimBaseRadius+textAroundRadiusDifference;
 
 
 bottom_stacking_rim_z_offset = -6;
@@ -48,7 +51,6 @@ iconOffset = 16;
 iconScale = 15;
 bottom_flatten_z_offset =0;
 bottom_flatten_size = [100,100,10];
-
 
 
 module stacking_tube(){
@@ -90,19 +92,20 @@ union(){
 */
    // Main Center Text
    
-    translate([0,0,coasterHeight-textMainDepth])
-    linear_extrude(height=textMainDepth+1)
+    translate([0,0,
+textTranslateZ])
+    linear_extrude(height=textMainDepth)
     text(textContent, size=textMainSize, halign="center", valign="center");
      
     if (mainTextStrike == "with-strike"){
-        up(textMainDepth+8)
-        cuboid([coasterRadius*1.8,2,10]);
+        up(textTranslateZ+1.5)
+        cuboid([coasterRadius*1.4,1.5,3]);
     }
     
-    fwd(textSubZOffset)
-    translate([0,0,coasterHeight-textSubDepth])
+    fwd(textSubYOffset)
+    translate([0,0,textTranslateZ-1])
     linear_extrude(height=50+1)
-    text(textSubContent, size=textSubContentSize, halign="center", valign="center");
+    #text(textSubContent, size=textSubContentSize, halign="center", valign="center");
     /*
   
 
