@@ -55,7 +55,7 @@ func main() {
 
 	flag.IntVar(&cmdFlags.MaxInstances, "n", 0, "Maximum number of instances to process")
 
-	flag.BoolVar(&cmdFlags.ContinueOnError, "coe", false, "Continue on error")
+	flag.BoolVar(&cmdFlags.ContinueOnError, "coe", false, "Continue if an error occurs when loading or generating files - not recommended as the checks can be handy (experimental)")
 	flag.BoolVar(&cmdFlags.ContinueOnError, "continue-on-error", false, "Alias for -co")
 
 	flag.BoolVar(&cmdFlags.IncludeExportLog, "include-export-log-file", false, "Include the export log in the README.md file")

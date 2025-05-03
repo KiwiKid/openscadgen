@@ -118,7 +118,7 @@ func printDirectoryContentsRecursive(t *testing.T, dir string, depth int) {
 	}
 }
 
-var extraArgs = " -d" //"-d"
+var extraArgs = "" //"-d"
 
 var scadFileInputExamples = map[string]string{
 	defaultDesign: `
@@ -309,6 +309,18 @@ name = "instance-name"
 			configContent: defaultConfig,
 			scadContent:   scadFileInputExamples[invalidDesign],
 			command:       binaryPath + " -c " + defaultConfigPath + " -ow",
+			expectedFiles: []string{
+				"config.toml",
+				"default_design.scad",
+				"export/1.0/report.html",
+			},
+			shouldFail: true,
+		},
+		{
+			name:          "invalid design - with coe",
+			configContent: defaultConfig,
+			scadContent:   scadFileInputExamples[invalidDesign],
+			command:       binaryPath + " -c " + defaultConfigPath + " -ow -coe",
 			expectedFiles: []string{
 				"config.toml",
 				"default_design.scad",

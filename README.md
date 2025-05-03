@@ -1,5 +1,5 @@
-openscadgen is a simple tool for generating a set of .stl files (or other openscad export formats) from a single .scad file and a simple config file.
-
+openscadgen is a simple tool for generating a set of .stl files (or other openscad export formats) from a .scad file(s) and a simple human-readable toml config file. A html report is generated containing the details of the generated instances
+ 
 The goal of the tool is to ease the development, management, production and distribution of large numbers designs or design options based on single openscad file.
 
 A simpler alterative to programmatic wrappers like Makefiles, AnchorSCAD, LuaCAD, PythonSCAD - designed provides a more accessible/structured approach
@@ -8,10 +8,7 @@ https://github.com/user-attachments/assets/61d605fa-3b5a-43c0-98d2-71357f96fc32
 
 
 > [!WARNING]
-> Early days and still in active development, please let me know if you encounter any issues
-
-
-
+> Early days and still in active development, please let me know if you encounter any issues or have ideas for improvements.
 
 
 
@@ -27,7 +24,7 @@ The simplest configuration uses one input scad file and creates multiple .stl fi
 [openscadgen]
 name = "simple-clip"
 description = "A basic parametric clip"
-input_path = "./designs/clip.scad" # input_path is relative to the config.toml file
+input_path = "./clip.scad" # input_path is relative to the config.toml file
 export_name_format = "clip-{width}mm-{height}mm"
 version = "v1.0"
 
@@ -74,7 +71,7 @@ To generate preview images of your STL files:
 [openscadgen]
 name = "phone-stand"
 description = "A parametric phone stand"
-input_path = "./designs/phone-stand.scad"
+input_path = "./phone-stand.scad"
 export_name_format = "stand-{angle}deg"
 version = "v1.0"
 
@@ -102,7 +99,7 @@ For more complex designs, parameter sets help organize related parameters:
 [openscadgen]
 name = "complex-bracket"
 description = "A bracket with multiple configurations"
-input_path = "./designs/bracket.scad"
+input_path = "./bracket.scad"
 export_name_format = "bracket-{size}-{style}"
 version = "v1.0"
 
@@ -331,8 +328,15 @@ params = { name= "rav4", in_car_cup_holder_height = "60", in_car_cup_holder_top_
 # build
 go build .
 
+# test
+go test -v ./tests
+
 # run
 ./openscadgen -c ./examples/screw-mounted-clip/config.yml
+
+# test
+
+
 
 # release   
 # bump version in main.go

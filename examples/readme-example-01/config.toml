@@ -1,0 +1,9 @@
+[openscadgen]
+name = "simple-cube"
+description = "A basic cube"
+input_path = "./cube.scad" # input_path is relative to the config.toml file
+export_name_format = "cube-{width}mm-{height}mm"
+version = "v1.0"
+
+[[openscadgen.instances]]
+params = { width = "10,20,30", height = "5,10,15" }

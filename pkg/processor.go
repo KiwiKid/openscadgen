@@ -136,7 +136,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.3.0-BETA"
+const VERSION = "v2.3.1-BETA"
 
 type Version struct {
 	OpenSCADGen string
@@ -256,7 +256,13 @@ func Process(config *models.Config) error {
 				}
 
 				stlResults = append(stlResults, result)
-				logCreation(fmt.Sprintf("Generated STL for %s", instance.Name))
+				name := instance.Name
+				if name != "" {
+					logCreation(fmt.Sprintf("Generated STL for %s", name))
+				} else {
+					logCreation(fmt.Sprintf("Generated STL for %s", instance.OutputPathV2))
+				}
+				logKeyValuePair("Output path", instance.OutputPathV2)
 			} else if config.Debug {
 				logKeyValuePair(fmt.Sprintf("Skipping instance %s. Reason", instance.Name), instance.SkippedReason)
 			}
@@ -702,7 +708,12 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 	// Check for undecoded keys
 	undecoded := metadata.Undecoded()
 	if len(undecoded) > 0 {
-		return nil, fmt.Errorf("invalid fields in config: %v", undecoded)
+		logError(fmt.Sprintf("invalid fields in config: %v", undecoded))
+		if flags.ContinueOnError {
+			log.Printf(colorYellow + "Continuing on error" + colorReset)
+		} else {
+			return nil, fmt.Errorf("invalid fields in config: %v", undecoded)
+		}
 	}
 
 	// Validate the config
@@ -2312,6 +2323,15 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config, exportF
 
 	if err != nil {
 		log.Printf("Command failed with error: %v", err)
+		if exitError, ok := err.(*exec.ExitError); ok {
+			log.Printf("Command failed with exit code: %d", exitError.ExitCode())
+		}
+
+		if !config.ContinueOnError {
+			log.Fatal(fmt.Sprintf("command execution failed: %v", err))
+		} else {
+			log.Printf(colorYellow + "Continuing on error" + colorReset)
+		}
 	}
 
 	result.TimeTaken = time.Since(startTime)
@@ -2627,9 +2647,9 @@ func GenerateOutputReport(config *models.Config, instances []models.InstanceConf
 	if !config.Quiet {
 		absPath, err := filepath.Abs(outputPaths.ReportPath)
 		if err != nil {
-			log.Printf("HTML report generated at: file://%s", outputPaths.ReportPath)
+			logError(fmt.Sprintf("failed to get absolute path for report: %v", err))
 		} else {
-			log.Printf("HTML report generated at: file://%s", absPath)
+			logKeyValuePair("HTML report", absPath)
 		}
 	}
 

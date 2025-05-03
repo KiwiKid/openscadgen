@@ -1233,7 +1233,7 @@ func Report(config *models.Config, instances []models.InstanceConfig, outputPath
 [[openscadgen]]
 name = "My Design"
 description = "A simple example design"
-input_path = "./designs/my_design.scad"
+input_path = "./my_design.scad"
 version = "v1.0"
 output_path = "./export"
 export_name_format = "{designFileName}-{version}-{name}"
