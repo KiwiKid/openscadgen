@@ -6,7 +6,7 @@ version = "v0.1"
 
 export_name_format = "{designFileName}-height-{height}-wall-bump-rate-{wall_bump_rate}"
 
-# export_name_format = "custom-export-name-for-this-file/{designFileName}-{name}"
+# export_name_format = "custom-export-name-for-this-file/{designFileName}-{instanceName}"
 
 dont_use_manifold = true
 

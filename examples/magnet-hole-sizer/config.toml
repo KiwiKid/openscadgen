@@ -5,9 +5,9 @@ description = ""
 
 version = "v0.1"
 
-export_name_format = "{designFileName}-{name}"
+export_name_format = "{designFileName}-{instanceName}"
 
-# export_name_format = "custom-export-name-for-this-file/{designFileName}-{name}"
+# export_name_format = "custom-export-name-for-this-file/{designFileName}-{instanceName}"
 
 [[openscadgen.input_paths]]
 path = "./magnet-hole-sizer.scad"

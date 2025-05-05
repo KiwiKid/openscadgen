@@ -1,0 +1,14 @@
+[openscadgen]
+name = "cup-holder"
+description = "A cup holder with multiple components"
+export_name_format = "{designFileName}-{diameter}mm"
+version = "v1.0"
+
+[[openscadgen.input_paths]]
+path = "./cup-holder-main.scad"
+
+[[openscadgen.input_paths]]
+path = "./cup-holder-adapter.scad"
+
+[[openscadgen.instances]]
+params = { diameter = "70,80,90", style = "minimal,decorative" }

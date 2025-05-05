@@ -1677,7 +1677,7 @@ version = "v0.1"
 
 export_name_format = "{designFileName}"
 
-# export_name_format = "custom-export-name-for-this-file/{designFileName}-{name}"
+# export_name_format = "custom-export-name-for-this-file/{designFileName}-{instanceName}"
 
 [[openscadgen.input_paths]]
 path = "./{{projectName}}.scad"

@@ -147,7 +147,7 @@ cylinderDefault(size=10);
 func TestOpenSCADGenE2E(t *testing.T) {
 	testCases := []testCase{
 		{
-			name:          "Default design",
+			name:          "0. Default Default design",
 			configContent: defaultConfig,
 			scadContent:   scadFileInputExamples[defaultDesign],
 			command:       binaryPath + " -c " + defaultConfigPath + " -ow",
@@ -159,7 +159,19 @@ func TestOpenSCADGenE2E(t *testing.T) {
 			},
 		},
 		{
-			name: "Default design 2",
+			name:          "1.Default design",
+			configContent: defaultConfig,
+			scadContent:   scadFileInputExamples[defaultDesign],
+			command:       binaryPath + " -c " + defaultConfigPath + " -ow",
+			expectedFiles: []string{
+				"config.toml",
+				"default_design.scad",
+				"export/1.0/default.stl",
+				"export/1.0/report.html",
+			},
+		},
+		{
+			name: "2.Default design 2",
 			configContent: `
 				[openscadgen]
 				name = "test"
@@ -175,13 +187,15 @@ func TestOpenSCADGenE2E(t *testing.T) {
 			scadContent: scadFileInputExamples[defaultDesign2],
 			command:     binaryPath + " -c " + defaultConfigPath + " -ow",
 			expectedFiles: []string{
+				"config.toml",
+				"default_design.scad",
 				"export/1.0/default-10.stl",
 				"export/1.0/default-20.stl",
 				"export/1.0/report.html",
 			},
 		},
 		{
-			name: "Basic config with default output",
+			name: "3.Basic config with default output",
 			configContent: `[openscadgen]
 name = "test-project"
 version = "1.0"
@@ -207,7 +221,32 @@ name = "instance-name"
 			shouldFail: false,
 		},
 		{
-			name: "Run with regex pattern on instance name",
+			name: "4.Basic config with default output and number of instances",
+			configContent: `[openscadgen]
+name = "test-project"
+version = "1.0"
+export_name_format = "{designFileName}-{instanceName}-{size}"
+
+global_params = { size = "10,20" }
+
+[[openscadgen.input_paths]]       
+path = "./default_design.scad"
+
+[[openscadgen.instances]]
+name = "instance-name"
+`,
+			scadContent: scadFileInputExamples[defaultDesign],
+			command:     binaryPath + " -c ./config.toml -n 1",
+			expectedFiles: []string{
+				"default_design.scad",
+				"config.toml",
+				"export/1.0/report.html",
+				"export/1.0/default_design-instance-name-10.stl",
+			},
+			shouldFail: false,
+		},
+		{
+			name: "5.Run with regex pattern on instance name",
 			configContent: `[openscadgen]
 		name = "test-project"
 		version = "1.0"
@@ -233,7 +272,7 @@ name = "instance-name"
 			shouldFail: false,
 		},
 		{
-			name: "Run with regex pattern on path name",
+			name: "6.Run with regex pattern on path name",
 			configContent: `[openscadgen]
 		name = "test-project"
 		version = "1.0"
@@ -256,6 +295,7 @@ name = "instance-name"
 			command:      binaryPath + " -c ./config.toml -r default_design_2 ",
 			expectedFiles: []string{
 				"default_design.scad",
+				"default_design_2.scad",
 				"config.toml",
 				"export/1.0/report.html",
 				"export/1.0/default_design_2-instance-name.stl",
@@ -264,7 +304,7 @@ name = "instance-name"
 			shouldFail: false,
 		},
 		{
-			name: "Invalid config key",
+			name: "7.Invalid config key",
 			configContent: `[openscadgen]
 		name = "test-project"
 		INVAID_CONFIG_KEY = "INVALID_CONFIG_KEY"
@@ -273,7 +313,7 @@ name = "instance-name"
 			shouldFail: true,
 		},
 		{
-			name: "Multiple size parameters with different formats",
+			name: "8.Multiple size parameters with different formats",
 			configContent: `[openscadgen]
 		name = "test-project"
 		version = "1.0"
@@ -305,7 +345,7 @@ name = "instance-name"
 			shouldFail: false,
 		},
 		{
-			name:          "invalid design",
+			name:          "9.invalid design",
 			configContent: defaultConfig,
 			scadContent:   scadFileInputExamples[invalidDesign],
 			command:       binaryPath + " -c " + defaultConfigPath + " -ow",
@@ -317,7 +357,7 @@ name = "instance-name"
 			shouldFail: true,
 		},
 		{
-			name:          "invalid design - with coe",
+			name:          "10.invalid design - with correct config	",
 			configContent: defaultConfig,
 			scadContent:   scadFileInputExamples[invalidDesign],
 			command:       binaryPath + " -c " + defaultConfigPath + " -ow -coe",
@@ -329,7 +369,7 @@ name = "instance-name"
 			shouldFail: false,
 		},
 		{
-			name: "Invalid extra parameter in instances",
+			name: "11.Invalid extra parameter in instances",
 			configContent: `[openscadgen]
 		name = "test-project"
 		version = "1.0"
@@ -347,7 +387,7 @@ name = "instance-name"
 			shouldFail:  true,
 		},
 		{
-			name: "Invalid field in instances",
+			name: "12.Invalid field in instances",
 			configContent: `[openscadgen]
 		name = "test-project"
 		version = "1.0"
@@ -432,13 +472,27 @@ name = "instance-name"
 			}
 
 			fileCount := 0
+			// Count actual files in tempDir
+			err = filepath.Walk(tempDir, func(path string, info os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
+				if !info.IsDir() {
+					fileCount++
+				}
+				return nil
+			})
+			if err != nil {
+				t.Errorf("Failed to walk directory: %v", err)
+			}
+
+			// Verify expected files exist
 			for _, file := range tc.expectedFiles {
 				filePath := filepath.Join(tempDir, file)
 				if _, err := os.Stat(filePath); os.IsNotExist(err) {
 					t.Errorf("Expected file :\n\t'%s' \n does not exist", file)
 					printDirectoryContents(t, tempDir)
 				}
-				fileCount++
 			}
 			if fileCount != len(tc.expectedFiles) {
 				t.Errorf("Expected %d files but got %d", len(tc.expectedFiles), fileCount)

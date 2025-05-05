@@ -23,7 +23,7 @@ V2.0 updates:
 NB: pictured model is v1.1, will update photos on next print
 
 """
-export_name_format = "{cup_holders_mode}/{designFileName}-{name}"
+export_name_format = "{cup_holders_mode}/{designFileName}-{instanceName}"
 
 version = "v2.0"
 
@@ -33,7 +33,7 @@ path = "./examples/cup-holder-plus/carHolderPlus.scad"
 [[openscadgen.input_paths]]
 path = "./examples/cup-holder-plus/carHolderPlus-cup-holder-sizer.scad"
 ignore_param_when_processing = "cup_holders_mode"
-export_name_format = "cup-holder-sizer/{designFileName}-{name}-height_{in_car_cup_holder_height}mm-top_diameter_{in_car_cup_holder_top_diameter}mm-bottom_diameter_{in_car_cup_holder_bottom_diameter}mm"
+export_name_format = "cup-holder-sizer/{designFileName}-{instanceName}-height_{in_car_cup_holder_height}mm-top_diameter_{in_car_cup_holder_top_diameter}mm-bottom_diameter_{in_car_cup_holder_bottom_diameter}mm"
 
 [[openscadgen.instances]]
 params = { name= "rav4", in_car_cup_holder_height = "56", in_car_cup_holder_top_diameter = "78", in_car_cup_holder_bottom_diameter = "66.5", cup_holders_mode = "twoLargerHolders,oneLargerHolderOneSmallerHolder" }

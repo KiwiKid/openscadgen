@@ -15,7 +15,7 @@ path = "./fan-holder.scad"
 # [[openscadgen.input_paths]]
 # path = "./a-second-related-openscad-file.scad"
 # ignore_param_when_processing = "param3" # dont process param3 when generating instances for this file 
-# export_name_format = "custom-export-name-for-this-file/{designFileName}-{name}"
+# export_name_format = "custom-export-name-for-this-file/{designFileName}-{instanceName}"
 
 
 [[openscadgen.instances]]

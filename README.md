@@ -11,14 +11,11 @@ https://github.com/user-attachments/assets/61d605fa-3b5a-43c0-98d2-71357f96fc32
 > Early days and still in active development, please let me know if you encounter any issues or have ideas for improvements.
 
 
-
-# Configuration Guide
-
-This guide will walk you through creating OpenSCADGen configurations, starting with the simplest setup and progressively adding more advanced features.
-
 ## Basic Configuration
 
-The simplest configuration uses one input scad file and creates multiple .stl files based on parameter combinations:
+The simplest configuration uses:
+-  one input scad file
+and creates multiple .stl files based on a combination of params against each [[openscadgen.instances]] :
 
 ```toml
 [openscadgen]
@@ -33,7 +30,7 @@ params = { width = "10,20,30", height = "5,10,15" }
 ```
 When run via:
 ```
-./openscadgen -c ./path-to-config.toml
+./openscadgen -c ./config.toml
 ```
 openscadgen will:
 - Use a single input file (`clip.scad`)
@@ -42,7 +39,7 @@ openscadgen will:
 
 ## Multiple Input Files
 
-When you need to generate multiple designs using the same parameters, both of these design files will be pass the parameters
+When you need to generate multiple designs using the same parameters - multiple [[openscadgen.input_paths]] can be used
 
 ```toml
 [openscadgen]
@@ -307,7 +304,7 @@ v1.1
 - Slightly narrower cup holder diameter at the brim and base
 - Reduce sharp edges (better align cup & phone holders in the center)
 """
-export_name_format = "{cup_holders_mode}/{designFileName}-{name}"
+export_name_format = "{cup_holders_mode}/{designFileName}-{instanceName}"
 version = "v1.3"
 
 [[openscadgen.input_paths]]
