@@ -17,7 +17,7 @@ mainTextStrike = "with-strike";
 
 
 textSubContentSize = 4;
-textSubContent = "Only Left Hand";
+textSubContent = "Only Left Hand HMMM";
 textSubDepth = 6;
 subContentStartAngle = 180;
 subContentEndAngle = 360;

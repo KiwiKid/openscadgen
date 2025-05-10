@@ -56,7 +56,7 @@ params = { textAround = "PINKY OUT PINKY OUT PINKY OUT", textContent = "FANCY", 
 params = { textAround = "NO PHONES   NO PHONES   NO PHONES", textContent = "PHONE", mainTextStrike="with-strike", textSubContent = "No Phone"  }
 
 [[openscadgen.instances]]
-params = { textAround = "NO QUESTIONS NO QUESTIONS NO QUESTIONS", textContent = "?????",  mainTextStrike="with-strike", textSubContent = "No Asking Questions" }
+params = { textAround = "NO QUESTIONS NO QUESTIONS NO QUESTIONS", textContent = "QUESTION",  mainTextStrike="with-strike", textSubContent = "No Asking Questions" }
 
 [[openscadgen.instances]]
 params = { textAround = "UMM UHHH UMM UHHH UMM UHHH", textContent = "UMMMM",  mainTextStrike="with-strike", textSubContent = "No 'Umm' or 'Uhh'" }

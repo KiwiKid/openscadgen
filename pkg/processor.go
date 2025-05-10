@@ -113,6 +113,8 @@ var logger *log.Logger
 var logBuffer bytes.Buffer
 var logToMemory bool
 
+var invalidChars = "?'\""
+
 const (
 	colorReset  = "\033[0m"
 	colorOrange = "\033[38;5;208m"
@@ -623,7 +625,7 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 
 	data, err := os.ReadFile(configPath)
 	if err != nil {
-		log.Printf(colorRed+"Failed to read config file at path '%s': %v", configPath, err)
+		log.Printf(colorRed+"Failed to read config file at path '%s'\n\n Error: %v", configPath, err)
 		return nil, err
 	}
 
@@ -1938,6 +1940,16 @@ func setBuildInfoInFileAttributes(outputPath string, config *models.Config, inst
 	SetMetadata(outputPath, metadata, config)
 }
 
+// isValidPath checks if the path contains any invalid characters from the provided string
+func isValidPath(path string, invalidChars string) bool {
+	for _, char := range invalidChars {
+		if strings.ContainsRune(path, char) {
+			return false
+		}
+	}
+	return true
+}
+
 func generateSTL(instance *models.InstanceConfig, config *models.Config, exportFolderPath string) (models.GenerateSTLResult, error) {
 	result := models.GenerateSTLResult{
 		InstanceConfig: *instance,
@@ -1953,6 +1965,16 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config, exportF
 		logStage("Generating STL")
 		logKeyValuePair("inputPath", instance.InputPath.Path)
 		logKeyValuePair("exportFolderPath", exportFolderPath)
+	}
+
+	// Validate output path for invalid characters
+	if !isValidPath(instance.OutputPathV2, invalidChars) {
+		errMsg := fmt.Sprintf("Output path '%s' contains invalid character(s) from '%s'. Please update your export_name_format in config.", instance.OutputPathV2, invalidChars)
+		result.Error = errMsg
+		if config.ContinueOnError {
+			return result, nil
+		}
+		return result, fmt.Errorf(errMsg)
 	}
 
 	// Ensure output directory exists before proceeding
@@ -2014,9 +2036,6 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config, exportF
 	// Get instance paths
 	paths := instance.GetInstancePaths(config)
 
-	log.Printf("GetInstancePaths: %+v", paths)
-	//logError("GetInstancePaths!")
-
 	// Build OpenSCAD command
 	openscadCmd := FindOpenSCAD()
 	if openscadCmd == "" {
@@ -2035,6 +2054,15 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config, exportF
 		"-o", instance.OutputPathV2,
 	}
 
+	//check for ? charcters
+	if !isValidPath(instance.OutputPathV2, invalidChars) {
+		errMsg := fmt.Sprintf("Output path '%s' contains invalid character(s) from '%s'. Please update your export_name_format in config.", instance.OutputPathV2, invalidChars)
+		result.Error = errMsg
+		if config.ContinueOnError {
+			return result, nil
+		}
+		return result, fmt.Errorf(errMsg)
+	}
 	if !config.SkipRender {
 		args = append(args, "--render")
 	}
@@ -2053,28 +2081,25 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config, exportF
 			continue
 		}
 		if reflect.TypeOf(value).Kind() == reflect.String && value != "true" && value != "false" {
-			args = append(args, "-D", fmt.Sprintf("%s=\"%v\"", name, value))
+			args = append(args, "-D", fmt.Sprintf("'%s=\"%v\"'", name, value))
 		} else {
-			args = append(args, "-D", fmt.Sprintf("%s=%v", name, value))
+			args = append(args, "-D", fmt.Sprintf("'%s=%v'", name, value))
 		}
 	}
 
-	log.Printf("instance TO GO: ")
-
-	log.Printf("instance READ: : %+v", instance)
 	//logError("instance!")
 
 	// Add input file using the correct path
-	args = append(args, paths.InputPath)
+	//args = append(args, paths.InputPath)
 
 	//if config.Debug {
 	//		args = append(args, " --debug all")
 	//	}
 
 	// Create command string
-	commandStr := fmt.Sprintf("%s %s", openscadCmd, strings.Join(args, " "))
+	commandStr := fmt.Sprintf("%s %s %s", openscadCmd, strings.Join(args, " "), paths.InputPath)
 	if !config.Quiet {
-		log.Printf("Running STL generation command: %s", commandStr)
+		logStage(fmt.Sprintf("Running STL generation: \n\n%s", commandStr))
 	}
 
 	// Run command through shell
@@ -2403,8 +2428,11 @@ func generateImage(instance *models.InstanceConfig, config *models.Config, camer
 
 	for name, value := range stlResult.AppliedParams {
 		if reflect.TypeOf(value).Kind() == reflect.String && value != "true" && value != "false" {
+
 			args = append(args, "-D", fmt.Sprintf("'%s=\"%v\"'", name, value))
 		} else {
+
+			logError("WOAH!")
 			args = append(args, "-D", fmt.Sprintf("'%s=%v'", name, value))
 		}
 	}
@@ -2412,7 +2440,6 @@ func generateImage(instance *models.InstanceConfig, config *models.Config, camer
 	log.Printf("Paths: ")
 
 	log.Printf("Paths: %v", paths)
-	logError("WOAH!")
 
 	// Add input file using the correct path
 	args = append(args, paths.InputPath)
