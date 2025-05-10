@@ -140,7 +140,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.3.7-BETA"
+const VERSION = "v2.3.8-BETA"
 
 type Version struct {
 	OpenSCADGen string
@@ -692,26 +692,26 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 		conf.Design.CustomOpenSCADOutputFormat = flags.CustomOpenSCADOutputFormat
 	}
 
-	config.Debug = flags.Debug
+	conf.Debug = flags.Debug
 
-	config.Quality = ""
+	conf.Quality = ""
 	if flags.OverrideFN > 0 {
 		conf.OverrideFN = flags.OverrideFN
-		config.Quality = fmt.Sprintf("fn-%d", flags.OverrideFN)
+		conf.Quality = fmt.Sprintf("fn-%d", flags.OverrideFN)
 	} else if flags.HighQuality {
 		conf.OverrideFN = 200
-		config.Quality = "high"
+		conf.Quality = "high"
 	} else if flags.LowQuality {
 		conf.OverrideFN = 20
-		config.Quality = "low"
+		conf.Quality = "low"
 	}
 
-	if config.Design.Version == "" {
-		config.Design.Version = "v0.1"
+	if conf.Design.Version == "" {
+		conf.Design.Version = "v0.1"
 	}
 
-	if config.Design.RunType == "" {
-		config.Design.RunType = "clearAndCreate"
+	if conf.Design.RunType == "" {
+		conf.Design.RunType = "clearAndCreate"
 	}
 
 	exportNameFormat := getExportNameFormat(&conf)
@@ -722,7 +722,7 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 		logStage("DEBUG Validating: export_name_format params")
 	}
 	for _, paramName := range exportNameFormatParams {
-		if config.Debug {
+		if flags.Debug {
 			logKeyValuePair("Param name to confirm", paramName)
 			logKeyValuePair("ExportNameFormat", exportNameFormat)
 		}
@@ -731,8 +731,8 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 		}
 	}
 
-	config.OpenSCADVersion = findOpenSCAD().Version
-	config.OpenScadGenVersion = VERSION
+	conf.OpenSCADVersion = findOpenSCAD().Version
+	conf.OpenScadGenVersion = VERSION
 	/* (temp disabled instance validation for now)
 		if conf.Design.ConfiguredInstanceConfig != nil {
 			if len(conf.Design.ConfiguredInstanceConfig) > 0 {
@@ -1166,7 +1166,6 @@ func checkInstancesSkip(config *models.Config, countSoFar int) string {
 }
 
 func checkRegexPattern(config *models.Config, configuredInstanceConfig models.ConfiguredInstanceConfig, inputPath models.InputPath) string {
-	logError("checkRegexPatterncheckRegexPatterncheckRegexPatterncheckRegexPattern")
 	if config.RegexPattern != "" {
 		regex, err := regexp.Compile(config.RegexPattern)
 		if err != nil {

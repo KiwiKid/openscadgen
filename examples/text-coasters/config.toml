@@ -62,4 +62,4 @@ params = { textAround = "NO QUESTIONS NO QUESTIONS NO QUESTIONS", textContent = 
 params = { textAround = "UMM UHHH UMM UHHH UMM UHHH", textContent = "UMMMM",  mainTextStrike="with-strike", textSubContent = "No 'Umm' or 'Uhh'" }
 
 [[openscadgen.instances]]
-params = { textAround = "SUNGLASSES SUNGLASSES SUNGLASSES", textContent = "BADGER", textSubContent = "Wear sunglasses while drinking", textSubContentSize="2",  mainTextStrike="na"  }
+params = { textAround = "SUNGLASSES SUNGLASSES SUNGLASSES", textContent = "BADGER", textSubContent = "Wear sunglasses", textMainSize="8", textSubContentSize="3.5",  mainTextStrike="na"  }
