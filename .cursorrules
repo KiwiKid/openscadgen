@@ -1,0 +1,1 @@
+- test simple config changes via extending small-tray/config.toml with the updates then run `./openscadgen -c ./examples/small-tray/config.toml -ow`

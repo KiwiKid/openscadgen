@@ -45,7 +45,9 @@ type DesignConfig struct {
 }
 
 func (d *DesignConfig) ClearVersion(version string) string {
-	return strings.ReplaceAll(version, "/", "-")
+	// Replace forward slashes with underscores
+	version = strings.ReplaceAll(version, "/", "_")
+	return version
 }
 
 type ConfiguredInstanceConfig struct {
@@ -154,6 +156,7 @@ type InstanceConfig struct {
 	UniqueID           string
 	ConfigError        string
 	OutputPathV2       string
+	RunOutputPathV3    string // Path used for OpenSCAD -o command, relative to config.toml location
 	IgnoredParams      []string
 	ImageResults       []GenerateImageResult
 	ExportImages       []ExportCameraCoordinates
@@ -219,8 +222,17 @@ func (instance *InstanceConfig) GetInstancePaths(config *Config) *InstancePaths 
 	relativeOutputPath := strings.TrimPrefix(instance.OutputPathV2, outputFolderPath)
 	relativeOutputPath = strings.TrimPrefix(relativeOutputPath, string(filepath.Separator))
 
+	// Get the input path relative to the config file directory
+	relInputPath, err := filepath.Rel(configDir, absPath)
+	if err != nil {
+		// If we can't make it relative, use the absolute path
+		relInputPath = absPath
+	}
+
+	log.Printf("\n\nGetInstancePath - \nConfigFile: %s\nrelInputPath: %s\n, absPath: %s\n", config.ConfigFile, relInputPath, absPath)
+
 	return &InstancePaths{
-		InputPath:        "./" + absPath,
+		InputPath:        absPath,
 		OutputFolderPath: outputFolderPath,
 		OutputPath:       relativeOutputPath,
 		FullOutputPath:   instance.OutputPathV2,

@@ -5,7 +5,7 @@ description = ""
 
 version = "v0.1"
 
-export_name_format = "{designFileName}-{instanceName}/{partType}"
+export_name_format = "{designFileName}-{instanceName}-{partType}"
 global_params = { partType = "box,startBox,endBox" }
 
 [[openscadgen.input_paths]]

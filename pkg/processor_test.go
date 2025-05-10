@@ -875,7 +875,9 @@ func TestGenerateDynamicInstances(t *testing.T) {
 			if len(tc.config.Design.ConfiguredInstanceConfig) > 1 {
 				t.Error("Only one dynamic instance config is supported for testing")
 			}
-			instances, err := generateInstances(&tc.config, tc.config.Design.ConfiguredInstanceConfig[0], models.InputPath{Path: inputPath}, tempDir)
+			instances, err := generateInstances(&tc.config, tc.config.Design.ConfiguredInstanceConfig[0], models.InputPath{Path: inputPath}, models.OutputPaths{
+				ExportFolderPath: tempDir,
+			})
 			if err != nil {
 				t.Errorf("Error generating instances: %v", err)
 			}
@@ -936,7 +938,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 
 				// Verify InputPath is set correctly
 				if instance.InputPath.Path != inputPath {
-					t.Errorf("Instance InputPath mismatch:\nExpected: %s\nGot: %s", inputPath, instance.InputPath)
+					t.Errorf("Instance InputPath mismatch:\nExpected: %s\nGot: %s", inputPath, instance.InputPath.Path)
 				}
 			}
 
@@ -966,6 +968,27 @@ func TestGenerateDynamicInstances(t *testing.T) {
 						instance.OutputPathV2,
 						strings.Join(tc.expectedOutputPaths, "\n\t"))
 				}
+			}
+
+			// Verify OutputPathV2 is set correctly
+			if len(instances) == 0 {
+				t.Errorf("No instances were generated")
+			}
+			instance := instances[0]
+			if instance.OutputPathV2 == "" {
+				t.Errorf("OutputPathV2 is empty")
+			}
+			if !strings.Contains(instance.OutputPathV2, "test_design_v1.0_name_default.stl") {
+				t.Errorf("OutputPathV2 does not contain correct format: %s", instance.OutputPathV2)
+			}
+
+			// Verify RunOutputPathV3 is set correctly and is relative to config.toml
+			if instance.RunOutputPathV3 == "" {
+				t.Errorf("RunOutputPathV3 is empty")
+			}
+			expectedRelPath := filepath.Join("export", "v1_0", "test_design_v1.0_name_default.stl")
+			if normalizePath(instance.RunOutputPathV3) != normalizePath(expectedRelPath) {
+				t.Errorf("RunOutputPathV3 = %s; want %s", instance.RunOutputPathV3, expectedRelPath)
 			}
 		})
 	}
@@ -1077,4 +1100,162 @@ func TestGenerateParamCombinations(t *testing.T) {
 
 	// Test case 4: Parameters with empty values
 
+}
+
+func TestPathResolution(t *testing.T) {
+	// Create a temporary directory for test files
+	tempDir, err := os.MkdirTemp("", "openscadgen_test")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	// Create test directory structure
+	subfolder := filepath.Join(tempDir, "subfolder")
+	if err := os.MkdirAll(subfolder, 0755); err != nil {
+		t.Fatalf("Failed to create subfolder: %v", err)
+	}
+
+	// Create test files
+	configContent := `[openscadgen]
+name = "Test Design"
+description = "Test design for path resolution"
+input_path = "design.scad"
+version = "v1.0"
+export_name_format = "test_design_{version}_name_{name}"
+
+[[openscadgen.instances]]
+name = "default"
+`
+	configPath := filepath.Join(subfolder, "config.toml")
+	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		t.Fatalf("Failed to create config file: %v", err)
+	}
+
+	designContent := `cube([10, 10, 10]);`
+	designPath := filepath.Join(subfolder, "design.scad")
+	if err := os.WriteFile(designPath, []byte(designContent), 0644); err != nil {
+		t.Fatalf("Failed to create design file: %v", err)
+	}
+
+	// Test cases for different working directories
+	testCases := []struct {
+		name           string
+		workingDir     string
+		configPath     string
+		expectedExport string
+	}{
+		{
+			name:           "Run from parent directory",
+			workingDir:     tempDir,
+			configPath:     "subfolder/config.toml",
+			expectedExport: filepath.Join(subfolder, "export", "v1_0"),
+		},
+		{
+			name:           "Run from subfolder directory",
+			workingDir:     subfolder,
+			configPath:     "config.toml",
+			expectedExport: filepath.Join("export", "v1_0"),
+		},
+		{
+			name:           "Run with absolute path",
+			workingDir:     tempDir,
+			configPath:     filepath.Join(subfolder, "config.toml"),
+			expectedExport: filepath.Join(subfolder, "export", "v1_0"),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Save current working directory
+			originalDir, err := os.Getwd()
+			if err != nil {
+				t.Fatalf("Failed to get current directory: %v", err)
+			}
+			defer os.Chdir(originalDir)
+
+			// Change to test working directory
+			if err := os.Chdir(tc.workingDir); err != nil {
+				t.Fatalf("Failed to change directory: %v", err)
+			}
+
+			// Initialize logger first
+			if err := InitLogger(filepath.Join(tc.workingDir, "test.log")); err != nil {
+				t.Fatalf("Failed to initialize logger: %v", err)
+			}
+
+			// Load config
+			config, err := LoadConfig(models.CmdFlags{
+				ConfigFile: tc.configPath,
+			})
+			if err != nil {
+				t.Fatalf("Failed to load config: %v", err)
+			}
+
+			// Get output paths
+			outputPaths := getOutputPaths(config)
+
+			// Verify export path
+			expectedPath := filepath.Join(tc.workingDir, tc.expectedExport)
+			if normalizePath(outputPaths.ExportFolderPath) != normalizePath(expectedPath) {
+				t.Errorf("ExportFolderPath = %s; want %s", outputPaths.ExportFolderPath, expectedPath)
+			}
+
+			// Process the config
+			if err := Process(config); err != nil {
+				t.Fatalf("Failed to process config: %v", err)
+			}
+
+			// Get instances from the config
+			instances, err := generateInstances(config, config.Design.ConfiguredInstanceConfig[0], config.Design.InputPaths[0], models.OutputPaths{
+				ExportFolderPath: outputPaths.ExportFolderPath,
+			})
+			if err != nil {
+				t.Fatalf("Failed to generate instances: %v", err)
+			}
+
+			// Verify export directory was created
+			if _, err := os.Stat(outputPaths.ExportFolderPath); os.IsNotExist(err) {
+				t.Errorf("Export directory was not created at %s", outputPaths.ExportFolderPath)
+			}
+
+			// Verify STL file was created with correct name
+			expectedSTLName := "test_design_v1.0_name_default.stl"
+			stlPath := filepath.Join(outputPaths.ExportFolderPath, expectedSTLName)
+			if _, err := os.Stat(stlPath); os.IsNotExist(err) {
+				t.Errorf("STL file was not created at %s", stlPath)
+			}
+
+			// Verify input path is correct
+			if config.Design.InputPath == "" {
+				t.Errorf("Input path is empty")
+			}
+
+			// Verify the version format in the output path
+			if !strings.Contains(outputPaths.ExportFolderPath, "v1.0") {
+				t.Errorf("Export folder path does not contain correct version format: %s", outputPaths.ExportFolderPath)
+			}
+
+			// Verify OutputPathV2 is set correctly
+			if len(instances) == 0 {
+				t.Errorf("No instances were generated")
+			}
+			instance := instances[0]
+			if instance.OutputPathV2 == "" {
+				t.Errorf("OutputPathV2 is empty")
+			}
+			if !strings.Contains(instance.OutputPathV2, "test_design_v1.0_name_default.stl") {
+				t.Errorf("OutputPathV2 does not contain correct format: %s", instance.OutputPathV2)
+			}
+
+			// Verify RunOutputPathV3 is set correctly and is relative to config.toml
+			if instance.RunOutputPathV3 == "" {
+				t.Errorf("RunOutputPathV3 is empty")
+			}
+			expectedRelPath := filepath.Join("export", "v1_0", "test_design_v1.0_name_default.stl")
+			if normalizePath(instance.RunOutputPathV3) != normalizePath(expectedRelPath) {
+				t.Errorf("RunOutputPathV3 = %s; want %s", instance.RunOutputPathV3, expectedRelPath)
+			}
+		})
+	}
 }

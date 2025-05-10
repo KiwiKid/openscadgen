@@ -66,6 +66,8 @@ templ RenderParams(params map[string]interface{}) {
                 { fmt.Sprintf("%s = %v;\n", name, v) }
             case bool:
                 { fmt.Sprintf("%s = %v;\n", name, v) }
+            case map[string]interface{}:
+                { fmt.Sprintf("%s = [%v];\n", name, v) }
             default:
                 { fmt.Sprintf("%s = \"%v\";\n", name, v) }
             }

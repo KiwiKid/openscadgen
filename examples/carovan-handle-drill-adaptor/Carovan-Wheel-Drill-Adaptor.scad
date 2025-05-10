@@ -5,8 +5,15 @@ $fa = .01;
 $fs = $preview ? 5 : 1;
 $fn = 200;
 
-bottom_cube=60;
+cyliderDiamter = 70;
+
+bottom_cube=900;
+cubeRotate=25;
+cubeTranslate=[-120,-40,0];
+
 side_thru_cutout_diameter = 15;
+
+cutout_down = 50;
 
 holder_cutour_diameter = 25;
 
@@ -14,44 +21,45 @@ module hex_with_cylinder() {
     // Create the hex prism and define an attachment point on top
     attachable(){
     up(2)
-    tube(or=11, ir=1, h=15, $fn=6, rounding=1.3, teardrop=true, anchor=TOP);
+    tube(or=11, ir=1, h=23, $fn=6, rounding=1.3, teardrop=true, anchor=TOP);
 
     difference(){
     
-        cylinder(d=50, h=50, anchor=BOTTOM);
+    cube_height = 60;
+    cube_width = 70;
+        up(cube_height/2)
+        cuboid(size=[cube_width,cube_width, cube_height], rounding=3);
+        //rect_tube(d=70, h=40, anchor=BOTTOM);
         
         // Handle cutout
         rotate([0,90,0])
-        left(16)
-        cylinder(d=holder_cutour_diameter, h=30, anchor=BOTTOM);
+        left(cutout_down-20)
+        cylinder(d=holder_cutour_diameter, h=300, anchor=BOTTOM);
         
         // Handle cutout extended
         rotate([0,90,0])
-        left(27)
-        cuboid([30,holder_cutour_diameter,30], anchor=BOTTOM);
+        left(cutout_down+10)
+        cuboid([60,holder_cutour_diameter,300], anchor=BOTTOM);
         
         // Side thru cutout
-        rotate([90,90,0])
-        left(15)
-        down(30)
-        cylinder(d=side_thru_cutout_diameter, h=60, anchor=BOTTOM);
+      /*  rotate([90,90,0])
+        left(cutout_down-25)
+        down(cutout_down)
+        cylinder(d=side_thru_cutout_diameter, h=300, anchor=BOTTOM);
         
         // Side thru cutout extender
         rotate([90,90,0])
-        left(38)
-        down(30)
-        cube([50,side_thru_cutout_diameter,100], anchor=BOTTOM);
-        
+        left(cutout_down)
+        cube([50,side_thru_cutout_diameter,100], anchor=BOTTOM, center=true);
+        */
         
         // Bottom cutout
         up(5)
-        #cyl(d=38, h=30, anchor=BOTTOM, rounding1=10);
+        cyl(d=45, h=60, anchor=BOTTOM, rounding1=10);
          
-         fwd(bottom_cube/2)
-         up(25)
-         left(bottom_cube/2)
-         rotate([0,-10,0])
-         cube(bottom_cube);
+       /*  translate(cubeTranslate)
+         rotate([0,-cubeRotate,0])
+         cube(bottom_cube);*/
         }
     }
 }

@@ -51,14 +51,11 @@ iconOffset = 16;
 iconScale = 15;
 bottom_flatten_z_offset =0;
 bottom_flatten_size = [100,100,10];
-
-
-module stacking_tube(){
 chamfer=4;
 
+module stacking_tube(){
  tube(h=stackingRimHeight, or1=coasterRadius+stackingRimBaseRadius, or2=coasterRadius+stackingRimBaseRadius, wall=15, rounding=10)
     fillet(h=2, r=2);
-
 }
 
 difference() {
@@ -69,31 +66,20 @@ union(){
    stacking_tube();
     
 
-}
+};
 
     up(bottom_stacking_rim_z_offset)
      stacking_tube();
-    //translate([0,0,3])
-    //#cylinder(h=coasterHeight, r=coasterRadius - insetHeight);
-
      
     // Text around the coaster
-   path = path3d(arc(100, r=textAroundRadius, angle=[0, 360]));
+   path = path3d(arc(100, r=textAroundRadius, angle=[0, 500]));
     color("red") stroke(path, width=.5);
     translate([0,0,aroundTextHeightOffset])
     scale(1.5)
     path_text(path, textAround , font="Liberation Mono",  size=6, center=true, lettersize =5, h=3);
-     /*
-    // Semi-Circle instructions
-        path2 = path3d(arc(99, r=insetRadius, angle=[subContentStartAngle, subContentEndAngle]));
-    color("red") stroke(path, width=.5);
-    translate([0,0,insetHeight+2])
-    path_text(path2, textSubContent, font="Liberation Mono", normal=UP, thickness=15, size=6, lettersize = 5/1.2, center=true);
-*/
-   // Main Center Text
+ 
    
-    translate([0,0,
-textTranslateZ])
+    translate([0,0,textTranslateZ])
     linear_extrude(height=textMainDepth)
     text(textContent, size=textMainSize, halign="center", valign="center");
      
@@ -105,20 +91,9 @@ textTranslateZ])
     fwd(textSubYOffset)
     translate([0,0,textTranslateZ-1])
     linear_extrude(height=50+1)
-    #text(textSubContent, size=textSubContentSize, halign="center", valign="center");
-    /*
-  
+    text(textSubContent, size=textSubContentSize, halign="center", valign="center");
+   
 
-   translate([0,iconOffset,coasterHeight])
-   scale(iconScale)
-   difference(){
-       import("./icon.stl");
-       translate([0,4.1,0])
-       #cuboid(5);
-       
-       translate([0,-3,0])
-       #cuboid(5);
-   }*/
      right(540)
     fwd(24)
     up(4)
@@ -130,13 +105,24 @@ textTranslateZ])
     down(bottom_flatten_z_offset)
     cuboid(bottom_flatten_size);
     
-} 
-
-// Text on the top center
+};
 
 
   
 
     
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
