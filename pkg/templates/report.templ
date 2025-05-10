@@ -43,9 +43,9 @@ func getSortedParamNames(params map[string]interface{}) []string {
 
 templ Collapsable(title string, isOpen bool) {
     <div x-data={ fmt.Sprintf(`{ isOpen: %v }`, isOpen) }>
-        <button class="button" @click="isOpen = !isOpen">
-            <span x-show="!isOpen">+</span>
-            <span x-show="isOpen">-</span>
+        <button class="button is-large is-fullwidth" @click="isOpen = !isOpen">
+            <span x-show="!isOpen">▼</span>
+            <span x-show="isOpen">▲</span>
             { title }
         </button>
         <div x-show="isOpen">
@@ -56,7 +56,7 @@ templ Collapsable(title string, isOpen bool) {
 
 templ RenderParams(params map[string]interface{}) {
     <details><summary>Params </summary>
-    <!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> -->
+    <button class="button is-small is-info" @click="window.navigator.clipboard.writeText(this.nextElementSibling.querySelector('code').textContent)">Copy</button>
         <pre><code>
         for _, name := range getSortedParamNames(params) {
             switch v := params[name].(type) {
@@ -75,6 +75,24 @@ templ RenderParams(params map[string]interface{}) {
     </code></pre>
     (copy these into the openscad editor to tweak this instance)
     </details>
+}
+
+templ CodeBlock(code string, copyButton bool){
+    if copyButton {
+        <button onclick="navigator.clipboard.writeText(this.nextElementSibling.querySelector('pre').textContent)">Copy Code</button>    
+    }
+    
+         <code style="white-space: pre;"><pre>
+        { code }</pre>
+        </code>
+    
+}
+
+func getInstanceClassName(instance models.InstanceConfig) string {
+    if instance.SkippedReason != "" {
+        return " has-background-grey-light			"
+    }
+    return ""
 }
 
 templ Report(config *models.Config, instances []models.InstanceConfig, outputPaths models.OutputPaths, stlResults []models.GenerateSTLResult, imageResults []models.GenerateImageResult, allParamNames []string) {
@@ -277,7 +295,7 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
                     <div class="search-box">
                         <div class="field">
                             <div class="control">
-                                <input class="input" type="text" placeholder="Search..." x-model="searchQuery">
+                                <input class="input" type="text" placeholder="Filter to specific instances etc..." x-model="searchQuery">
                             </div>
                         </div>
                     </div>
@@ -288,11 +306,15 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
                 </div>
             </div>
             <div class="container">
-                <div class="header">
-                    <p>{ config.Design.Description }</p>
-                </div>
+                @Collapsable(config.Design.Name, true) {
+                    <h2 class="is-size-4">{ config.Design.Name }</h2>
+                    @CodeBlock(config.Design.Description, false)
+                }
 
-                if len(config.Design.GlobalParams) > 0 {
+                
+            @Collapsable("Configuration Details", true) {
+            <h2 class="is-size-4">Configuration Details</h2>
+            if len(config.Design.GlobalParams) > 0 {
                     <h2 class="is-size-4">Global Parameters</h2>
                     <div class="table-container">
                         <table class="table is-fullwidth">
@@ -313,245 +335,15 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
                         </table>
                     </div>
                 } else {
-                    <div>No Global Parameters [global_params]</div>
+                    <details><summary>No [global_params]</summary>
+                        <p>Add global params via a heading at the top level of the config file:</p>
+                        
+                        @CodeBlock(`
+                            [openscadgen.global_params]
+                            params = { text="First,Second,Third", height=100 }
+                        `, true)
+                        </details>  
                 }
-
-                if len(config.GetInputPaths()) > 0 {
-                    <h2 class="is-size-4">Input Paths</h2>
-                    <div class="table-container">
-                        <table class="table is-fullwidth">
-                            <thead>
-                            <tr>
-                                <th>Path</th>
-                                <!--NEXT-VERSION: <th>OpenSCAD Code</th> -->
-                            </tr>
-                        </thead>
-                        <tbody>
-                            for _, inputPath := range config.GetInputPaths() {
-                                <tr>
-                                    <td>{ inputPath.Path }</td>
-                                    <!-- NEXT-VERSION: <td><details><summary>OpenSCAD Code</summary>
-                                    { inputPath.RawOpenSCADFile }</details></td> -->
-                                </tr>
-                            }
-                        </tbody>
-                        </table>
-                    </div>
-                } else {
-                    <div>No Input Paths
-                    
-                    <details><summary>[[openscadgen.input_paths]]</summary>
-                        <pre><code>
-                        [[openscadgen.input_paths]]
-                        path = "./examples/cup-holder-plus/carHolderPlus.scad"
-
-                        [[openscadgen.input_paths]]
-                        path = "./examples/cup-holder-plus/carHolderPlus-cup-holder-sizer.scad"
-                        ignore_param_when_processing = "cup_holders_mode"
-                        export_name_format = "cup-holder-sizer/%7BdesignFileName%7D-%7Bname%7D"
-                        </code></pre>
-                    </details>
-                    </div>
-                }
-               @Collapsable("STL Generation Results", true) {
-                if len(stlResults) > 0 {
-                        <div class="table-container">
-                            <table class="table is-fullwidth">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 150px;">Instance</th>
-                                    <th style="width: 200px;">Output Path</th>
-                                    <th style="width: 200px;">Command</th>
-                                    <th style="width: 100px;">Time Taken</th>
-                                    <th style="width: 200px;">Params</th>
-                                    <th style="width: 150px;">Error</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                for _, stlResult := range sortSTLResults(stlResults) {
-                                    <tr x-show={ fmt.Sprintf(`searchQuery === '' || ('%s %s').toLowerCase().includes(searchQuery.toLowerCase())`, stlResult.InstanceConfig.Name, stlResult.OutputPath) }>
-                                        <td>{ stlResult.InstanceConfig.Name }</td>
-                                        <td>{ stlResult.OutputPath }</td>
-                                        <td><details><summary>{ fmt.Sprintf("%.15s...", stlResult.Command) }</summary>
-                                        { stlResult.Command }</details></td>
-                                        <td>{ fmt.Sprintf("%v", stlResult.TimeTaken) }</td>
-                                        if len(stlResult.AppliedParams) > 0 {
-                                            <td> @RenderParams(stlResult.AppliedParams) </td>
-                                        } else {
-                                            <td><pre><code>{ fmt.Sprintf("%v", stlResult.InstanceConfig.Params) }</code></pre></td>
-                                        }
-                                        if stlResult.Error != "" {
-                                            <td class="is-danger">{ stlResult.Error }</td>
-                                        }
-                                        <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                <pre><code>{ stlResult.InstanceConfig.InputPath.RawOpenSCADFile }</code></pre>
-                                            </details>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                            </table>
-                        </div>
-                    } else {
-                        <details><summary>No STL Generation Results</summary>
-                        <div>
-                        if config.RegexPattern != "" {
-                            <div class="is-warning">[ Skipped based on provided regex pattern: { config.RegexPattern } ]</div>
-                        }
-
-                        if config.MaxInstances > 0 {
-                            <div>Max instances: { fmt.Sprintf("%d", config.MaxInstances) } blocked all instances from being generated?</div>
-                        }
-
-                        Add stl generation to the config file to generate stl files for each instance:
-                        <pre><code>
-                        [[openscadgen.instances]]
-                        name = "default"
-                        </code></pre>
-                        </div>
-                        </details>
-                    }
-                }
-
-                if len(imageResults) > 0 {
-                    <h2 class="is-size-4">Image Generation Results</h2>
-                    <div>Generated { fmt.Sprintf("%d",len(imageResults)) } images</div>
-                    <div class="table-container">
-                        <table class="table is-fullwidth">
-                        <thead>
-                            <tr>
-                                <th>Instance</th>
-                                <th>Camera</th>
-                                <th>Output Path</th>
-                                <th>Command</th>
-                                <th>Time Taken</th>
-                                <th>Camera Coordinates</th>
-                                <th>Preview</th>
-                                <th>Error</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            for _, imageResult := range imageResults {
-                                <tr x-show={ fmt.Sprintf(`searchQuery === '' || ('%s %s').toLowerCase().includes(searchQuery.toLowerCase())`, imageResult.InstanceConfig.Name, imageResult.OutputPath) }>
-                                    <td>{ imageResult.InstanceConfig.Name }</td>
-                                    <td>{ imageResult.CameraName }</td>
-                                    <td>{ imageResult.OutputPath }</td>
-                                    <td><details><summary>{ fmt.Sprintf("%.15s...", imageResult.Command) }</summary>
-                                    { imageResult.Command }</details></td>
-                                    <td>{ fmt.Sprintf("%v", imageResult.TimeTaken) }</td>
-                                    <td>
-                                        <details>
-                                            <summary>View Camera Coordinates</summary>
-                                            <div class="camera-coords">
-                                                <p>Format: x,y,z,rotx,roty,rotz,distance</p>
-                                                <ul>
-                                                    <li>x,y,z: Camera position in 3D space</li>
-                                                    <li>rotx,roty,rotz: Rotation angles in degrees</li>
-                                                    <li>distance: Distance from camera to target point</li>
-                                                </ul>
-                                                <p>Coordinates: {imageResult.CameraCoords}</p>
-                                            </div>
-                                        </details>
-                                        @RenderParams(imageResult.AppliedParams)
-                                    </td>
-                                    <td>
-                                        if imageResult.Error == "" {
-                                            <img src={ getRelativeImagePath(imageResult.OutputPath, outputPaths.ExportFolderPath) } 
-                                                 alt={ fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName) } 
-                                                 class="image-preview"
-                                                 onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"
-                                            />
-                                            <div class="image-error" style="display: none;">Image failed to load: { getRelativeImagePath(imageResult.OutputPath, outputPaths.ExportFolderPath) }</div>
-                                        } else {
-                                            <span class="tag is-danger">Failed</span>
-                                        }
-                                    </td>
-                                    if imageResult.Error != "" {
-                                        <td class="is-danger">{ imageResult.Error }</td>
-                                    } else {
-                                        <td></td>
-                                    }
-                                </tr>
-                            }
-                        </tbody>
-                        </table>
-                    </div>
-                } else {
-                    <details><summary>No Image Generation Results</summary>
-                    <div>
-                    Add export images to the config file to generate images for each instance:
-                    <pre><code>
-                    [[openscadgen.export_images]]
-                    name = "front"
-                    coord = "0,0,0,0,0,0,100"
-                    </code></pre>
-                    </div>
-                    </details>
-                }
-
-                @Collapsable("Generated Instances", true) {
-                if len(instances) > 0 {
-                    <div>
-                    <h2 class="is-size-4">Generated Instances</h2>
-                    <div class="table-container">
-                        <table class="table is-fullwidth">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Description</th>
-                                    <th>Output Path</th>
-                                    <th>Ignored Params</th>
-                                    <th>Skipped Reason</th>
-                                    <th>Images</th>
-                                    for _, paramName := range allParamNames {
-                                        <th>{ paramName }</th>
-                                    }
-                                    
-                                </tr>
-                            </thead>
-                            <tbody>
-                                for _, instance := range instances {
-                                    <tr x-show={ fmt.Sprintf(`searchQuery === '' || ('%s %s').toLowerCase().includes(searchQuery.toLowerCase())`, instance.Name, instance.OutputPathV2) }>
-                                        <td>{ instance.Name }</td>
-                                        <td>{ instance.Description }</td>
-                                        <td>{ instance.OutputPathV2 }</td>
-                                        <td>{ fmt.Sprintf("%v", instance.IgnoredParams) }</td>
-                                        <td>{ instance.SkippedReason }</td>
-                                        <td>
-                                            if len(imageResults) > 0 {
-                                                for _, imageResult := range instance.ImageResults {
-                                                    { imageResult.OutputPath }
-                                                }
-                                            } else {
-                                                no images generated
-                                            }
-                                        </td>
-                                        for _, paramName := range allParamNames {
-                                            if value, ok := instance.Params[paramName]; ok {
-                                                <td>{ fmt.Sprintf("%v", value) }</td>
-                                            } else {
-                                                <td class="is-italic" title="No Param for { paramName }">N/A</td>
-                                            }
-                                        }
-                                    </tr>
-                                    if instance.ConfigError != "" {
-                                        <tr>        
-                                            <td colspan={ fmt.Sprintf("%d", len(allParamNames) + 2) } class="is-danger">{ instance.ConfigError }</td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                    </div>
-                } else {
-                    <div class="is-danger">No Instances Generated</div>
-                }
-                }
-
-                <h2 class="is-size-4">Configuration Details</h2>
                 <div class="instance">
                     <div class="params">
                         <div class="param">
@@ -652,7 +444,244 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
                     </div>
                 </div>
 
-                @Collapsable("Config Reference", true) {
+                if len(config.GetInputPaths()) > 0 {
+                    <h2 class="is-size-4">Input Paths</h2>
+                    <div class="table-container">
+                        <table class="table is-fullwidth">
+                            <thead>
+                            <tr>
+                                <th>Path</th>
+                                <!--NEXT-VERSION: <th>OpenSCAD Code</th> -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            for _, inputPath := range config.GetInputPaths() {
+                                <tr>
+                                    <td>{ inputPath.Path }</td>
+                                    <!-- NEXT-VERSION: <td><details><summary>OpenSCAD Code</summary>
+                                    { inputPath.RawOpenSCADFile }</details></td> -->
+                                </tr>
+                            }
+                        </tbody>
+                        </table>
+                    </div>
+                } else {
+                    <div>No Input Paths
+                    
+                    <details><summary>[[openscadgen.input_paths]]</summary>
+                        @CodeBlock(`
+                        [[openscadgen.input_paths]]
+                        path = "./examples/cup-holder-plus/carHolderPlus.scad"
+
+                        [[openscadgen.input_paths]]
+                        path = "./examples/cup-holder-plus/carHolderPlus-cup-holder-sizer.scad"
+                        ignore_param_when_processing = "cup_holders_mode"
+                        export_name_format = "cup-holder-sizer/%7BdesignFileName%7D-%7Bname%7D"
+                        `, true)
+                    </details>
+                    </div>
+                }
+
+            }
+                
+               @Collapsable("STL Generation Results", true) {
+                if len(stlResults) > 0 {
+                        <div class="table-container">
+                            <table class="table is-fullwidth">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 150px;">Instance</th>
+                                    <th style="width: 200px;">Output Path</th>
+                                    <th style="width: 200px;">Command</th>
+                                    <th style="width: 100px;">Time Taken</th>
+                                    <th style="width: 200px;">Params</th>
+                                    <th style="width: 150px;">Error</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                for _, stlResult := range sortSTLResults(stlResults) {
+                                    <tr x-show={ fmt.Sprintf(`searchQuery === '' || ('%s %s').toLowerCase().includes(searchQuery.toLowerCase())`, stlResult.InstanceConfig.Name, stlResult.OutputPath) }>
+                                        <td>{ stlResult.InstanceConfig.Name }</td>
+                                        <td>{ stlResult.OutputPath }</td>
+                                        <td><details><summary>{ fmt.Sprintf("%.15s...", stlResult.Command) }</summary>
+                                        { stlResult.Command }</details></td>
+                                        <td>{ fmt.Sprintf("%v", stlResult.TimeTaken) }</td>
+                                        if len(stlResult.AppliedParams) > 0 {
+                                            <td> @RenderParams(stlResult.AppliedParams) </td>
+                                        } else {
+                                            <td>@CodeBlock(fmt.Sprintf("%v", stlResult.InstanceConfig.Params), true) </td>
+                                        }
+                                        if stlResult.Error != "" {
+                                            <td class="is-danger">{ stlResult.Error }</td>
+                                        }
+                                        <!-- <td>
+                                            <details>
+                                                <summary>OpenSCAD Code</summary>
+                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+                                            </details>
+                                        </td> -->
+                                    </tr>
+                                }
+                            </tbody>
+                            </table>
+                        </div>
+                    } else {
+                        <details><summary>No STL Generation Results</summary>
+                        <div>
+                        if config.RegexPattern != "" {
+                            <div class="is-warning">[ Some may be skipped based on provided regex pattern: { config.RegexPattern } ]</div>
+                        }
+
+                        if config.MaxInstances > 0 {
+                            <div>Max instances: { fmt.Sprintf("%d", config.MaxInstances) } blocked all instances from being generated?</div>
+                        }
+
+                        Add stl generation to the config file to generate stl files for each instance:
+                        @CodeBlock(`
+                        [[openscadgen.instances]]
+                        name = "default"
+                        `, false)
+                        </div>
+                        </details>
+                    }
+                }
+
+                if len(imageResults) > 0 {
+                    <h2 class="is-size-4">Image Generation Results</h2>
+                    <div>Generated { fmt.Sprintf("%d",len(imageResults)) } images</div>
+                    <div class="table-container">
+                        <table class="table is-fullwidth">
+                        <thead>
+                            <tr>
+                                <th>Instance</th>
+                                <th>Camera</th>
+                                <th>Output Path</th>
+                                <th>Command</th>
+                                <th>Time Taken</th>
+                                <th>Camera Coordinates</th>
+                                <th>Preview</th>
+                                <th>Error</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            for _, imageResult := range imageResults {
+                                <tr x-show={ fmt.Sprintf(`searchQuery === '' || ('%s %s').toLowerCase().includes(searchQuery.toLowerCase())`, imageResult.InstanceConfig.Name, imageResult.OutputPath) }>
+                                    <td>{ imageResult.InstanceConfig.Name }</td>
+                                    <td>{ imageResult.CameraName }</td>
+                                    <td>{ imageResult.OutputPath }</td>
+                                    <td><details><summary>{ fmt.Sprintf("%.15s...", imageResult.Command) }</summary>
+                                    { imageResult.Command }</details></td>
+                                    <td>{ fmt.Sprintf("%.1f", imageResult.TimeTaken) }</td>
+                                    <td>
+                                        <details>
+                                            <summary>View Camera Coordinates</summary>
+                                            <div class="camera-coords">
+                                                <p>Format: x,y,z,rotx,roty,rotz,distance</p>
+                                                <ul>
+                                                    <li>x,y,z: Camera position in 3D space</li>
+                                                    <li>rotx,roty,rotz: Rotation angles in degrees</li>
+                                                    <li>distance: Distance from camera to target point</li>
+                                                </ul>
+                                                <p>Coordinates: {imageResult.CameraCoords}</p>
+                                            </div>
+                                        </details>
+                                        @RenderParams(imageResult.AppliedParams)
+                                    </td>
+                                    <td>
+                                        if imageResult.Error == "" {
+                                            <img src={ getRelativeImagePath(imageResult.OutputPath, outputPaths.ExportFolderPath) } 
+                                                 alt={ fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName) } 
+                                                 class="image-preview"
+                                                 onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"
+                                            />
+                                            <div class="image-error" style="display: none;">Image failed to load: { getRelativeImagePath(imageResult.OutputPath, outputPaths.ExportFolderPath) }</div>
+                                        } else {
+                                            <span class="tag is-danger">Failed</span>
+                                        }
+                                    </td>
+                                    if imageResult.Error != "" {
+                                        <td class="is-danger">{ imageResult.Error }</td>
+                                    } else {
+                                        <td></td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                        </table>
+                    </div>
+                } else {
+                    @Collapsable("No Image Generation Results", false) {
+                    <div>
+                    Add export images to the config file to generate images for each instance:
+                   @CodeBlock(`
+                    [[openscadgen.export_images]]
+                    name = "front"
+                    coord = "0,0,0,0,0,0,100"
+                    `, false)
+                    </div>
+                    }
+                }
+
+                @Collapsable("Generated Instances", true) {
+                if len(instances) > 0 {
+                    <div>
+                    <h2 class="is-size-4">Generated Instances</h2>
+                    <div class="table-container">
+                        <table class="table is-fullwidth">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Output Path</th>
+                                    <th>Ignored Params</th>
+                                    <th>Skipped Reason</th>
+                                    <th>Images</th>
+                                    for _, paramName := range allParamNames {
+                                        <th>{ paramName }</th>
+                                    }
+                                    
+                                </tr>
+                            </thead>
+                            <tbody>
+                                for _, instance := range instances {
+                                    <tr class={ getInstanceClassName(instance) } x-show={ fmt.Sprintf(`searchQuery === '' || ('%s %s').toLowerCase().includes(searchQuery.toLowerCase())`, instance.Name, instance.OutputPathV2) }>
+                                        <td>{ instance.Name }</td>
+                                        <td>{ instance.Description }</td>
+                                        <td>{ instance.OutputPathV2 }</td>
+                                        <td>{ fmt.Sprintf("%v", instance.IgnoredParams) }</td>
+                                        <td>{ instance.SkippedReason }</td>
+                                        <td>
+                                            if len(imageResults) > 0 {
+                                                for _, imageResult := range instance.ImageResults {
+                                                    { imageResult.OutputPath }
+                                                }
+                                            } else {
+                                                no images generated
+                                            }
+                                        </td>
+                                        for _, paramName := range allParamNames {
+                                            if value, ok := instance.Params[paramName]; ok {
+                                                <td>{ fmt.Sprintf("%v", value) }</td>
+                                            } else {
+                                                <td class="is-italic" title="No Param for { paramName }">N/A</td>
+                                            }
+                                        }
+                                    </tr>
+                                    if instance.ConfigError != "" {
+                                        <tr>        
+                                            <td colspan={ fmt.Sprintf("%d", len(allParamNames) + 2) } class="is-danger">{ instance.ConfigError }</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    </div>
+                } else {
+                    <div class="is-danger">No Instances Generated</div>
+                }
+                }
+                @Collapsable("Config Reference", false) {
                 <h2 class="is-size-4">Config Reference</h2>
                 <details>
                     <summary>Example Config File</summary>
@@ -693,7 +722,7 @@ param_sets = "large"
 [[openscadgen.export_images]]
 name = "front"
 coord = "0,0,0,0,0,0,100"
-image_size = "1920,1080"`)) } 
+image_size = "1920,1080"`)) }
                     </code></pre>
                 </details>
 
@@ -773,27 +802,28 @@ dont_use_manifold = false         # If true, disables manifold operations
                     </code></pre>
                 </details>
                 }
-                 <h2 class="is-size-4">Output Paths</h2>
-                    <div class="instance">
-                    <div class="param">
-                        <strong>OutputPath:</strong> { outputPaths.OutputPath }
-                    </div>
-                    <div class="param">
-                        <strong>ExportFolderPath:</strong> { outputPaths.ExportFolderPath }
-                    </div>
-                    
-                    if config.Quality == "low" {
+                @Collapsable("Output Paths", false){
+                        <div class="instance">
                         <div class="param">
-                            <strong>LowQualityWarningPath:</strong> { outputPaths.LowQualityWarningPath }
+                            <strong>OutputPath:</strong> { outputPaths.OutputPath }
                         </div>
-                    }
-                    <div class="param">
-                        <strong>ReadmePath:</strong> { outputPaths.ReadmePath }
+                        <div class="param">
+                            <strong>ExportFolderPath:</strong> { outputPaths.ExportFolderPath }
+                        </div>
+                    
+                        if config.Quality == "low" {
+                            <div class="param">
+                                <strong>LowQualityWarningPath:</strong> { outputPaths.LowQualityWarningPath }
+                            </div>
+                        }
+                        <div class="param">
+                            <strong>ReadmePath:</strong> { outputPaths.ReadmePath }
+                        </div>
+                        <div class="param">
+                            <strong>LogOutputPath:</strong> { outputPaths.LogOutputPath }
+                        </div>
                     </div>
-                    <div class="param">
-                        <strong>LogOutputPath:</strong> { outputPaths.LogOutputPath }
-                    </div>
-                </div>
+                }   
 
                 <div class="footer">
                     <p>Generated by openscadgen { config.OpenSCADVersion } at { time.Now().Format("2006-01-02 15:04:05") }</p>

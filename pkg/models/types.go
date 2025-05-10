@@ -190,11 +190,12 @@ type GenerateImageResult struct {
 }
 
 type InstancePaths struct {
-	InputPath        string
-	OutputFolderPath string
-	OutputPath       string
-	FullOutputPath   string
-	PartIDOutputPath string
+	InputPath         string
+	OutputFolderPath  string
+	OutputPath        string
+	FullOutputPath    string
+	PartIDOutputPath  string
+	InputPathRelative string
 }
 
 func (instance *InstanceConfig) GetInstancePaths(config *Config) *InstancePaths {
@@ -229,14 +230,15 @@ func (instance *InstanceConfig) GetInstancePaths(config *Config) *InstancePaths 
 		relInputPath = absPath
 	}
 
-	log.Printf("\n\nGetInstancePath - \nConfigFile: %s\nrelInputPath: %s\n, absPath: %s\n", config.ConfigFile, relInputPath, absPath)
+	//	log.Printf("\n\nGetInstancePath - \nConfigFile: %s\nrelInputPath: %s\n, absPath: %s\n", config.ConfigFile, relInputPath, absPath)
 
 	return &InstancePaths{
-		InputPath:        absPath,
-		OutputFolderPath: outputFolderPath,
-		OutputPath:       relativeOutputPath,
-		FullOutputPath:   instance.OutputPathV2,
-		PartIDOutputPath: path.Join(config.Design.OutputPath, versionPathSafe, "with_embedded_part_letter"),
+		InputPath:         absPath,
+		InputPathRelative: relInputPath,
+		OutputFolderPath:  outputFolderPath,
+		OutputPath:        relativeOutputPath,
+		FullOutputPath:    instance.OutputPathV2,
+		PartIDOutputPath:  path.Join(config.Design.OutputPath, versionPathSafe, "with_embedded_part_letter"),
 	}
 }
 

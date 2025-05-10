@@ -24,7 +24,7 @@ subContentEndAngle = 360;
 
 textSubYOffset = 10;
 
-textAround = "LEFT LEFT LEFT LEFT LEFT LEFT LEF";
+textAround = "LEFT LEFT LEFT LEFT LEFT LEFT LEFT LEFT";
 
 insetHeight = 6;
 insetRadius = coasterRadius-4;
@@ -49,7 +49,7 @@ bottom_stacking_rim_z_offset = -6;
 
 iconOffset = 16;
 iconScale = 15;
-bottom_flatten_z_offset =0;
+bottom_flatten_z_offset =-1;
 bottom_flatten_size = [100,100,10];
 chamfer=4;
 
@@ -72,7 +72,7 @@ union(){
      stacking_tube();
      
     // Text around the coaster
-   path = path3d(arc(100, r=textAroundRadius, angle=[0, 500]));
+   path = path3d(arc(100, r=textAroundRadius, angle=[0, 380]));
     color("red") stroke(path, width=.5);
     translate([0,0,aroundTextHeightOffset])
     scale(1.5)
@@ -103,7 +103,7 @@ union(){
     
     // Bottom Flattener
     down(bottom_flatten_z_offset)
-    cuboid(bottom_flatten_size);
+    #cuboid(bottom_flatten_size);
     
 };
 

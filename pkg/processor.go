@@ -39,14 +39,14 @@ func getOutputPaths(config *models.Config) models.OutputPaths {
 	// Convert configDir to relative path if possible
 	workingDir, err := os.Getwd()
 	if err != nil {
-		log.Printf("Warning: Could not get working directory: %s", err)
+		logError(fmt.Sprintf("Warning: Could not get working directory: %s", err))
 		workingDir = configDir
 	}
 
 	// Try to make configDir relative to working directory
 	relConfigDir, err := filepath.Rel(workingDir, configDir)
 	if err != nil {
-		log.Printf("Warning: Could not make config dir relative: %s", err)
+		logError(fmt.Sprintf("Warning: Could not make config dir relative: %s", err))
 		relConfigDir = configDir
 	}
 
@@ -140,7 +140,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.3.6-BETA"
+const VERSION = "v2.3.7-BETA"
 
 type Version struct {
 	OpenSCADGen string
@@ -213,16 +213,23 @@ func Process(config *models.Config) error {
 			instance.PartIDLetter = getPartIDLetter(i)
 
 			if instance.SkippedReason == "" {
+				if config.Debug {
+					logCreation(fmt.Sprintf("Generated instance %s", instance.AutoName))
+				}
 				result, err := generateSTL(&instance, config, outputPaths.ExportFolderPath)
 				if err != nil {
 					if config.ContinueOnError {
 						logError(fmt.Sprintf("Warning: failed to generate STL for instance %s:\n Error:\n%+v", instance.Name, err))
 						stlResults = append(stlResults, result)
 						continue
+					} else {
+						return fmt.Errorf("failed to generate STL: %w", err)
+
 					}
-					return fmt.Errorf("failed to generate STL: %w", err)
 				}
 				stlResults = append(stlResults, result)
+			} else {
+				logWarn(fmt.Sprintf("STL skipped %s %s", instance.AutoName, instance.SkippedReason), false)
 			}
 		}
 	}
@@ -290,7 +297,7 @@ func clearExportFolder(config *models.Config, outputPaths models.OutputPaths) {
 		if !config.OverwriteExisting {
 			logWarn(fmt.Sprintf("\nThe export folder (%s) has %d existing files: \n%s\n\n(the '-ow' flag will skip this check)\n\n(tip: if you want to keep the existing stl export files, cancel this run and update the 'version' in the config file, this will generate a new folder and keep the existing files)", outputPaths.ExportFolderPath, len(files), filesStr), false)
 
-			logWarn(fmt.Sprintf(" %d files will be deleted from: \n\n\t%s\n\nDo you want to continue? (y/n):", len(files), outputPaths.ExportFolderPath), true)
+			logWarn(fmt.Sprintf("\n\n %d files will be deleted from: \n\n\t%s\n\nDo you want to continue? (y/n):", len(files), outputPaths.ExportFolderPath), true)
 
 			reader := bufio.NewReader(os.Stdin)
 			response, _ := reader.ReadString('\n')
@@ -1159,22 +1166,44 @@ func checkInstancesSkip(config *models.Config, countSoFar int) string {
 }
 
 func checkRegexPattern(config *models.Config, configuredInstanceConfig models.ConfiguredInstanceConfig, inputPath models.InputPath) string {
+	logError("checkRegexPatterncheckRegexPatterncheckRegexPatterncheckRegexPattern")
 	if config.RegexPattern != "" {
 		regex, err := regexp.Compile(config.RegexPattern)
 		if err != nil {
 			return fmt.Sprintf("Error compiling regex pattern: %v", err)
 		}
-		match := false
+		match := ""
 		if regex.MatchString(configuredInstanceConfig.Name) {
-			match = true
+			if config.Debug {
+				logCreation(fmt.Sprintf("Regex Match (configuredInstanceConfig) %s %s", config.RegexPattern, configuredInstanceConfig.Name))
+			}
+			match = "Instance Name"
 		}
 
 		if regex.MatchString(inputPath.Path) {
-			match = true
+			if config.Debug {
+				logCreation(fmt.Sprintf("Regex Match (inputPath) %s %s", config.RegexPattern, inputPath.Path))
+			}
+			match = "Input Path"
 		}
 
-		if !match {
-			return fmt.Sprintf("Regex pattern: %s", config.RegexPattern)
+		for _, param := range configuredInstanceConfig.Params {
+			if regex.MatchString(param.(string)) {
+				if config.Debug {
+					logCreation(fmt.Sprintf("Regex Match (configuredInstanceConfig) %s %s", config.RegexPattern, param.(string)))
+				}
+
+				match = fmt.Sprintf("Param %s", param)
+			}
+		}
+
+		if len(match) == 0 {
+			log.Printf("%+v", configuredInstanceConfig)
+			log.Printf("%+v", inputPath)
+
+			return fmt.Sprintf("Regex pattern didnt match: %s [%s or %s]", config.RegexPattern, configuredInstanceConfig.Name, inputPath.Path)
+		} else {
+			logCreation(fmt.Sprintf("Regex Match - %s", match))
 		}
 	}
 	return ""
@@ -2051,7 +2080,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config, exportF
 
 	// Build command arguments
 	args := []string{
-		"-o", instance.OutputPathV2,
+		"-o", fmt.Sprintf("'%s'", instance.OutputPathV2),
 	}
 
 	//check for ? charcters
@@ -2100,6 +2129,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config, exportF
 	commandStr := fmt.Sprintf("%s %s %s", openscadCmd, strings.Join(args, " "), paths.InputPath)
 	if !config.Quiet {
 		logStage(fmt.Sprintf("Running STL generation: \n\n%s", commandStr))
+		log.Print("\n\n")
 	}
 
 	// Run command through shell
@@ -2196,6 +2226,7 @@ func GenerateOutputReport(config *models.Config, instances []models.InstanceConf
 			logError(fmt.Sprintf("failed to get absolute path for report: %v", err))
 		} else {
 			logKeyValuePair("HTML report", absPath)
+			logCreation(fmt.Sprintf("files://%s", absPath))
 		}
 	}
 
