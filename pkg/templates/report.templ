@@ -58,7 +58,9 @@ templ RenderParams(params map[string]interface{}) {
     <div class="code-block">
        
         <button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button>
-            <pre><code>
+            
+            
+            <details><summary>Applied Params</summary></details><pre><code>
             for _, name := range getSortedParamNames(params) {
                 switch v := params[name].(type) {
                 case string:
@@ -82,7 +84,7 @@ templ RenderParams(params map[string]interface{}) {
 templ CodeBlock(code string, copyButton bool){
     <div class="code-block">
         if copyButton {
-            <button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Code</button>
+            <button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button>
         }
         <code style="white-space: pre;"><pre>
         { code }</pre>
@@ -154,8 +156,13 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
                     --hover-bg: #f5f5f5;
                     --error-color: #b00020;
                     --success-color: #007e33;
+                    
                 }
 
+html, body {
+    min-height: 100vh;
+}
+               
                 .dark {
                     --bg-color: #1a1a1a;
                     --text-color: #f5f5f5 !important;
@@ -178,6 +185,8 @@ templ Report(config *models.Config, instances []models.InstanceConfig, outputPat
                     max-width: 1200px;
                     margin: 0 auto;
                     padding: 20px;
+                    background-color: var(--bg-color);
+                    color: var(--text-color);
                 }
                 .global-header {
                     position: sticky;
@@ -738,8 +747,8 @@ dont_use_manifold = false         # If true, disables manifold operations
                                     <tr x-show={ fmt.Sprintf(`searchQuery === '' || ('%s %s').toLowerCase().includes(searchQuery.toLowerCase())`, stlResult.InstanceConfig.Name, stlResult.OutputPath) }>
                                         <td>{ stlResult.InstanceConfig.Name }</td>
                                         <td>{ stlResult.OutputPath }</td>
-                                        <td><details><summary>{ fmt.Sprintf("%.15s...", stlResult.Command) }</summary>
-                                        { stlResult.Command }</details></td>
+                                        <td>@CodeBlock(fmt.Sprintf("%.15s...", stlResult.Command), true){
+                                        { stlResult.Command }}</td>
                                         <td>{ fmt.Sprintf("%v", stlResult.TimeTaken) }</td>
                                         if len(stlResult.AppliedParams) > 0 {
                                             <td> @RenderParams(stlResult.AppliedParams) </td>

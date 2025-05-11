@@ -2225,7 +2225,7 @@ func GenerateOutputReport(config *models.Config, instances []models.InstanceConf
 			logError(fmt.Sprintf("failed to get absolute path for report: %v", err))
 		} else {
 			logKeyValuePair("HTML report", absPath)
-			logCreation(fmt.Sprintf("files://%s", absPath))
+			logCreation(fmt.Sprintf("file://%s", absPath))
 		}
 	}
 
