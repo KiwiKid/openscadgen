@@ -34,10 +34,27 @@ jobs:
         run: go build -v ./... 
 
       - name: Test
-        run: go test
+        run: go test -v ./...
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
+        name_template: "{{ .ProjectName }}-{{ if eq .Os \"darwin\" }}{{ if eq .Arch \"amd64\" }}macOS-Intel{{ else }}macOS-AppleSilicon{{ end }}{{ else if eq .Os \"windows\" }}Windows-{{ .Arch | title }}{{ else if eq .Os \"linux\" }}Linux-{{ .Arch | title }}{{ end }}-v{{ .Version }}"
+        description: description: |
+          ## Platform Installers
+
+          - `openscadgen-macOS-Intel-v{{ .Version }}.tar.gz`: macOS (Intel, pre-2019)
+          - `openscadgen-macOS-AppleSilicon-v{{ .Version }}.tar.gz`: macOS (Apple Silicon, 2019+)
+          - `openscadgen-Windows-Amd64-v{{ .Version }}.zip`: Windows (Intel/AMD)
+          - `openscadgen-Windows-Arm64-v{{ .Version }}.zip`: Windows (ARM 64-bit)
+          - `openscadgen-Linux-Amd64-v{{ .Version }}.tar.gz`: Linux (Intel/AMD)
+          - `openscadgen-Linux-Arm64-v{{ .Version }}.tar.gz`: Linux (ARM 64-bit)
+
+          ### macOS Users
+
+          If you see a warning that the app cannot be opened because it is from an unidentified developer,  
+          go to **System Settings > Privacy & Security**, scroll down to the security section, and allow the app to run.
+
+          Download the file matching your platform, extract it, and run the `openscadgen` binary.
         with:
           distribution: goreleaser
           version: "~> v2"

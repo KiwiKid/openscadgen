@@ -1121,7 +1121,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = Collapsable(fmt.Sprintf("Generated Instances (%d)", len(instances)), true).Render(templ.WithChildren(ctx, templ_7745c5c3_Var36), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Collapsable(fmt.Sprintf("Generated Instances (%d) [%d * (%d | %d)]", len(instances), len(config.Design.ConfiguredInstanceConfig), len(config.Design.InputPaths), len(config.Design.InputPath)), true).Render(templ.WithChildren(ctx, templ_7745c5c3_Var36), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

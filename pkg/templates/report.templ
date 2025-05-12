@@ -669,7 +669,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 
 
 
-                @Collapsable(fmt.Sprintf("Generated Instances (%d)", len(instances)), true) {
+                @Collapsable(fmt.Sprintf("Generated Instances (%d) [%d * (%d | %d)]", len(instances), len(config.Design.ConfiguredInstanceConfig), len(config.Design.InputPaths), len(config.Design.InputPath)), true) {
                 if len(instances) > 0 {
                     <div>
                     <div class="table-container">

@@ -5,7 +5,21 @@
             localStorage.setItem(&#39;darkMode&#39;, value);
             document.documentElement.classList.toggle(&#39;dark&#39;, value);
         });
-    "><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>screw-in-button - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><script>
+    "><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>screw-in-button - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><script>
+                (function() {
+                    var darkMode = localStorage.getItem('darkMode');
+                    if (darkMode === null) {
+                        darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    } else {
+                        darkMode = darkMode === 'true';
+                    }
+                    if (darkMode) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                })();
+            </script><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><script>
                 function copyDetailsContent() {
                     const button = $el.querySelector('button');
                     const codeBlock = $el.querySelector('pre code');
@@ -24,14 +38,27 @@
                     --text-color: #333333;
                     --card-bg: #ffffff;
                     --border-color: #eee;
+                    --accent-color: #0066cc;
+                    --hover-bg: #f5f5f5;
+                    --error-color: #b00020;
+                    --success-color: #007e33;
+                    
                 }
 
+html, body {
+    min-height: 100vh;
+}
+               
                 .dark {
                     --bg-color: #1a1a1a;
                     --text-color: #f5f5f5 !important;
                     --card-bg: #2d2d2d;
                     --border-color: #404040;
-                    color: #f5f5f5 !important;
+                    --accent-color: #66aaff;
+                    --hover-bg: #23272e;
+                    --error-color: #ff6f6f;
+                    --success-color: #4caf50;
+                    color: var(--text-color) !important;
                 }
 
                 body {
@@ -44,6 +71,8 @@
                     max-width: 1200px;
                     margin: 0 auto;
                     padding: 20px;
+                    background-color: var(--bg-color);
+                    color: var(--text-color);
                 }
                 .global-header {
                     position: sticky;
@@ -83,16 +112,18 @@
                     top: 0;
                     z-index: 10;
                 }
-                .table th {
-                    background-color: var(--card-bg);
-                    font-weight: bold;
+                .table th, .table td {
                     padding: 12px;
                     text-align: left;
-                    border-bottom: 2px solid var(--border-color);
+                    border-bottom: 1px solid #ddd;
+                    color: var(--text-color);
+                }
+                .table thead th, .table thead td {
+                    color: var(--text-color) !important;
                 }
                 h1 {
-                    color: #333;
-                    border-bottom: 2px solid #333;
+                    color: var(--text-color);
+                    border-bottom: 2px solid var(--text-color);
                     padding-bottom: 10px;
                 }
                 h2, h3 {
@@ -110,7 +141,7 @@
                 .header .level {
                     margin-bottom: 0;
                 }
-                .params {
+                /*.params {
                     display: grid;
                     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
                     gap: 10px;
@@ -121,33 +152,26 @@
                     padding: 10px;
                     border-radius: 4px;
                     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                }
-                .footer {
-                    margin-top: 30px;
-                    padding-top: 20px;
-                    border-top: 1px solid var(--border-color);
-                    font-size: 0.9em;
                     color: var(--text-color);
-                }
-                th, td {
-                    padding: 12px;
-                    text-align: left;
-                    border-bottom: 1px solid #ddd;
-                }
+                }*/
+
+                
+       
                 tr:hover {
-                    background-color: #f5f5f5;
+                    background-color: var(--hover-bg);
                 }
                 .error {
-                    color: red;
+                    color: var(--error-color);
                 }
                 .success {
-                    color: green;
+                    color: var(--success-color);
                 }
                 .camera-coords {
-                    background-color: #f8f9fa;
+                    background-color: var(--card-bg);
                     padding: 10px;
                     border-radius: 4px;
                     margin: 5px 0;
+                    color: var(--text-color);
                 }
                 .camera-coords ul {
                     margin: 5px 0;
@@ -160,7 +184,7 @@
                     cursor: pointer;
                 }
                 details summary {
-                    color: #0066cc;
+                    color: var(--accent-color);
                 }
                 details summary:hover {
                     text-decoration: underline;
@@ -177,7 +201,16 @@
                     font-style: italic;
                     font-size: 0.9em;
                 }
-            </style></head><body><div class="global-header"><div class="container"><h1 class="title is-4">screw-in-button</h1><div class="search-box"><div class="field"><div class="control"><input class="input" type="text" placeholder="Search..." x-model="searchQuery"></div></div></div><button class="button" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button></div></div><div class="container"><div class="header"><p>   mulit-size upholstery screw-in button
+                .button {
+                    color: var(--text-color) !important;
+                    background-color: var(--card-bg) !important;
+                    border: 1px solid var(--border-color) !important;
+                }
+                pre, code {
+                    color: var(--text-color) !important;
+                    background-color: var(--card-bg) !important;
+                }
+            </style></head><body><div class="global-header"><div class="container"><h1 class="title is-4">screw-in-button</h1><div class="search-box"><div><div><input class="input" type="text" placeholder="Filter to specific instances etc..." x-model="searchQuery"></div></div></div><button class="button" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button></div></div><div class="container"><div x-data="{ isOpen: false }"><button class="button is-large is-fullwidth" @click="isOpen = !isOpen"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> screw-in-button</button><div x-show="isOpen"><h2 class="is-size-4">screw-in-button</h2><div class="code-block"><code style="white-space: pre;"><pre>   mulit-size upholstery screw-in button
    
    Source: https://github.com/KiwiKid/openscaden/
    Author: KiwiKid
@@ -189,8 +222,8 @@
 
 
     Be aware of the operating conditions of the buttons and the limitations of the materials you are using - PLA is not recommended for long term/high-stress/high-temp use.
-</p></div><h2 class="is-size-4">Global Parameters</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Parameter</th><th>Value</th></tr></thead> <tbody><tr><td>partType</td><td>oneSided,twoSided</td></tr><tr><td>holeType</td><td>hex,round</td></tr></tbody></table></div><h2 class="is-size-4">Input Paths</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Path</th><!--NEXT-VERSION: <th>OpenSCAD Code</th> --></tr></thead> <tbody><tr><td>./button.scad</td><!-- NEXT-VERSION: <td><details><summary>OpenSCAD Code</summary>
-                                    { inputPath.RawOpenSCADFile }</details></td> --></tr></tbody></table></div><div x-data="{ isOpen: true }"><button class="button" @click="isOpen = !isOpen"><span x-show="!isOpen">+</span> <span x-show="isOpen">-</span> STL Generation Results</button><div x-show="isOpen"><details><summary>No STL Generation Results</summary><div>Add stl generation to the config file to generate stl files for each instance:<pre><code>[[openscadgen.instances]] name = "default"</code></pre></div></details></div></div><details><summary>No Image Generation Results</summary><div>Add export images to the config file to generate images for each instance:<pre><code>[[openscadgen.export_images]] name = "front" coord = "0,0,0,0,0,0,100"</code></pre></div></details><div x-data="{ isOpen: true }"><button class="button" @click="isOpen = !isOpen"><span x-show="!isOpen">+</span> <span x-show="isOpen">-</span> Generated Instances</button><div x-show="isOpen"><div class="is-danger">No Instances Generated</div></div></div><h2 class="is-size-4">Configuration Details</h2><div class="instance"><div class="params"><div class="param"><strong>Version:</strong> v1.18</div><div class="param"><strong>Output Path:</strong> </div><div class="param"><strong>OpenSCAD Version:</strong> </div><div class="param"><strong>OpenSCADGen Version:</strong> </div><div class="param"><strong>Auto Overwrite Existing</strong></div><div class="param"><strong>Build Info Set In File Attributes</strong></div></div></div><div x-data="{ isOpen: true }"><button class="button" @click="isOpen = !isOpen"><span x-show="!isOpen">+</span> <span x-show="isOpen">-</span> Config Reference</button><div x-show="isOpen"><h2 class="is-size-4">Config Reference</h2><details><summary>Example Config File</summary><pre><code>
+</pre></code></div></div></div><div x-data="{ isOpen: false }"><button class="button is-large is-fullwidth" @click="isOpen = !isOpen"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Configuration Details</button><div x-show="isOpen"><h2 class="is-size-4">Global Parameters</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Parameter</th><th>Value</th></tr></thead> <tbody><tr><td>partType</td><td>twoSided,onlyBottom</td></tr><tr><td>holeType</td><td>square</td></tr></tbody></table></div> <div class="instance"><div class="params"><div class="param"><strong>Version:</strong> v1.18</div><div class="param"><strong>Output Path:</strong> </div><div class="param"><strong>OpenSCAD Version:</strong> </div><div class="param"><strong>OpenSCADGen Version:</strong> v2.3.10-BETA</div><div class="param"><strong>Build Info Set In File Attributes</strong></div></div></div><h2 class="is-size-4">Input Paths</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Path</th><!--NEXT-VERSION: <th>OpenSCAD Code</th> --></tr></thead> <tbody><tr><td>./button.scad</td><!-- NEXT-VERSION: <td><details><summary>OpenSCAD Code</summary>
+                                    { inputPath.RawOpenSCADFile }</details></td> --></tr></tbody></table></div> <h2 class="is-size-4">Config Reference</h2><details><summary>Example Config File</summary><pre><code>
 [[openscadgen]]
 name = &#34;My Design&#34;
 description = &#34;A simple example design&#34;
@@ -295,4 +328,26 @@ skip_images = false              # Optional, whether to skip image generation
 
 # Optional: Whether to use manifold operations
 dont_use_manifold = false         # If true, disables manifold operations
-</code></pre></details></div></div><h2 class="is-size-4">Output Paths</h2><div class="instance"><div class="param"><strong>OutputPath:</strong> examples/screw-in-button/export/v1.18/button/export/v1.18</div><div class="param"><strong>ExportFolderPath:</strong> examples/screw-in-button/export/v1.18</div><div class="param"><strong>ReadmePath:</strong> examples/screw-in-button/export/v1.18/button/README.md</div><div class="param"><strong>LogOutputPath:</strong> examples/screw-in-button/export/v1.18/button/export_log.log</div></div><div class="footer"><p>Generated by openscadgen  at 2025-05-10 19:53:06</p></div></div></body></html>
+</code></pre></details><h2 class="is-size-4">Output Paths</h2><div class="instance"><div class="param"><strong>OutputPath:</strong> examples/screw-in-button/export/v1.18/button/export/v1.18</div><div class="param"><strong>ExportFolderPath:</strong> examples/screw-in-button/export/v1.18</div><div class="param"><strong>ReadmePath:</strong> examples/screw-in-button/export/v1.18/button/README.md</div><div class="param"><strong>LogOutputPath:</strong> examples/screw-in-button/export/v1.18/button/export_log.log</div></div></div></div><div x-data="{ isOpen: true }"><button class="button is-large is-fullwidth" @click="isOpen = !isOpen"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Generated Instances (2) [1 * (0 | 13)]</button><div x-show="isOpen"><div><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Name</th><th>Description</th><th>Output Path</th><th>Ignored Params</th><th>Skipped Reason</th><th>Images</th><th>holeType</th><th>partType</th><th>designFileName</th><th>v</th></tr></thead> <tbody><tr class="" x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/square/button-height-{button_height}-width-{button_width}-button-profile-{button_radius}.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/twoSided/square/button-height-{button_height}-width-{button_width}-button-profile-{button_radius}.stl</td><td>[]</td><td></td><td>no images generated</td><td>square</td><td>twoSided</td><td>button</td><td>v1.18</td></tr><tr class="" x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/onlyBottom/square/button-height-{button_height}-width-{button_width}-button-profile-{button_radius}.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/screw-in-button/export/v1.18/onlyBottom/square/button-height-{button_height}-width-{button_width}-button-profile-{button_radius}.stl</td><td>[]</td><td></td><td>no images generated</td><td>square</td><td>onlyBottom</td><td>button</td><td>v1.18</td></tr></tbody></table></div></div></div></div><div class="my-2"></div><div x-data="{ isOpen: true }"><button class="button is-large is-fullwidth" @click="isOpen = !isOpen"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> STL Results (2)</button><div x-show="isOpen"><div class="table-container"><table class="table is-fullwidth"><thead><tr><th style="width: 150px;">Instance</th><th style="width: 200px;">Output Path</th><th style="width: 200px;">Command</th><th style="width: 100px;">Time Taken</th><th style="width: 200px;">Params</th><th style="width: 150px;">Error</th></tr></thead> <tbody><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/onlyBottom/square/button-height-{button_height}-width-{button_width}-button-profile-{button_radius}.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/onlyBottom/square/button-height-{button_height}-width-{button_width}-button-profile-{button_radius}.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/b...</pre></code></div></td><td>217.649958ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>designFileName = &#34;button&#34;;
+holeType = &#34;square&#34;;
+partType = &#34;onlyBottom&#34;;
+v = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
+                                            <details>
+                                                <summary>OpenSCAD Code</summary>
+                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+                                            </details>
+                                        </td> --></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/screw-in-button/export/v1.18/twoSided/square/button-height-{button_height}-width-{button_width}-button-profile-{button_radius}.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/screw-in-button/export/v1.18/twoSided/square/button-height-{button_height}-width-{button_width}-button-profile-{button_radius}.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/b...</pre></code></div></td><td>253.713375ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>designFileName = &#34;button&#34;;
+holeType = &#34;square&#34;;
+partType = &#34;twoSided&#34;;
+v = &#34;v1.18&#34;;
+</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
+                                            <details>
+                                                <summary>OpenSCAD Code</summary>
+                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+                                            </details>
+                                        </td> --></tr></tbody></table></div></div></div><div x-data="{ isOpen: false }"><button class="button is-large is-fullwidth" @click="isOpen = !isOpen"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> No Image Generation Results</button><div x-show="isOpen"><div>Add export images to the config file to generate images for each instance:<div class="code-block"><code style="white-space: pre;"><pre>
+                    [[openscadgen.export_images]]
+                    name = &#34;front&#34;
+                    coord = &#34;0,0,0,0,0,0,100&#34;
+                    </pre></code></div></div></div></div><div><p>Generated by openscadgen  v2.3.10-BETA at 2025-05-12 10:10:42</p></div></div></body></html>

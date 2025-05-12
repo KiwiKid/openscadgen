@@ -50,15 +50,13 @@ func getOutputPaths(config *models.Config) models.OutputPaths {
 		relConfigDir = configDir
 	}
 
-	// Use version as is for paths
-	versionPathSafe := config.Design.Version
+	// Use version as-is for paths (no normalization)
+	versionPath := config.Design.Version
 
 	// Get the design name from the first input path
 	var designName string
-	if len(config.Design.InputPaths) > 0 {
-		designName = strings.TrimSuffix(filepath.Base(config.Design.InputPaths[0].Path), ".scad")
-	} else if config.Design.InputPath != "" {
-		designName = strings.TrimSuffix(filepath.Base(config.Design.InputPath), ".scad")
+	if len(config.GetInputPaths()) > 0 {
+		designName = strings.TrimSuffix(filepath.Base(config.GetInputPaths()[0].Path), ".scad")
 	} else {
 		designName = "test_design"
 	}
@@ -77,11 +75,11 @@ func getOutputPaths(config *models.Config) models.OutputPaths {
 		}
 
 		// Construct paths with the correct directory structure
-		baseExportPath := filepath.Join(outputPath, "designs", "export", versionPathSafe, designName)
-		exportFolderPath := filepath.Join(outputPath, "designs", "export", versionPathSafe)
+		baseExportPath := filepath.Join(outputPath, "designs", "export", versionPath, designName)
+		exportFolderPath := filepath.Join(outputPath, "designs", "export", versionPath)
 
 		return models.OutputPaths{
-			OutputPath:            filepath.Join(baseExportPath, "export", versionPathSafe),
+			OutputPath:            filepath.Join(baseExportPath, "export", versionPath),
 			ExportFolderPath:      exportFolderPath,
 			LowQualityWarningPath: filepath.Join(baseExportPath, "LOW_QUALITY_WARNING.md"),
 			ReadmePath:            filepath.Join(baseExportPath, "README.md"),
@@ -91,11 +89,11 @@ func getOutputPaths(config *models.Config) models.OutputPaths {
 	}
 
 	// For relative config file paths, use paths relative to the config file directory
-	baseExportPath := filepath.Join(relConfigDir, "export", versionPathSafe, designName)
-	exportFolderPath := filepath.Join(relConfigDir, "export", versionPathSafe)
+	baseExportPath := filepath.Join(relConfigDir, "export", versionPath, designName)
+	exportFolderPath := filepath.Join(relConfigDir, "export", versionPath)
 
 	return models.OutputPaths{
-		OutputPath:            filepath.Join(baseExportPath, "export", versionPathSafe),
+		OutputPath:            filepath.Join(baseExportPath, "export", versionPath),
 		ExportFolderPath:      exportFolderPath,
 		LowQualityWarningPath: filepath.Join(baseExportPath, "LOW_QUALITY_WARNING.md"),
 		ReadmePath:            filepath.Join(baseExportPath, "README.md"),
@@ -140,7 +138,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.3.8-BETA"
+const VERSION = "v2.3.11-BETA"
 
 type Version struct {
 	OpenSCADGen string
@@ -178,8 +176,21 @@ func Process(config *models.Config) error {
 	var stlResults []models.GenerateSTLResult
 	var imageResults []models.GenerateImageResult
 
+	if config.Debug {
+		log.Printf("[DEBUG] Generating instances for %d configured instances and %d input paths", len(config.Design.ConfiguredInstanceConfig), len(config.GetInputPaths()))
+	}
+
+	if len(config.Design.ConfiguredInstanceConfig) == 0 {
+		config.Design.ConfiguredInstanceConfig = []models.ConfiguredInstanceConfig{
+			{
+				Name:   "default",
+				Params: map[string]interface{}{},
+			},
+		}
+	}
+
 	for _, dynamicInstance := range config.Design.ConfiguredInstanceConfig {
-		for _, inputPath := range config.Design.InputPaths {
+		for _, inputPath := range config.GetInputPaths() {
 			if config.Debug {
 				logStage(fmt.Sprintf("Generating instance %s", dynamicInstance.Name))
 			}
@@ -191,8 +202,18 @@ func Process(config *models.Config) error {
 				}
 				return fmt.Errorf("failed to generate instances: %w", err)
 			}
+			if config.Debug {
+				log.Printf("[DEBUG] Generated %d instances for inputPath %s", len(newInstances), inputPath.Path)
+				for i, inst := range newInstances {
+					log.Printf("[DEBUG] Instance %d: OutputPathV2=%s, SkippedReason=%s", i, inst.OutputPathV2, inst.SkippedReason)
+				}
+			}
 			instances = append(instances, newInstances...)
 		}
+	}
+
+	if config.Debug {
+		log.Printf("[DEBUG] Total instances generated: %d", len(instances))
 	}
 
 	errors := validateInstances(instances)
@@ -215,6 +236,7 @@ func Process(config *models.Config) error {
 			if instance.SkippedReason == "" {
 				if config.Debug {
 					logCreation(fmt.Sprintf("Generated instance %s", instance.AutoName))
+					log.Printf("[DEBUG] Generating STL for instance %d: OutputPathV2=%s", i, instance.OutputPathV2)
 				}
 				result, err := generateSTL(&instance, config, outputPaths.ExportFolderPath)
 				if err != nil {
@@ -229,6 +251,9 @@ func Process(config *models.Config) error {
 				}
 				stlResults = append(stlResults, result)
 			} else {
+				if config.Debug {
+					log.Printf("[DEBUG] Skipping STL for instance %d: %s", i, instance.SkippedReason)
+				}
 				logWarn(fmt.Sprintf("STL skipped %s %s", instance.AutoName, instance.SkippedReason), false)
 			}
 		}
@@ -1291,11 +1316,24 @@ func generateInstances(config *models.Config, configuredInstanceConfig models.Co
 		instance.Params["v"] = config.Design.Version
 
 		// Format the export name
-		exportName := formatExportName(config.Design.ExportNameFormat, instance.Params, ignoredParams)
+		exportNameFormat := config.Design.ExportNameFormat
+		if exportNameFormat == "" {
+			exportNameFormat = "export/{version}/{instanceName}"
+			if config.Debug {
+				log.Printf("[DEBUG] No export_name_format set, using default: %s", exportNameFormat)
+			}
+		}
+		exportName := formatExportName(exportNameFormat, instance.Params, ignoredParams)
 
-		// Set the output paths
-		instance.OutputPathV2 = filepath.Join(paths.ExportFolderPath, exportName+".stl")
-		instance.RunOutputPathV3 = filepath.Join("export", config.Design.Version, exportName+".stl")
+		// Always resolve output path relative to config.toml directory
+		configDir := filepath.Dir(config.ConfigFile)
+		outputPath := filepath.Join(configDir, exportName+".stl")
+		if config.Debug {
+			log.Printf("[DEBUG] OutputPathV2: resolved relative to configDir: %s", outputPath)
+		}
+		instance.OutputPathV2 = outputPath
+		// For RunOutputPathV3, keep it relative to the export root for OpenSCAD command
+		instance.RunOutputPathV3 = filepath.ToSlash(exportName + ".stl")
 
 		for k := range ignoredParams {
 			instance.IgnoredParams = append(instance.IgnoredParams, k)
@@ -1358,11 +1396,24 @@ func generateInstances(config *models.Config, configuredInstanceConfig models.Co
 			instance.Params["v"] = config.Design.Version
 
 			// Format the export name
-			exportName := formatExportName(config.Design.ExportNameFormat, instance.Params, ignoredParams)
+			exportNameFormat := config.Design.ExportNameFormat
+			if exportNameFormat == "" {
+				exportNameFormat = "export/{version}/{instanceName}"
+				if config.Debug {
+					log.Printf("[DEBUG] No export_name_format set, using default: %s", exportNameFormat)
+				}
+			}
+			exportName := formatExportName(exportNameFormat, instance.Params, ignoredParams)
 
-			// Set the output paths
-			instance.OutputPathV2 = filepath.Join(paths.ExportFolderPath, exportName+".stl")
-			instance.RunOutputPathV3 = filepath.Join("export", config.Design.Version, exportName+".stl")
+			// Always resolve output path relative to config.toml directory
+			configDir := filepath.Dir(config.ConfigFile)
+			outputPath := filepath.Join(configDir, exportName+".stl")
+			if config.Debug {
+				log.Printf("[DEBUG] OutputPathV2: resolved relative to configDir: %s", outputPath)
+			}
+			instance.OutputPathV2 = outputPath
+			// For RunOutputPathV3, keep it relative to the export root for OpenSCAD command
+			instance.RunOutputPathV3 = filepath.ToSlash(exportName + ".stl")
 
 			for k := range ignoredParams {
 				instance.IgnoredParams = append(instance.IgnoredParams, k)
@@ -1758,7 +1809,8 @@ module sliced(
 `, projectNameUnderLined, projectNameUnderLined)
 }
 
-var openScadTemplate = `
+var openScadTemplate = func(projectNameUnderLined string) string {
+	return fmt.Sprintf(`
 include <BOSL2/std.scad>;
 
 $fa = .01;
@@ -1769,37 +1821,67 @@ $fn = 200;
 module %s(){
 	cuboid([100,100,100]);
 }
-`
+`, projectNameUnderLined)
+}
 
-func InitConfig(projectName string, extended bool) error {
+func InitConfig(projectPath string, extended bool) error {
 
 	// check if the project name is already taken
-	if _, err := os.Stat(projectName); os.IsNotExist(err) {
-		os.Mkdir(projectName, 0755)
+	if _, err := os.Stat(projectPath); os.IsNotExist(err) {
+		os.Mkdir(projectPath, 0755)
 	} else {
-		logError(fmt.Sprintf("Project name already taken: %s", projectName))
+		logError(fmt.Sprintf("Project name already taken: %s", projectPath))
 		return fmt.Errorf("project name already taken")
 	}
 
-	configTemplate = strings.ReplaceAll(configTemplate, "{{projectName}}", projectName)
+	projectName := filepath.Base(projectPath)
+	projectNameLocation := filepath.Dir(projectPath)
+	projectNameUnderLined := strings.NewReplacer(
+		" ", "_",
+	).Replace(projectName)
 
-	os.Create(filepath.Join(projectName, "config.toml"))
-	os.WriteFile(filepath.Join(projectName, "config.toml"), []byte(configTemplate), 0644)
+	configTemplate = strings.ReplaceAll(configTemplate, "{{projectName}}", projectNameUnderLined)
 
-	os.Create(filepath.Join(projectName, projectName+".scad"))
-
-	if extended {
-		projectNameUnderLined := strings.NewReplacer(
-			"-", "_",
-			" ", "_",
-			".", "_",
-		).Replace(projectName)
-		os.WriteFile(filepath.Join(projectName, projectName+".scad"), []byte(openScadTemplateExtended(projectNameUnderLined)), 0644)
+	configPath := filepath.Join(projectNameLocation, projectNameUnderLined, "config.toml")
+	configFile, err := os.Create(configPath)
+	if err != nil {
+		logError(fmt.Sprintf("Failed to create config file: %s", err))
 	} else {
-		os.WriteFile(filepath.Join(projectName, projectName+".scad"), []byte(openScadTemplate), 0644)
+		logCreation(fmt.Sprintf("Created config file: %s", configPath))
+	}
+	defer configFile.Close()
+	_, err = configFile.WriteString(configTemplate)
+	if err != nil {
+		logError(fmt.Sprintf("Failed to write template to config file: %s", err))
+	} else {
+		logCreation(fmt.Sprintf("Wrote template to config file: %s", configPath))
 	}
 
-	logCreation(fmt.Sprintf("Project initialized: %s", projectName))
+	scadPath := filepath.Join(projectNameLocation, projectNameUnderLined, projectNameUnderLined+".scad")
+	scadFile, err := os.Create(scadPath)
+	if err != nil {
+		logError(fmt.Sprintf("Failed to create scad file: %s", err))
+	}
+	defer scadFile.Close()
+
+	if extended {
+		_, err = scadFile.WriteString(openScadTemplateExtended(projectNameUnderLined))
+		if err != nil {
+			logError(fmt.Sprintf("Failed to write template to scad file: %s", err))
+		}
+		logCreation(fmt.Sprintf("Wrote template to scad file: %s", scadPath))
+
+	} else {
+		_, err = scadFile.WriteString(openScadTemplate(projectNameUnderLined))
+		if err != nil {
+			logError(fmt.Sprintf("Failed to write template to scad file: %s", err))
+		}
+		logCreation(fmt.Sprintf("Wrote template to scad file: %s", scadPath))
+
+	}
+
+	logCreation(fmt.Sprintf("Project Successfully Initialized: %s", projectName))
+	logKeyValuePair("Project Path", projectPath)
 	return nil
 }
 
@@ -2063,6 +2145,15 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config, exportF
 
 	// Get instance paths
 	paths := instance.GetInstancePaths(config)
+
+	// Debug: check if input file exists
+	if config.Debug {
+		if fileInfo, err := os.Stat(paths.InputPath); err == nil {
+			log.Printf("Input file exists: %s (size: %d bytes)", paths.InputPath, fileInfo.Size())
+		} else {
+			log.Printf("Input file does NOT exist: %s", paths.InputPath)
+		}
+	}
 
 	// Build OpenSCAD command
 	openscadCmd := FindOpenSCAD()

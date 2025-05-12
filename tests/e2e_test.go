@@ -18,7 +18,7 @@ const (
 name = "test"
 version = "1.0"
 description = "Test design"
-export_name_format = "{instanceName}"
+export_name_format = "export/{version}/{instanceName}"
 
 [[openscadgen.input_paths]]
 path = "default_design.scad"
@@ -118,7 +118,7 @@ func printDirectoryContentsRecursive(t *testing.T, dir string, depth int) {
 	}
 }
 
-var extraArgs = "" //"-d"
+var extraArgs = "-d" //"-d"
 
 var scadFileInputExamples = map[string]string{
 	defaultDesign: `
@@ -177,7 +177,7 @@ func TestOpenSCADGenE2E(t *testing.T) {
 				name = "test"
 				version = "1.0"
 				description = "Test design"
-				export_name_format = "{instanceName}-{size}"
+				export_name_format = "/export/{version}/{instanceName}-{size}"
 
 				global_params = { size = "10,20" }
 
@@ -199,7 +199,7 @@ func TestOpenSCADGenE2E(t *testing.T) {
 			configContent: `[openscadgen]
 name = "test-project"
 version = "1.0"
-export_name_format = "{designFileName}-{instanceName}-{size}"
+export_name_format = "/export/{version}/{designFileName}-{instanceName}-{size}"
 
 global_params = { size = "10,20" }
 
@@ -225,7 +225,7 @@ name = "instance-name"
 			configContent: `[openscadgen]
 name = "test-project"
 version = "1.0"
-export_name_format = "{designFileName}-{instanceName}-{size}"
+export_name_format = "/export/{version}/{designFileName}-{instanceName}-{size}"
 
 global_params = { size = "10,20" }
 
@@ -250,7 +250,7 @@ name = "instance-name"
 			configContent: `[openscadgen]
 		name = "test-project"
 		version = "1.0"
-		export_name_format = "{designFileName}-{instanceName}"
+		export_name_format = "/export/{version}/{designFileName}-{instanceName}"
 
 		[[openscadgen.input_paths]]
 		path = "./default_design.scad"
@@ -276,7 +276,7 @@ name = "instance-name"
 			configContent: `[openscadgen]
 		name = "test-project"
 		version = "1.0"
-		export_name_format = "{designFileName}-{instanceName}"
+		export_name_format = "/export/{version}/{designFileName}-{instanceName}"
 
 		[[openscadgen.input_paths]]
 		path = "./default_design.scad"
@@ -317,7 +317,7 @@ name = "instance-name"
 			configContent: `[openscadgen]
 		name = "test-project"
 		version = "1.0"
-		export_name_format = "{designFileName}-{instanceName}-{size}"
+		export_name_format = "/export/{version}/{designFileName}-{instanceName}-{size}"
 
 		[[openscadgen.input_paths]]
 		path = "./default_design.scad"
@@ -391,7 +391,7 @@ name = "instance-name"
 			configContent: `[openscadgen]
 		name = "test-project"
 		version = "1.0"
-		export_name_format = "{designFileName}-{instanceName}"
+		export_name_format = "/{designFileName}-{instanceName}"
 
 		[[openscadgen.input_paths]]
 		path = "./default_design.scad"

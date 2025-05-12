@@ -199,12 +199,17 @@ type InstancePaths struct {
 }
 
 func (instance *InstanceConfig) GetInstancePaths(config *Config) *InstancePaths {
-	// Check if the input path exists
 	configDir := filepath.Dir(config.ConfigFile)
 	absPath := filepath.Join(configDir, instance.InputPath.Path)
 
-	// If file doesn't exist at config-relative path, try absolute/working dir
+	if config.Debug {
+		log.Printf("[DEBUG] GetInstancePaths: configDir=%s, inputPath=%s, absPath=%s", configDir, instance.InputPath.Path, absPath)
+	}
+
 	if _, err := os.Stat(absPath); os.IsNotExist(err) {
+		if config.Debug {
+			log.Printf("[DEBUG] GetInstancePaths: file not found at config-relative path, trying absolute: %s", instance.InputPath.Path)
+		}
 		absPath, err = filepath.Abs(instance.InputPath.Path)
 		if err != nil {
 			log.Panicf("Could not resolve absolute path: %s", err)
@@ -216,21 +221,18 @@ func (instance *InstanceConfig) GetInstancePaths(config *Config) *InstancePaths 
 	}
 
 	versionPathSafe := config.Design.ClearVersion(config.Design.Version)
-
 	outputFolderPath := path.Join(config.Design.OutputPath, versionPathSafe)
-
-	// Get the relative output path by removing the output folder path prefix
 	relativeOutputPath := strings.TrimPrefix(instance.OutputPathV2, outputFolderPath)
 	relativeOutputPath = strings.TrimPrefix(relativeOutputPath, string(filepath.Separator))
 
-	// Get the input path relative to the config file directory
 	relInputPath, err := filepath.Rel(configDir, absPath)
 	if err != nil {
-		// If we can't make it relative, use the absolute path
 		relInputPath = absPath
 	}
 
-	//	log.Printf("\n\nGetInstancePath - \nConfigFile: %s\nrelInputPath: %s\n, absPath: %s\n", config.ConfigFile, relInputPath, absPath)
+	if config.Debug {
+		log.Printf("[DEBUG] GetInstancePaths: relInputPath=%s, outputFolderPath=%s, relativeOutputPath=%s", relInputPath, outputFolderPath, relativeOutputPath)
+	}
 
 	return &InstancePaths{
 		InputPath:         absPath,
@@ -338,8 +340,19 @@ func makeFileNameReplacements(globalParams map[string]interface{}, instanceParam
 }
 
 func (config *Config) GetInputPaths() []InputPath {
+	if config.Debug {
+		log.Printf("[DEBUG] GetInputPaths: InputPaths len=%d, InputPath=%s", len(config.Design.InputPaths), config.Design.InputPath)
+	}
 	if len(config.Design.InputPaths) > 0 {
+		if config.Debug {
+			for i, ip := range config.Design.InputPaths {
+				log.Printf("[DEBUG] GetInputPaths: InputPaths[%d]=%+v", i, ip)
+			}
+		}
 		return config.Design.InputPaths
+	}
+	if config.Debug {
+		log.Printf("[DEBUG] GetInputPaths: Using fallback InputPath: %s", config.Design.InputPath)
 	}
 	return []InputPath{
 		{Path: config.Design.InputPath},
