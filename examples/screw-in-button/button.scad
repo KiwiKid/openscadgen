@@ -10,14 +10,14 @@ include <BOSL2/std.scad>;
 
 $fn = 100;
 
-partType = "s";
+partType = "";
 holeType = "square";
 
 button_height =50;
 
-squareHoleSize = 30;
-squareHoleTopDiff = 20;
-squareHoleHeight = button_height+30;
+squareHoleSize = 19.8;
+squareHoleTopDiff = 5;
+squareHoleHeight = button_height;
 // Size of the screw hole
 screw_hole_radius_size = 2.5;
 // Size of gap for screw head
@@ -28,7 +28,7 @@ screw_hole_guard_depth = 1;
 
 // Controls the 'height' of the button
 // Controls the amount of 'curve' in the button
-button_radius = 50;
+button_radius = 40;
 
 // Control how thick/proud the button is
 button_width = 3;
@@ -82,8 +82,8 @@ difference(){
         up(all_the_way/2)
         tube(or=screw_head_hole_radius_size, ir=0, h=all_the_way, $fn=6, rounding_fn=64, rounding=0.1);
     } else if(holeType == "square") {
-        translate([0, 0, screw_hole_guard_depth-button_width-20])
-        prismoid(size1=[squareHoleSize,squareHoleSize], size2=[squareHoleSize+squareHoleTopDiff,squareHoleSize+squareHoleTopDiff], h=squareHoleHeight);
+        translate([0, 0, squareHoleHeight/2+5])
+        prismoid(size1=[squareHoleSize,squareHoleSize], size2=[squareHoleSize+squareHoleTopDiff,squareHoleSize+squareHoleTopDiff], h=squareHoleHeight, center=true);
       //  cuboid([squareHoleSize,squareHoleSize, all_the_way]);
     }
     
@@ -96,8 +96,8 @@ difference(){
     label_text(optional_part_id_letter);
     
     if(partType == "onlyBottom"){
-        up(500)
-        cuboid(1000, center=true);
+        up(497.5)
+        cuboid(1000);
     
     }
 

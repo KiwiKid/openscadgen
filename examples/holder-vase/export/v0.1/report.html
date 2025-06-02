@@ -1,0 +1,349 @@
+<!doctype html><html lang="en" x-data="{
+        darkMode: true,
+        searchQuery: &#39;&#39;,
+        savedConfigFile: localStorage.getItem(&#39;savedConfigFile&#39;) || &#39;&#39;,
+        configFile: &#39;&#39;,
+        saveConfigFile() {
+            localStorage.setItem(&#39;savedConfigFile&#39;, this.configFile);
+            this.savedConfigFile = this.configFile;
+        }
+    }" x-init="
+        darkMode = localStorage.getItem(&#39;darkMode&#39;) === &#39;true&#39; || 
+                  (!localStorage.getItem(&#39;darkMode&#39;) &amp;&amp; window.matchMedia(&#39;(prefers-color-scheme: dark)&#39;).matches);
+        $watch(&#39;darkMode&#39;, value =&gt; {
+            localStorage.setItem(&#39;darkMode&#39;, value);
+            document.documentElement.classList.toggle(&#39;dark&#39;, value);
+        });
+        configFile = &#39;{ config.ConfigFile }&#39;;
+        if (configFile) {
+            localStorage.setItem(&#39;savedConfigFile&#39;, configFile);
+            savedConfigFile = configFile;
+        }
+    "><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>holder-vase - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><script>
+                (function() {
+                    var darkMode = localStorage.getItem('darkMode');
+                    if (darkMode === null) {
+                        darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    } else {
+                        darkMode = darkMode === 'true';
+                    }
+                    if (darkMode) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                })();
+            </script><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><script>
+                function copyDetailsContent() {
+                    const button = $el.querySelector('button');
+                    const codeBlock = $el.querySelector('pre code');
+                    const content = codeBlock.textContent;
+                    navigator.clipboard.writeText(content).then(() => {
+                        const originalText = button.textContent;
+                        button.textContent = 'Copied!';
+                        setTimeout(() => {
+                            button.textContent = originalText;
+                        }, 1000);
+                    });
+                }
+            </script><style>
+                :root {
+                    --bg-color: #ffffff;
+                    --text-color: #333333;
+                    --card-bg: #ffffff;
+                    --border-color: #eee;
+                    --accent-color: #0066cc;
+                    --hover-bg: #f5f5f5;
+                    --error-color: #b00020;
+                    --success-color: #007e33;
+                    
+                }
+
+html, body {
+    min-height: 100vh;
+}
+               
+                .dark {
+                    --bg-color: #1a1a1a;
+                    --text-color: #f5f5f5 !important;
+                    --card-bg: #2d2d2d;
+                    --border-color: #404040;
+                    --accent-color: #66aaff;
+                    --hover-bg: #23272e;
+                    --error-color: #ff6f6f;
+                    --success-color: #4caf50;
+                    color: var(--text-color) !important;
+                }
+
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    background-color: var(--bg-color);
+                    color: var(--text-color);
+                }
+                .container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 20px;
+                    background-color: var(--bg-color);
+                    color: var(--text-color);
+                }
+                .global-header {
+                    position: sticky;
+                    top: 0;
+                    background-color: var(--bg-color);
+                    z-index: 1000;
+                    padding: 1rem;
+                    border-bottom: 1px solid var(--border-color);
+                    margin-bottom: 2rem;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+                .global-header .container {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 0;
+                }
+                .search-box {
+                    flex: 1;
+                    max-width: 400px;
+                    margin: 0 1rem;
+                }
+                .table-container {
+                    margin: 20px 0;
+                    overflow-x: auto;
+                    position: relative;
+                }
+                .table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 20px 0;
+                    background-color: var(--card-bg);
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+                }
+                .table thead {
+                    position: sticky;
+                    top: 0;
+                    z-index: 10;
+                }
+                .table th, .table td {
+                    padding: 12px;
+                    text-align: left;
+                    border-bottom: 1px solid #ddd;
+                    color: var(--text-color);
+                }
+                .table thead th, .table thead td {
+                    color: var(--text-color) !important;
+                }
+                h1 {
+                    color: var(--text-color);
+                    border-bottom: 2px solid var(--text-color);
+                    padding-bottom: 10px;
+                }
+                h2, h3 {
+                    color: var(--text-color);
+                }
+                .header {
+                    margin-bottom: 30px;
+                    position: sticky;
+                    top: 0;
+                    background-color: var(--bg-color);
+                    z-index: 100;
+                    padding: 1rem 0;
+                    border-bottom: 1px solid var(--border-color);
+                }
+                .header .level {
+                    margin-bottom: 0;
+                }
+                /*.params {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                    gap: 10px;
+                    margin-top: 10px;
+                }
+                .param {
+                    background: var(--card-bg);
+                    padding: 10px;
+                    border-radius: 4px;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                    color: var(--text-color);
+                }*/
+
+                
+       
+                tr:hover {
+                    background-color: var(--hover-bg);
+                }
+                .error {
+                    color: var(--error-color);
+                }
+                .success {
+                    color: var(--success-color);
+                }
+                .camera-coords {
+                    background-color: var(--card-bg);
+                    padding: 10px;
+                    border-radius: 4px;
+                    margin: 5px 0;
+                    color: var(--text-color);
+                }
+                .camera-coords ul {
+                    margin: 5px 0;
+                    padding-left: 20px;
+                }
+                .camera-coords p {
+                    margin: 5px 0;
+                }
+                details {
+                    cursor: pointer;
+                }
+                details summary {
+                    color: var(--accent-color);
+                }
+                details summary:hover {
+                    text-decoration: underline;
+                }
+                .image-preview {
+                    max-width: 200px;
+                    max-height: 200px;
+                    border: 1px solid var(--border-color);
+                    border-radius: 4px;
+                    object-fit: contain;
+                }
+                .image-error {
+                    color: var(--text-color);
+                    font-style: italic;
+                    font-size: 0.9em;
+                }
+                .button {
+                    color: var(--text-color) !important;
+                    background-color: var(--card-bg) !important;
+                    border: 1px solid var(--border-color) !important;
+                }
+                pre, code {
+                    color: var(--text-color) !important;
+                    background-color: var(--card-bg) !important;
+                }
+            </style></head><body><div class="global-header"><div class="container"><h1 class="title is-4">holder-vase</h1><div class="search-box"><div><div><input class="input" type="text" placeholder="Filter to specific instances etc..." x-model="searchQuery"></div></div></div><button class="button" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button></div></div><div class="container"><div x-data="{ isOpen: false }"><button class="button is-large is-fullwidth" @click="isOpen = !isOpen"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> holder-vase</button><div x-show="isOpen"><h2 class="is-size-4">holder-vase</h2><div class="code-block"><code style="white-space: pre;"><pre></pre></code></div></div></div><div x-data="{ isOpen: false }"><button class="button is-large is-fullwidth" @click="isOpen = !isOpen"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Configuration Details</button><div x-show="isOpen"><details><summary>No [global_params]</summary><p>Add global params via a heading at the top level of the config file:</p><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>
+                            [openscadgen.global_params]
+                            params = { text=&#34;First,Second,Third&#34;, height=100 }
+                        </pre></code></div></details> <div class="instance"><div class="params"><div class="param"><strong>Version:</strong> v0.1</div><div class="param"><strong>Output Path:</strong> </div><div class="param"><strong>OpenSCAD Version:</strong> </div><div class="param"><strong>OpenSCADGen Version:</strong> v2.3.11-BETA</div><div class="param"><strong>Build Info Set In File Attributes</strong></div></div></div><h2 class="is-size-4">Input Paths</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Path</th><!--NEXT-VERSION: <th>OpenSCAD Code</th> --></tr></thead> <tbody><tr><td>./holder-vase.scad</td><!-- NEXT-VERSION: <td><details><summary>OpenSCAD Code</summary>
+                                    { inputPath.RawOpenSCADFile }</details></td> --></tr></tbody></table></div> <h2 class="is-size-4">Config Reference</h2><details><summary>Example Config File</summary><pre><code>
+[[openscadgen]]
+name = &#34;My Design&#34;
+description = &#34;A simple example design&#34;
+input_path = &#34;./my_design.scad&#34;
+version = &#34;v1.0&#34;
+output_path = &#34;./export&#34;
+export_name_format = &#34;export/{designFileName}-{version}-{instanceName}&#34;
+
+# Global parameters that apply to all instances
+[openscadgen.global_params]
+material = &#34;PLA&#34;
+color = &#34;white&#34;
+
+# Define parameter sets that can be reused
+[[openscadgen.param_sets]]
+name = &#34;small&#34;
+params = { width %3D 10, height %3D 20 }
+
+[[openscadgen.param_sets]]
+name = &#34;large&#34;
+params = { width %3D 20, height %3D 40 }
+
+# Define instances to generate
+[[openscadgen.instances]]
+name = &#34;default&#34;
+param_sets = &#34;small&#34;
+
+[[openscadgen.instances]]
+name = &#34;large&#34;
+param_sets = &#34;large&#34;
+
+# Define camera positions for image generation
+[[openscadgen.export_images]]
+name = &#34;front&#34;
+coord = &#34;0,0,0,0,0,0,100&#34;
+image_size = &#34;1920,1080&#34;</code></pre></details> <details><summary>Complete Design Config Reference</summary><pre><code>
+[[openscadgen]]
+# Required: Name of the design
+name = &#34;string&#34;                    # Required, minimum length 1
+
+# Optional: Description of the design
+description = &#34;string&#34;             # Optional description
+
+# Optional: Single input path (deprecated, use input_paths instead)
+input_path = &#34;string&#34;             # Path to the OpenSCAD file
+
+# Optional: Multiple input paths
+[[openscadgen.input_paths]]
+path = &#34;string&#34;                    # Required, path to OpenSCAD file
+export_name_format = &#34;string&#34;      # Optional, format for exported files
+param_sets = &#34;string&#34;             # Optional, comma-separated list of param sets
+params = {}                        # Optional, map of parameters
+skip_images = false               # Optional, whether to skip image generation
+ignore_param_when_processing = &#34;string&#34;  # Optional, params to ignore when processing
+
+# Optional: Output path for generated files
+output_path = &#34;string&#34;            # Path where files will be exported
+
+# Optional: Version string
+version = &#34;string&#34;                # Version of the design
+
+# Optional: Whether to include part ID letter in filenames
+no_part_id_letter = false         # If true, excludes part ID letter
+
+# Optional: Format for exported filenames
+export_name_format = &#34;string&#34;     # Format string with {param} placeholders
+
+# Optional: Global parameters applied to all instances
+[openscadgen.global_params]
+param1 = &#34;value1&#34;
+param2 = 42
+
+# Optional: Reusable parameter sets
+[[openscadgen.param_sets]]
+name = &#34;string&#34;                   # Name of the parameter set
+params = {}                       # Map of parameters
+
+# Optional: Custom OpenSCAD output format
+custom_openscad_output_format = &#34;string&#34;  # e.g., &#34;stl&#34;, &#34;3mf&#34;
+
+# Optional: Custom OpenSCAD arguments
+custom_openscad_args = &#34;string&#34;   # Additional OpenSCAD command line arguments
+
+# Optional: Image export quality
+export_image_quality = &#34;string&#34;   # Quality setting for exported images
+
+# Optional: Camera positions for image generation
+[[openscadgen.export_images]]
+name = &#34;string&#34;                   # Name of the camera position
+coord = &#34;string&#34;                  # Camera coordinates (x,y,z,rotx,roty,rotz,distance)
+image_size = &#34;string&#34;             # Optional, image dimensions (width,height)
+param_filter = {}                 # Optional, filter parameters for this camera
+
+# Optional: Instance configurations
+[[openscadgen.instances]]
+name = &#34;string&#34;                   # Name of the instance
+description = &#34;string&#34;            # Optional description
+params = {}                       # Optional, map of parameters
+param_sets = &#34;string&#34;             # Optional, comma-separated list of param sets
+param_numberation_keys = &#34;string&#34; # Optional, comma-separated list of keys to number
+skip_images = false              # Optional, whether to skip image generation
+
+# Optional: Whether to use manifold operations
+dont_use_manifold = false         # If true, disables manifold operations
+</code></pre></details><h2 class="is-size-4">Output Paths</h2><div class="instance"><div class="param"><strong>OutputPath:</strong> examples/holder-vase/export/v0.1/holder-vase/export/v0.1</div><div class="param"><strong>ExportFolderPath:</strong> examples/holder-vase/export/v0.1</div><div class="param"><strong>ReadmePath:</strong> examples/holder-vase/export/v0.1/holder-vase/README.md</div><div class="param"><strong>LogOutputPath:</strong> examples/holder-vase/export/v0.1/holder-vase/export_log.log</div></div></div></div><div x-data="{ isOpen: true }"><button class="button is-large is-fullwidth" @click="isOpen = !isOpen"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Generated Instances (1) [1 * (1 | 0)]</button><div x-show="isOpen"><div><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Name</th><th>Description</th><th>Output Path</th><th>Ignored Params</th><th>Skipped Reason</th><th>Images</th><th>height</th><th>wall_bump_rate</th><th>designFileName</th><th>v</th></tr></thead> <tbody><tr class="" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/holder-vase/export/holder-vase-height-120-wall-bump-rate-200-scaleAll-{scaleAll}.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/holder-vase/export/holder-vase-height-120-wall-bump-rate-200-scaleAll-{scaleAll}.stl</td><td>[]</td><td></td><td>no images generated</td><td>120</td><td>200</td><td>holder-vase</td><td>v0.1</td></tr></tbody></table></div></div></div></div><div class="my-2"></div><div x-data="{ isOpen: true }"><button class="button is-large is-fullwidth" @click="isOpen = !isOpen"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> STL Results (1)</button><div x-show="isOpen"><div class="table-container"><table class="table is-fullwidth"><thead><tr><th style="width: 150px;">Instance</th><th style="width: 200px;">Output Path</th><th style="width: 200px;">Command</th><th style="width: 100px;">Time Taken</th><th style="width: 200px;">Params</th><th style="width: 150px;">Error</th></tr></thead> <tbody><tr x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/holder-vase/export/holder-vase-height-120-wall-bump-rate-200-scaleAll-{scaleAll}.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/holder-vase/export/holder-vase-height-120-wall-bump-rate-200-scaleAll-{scaleAll}.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/b...</pre></code></div></td><td>320.870167ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>designFileName = &#34;holder-vase&#34;;
+height = 120;
+v = &#34;v0.1&#34;;
+wall_bump_rate = 200;
+</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
+                                            <details>
+                                                <summary>OpenSCAD Code</summary>
+                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+                                            </details>
+                                        </td> --></tr></tbody></table></div></div></div><div x-data="{ isOpen: false }"><button class="button is-large is-fullwidth" @click="isOpen = !isOpen"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> No Image Generation Results</button><div x-show="isOpen"><div>Add export images to the config file to generate images for each instance:<div class="code-block"><code style="white-space: pre;"><pre>
+                    [[openscadgen.export_images]]
+                    name = &#34;front&#34;
+                    coord = &#34;0,0,0,0,0,0,100&#34;
+                    </pre></code></div></div></div></div><div><p>Generated by openscadgen  v2.3.11-BETA at 2025-05-17 16:39:52</p></div></div></body></html>

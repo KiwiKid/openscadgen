@@ -7,7 +7,15 @@ import (
     "strings"
     "html"
     "sort"
+	"encoding/json"
+	"bytes"
 )
+
+templ Success(message string) {
+    <div class="notification is-success">
+        <strong>Success:</strong> { message }
+    </div>
+}
 
 // Helper function to get relative image path
 func getRelativeImagePath(outputPath string, exportFolderPath string) string {
@@ -60,7 +68,7 @@ templ RenderParams(params map[string]interface{}) {
         <button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button>
             
             
-            <details><summary>Applied Params</summary></details><pre><code>
+            <details><summary>Applied Params</summary><code>
             for _, name := range getSortedParamNames(params) {
                 switch v := params[name].(type) {
                 case string:
@@ -75,19 +83,34 @@ templ RenderParams(params map[string]interface{}) {
                     { fmt.Sprintf("%s = \"%v\";\n", name, v) }
                 }
             }
-        </code></pre>
+        </code></details>
         (copy these into the openscad editor to tweak this instance)
 
     </div>
 }
 
-templ CodeBlock(code string, copyButton bool){
+func formatJson(code string) string {
+    var prettyJSON bytes.Buffer
+    err := json.Indent(&prettyJSON, []byte(code), "", "  ")
+    if err != nil {
+        return code
+    }
+    return prettyJSON.String()
+}
+
+templ CodeBlock(code string, copyButton bool, formatted bool){
     <div class="code-block">
         if copyButton {
             <button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button>
         }
-        <code style="white-space: pre;"><pre>
-        { code }</pre>
+        <code style="white-space: pre;">
+       
+        if formatted { 
+             <pre>{ formatJson(code) }</pre>
+        } else { 
+         <pre>{ code }</pre>
+        }
+        
         </code>
     </div>
 }
@@ -99,22 +122,22 @@ func getInstanceClassName(instance models.InstanceConfig) string {
     return ""
 }
 
-templ Report(config *models.Config, instances []models.InstanceConfig, outputPaths models.OutputPaths, stlResults []models.GenerateSTLResult, imageResults []models.GenerateImageResult, allParamNames []string) {
+templ Report(config *models.Config, instances []models.InstanceConfig, outputPath string, stlResults []models.GenerateSTLResult, imageResults []models.GenerateImageResult, allParamNames []string, isServerMode bool, serverModeConfigFile string) {
     <!DOCTYPE html>
-    <html lang="en" x-data="{ darkMode: true, searchQuery: '' }" x-init="
-        darkMode = localStorage.getItem('darkMode') === 'true' || 
-                  (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-        $watch('darkMode', value => {
-            localStorage.setItem('darkMode', value);
-            document.documentElement.classList.toggle('dark', value);
-        });
-    ">
+    <html lang="en" x-data="alpineReportData()" x-init="init()">
         <head>
             <meta charset="UTF-8"/>
             <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
             <base href="."/>
-            <title>{ config.Design.Name } - OpenSCAD Generation Report</title>
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
+            <title>
+            if config != nil &&config.Design.Name != "" {
+                { config.Design.Name } - OpenSCAD Generation Report
+            } else {
+                OpenSCAD Generation Report
+            }
+            </title>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>  
+            <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
             
             <script>
                 (function() {
@@ -327,14 +350,46 @@ html, body {
             </style>
         </head>
         <body>
-            <div class="global-header">
-                <div class="container">
-                    <h1 class="title is-4">{ config.Design.Name }</h1>
+            if isServerMode {
+                <div class="global-header">
+                    
+                    if serverModeConfigFile != "" {
+                        <form hx-put="/" hx-target="body" hx-indicator="#loading-indicator">
+                            <input type="hidden" name="path" value={ serverModeConfigFile }>
+                            <button id="process-btn" type="submit">Process</button>
+                            <span id="loading-indicator" class="htmx-indicator" style="margin-left:8px;">Loading...</span>
+                        </form>
+                    } else {
+                        <form hx-post="/">
+                            <input type="text" name="path" x-model="configFile">
+                            <input type="submit" value="Enter">
+                        </form>
+                    }
+                </div>
+                <script>
+                   
+                </script>
+            }
+                <div class="global-header">
+                    <div class="container">
+                        <h1 class="title is-4">{ config.Design.Name }</h1>
                     <div class="search-box">
                         <div>
                             <div>
                                 <input class="input" type="text" placeholder="Filter to specific instances etc..." x-model="searchQuery">
                             </div>
+                            <template x-if="searchHistory.length > 0">
+                                <div class="mt-2">
+                                    <strong>Recent Searches:</strong>
+                                    <ul style="list-style: disc inside; padding-left: 1em;">
+                                        <template x-for="term in searchHistory" :key="term">
+                                            <li>
+                                                <a href="#" @click.prevent="searchQuery = term" x-text="term"></a>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </div>
+                            </template>
                         </div>
                     </div>
                     <button class="button" @click="darkMode = !darkMode">
@@ -344,13 +399,7 @@ html, body {
                 </div>
             </div>
             <div class="container">
-                @Collapsable(config.Design.Name, false) {
-                    <h2 class="is-size-4">{ config.Design.Name }</h2>
-                    @CodeBlock(config.Design.Description, false)
-                }
-
-                
-            @Collapsable("Configuration Details", false) {
+            @Collapsable("Config", false) {
             if len(config.Design.GlobalParams) > 0 {
                     <h2 class="is-size-4">Global Parameters</h2>
                     <div class="table-container">
@@ -378,7 +427,7 @@ html, body {
                         @CodeBlock(`
                             [openscadgen.global_params]
                             params = { text="First,Second,Third", height=100 }
-                        `, true)
+                        `, true, false)
                         </details>  
                 }
                 <div class="instance">
@@ -514,7 +563,7 @@ html, body {
                         path = "./examples/cup-holder-plus/carHolderPlus-cup-holder-sizer.scad"
                         ignore_param_when_processing = "cup_holders_mode"
                         export_name_format = "cup-holder-sizer/%7BdesignFileName%7D-%7Bname%7D"
-                        `, true)
+                        `, true, false)
                     </details>
                     </div>
                 }
@@ -533,7 +582,7 @@ description = "A simple example design"
 input_path = "./my_design.scad"
 version = "v1.0"
 output_path = "./export"
-export_name_format = "{designFileName}-{version}-{instanceName}"
+export_name_format = "export/{designFileName}-{version}-{instanceName}"
 
 # Global parameters that apply to all instances
 [openscadgen.global_params]
@@ -646,30 +695,15 @@ dont_use_manifold = false         # If true, disables manifold operations
                 <h2 class="is-size-4">Output Paths</h2>
                         <div class="instance">
                         <div class="param">
-                            <strong>OutputPath:</strong> { outputPaths.OutputPath }
-                        </div>
-                        <div class="param">
-                            <strong>ExportFolderPath:</strong> { outputPaths.ExportFolderPath }
-                        </div>
-                    
-                        if config.Quality == "low" {
-                            <div class="param">
-                                <strong>LowQualityWarningPath:</strong> { outputPaths.LowQualityWarningPath }
-                            </div>
-                        }
-                        <div class="param">
-                            <strong>ReadmePath:</strong> { outputPaths.ReadmePath }
-                        </div>
-                        <div class="param">
-                            <strong>LogOutputPath:</strong> { outputPaths.LogOutputPath }
-                        </div>
+                            <strong>OutputPath:</strong> { outputPath }
+                        </div>=
                     </div>
 
             }
 
 
 
-                @Collapsable(fmt.Sprintf("Generated Instances (%d) [%d * (%d | %d)]", len(instances), len(config.Design.ConfiguredInstanceConfig), len(config.Design.InputPaths), len(config.Design.InputPath)), true) {
+                @Collapsable("Instances", true) {
                 if len(instances) > 0 {
                     <div>
                     <div class="table-container">
@@ -697,9 +731,9 @@ dont_use_manifold = false         # If true, disables manifold operations
                                         <td>{ fmt.Sprintf("%v", instance.IgnoredParams) }</td>
                                         <td>{ instance.SkippedReason }</td>
                                         <td>
-                                            if len(imageResults) > 0 {
-                                                for _, imageResult := range instance.ImageResults {
-                                                    { imageResult.OutputPath }
+                                            if len(instance.ExportImages) > 0 {
+                                                for _, exportImage := range instance.ExportImages {
+                                                   <td>{ fmt.Sprintf("%v", exportImage) }</td>
                                                 }
                                             } else {
                                                 no images generated
@@ -728,7 +762,7 @@ dont_use_manifold = false         # If true, disables manifold operations
                 }
                 }
                 <div class="my-2"></div>
-               @Collapsable(fmt.Sprintf("STL Results (%d)", len(stlResults)), true) {
+               @Collapsable(fmt.Sprintf("STL Results (%d)", len(stlResults)), len(stlResults) > 0) {
                 if len(stlResults) > 0 {
                         <div class="table-container">
                             <table class="table is-fullwidth">
@@ -736,24 +770,23 @@ dont_use_manifold = false         # If true, disables manifold operations
                                     <tr>
                                         <th style="width: 150px;">Instance</th>
                                     <th style="width: 200px;">Output Path</th>
-                                    <th style="width: 200px;">Command</th>
                                     <th style="width: 100px;">Time Taken</th>
                                     <th style="width: 200px;">Params</th>
                                     <th style="width: 150px;">Error</th>
+                                    <th style="width: 150px;">Debug</th>
+                                    <th style="width: 200px;">Command</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 for _, stlResult := range sortSTLResults(stlResults) {
                                     <tr x-show={ fmt.Sprintf(`searchQuery === '' || ('%s %s').toLowerCase().includes(searchQuery.toLowerCase())`, stlResult.InstanceConfig.Name, stlResult.OutputPath) }>
-                                        <td>{ stlResult.InstanceConfig.Name }</td>
+                                        <td>{ fmt.Sprintf("%d IMAGES", len(stlResult.InstanceConfig.ExportImages)) } { stlResult.InstanceConfig.Name } </td>
                                         <td>{ stlResult.OutputPath }</td>
-                                        <td>@CodeBlock(fmt.Sprintf("%.15s...", stlResult.Command), true){
-                                        { stlResult.Command }}</td>
                                         <td>{ fmt.Sprintf("%v", stlResult.TimeTaken) }</td>
                                         if len(stlResult.AppliedParams) > 0 {
                                             <td> @RenderParams(stlResult.AppliedParams) </td>
                                         } else {
-                                            <td>@CodeBlock(fmt.Sprintf("%v", stlResult.InstanceConfig.Params), true) </td>
+                                            <td>@CodeBlock(fmt.Sprintf("%v", stlResult.InstanceConfig.Params), true, false) </td>
                                         }
                                         if stlResult.Error != "" {
                                             <td class="is-danger">{ stlResult.Error }</td>
@@ -764,7 +797,20 @@ dont_use_manifold = false         # If true, disables manifold operations
                                                 @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
                                             </details>
                                         </td> -->
-                                    </tr>
+                                        <td>
+                                            <details>
+                                                @CodeBlock(stlResult.Command, true, false)
+                                            </details>
+                                        </td>
+                                    </tr> 
+                                       <tr >
+
+                                    if len(stlResult.InstanceConfig.ExportImages) > 0 {
+                                        for _, exportImage := range stlResult.InstanceConfig.ExportImages {
+                                                <td>{ fmt.Sprintf("%v", exportImage) }</td>
+                                        }
+                                    }
+                                     </tr>
                                 }
                             </tbody>
                             </table>
@@ -784,7 +830,7 @@ dont_use_manifold = false         # If true, disables manifold operations
                         @CodeBlock(`
                         [[openscadgen.instances]]
                         name = "default"
-                        `, false)
+                        `, false, false)
                         </div>
                         </details>
                     }
@@ -801,11 +847,12 @@ dont_use_manifold = false         # If true, disables manifold operations
                                 <th>Instance</th>
                                 <th>Camera</th>
                                 <th>Output Path</th>
-                                <th>Command</th>
                                 <th>Time Taken</th>
                                 <th>Camera Coordinates</th>
                                 <th>Preview</th>
                                 <th>Error</th>
+                                <th>Command</th>
+
                             </tr>
                         </thead>
                         <tbody>
@@ -814,9 +861,8 @@ dont_use_manifold = false         # If true, disables manifold operations
                                     <td>{ imageResult.InstanceConfig.Name }</td>
                                     <td>{ imageResult.CameraName }</td>
                                     <td>{ imageResult.OutputPath }</td>
-                                    <td>@CodeBlock(fmt.Sprintf("%.15s...", imageResult.Command), true){
-                                    { imageResult.Command }}</td>
-                                    <td>{ fmt.Sprintf("%.1f", imageResult.TimeTaken) }</td>
+
+                                    <td>{ fmt.Sprintf("%+v", imageResult.TimeTaken) }</td>
                                     <td>
                                         <details>
                                             <summary>View Camera Coordinates</summary>
@@ -834,12 +880,12 @@ dont_use_manifold = false         # If true, disables manifold operations
                                     </td>
                                     <td>
                                         if imageResult.Error == "" {
-                                            <img src={ getRelativeImagePath(imageResult.OutputPath, outputPaths.ExportFolderPath) } 
+                                            <img src={ getRelativeImagePath(imageResult.OutputPath, outputPath) } 
                                                  alt={ fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName) } 
                                                  class="image-preview"
                                                  onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"
                                             />
-                                            <div class="image-error" style="display: none;">Image failed to load: { getRelativeImagePath(imageResult.OutputPath, outputPaths.ExportFolderPath) }</div>
+                                            <div class="image-error" style="display: none;">Image failed to load: { getRelativeImagePath(imageResult.OutputPath, outputPath) }</div>
                                         } else {
                                             <span class="tag is-danger">Failed</span>
                                         }
@@ -849,20 +895,25 @@ dont_use_manifold = false         # If true, disables manifold operations
                                     } else {
                                         <td></td>
                                     }
+                                    <td>
+                                        <details>
+                                            @CodeBlock(imageResult.Command, true, false)
+                                        </details>
+                                    </td>
                                 </tr>
                             }
                         </tbody>
                         </table>
                     </div>
                 } else {
-                    @Collapsable("No Image Generation Results", false) {
+                    @Collapsable("Images", false) {
                     <div>
                     Add export images to the config file to generate images for each instance:
                    @CodeBlock(`
                     [[openscadgen.export_images]]
                     name = "front"
                     coord = "0,0,0,0,0,0,100"
-                    `, false)
+                    `, false, false)
                     </div>
                     }
                 }
@@ -870,6 +921,78 @@ dont_use_manifold = false         # If true, disables manifold operations
                     <p>Generated by openscadgen { config.OpenSCADVersion } { config.OpenScadGenVersion } at { time.Now().Format("2006-01-02 15:04:05") }</p>
                 </div>
             </div>
+
+
+        <script>
+        function alpineReportData() {
+            return {
+                darkMode: true,
+                searchQuery: '',
+                configHistory: JSON.parse(localStorage.getItem('configHistory') || '[]'),
+                configFile: '',
+                savedConfigFile: localStorage.getItem('savedConfigFile') || '',
+                searchHistory: JSON.parse(localStorage.getItem('searchHistory') || '[]'),
+                saveConfigFile(path) {
+                    if (path && !this.configHistory.includes(path)) {
+                        this.configHistory.unshift(path);
+                        localStorage.setItem('configHistory', JSON.stringify(this.configHistory));
+                    }
+                    this.savedConfigFile = path;
+                    localStorage.setItem('savedConfigFile', path);
+                },
+                init() {
+                    // Watchers
+                    this.$watch('darkMode', value => {
+                        localStorage.setItem('darkMode', value);
+                        document.documentElement.classList.toggle('dark', value);
+                    });
+                    this.$watch('searchQuery', value => {
+                        if (value && !this.searchHistory.includes(value)) {
+                            this.searchHistory.unshift(value);
+                            this.searchHistory = this.searchHistory.slice(0, 20);
+                            localStorage.setItem('searchHistory', JSON.stringify(this.searchHistory));
+                        }
+                    });
+
+                    // Initial dark mode setup
+                    this.darkMode = localStorage.getItem('darkMode') === 'true' ||
+                        (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+                    // Initial config file setup
+                    this.configFile = '{{ config.ConfigFile }}'; // or whatever templating you use
+                    if (this.configFile) {
+                        this.saveConfigFile(this.configFile);
+                    }
+                }
+            }
+        }
+        </script>
+
+        <script>
+            // Enable htmx debug mode
+            window.htmx && (htmx.config.debug = true);
+
+            // Log all htmx events
+            document.body.addEventListener('htmx:afterRequest', function(evt) {
+                console.log('htmx:afterRequest', evt);
+            });
+            document.body.addEventListener('htmx:sendError', function(evt) {
+                console.error('htmx:sendError', evt);
+            });
+            document.body.addEventListener('htmx:responseError', function(evt) {
+                console.error('htmx:responseError', evt);
+            });
+            document.body.addEventListener('htmx:beforeRequest', function(evt) {
+                console.log('htmx:beforeRequest', evt);
+            });
+            document.body.addEventListener('htmx:beforeSend', function(evt) {
+                console.log('htmx:beforeSend', evt);
+            });
+            document.body.addEventListener('htmx:afterOnLoad', function(evt) {
+                console.log('htmx:afterOnLoad', evt);
+            });
+        </script>
+
         </body>
     </html>
 }

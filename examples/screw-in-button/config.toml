@@ -19,7 +19,7 @@ description = """
 """
 # path to the openscad file that will be used to generate the design
 input_path = "./button.scad"
-export_name_format =  "{partType}/{holeType}/button-height-{button_height}-width-{button_width}-button-profile-{button_radius}"
+export_name_format =  "/export/{partType}/{holeType}/button-height-{button_height}-width-{button_width}-button-profile-{button_radius}"
 # path to the directory where the export (.stl files, README.md) will be saved
 version = "v1.18"
 # Each instance below will result in a separate .stl file being created with those parameters in the 'output_path' directory

@@ -324,7 +324,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 							},
 						},
 					},
-					ExportNameFormat: "test_design_{version}_{name}_{width}_{height}",
+					ExportNameFormat: "test_design_{version}_{instanceName}_{width}_{height}",
 				},
 			},
 			expectedParams: []map[string]interface{}{
@@ -397,7 +397,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 							},
 						},
 					},
-					ExportNameFormat: "test_design_{version}_{name}_{enabled}",
+					ExportNameFormat: "test_design_{version}_{instanceName}_{enabled}",
 				},
 			},
 			expectedParams: []map[string]interface{}{
@@ -426,7 +426,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				Design: models.DesignConfig{
 					InputPath:        inputPath,
 					Version:          "v1.0",
-					ExportNameFormat: "test_design_{version}_{name}_{type}",
+					ExportNameFormat: "test_design_{version}_{instanceName}_{type}",
 					ConfiguredInstanceConfig: []models.ConfiguredInstanceConfig{
 						{
 							Name: "test",
@@ -470,7 +470,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				Design: models.DesignConfig{
 					InputPath:        inputPath,
 					Version:          "v1.0",
-					ExportNameFormat: "test_design_{version}_{name}_{width}",
+					ExportNameFormat: "test_design_{version}_{instanceName}_{width}",
 					GlobalParams: map[string]interface{}{
 						"ignored_param_2": "4,5,6",
 					},
@@ -516,7 +516,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				Design: models.DesignConfig{
 					InputPath:        inputPath,
 					Version:          "v1.0",
-					ExportNameFormat: "test_design_{version}_{name}_{width}",
+					ExportNameFormat: "test_design_{version}_{instanceName}_{width}",
 					InputPaths: []models.InputPath{
 						{
 							Path:                       inputPath,
@@ -560,7 +560,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				Design: models.DesignConfig{
 					InputPath:        inputPath,
 					Version:          "v1.0",
-					ExportNameFormat: "test_design_{version}_global_${global}_global2_${global2}_name_${name}",
+					ExportNameFormat: "test_design_{version}_global_${global}_global2_${global2}_name_${instanceName}",
 					GlobalParams: map[string]interface{}{
 						"global":  "value,value2",
 						"global2": "value3,value4",
@@ -664,7 +664,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 							Name: "test",
 						},
 					},
-					ExportNameFormat: "test_design_{version}_{name}_{part_id_letter}",
+					ExportNameFormat: "test_design_{version}_{instanceName}_{part_id_letter}",
 				},
 			},
 			expectedParams: []map[string]interface{}{
@@ -730,7 +730,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				Design: models.DesignConfig{
 					InputPath:        inputPath,
 					Version:          "v1.0",
-					ExportNameFormat: "test_design_{version}_{name}",
+					ExportNameFormat: "test_design_{version}_{instanceName}",
 					ParamSets: []models.ParamSet{
 						{
 							Name: "base_params",
@@ -777,7 +777,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				Design: models.DesignConfig{
 					InputPath:        inputPath,
 					Version:          "v1.0",
-					ExportNameFormat: "test_design_{version}_name_{name}",
+					ExportNameFormat: "test_design_{version}_name_{instanceName}",
 					ParamSets: []models.ParamSet{
 						{
 							Name: "mixed_params",
@@ -817,7 +817,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				Design: models.DesignConfig{
 					InputPath:        inputPath,
 					Version:          "v1.0",
-					ExportNameFormat: "test_design_{version}_global_{global}_global2_{global2}_name_{name}",
+					ExportNameFormat: "test_design_{version}_global_{global}_global2_{global2}_name_{instanceName}",
 					GlobalParams: map[string]interface{}{
 						"global":  "value,value2",
 						"global2": "value3,value4",
@@ -861,10 +861,94 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				},
 			},
 			expectedOutputPaths: []string{
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_value_global2_value3_name_test.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_value_global2_value4_name_test.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_value2_global2_value3_name_test.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_value2_global2_value4_name_test.stl"),
+				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value_global2_$value3_name_$test.stl"),
+				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value_global2_$value4_name_$test.stl"),
+				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value2_global2_$value3_name_$test.stl"),
+				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value2_global2_$value4_name_$test.stl"),
+			},
+		},
+		{
+			name: "global param with comma-separated values",
+			config: models.Config{
+				ConfigFile: configPath,
+				Design: models.DesignConfig{
+					InputPath:        inputPath,
+					Version:          "v1.0",
+					ExportNameFormat: "test_design_{version}_global_{global}_global2_{global2}_name_{instanceName}",
+					GlobalParams:     map[string]interface{}{"foo": "a, b, c"},
+					ConfiguredInstanceConfig: []models.ConfiguredInstanceConfig{
+						{
+							Name:      "test",
+							ParamSets: "global",
+						},
+					},
+				},
+			},
+			expectedParams: []map[string]interface{}{
+				{
+					"designFileName": "test_design.scad",
+					"global":         "value",
+					"global2":        "value3",
+					"name":           "test",
+					"version":        "v1.0",
+				},
+				{
+					"designFileName": "test_design.scad",
+					"global":         "value2",
+					"global2":        "value3",
+					"name":           "test",
+					"version":        "v1.0",
+				},
+				{
+					"designFileName": "test_design.scad",
+					"global":         "value",
+					"global2":        "value4",
+					"name":           "test",
+					"version":        "v1.0",
+				},
+				{
+					"designFileName": "test_design.scad",
+					"global":         "value2",
+					"global2":        "value4",
+					"name":           "test",
+					"version":        "v1.0",
+				},
+			},
+			expectedOutputPaths: []string{
+				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value_global2_$value3_name_$test.stl"),
+				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value_global2_$value4_name_$test.stl"),
+				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value2_global2_$value3_name_$test.stl"),
+				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value2_global2_$value4_name_$test.stl"),
+			},
+		},
+		{
+			name: "param_numberation_keys creates numbered keys",
+			config: models.Config{
+				ConfigFile: configPath,
+				Design: models.DesignConfig{
+					InputPath:        inputPath,
+					Version:          "v1.0",
+					ExportNameFormat: "test_design_{version}_name_{instanceName}",
+					ConfiguredInstanceConfig: []models.ConfiguredInstanceConfig{
+						{
+							Name:             "test",
+							ParamsNumberated: map[string]interface{}{"foo": "a,b,c"},
+						},
+					},
+				},
+			},
+			expectedParams: []map[string]interface{}{
+				{
+					"designFileName": "test_design.scad",
+					"foo1":           "a",
+					"foo2":           "b",
+					"foo3":           "c",
+					"name":           "test",
+					"version":        "v1.0",
+				},
+			},
+			expectedOutputPaths: []string{
+				filepath.Join(tempDir, "v1_0", "test_design_v1_0_name_test.stl"),
 			},
 		},
 	}
@@ -875,9 +959,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 			if len(tc.config.Design.ConfiguredInstanceConfig) > 1 {
 				t.Error("Only one dynamic instance config is supported for testing")
 			}
-			instances, err := generateInstances(&tc.config, tc.config.Design.ConfiguredInstanceConfig[0], models.InputPath{Path: inputPath}, models.OutputPaths{
-				ExportFolderPath: tempDir,
-			})
+			instances, exportLocaiton, err := generateInstances(&tc.config, tc.config.Design.ConfiguredInstanceConfig[0], models.InputPath{Path: inputPath})
 			if err != nil {
 				t.Errorf("Error generating instances: %v", err)
 			}
@@ -885,6 +967,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 			if len(instances) != len(tc.expectedParams) {
 				t.Errorf("Expected %d instances, got %d", len(tc.expectedParams), len(instances))
 			}
+			log.Printf("exportLocaiton: %s", exportLocaiton)
 
 			// Create a map of expected instances for easier lookup
 			expectedMap := createExpectedInstancesMap(tc.expectedParams)
@@ -1122,10 +1205,14 @@ name = "Test Design"
 description = "Test design for path resolution"
 input_path = "design.scad"
 version = "v1.0"
-export_name_format = "test_design_{version}_name_{name}"
+export_name_format = "test_design_{version}_name_{instanceName}"
 
 [[openscadgen.instances]]
 name = "default"
+
+[[openscadgen.export_images]]
+name = "side"
+coord = "0,0,0,90,0,0,600"
 `
 	configPath := filepath.Join(subfolder, "config.toml")
 	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
@@ -1144,24 +1231,32 @@ name = "default"
 		workingDir     string
 		configPath     string
 		expectedExport string
+		expectedSTLs   []string
+		expectedImages []string
 	}{
 		{
 			name:           "Run from parent directory",
 			workingDir:     tempDir,
 			configPath:     "subfolder/config.toml",
 			expectedExport: filepath.Join(subfolder, "export", "v1_0"),
+			expectedSTLs:   []string{filepath.Join(subfolder, "export", "v1_0", "test_design_v1.0_name_default.stl")},
+			expectedImages: []string{filepath.Join(subfolder, "export", "v1_0", "test_design_v1.0_name_default.png")},
 		},
 		{
 			name:           "Run from subfolder directory",
 			workingDir:     subfolder,
 			configPath:     "config.toml",
 			expectedExport: filepath.Join("export", "v1_0"),
+			expectedSTLs:   []string{filepath.Join(subfolder, "export", "v1_0", "test_design_v1.0_name_default.stl")},
+			expectedImages: []string{filepath.Join(subfolder, "export", "v1_0", "test_design_v1.0_name_default.png")},
 		},
 		{
 			name:           "Run with absolute path",
 			workingDir:     tempDir,
 			configPath:     filepath.Join(subfolder, "config.toml"),
 			expectedExport: filepath.Join(subfolder, "export", "v1_0"),
+			expectedSTLs:   []string{filepath.Join(subfolder, "export", "v1_0", "test_design_v1.0_name_default.stl")},
+			expectedImages: []string{filepath.Join(subfolder, "export", "v1_0", "test_design_v1.0_name_default.png")},
 		},
 	}
 
@@ -1189,39 +1284,72 @@ name = "default"
 				ConfigFile: tc.configPath,
 			})
 			if err != nil {
+				logKeyValuePair("Config file", tc.configPath)
+				logKeyValuePair("Config file content", configContent)
 				t.Fatalf("Failed to load config: %v", err)
 			}
 
-			// Get output paths
-			outputPaths := getOutputPaths(config)
-
-			// Verify export path
-			expectedPath := filepath.Join(tc.workingDir, tc.expectedExport)
-			if normalizePath(outputPaths.ExportFolderPath) != normalizePath(expectedPath) {
-				t.Errorf("ExportFolderPath = %s; want %s", outputPaths.ExportFolderPath, expectedPath)
+			if len(config.GetInputPaths()) == 0 {
+				logKeyValuePair("No input paths found in config", "")
+				logWarn("No input paths found in config", true)
+				t.Fatalf("No input paths found in config")
+			} else if config.Debug {
+				logKeyValuePair(fmt.Sprintf("%d Input paths", len(config.Design.InputPaths)), "")
+				for _, inputPath := range config.Design.InputPaths {
+					logKeyValuePair("", inputPath.Path)
+				}
 			}
 
+			// Get output paths
+			/*	outputPaths := getOutputPaths(config)
+
+				// Verify export path
+				expectedPath := filepath.Join(tc.workingDir, tc.expectedExport)
+				if normalizePath(outputPaths.ExportFolderPath) != normalizePath(expectedPath) {
+					t.Errorf("ExportFolderPath = %s; want %s", outputPaths.ExportFolderPath, expectedPath)
+				}*/
+
 			// Process the config
-			if err := Process(config); err != nil {
+			result, err := Process(config)
+			if err != nil {
 				t.Fatalf("Failed to process config: %v", err)
 			}
 
+			if len(result.ImageResults) != len(tc.expectedImages) {
+				t.Fatalf("Expected %d image results, got %d", len(tc.expectedImages), len(result.ImageResults))
+			}
+
+			if len(result.STLResults) != len(tc.expectedSTLs) {
+				t.Fatalf("Expected %d STL results, got %d", len(tc.expectedSTLs), len(result.STLResults))
+			}
+			for i, stlResult := range result.STLResults {
+				if stlResult.OutputPath != tc.expectedSTLs[i] {
+					t.Errorf("STL result output path = %s; want %s", stlResult.OutputPath, tc.expectedSTLs[i])
+				}
+			}
+			/*
+				if len(config.Design.InputPaths) != 1 {
+					t.Fatalf("Expected 1 input path, got %d", len(config.Design.InputPaths))
+				}*/
+
 			// Get instances from the config
-			instances, err := generateInstances(config, config.Design.ConfiguredInstanceConfig[0], config.Design.InputPaths[0], models.OutputPaths{
-				ExportFolderPath: outputPaths.ExportFolderPath,
-			})
+			instances, exportLocation, err := generateInstances(config, config.Design.ConfiguredInstanceConfig[0], config.Design.InputPaths[0])
 			if err != nil {
 				t.Fatalf("Failed to generate instances: %v", err)
 			}
 
 			// Verify export directory was created
-			if _, err := os.Stat(outputPaths.ExportFolderPath); os.IsNotExist(err) {
-				t.Errorf("Export directory was not created at %s", outputPaths.ExportFolderPath)
+			/*	if _, err := os.Stat(outputPaths.ExportFolderPath); os.IsNotExist(err) {
+					t.Errorf("Export directory was not created at %s", outputPaths.ExportFolderPath)
+				}
+			*/
+			if _, err := os.Stat(exportLocation); os.IsNotExist(err) {
+				t.Errorf("Export directory was not created at %s", exportLocation)
 			}
 
 			// Verify STL file was created with correct name
 			expectedSTLName := "test_design_v1.0_name_default.stl"
-			stlPath := filepath.Join(outputPaths.ExportFolderPath, expectedSTLName)
+			stlPath := filepath.Join(exportLocation, expectedSTLName)
 			if _, err := os.Stat(stlPath); os.IsNotExist(err) {
 				t.Errorf("STL file was not created at %s", stlPath)
 			}
@@ -1232,8 +1360,8 @@ name = "default"
 			}
 
 			// Verify the version format in the output path
-			if !strings.Contains(outputPaths.ExportFolderPath, "v1.0") {
-				t.Errorf("Export folder path does not contain correct version format: %s", outputPaths.ExportFolderPath)
+			if !strings.Contains(exportLocation, "v1.0") {
+				t.Errorf("Export folder path does not contain correct version format: %s", exportLocation)
 			}
 
 			// Verify OutputPathV2 is set correctly
@@ -1257,5 +1385,161 @@ name = "default"
 				t.Errorf("RunOutputPathV3 = %s; want %s", instance.RunOutputPathV3, expectedRelPath)
 			}
 		})
+	}
+}
+
+type Input struct {
+	dynamicInstance models.ConfiguredInstanceConfig
+	globalParams    map[string]interface{}
+	paramSets       []models.ParamSet
+	inputPath       models.InputPath
+}
+
+type Output struct {
+	params          map[string]interface{}
+	globalParamsMap map[string][]interface{}
+	ignoredKeys     []string
+}
+
+type TestCase struct {
+	name   string
+	input  Input
+	output Output
+}
+
+func TestGetAllParams(t *testing.T) {
+	testCases := []TestCase{
+		{
+			name: "basic merge with no ignored params",
+			input: Input{
+				dynamicInstance: models.ConfiguredInstanceConfig{
+					Name:      "inst1",
+					Params:    map[string]interface{}{"foo": 1},
+					ParamSets: "set1",
+				},
+				globalParams: map[string]interface{}{"bar": 2, "float": 1.5},
+				paramSets: []models.ParamSet{
+					{Name: "set1", Params: map[string]interface{}{"baz": 3}},
+				},
+				inputPath: models.InputPath{
+					Params: map[string]interface{}{"qux": 4},
+				},
+			},
+			output: Output{
+				params: map[string]interface{}{
+					"foo": float64(1),
+					"baz": float64(3),
+					"qux": float64(4),
+				},
+				globalParamsMap: map[string][]interface{}{
+					"bar":   {float64(2)},
+					"float": {float64(1.5)},
+				},
+				ignoredKeys: nil,
+			},
+		},
+		/*{
+			name: "normal param with comma-separated values",
+			input: Input{
+				dynamicInstance: models.ConfiguredInstanceConfig{
+					Params: map[string]interface{}{"foo": "a, b, c"},
+				},
+				globalParams: map[string]interface{}{},
+				paramSets:    nil,
+				inputPath:    models.InputPath{},
+			},
+			output: Output{
+				params: map[string]interface{}{
+					"foo": []interface{}{"a", "b", "c"},
+				},
+				globalParamsMap: map[string][]interface{}{},
+				ignoredKeys:     nil,
+			},
+		}, {
+			name: "global param with comma-separated values",
+			input: Input{
+				dynamicInstance: models.ConfiguredInstanceConfig{},
+				globalParams:    map[string]interface{}{"foo": "a, b, c"},
+				paramSets:       nil,
+				inputPath:       models.InputPath{},
+			},
+			output: Output{
+				params: map[string]interface{}{},
+				globalParamsMap: map[string][]interface{}{
+					"foo": {"a", "b", "c"},
+				},
+				ignoredKeys: nil,
+			},
+		},
+		{
+			name: "param_numberation_keys creates numbered keys",
+			input: Input{
+				dynamicInstance: models.ConfiguredInstanceConfig{
+					ParamsNumberated: map[string]interface{}{"foo": "a,b,c"},
+				},
+				globalParams: map[string]interface{}{},
+				paramSets:    nil,
+				inputPath:    models.InputPath{},
+			},
+			output: Output{
+				params: map[string]interface{}{
+					"foo1": "a",
+					"foo2": "b",
+					"foo3": "c",
+				},
+				globalParamsMap: map[string][]interface{}{},
+				ignoredKeys:     nil,
+			},
+		},*/
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			params, globalParamsMap, ignoredKeys := getAllParams(tc.input.dynamicInstance, tc.input.globalParams, tc.input.paramSets, tc.input.inputPath)
+			if !reflect.DeepEqual(params, tc.output.params) {
+				t.Errorf("params mismatch:\nExpected: %#v\nGot: %#v", tc.output.params, params)
+			}
+			if !reflect.DeepEqual(globalParamsMap, tc.output.globalParamsMap) {
+				t.Errorf("globalParamsMap mismatch:\nExpected: %#v\nGot: %#v", tc.output.globalParamsMap, globalParamsMap)
+			}
+			if !reflect.DeepEqual(ignoredKeys, tc.output.ignoredKeys) {
+				t.Errorf("ignoredKeys mismatch:\nExpected: %#v\nGot: %#v", tc.output.ignoredKeys, ignoredKeys)
+			}
+		})
+	}
+}
+
+func TestScanFolderForConfigFiles(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "scanconfigtest")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Valid config file
+	validPath := filepath.Join(tmpDir, "valid.toml")
+	os.WriteFile(validPath, []byte("[openscadgen]\nname = 'foo'\n"), 0644)
+
+	// No tag
+	noTagPath := filepath.Join(tmpDir, "notag.toml")
+	os.WriteFile(noTagPath, []byte("name = 'bar'\n"), 0644)
+
+	// Too large
+	largePath := filepath.Join(tmpDir, "large.toml")
+	large := make([]byte, 2*1024*1024+1)
+	copy(large, []byte("[openscadgen]\n"))
+	os.WriteFile(largePath, large, 0644)
+
+	// Non-text (binary, but still .toml)
+	binPath := filepath.Join(tmpDir, "bin.toml")
+	os.WriteFile(binPath, []byte{0x00, 0x01, 0x02, 0x03}, 0644)
+
+	files, err := ScanFolderForConfigFiles(tmpDir)
+	if err != nil {
+		t.Fatalf("ScanFolderForConfigFiles error: %v", err)
+	}
+
+	if len(files) != 1 || files[0].Path != validPath {
+		t.Errorf("Expected only valid.toml, got: %v", files)
 	}
 }

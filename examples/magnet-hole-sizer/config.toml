@@ -5,7 +5,7 @@ description = ""
 
 version = "v0.1"
 
-export_name_format = "{designFileName}-{instanceName}"
+export_name_format = "export/{designFileName}-{instanceName}"
 
 # export_name_format = "custom-export-name-for-this-file/{designFileName}-{instanceName}"
 

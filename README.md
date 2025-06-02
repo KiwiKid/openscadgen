@@ -1,4 +1,5 @@
-openscadgen is a simple tool for generating a set of .stl files (or other openscad export formats) from a .scad file(s) and a simple human-readable toml config file. A html report is generated containing the details of the generated instances
+openscadgen is a simple tool for generating a specific a set of .stl files (or other openscad export formats) from one (or many!) openscad files and a simple human-readable toml config file.
+The config file allows for 
  
 The goal of the tool is to ease the development, management, production and distribution of large numbers designs or design options based on single openscad file.
 
@@ -22,7 +23,7 @@ and creates multiple .stl files based on a combination of params against each [[
 name = "simple-clip"
 description = "A basic parametric clip"
 input_path = "./clip.scad" # input_path is relative to the config.toml file
-export_name_format = "clip-{width}mm-{height}mm"
+export_name_format = "export/clip-{width}mm-{height}mm"
 version = "v1.0"
 
 [[openscadgen.instances]]
@@ -45,7 +46,7 @@ When you need to generate multiple designs using the same parameters - multiple 
 [openscadgen]
 name = "cup-holder"
 description = "A cup holder with multiple components"
-export_name_format = "{designFileName}-{diameter}mm"
+export_name_format = "export/{designFileName}-{diameter}mm"
 version = "v1.0"
 
 [[openscadgen.input_paths]]
@@ -83,7 +84,7 @@ name = "front"
 
 [[openscadgen.export_images]]
 name = "side"
-coords = "0,0,0,90,0,0,600"
+coord = "0,0,0,90,0,0,600"
 ```
 
 This adds preview images from multiple angles for each generated STL.
@@ -97,7 +98,7 @@ For more complex designs, parameter sets help organize related parameters:
 name = "complex-bracket"
 description = "A bracket with multiple configurations"
 input_path = "./bracket.scad"
-export_name_format = "bracket-{size}-{style}"
+export_name_format = "export/bracket-{size}-{style}"
 version = "v1.0"
 
 [[openscadgen.param_sets]]
@@ -254,7 +255,7 @@ name = "screw-mounted-clip"
 description = "A parametric screw mounted clip"
 # path to the openscad file that will be used to generate the design
 input_path = "./examples/screw-mounted-clip/parametricCommandStripBroomHook.scad"
-export_name_format = "clip-{handle_diameter}mm-wide-{handle_offset}mm-tall"
+export_name_format = "export/clip-{handle_diameter}mm-wide-{handle_offset}mm-tall"
 # version of the design, the export will be saved in a subfolder with this version number
 version = "v1.6"
 
@@ -304,7 +305,7 @@ v1.1
 - Slightly narrower cup holder diameter at the brim and base
 - Reduce sharp edges (better align cup & phone holders in the center)
 """
-export_name_format = "{cup_holders_mode}/{designFileName}-{instanceName}"
+export_name_format = "export/{cup_holders_mode}/{designFileName}-{instanceName}"
 version = "v1.3"
 
 [[openscadgen.input_paths]]

@@ -30,7 +30,11 @@ difference() {
     
     up(wall)
     cuboid([tray_width-wall*2, tray_height-wall*2, height], rounding=10, edges=[BOTTOM+LEFT, BOTTOM+RIGHT, LEFT+FWD, BOTTOM+FWD, BOTTOM+BACK, RIGHT+FWD, RIGHT+BACK, LEFT+BACK]);
+    }
+    }
     
+    tray();
+    /*
     if( partType ==  "startBox" || partType == "box"){
     // holder conection
         fwd(tray_height/2+pipe_height/2-wall-0.001)
@@ -50,7 +54,8 @@ difference() {
         }
     
         
-}
+}*/
+/*
  if( partType ==  "endBox" || partType == "box"){
  difference(){
     fwd(-tray_height/2)
@@ -82,5 +87,5 @@ difference() {
     translate([tray_width/2, 0, tray_height/2 - engrave_depth+10])
     rotate([90,0,90])
     #text3d(part_id_letter, h=3, size=10);
-}
+}*/
 

@@ -22,8 +22,44 @@ export_name_format = "export/{version}/{instanceName}"
 
 [[openscadgen.input_paths]]
 path = "default_design.scad"
+
+[[openscadgen.export_images]]
+name = "top"
+
+
 `
-	defaultConfigPath = "config.toml"
+	defaultConfigPath         = "config.toml"
+	defaultShoppingConfigPath = "shopping-list.toml"
+	shoppingListConfig        = `[openscadgen]
+# name of the design, will be used in the name of output files
+name = "list_generator"
+export_name_format = "export/{version}/{name}"
+input_path = "default_design_2.scad"
+
+[[openscadgen.instances]]
+params = { name="shopping", title_text= "Shopping List", rows=20, cols=1 }
+params_numbered = { text = "Apple,Avocados,Bananas,Oranges,Mushrooms,Butter,Butter Spread,Yogurt,Aioli,Cheese,Chicken,Coffee,Eggs,Garlic,Honey,Peanut Butter,Cereal,Pasta,Olive oil,Salt,Milk,Tomatoes,Mushrooms,Olive oil,Onions,Oranges,Pasta,Peanut butter,Peppers,Potatoes,Rice,Salt,Spinach,Sugar,Tea,Bread,Paper Towels,Toilet Paper"}
+
+[[openscadgen.instances]]
+params = { name="predrive", title_text= "Caravan PreDrive Checklist",  rows=20, cols=1}
+params_numbered = { text = "Gas turned off,Legs up,Wheel up & secure,Water emptied,Inside Cabinets Latched"}
+
+
+[[openscadgen.instances]]
+params = { name="postdrive", title_text= "Caravan PostDrive Checklist",  rows=20, cols=1  }
+params_numbered = { text = "Empty Fridge,Empty Trash"}
+
+[[openscadgen.instances]]
+params = { name="demo", title_text="Demo", rows=20, cols=1 }
+params_numbered = { text = "first,second,third"}
+`
+	shoppingDesign = `
+module shoppingList(name, title_text, text, rows, cols) {
+    cube(10,10,10)
+}
+
+shoppingList(name="shopping", title_text="Shopping List", text="Apple,Avocados,Bananas,Oranges,Mushrooms,Butter,Butter Spread,Yogurt,Aioli,Cheese,Chicken,Coffee,Eggs,Garlic,Honey,Peanut Butter,Cereal,Pasta,Olive oil,Salt,Milk,Tomatoes,Mushrooms,Olive oil,Onions,Oranges,Pasta,Peanut butter,Peppers,Potatoes,Rice,Salt,Spinach,Sugar,Tea,Bread,Paper Towels,Toilet Paper", rows=20, cols=1);
+`
 )
 
 func TestMain(m *testing.M) {
@@ -144,6 +180,8 @@ cylinderDefault(size=10);
 	`,
 }
 
+var onlyRunTestIndex = -1
+
 func TestOpenSCADGenE2E(t *testing.T) {
 	testCases := []testCase{
 		{
@@ -154,6 +192,8 @@ func TestOpenSCADGenE2E(t *testing.T) {
 			expectedFiles: []string{
 				"config.toml",
 				"default_design.scad",
+				"default_design_2.scad",
+				"shopping-list.toml",
 				"export/1.0/default.stl",
 				"export/1.0/report.html",
 			},
@@ -166,6 +206,8 @@ func TestOpenSCADGenE2E(t *testing.T) {
 			expectedFiles: []string{
 				"config.toml",
 				"default_design.scad",
+				"default_design_2.scad",
+				"shopping-list.toml",
 				"export/1.0/default.stl",
 				"export/1.0/report.html",
 			},
@@ -177,7 +219,7 @@ func TestOpenSCADGenE2E(t *testing.T) {
 				name = "test"
 				version = "1.0"
 				description = "Test design"
-				export_name_format = "/export/{version}/{instanceName}-{size}"
+				export_name_format = "export/{version}/{instanceName}-{size}"
 
 				global_params = { size = "10,20" }
 
@@ -189,6 +231,8 @@ func TestOpenSCADGenE2E(t *testing.T) {
 			expectedFiles: []string{
 				"config.toml",
 				"default_design.scad",
+				"default_design_2.scad",
+				"shopping-list.toml",
 				"export/1.0/default-10.stl",
 				"export/1.0/default-20.stl",
 				"export/1.0/report.html",
@@ -199,7 +243,7 @@ func TestOpenSCADGenE2E(t *testing.T) {
 			configContent: `[openscadgen]
 name = "test-project"
 version = "1.0"
-export_name_format = "/export/{version}/{designFileName}-{instanceName}-{size}"
+export_name_format = "export/{version}/{designFileName}-{instanceName}-{size}"
 
 global_params = { size = "10,20" }
 
@@ -214,6 +258,8 @@ name = "instance-name"
 			expectedFiles: []string{
 				"default_design.scad",
 				"config.toml",
+				"default_design_2.scad",
+				"shopping-list.toml",
 				"export/1.0/report.html",
 				"export/1.0/default_design-instance-name-10.stl",
 				"export/1.0/default_design-instance-name-20.stl",
@@ -225,7 +271,7 @@ name = "instance-name"
 			configContent: `[openscadgen]
 name = "test-project"
 version = "1.0"
-export_name_format = "/export/{version}/{designFileName}-{instanceName}-{size}"
+export_name_format = "export/{version}/{designFileName}-{instanceName}-{size}"
 
 global_params = { size = "10,20" }
 
@@ -240,6 +286,8 @@ name = "instance-name"
 			expectedFiles: []string{
 				"default_design.scad",
 				"config.toml",
+				"default_design_2.scad",
+				"shopping-list.toml",
 				"export/1.0/report.html",
 				"export/1.0/default_design-instance-name-10.stl",
 			},
@@ -250,7 +298,7 @@ name = "instance-name"
 			configContent: `[openscadgen]
 		name = "test-project"
 		version = "1.0"
-		export_name_format = "/export/{version}/{designFileName}-{instanceName}"
+		export_name_format = "export/{version}/{designFileName}-{instanceName}"
 
 		[[openscadgen.input_paths]]
 		path = "./default_design.scad"
@@ -266,6 +314,8 @@ name = "instance-name"
 			expectedFiles: []string{
 				"default_design.scad",
 				"config.toml",
+				"default_design_2.scad",
+				"shopping-list.toml",
 				"export/1.0/report.html",
 				"export/1.0/default_design-instance-name-2.stl",
 			},
@@ -276,7 +326,7 @@ name = "instance-name"
 			configContent: `[openscadgen]
 		name = "test-project"
 		version = "1.0"
-		export_name_format = "/export/{version}/{designFileName}-{instanceName}"
+		export_name_format = "export/{version}/{designFileName}-{instanceName}"
 
 		[[openscadgen.input_paths]]
 		path = "./default_design.scad"
@@ -297,6 +347,7 @@ name = "instance-name"
 				"default_design.scad",
 				"default_design_2.scad",
 				"config.toml",
+				"shopping-list.toml",
 				"export/1.0/report.html",
 				"export/1.0/default_design_2-instance-name.stl",
 				"export/1.0/default_design_2-instance-name-2.stl",
@@ -317,7 +368,7 @@ name = "instance-name"
 			configContent: `[openscadgen]
 		name = "test-project"
 		version = "1.0"
-		export_name_format = "/export/{version}/{designFileName}-{instanceName}-{size}"
+		export_name_format = "export/{version}/{designFileName}-{instanceName}-{size}"
 
 		[[openscadgen.input_paths]]
 		path = "./default_design.scad"
@@ -335,6 +386,8 @@ name = "instance-name"
 			expectedFiles: []string{
 				"default_design.scad",
 				"config.toml",
+				"default_design_2.scad",
+				"shopping-list.toml",
 				"export/1.0/report.html",
 				"export/1.0/default_design-instance-name-40.stl",
 				"export/1.0/default_design-instance-name-50.stl",
@@ -401,12 +454,28 @@ name = "instance-name"
 		invalid_field = "this should fail"  # This is an invalid field
 		`,
 			scadContent: scadFileInputExamples[defaultDesign],
-			command:     binaryPath + " -c ./config.toml",
+			command:     binaryPath + " -c ./shopping-list.toml",
 			shouldFail:  true,
 		},
+		{
+			name:          "13.Shopping list design",
+			configContent: shoppingListConfig,
+			scadContent:   shoppingDesign,
+			command:       binaryPath + " -c " + defaultShoppingConfigPath + " -ow",
+			expectedFiles: []string{
+				"export/v0.1/report.html",
+				"export/v0.1/predrive.stl",
+				"export/v0.1/postdrive.stl",
+				"export/v0.1/shopping.stl",
+				"export/v0.1/demo.stl",
+				"shopping-list.toml",
+				"config.toml",
+				"default_design_2.scad",
+				"default_design.scad",
+			},
+			shouldFail: false,
+		},
 	}
-
-	var onlyRunTestIndex = -1
 
 	for index, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -440,10 +509,17 @@ name = "instance-name"
 			if err := os.WriteFile("default_design.scad", []byte(tc.scadContent), 0644); err != nil {
 				t.Fatalf("Failed to write SCAD file: %v", err)
 			}
-			if tc.scadContent2 != "" {
-				if err := os.WriteFile("default_design_2.scad", []byte(tc.scadContent2), 0644); err != nil {
-					t.Fatalf("Failed to write SCAD file: %v", err)
-				}
+
+			// Write SCAD file
+			if err := os.WriteFile("default_design_2.scad", []byte(`
+			cube(10,10,10);
+			`), 0644); err != nil {
+				t.Fatalf("Failed to write SCAD file: %v", err)
+			}
+
+			err = os.WriteFile(defaultShoppingConfigPath, []byte(shoppingListConfig), 0644)
+			if err != nil {
+				t.Fatalf("Failed to write shopping list config file: %v", err)
 			}
 
 			if tc.command == "" {
@@ -467,7 +543,7 @@ name = "instance-name"
 				return
 			}
 			if err != nil {
-				t.Errorf("Command failed: %v\nOutput: %s", err, output)
+				t.Errorf("Command failed: \n\nError: %+v\nOutput: %s", err, output)
 				return
 			}
 

@@ -13,7 +13,7 @@ The coaster is designed to be printed on a flat surface, with the text on the ou
 
 """
 
-export_name_format = "{designFileName}-{base_width}"
+export_name_format = "export/{designFileName}-{name}-{base_width}"
 
 
 version = "v0.3"
@@ -30,3 +30,8 @@ params = { name = "Griffin Leonard", base_width = "97"}
 [[openscadgen.instances]]
 params = { name = "Steven Cromb", base_width = "96"}
 
+[[openscadgen.instances]]
+params = { name = "Paul Cumming", base_width = "98"}
+
+[[openscadgen.instances]]
+params = { name = "David Cumming", base_width = "110"}

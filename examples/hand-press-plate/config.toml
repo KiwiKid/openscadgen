@@ -4,7 +4,7 @@ description = ""
 
 version = "v0.1"
 
-export_name_format = "{designFileName}-{renderType}-{plateType}-{attachCyliderHeight}-{plateAttachHeight}-{plateHeight}"
+export_name_format = "export/{designFileName}-{renderType}-{plateType}-{attachCyliderHeight}-{plateHeight}"
 
 #global_params = { renderType = "", plateType = "large,none" }
 
@@ -12,7 +12,7 @@ export_name_format = "{designFileName}-{renderType}-{plateType}-{attachCyliderHe
 path = "./hand-press-plate.scad"
 
 [[openscadgen.instances]]
-params = {  plateType = "large", attachCyliderHeight = 25, plateHeight = "30, 35, 40, 45, 50" }
+params = {  plateType = "large", attachCyliderHeight = 25, plateHeight = [30,35,40,45,50] }
 
 [[openscadgen.instances]]
 params = { plateType = "none", attachCyliderHeight = 25  }

@@ -5,7 +5,7 @@ include <BOSL2/std.scad>;
 	$fs = $preview ? 5 : 1;
 	$fn = 200;
 
-	renderType = "adll"; // horzSlice, vertSlice, all
+	renderType = ""; // horzSlice, vertSlice, all
     
     screwHolesUp = 20;
     screwHoles = [5, 7.5, 10, 12.5, 15, 17.5, 20, 22.5, 25, 27.5];
@@ -21,7 +21,7 @@ include <BOSL2/std.scad>;
 		
         difference(){
         union(){
-        down(plateHeight+attachCyliderZOffset)
+        down(num(plateHeight)+attachCyliderZOffset)
             cyl(l=attachCyliderHeight, d=attachCyliderRadius, rounding=2);
             rotate([180,0,0])
             if (plateType == "large"){

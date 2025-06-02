@@ -13,7 +13,7 @@ The coaster is designed to be printed on a flat surface, with the text on the ou
 
 """
 
-export_name_format = "{designFileName}-{mainTextStrike}-{textContent}"
+export_name_format = "export/{designFileName}-{mainTextStrike}-{textContent}"
 
 
 version = "v0.1"

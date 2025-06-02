@@ -23,15 +23,14 @@ type ParamSet struct {
 }
 
 type DesignConfig struct {
-	Name           string      `toml:"name" validate:"required,min=1"`
-	Description    string      `toml:"description"`
-	InputPath      string      `toml:"input_path"`
-	InputPaths     []InputPath `toml:"input_paths"`
-	OutputPath     string      `toml:"output_path"`
-	Version        string      `toml:"version"`
-	NoPartIDLetter bool        `toml:"no_part_id_letter"`
-	RunType        string      `toml:"run_type"` // 'clearAndCreate', 'appendOrOverwrite'
-	// @@ deprecated
+	Name                       string                    `toml:"name" validate:"required,min=1"`
+	Description                string                    `toml:"description"`
+	InputPath                  string                    `toml:"input_path"`
+	InputPaths                 []InputPath               `toml:"input_paths"`
+	OutputPath                 string                    `toml:"output_path"`
+	Version                    string                    `toml:"version"`
+	NoPartIDLetter             bool                      `toml:"no_part_id_letter"`
+	RunType                    string                    `toml:"run_type"` // 'clearAndCreate', 'appendOrOverwrite'
 	ExportNameFormat           string                    `toml:"export_name_format" validate:"required,min=1"`
 	GlobalParams               map[string]interface{}    `toml:"global_params"`
 	ParamSets                  []ParamSet                `toml:"param_sets"`
@@ -51,13 +50,13 @@ func (d *DesignConfig) ClearVersion(version string) string {
 }
 
 type ConfiguredInstanceConfig struct {
-	Name                 string                    `toml:"name"`
-	Description          string                    `toml:"description,omitempty"`
-	Params               map[string]interface{}    `toml:"params"`
-	ParamSets            string                    `toml:"param_sets"`             // comma separated list of param sets to use
-	ParamNumberationKeys string                    `toml:"param_numberation_keys"` // comma separated list of keys to number
-	ExportImages         []ExportCameraCoordinates `toml:"export_images"`
-	SkipImages           bool                      `toml:"skip_images"`
+	Name             string                    `toml:"name"`
+	Description      string                    `toml:"description,omitempty"`
+	Params           map[string]interface{}    `toml:"params"`
+	ParamSets        string                    `toml:"param_sets"`      // comma separated list of param sets to use
+	ParamsNumberated map[string]interface{}    `toml:"params_numbered"` // comma separated list of keys to number
+	ExportImages     []ExportCameraCoordinates `toml:"export_images"`
+	SkipImages       bool                      `toml:"skip_images"`
 }
 
 // Define a struct to hold the command-line flags
@@ -72,6 +71,8 @@ type CmdFlags struct {
 	IncludeExportLog             bool
 	OverwriteExisting            bool
 	ShowMan                      bool
+	Server                       bool
+	ServerFolder                 string
 	InitProjectName              string
 	InitProjectNameExtended      string
 	ConfigFile                   string
@@ -123,6 +124,8 @@ type Config struct {
 	OnlyImages                   bool   `flag:"oi"`
 	OnlyExport                   bool   `flag:"oe"`
 	SetBuildInfoInFileAttributes bool   `flag:"fi"`
+	Server                       bool   `flag:"s"`
+	ServerFolder                 string `flag:"sf"`
 	OpenSCADVersion              string
 	OpenScadGenVersion           string
 	InitProjectName              string
@@ -166,15 +169,16 @@ type InstanceConfig struct {
 }
 
 type GenerateSTLResult struct {
-	InstanceConfig InstanceConfig
-	OutputPath     string
-	Command        string
-	Error          string
-	AppliedParams  map[string]interface{}
-	TimeTaken      time.Duration
-	Skipped        bool
-	LowQuality     bool
-	SkippedReason  string
+	InstanceConfig      InstanceConfig
+	OutputPath          string
+	Command             string
+	Error               string
+	AppliedParams       map[string]interface{}
+	TimeTaken           time.Duration
+	Skipped             bool
+	LowQuality          bool
+	SkippedReason       string
+	GenerateImageResult []GenerateImageResult
 }
 
 type GenerateImageResult struct {
@@ -242,6 +246,17 @@ func (instance *InstanceConfig) GetInstancePaths(config *Config) *InstancePaths 
 		FullOutputPath:    instance.OutputPathV2,
 		PartIDOutputPath:  path.Join(config.Design.OutputPath, versionPathSafe, "with_embedded_part_letter"),
 	}
+}
+
+type ConfigFile struct {
+	Path string
+}
+
+type ProcessResult struct {
+	Instances      []InstanceConfig
+	STLResults     []GenerateSTLResult
+	ImageResults   []GenerateImageResult
+	ExportLocation string
 }
 
 /*

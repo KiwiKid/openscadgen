@@ -4,47 +4,23 @@ description = ""
 
 version = "v0.1"
 
-export_name_format = "{designFileName}-height-{height}-wall-bump-rate-{wall_bump_rate}"
+export_name_format = "export/{designFileName}-height-{height}-wall-bump-rate-{wall_bump_rate}-scaleAll-{scaleAll}"
 
 # export_name_format = "custom-export-name-for-this-file/{designFileName}-{instanceName}"
 
-dont_use_manifold = true
+#dont_use_manifold = true
 
 [[openscadgen.input_paths]]
 path = "./holder-vase.scad"
 
-[[openscadgen.instances]]
-params = { height = 40, wall_bump_rate = 20 }
 
 [[openscadgen.instances]]
-params = { height = 40, wall_bump_rate = 10 }
-
-[[openscadgen.instances]]
-params = { height = 70, wall_bump_rate = 100 }
-
-[[openscadgen.instances]]
-params = { height = 70, wall_bump_rate = 50 }
-
-[[openscadgen.instances]]
-params = { height = 70, wall_bump_rate = 20 }
-
-[[openscadgen.instances]]
-params = { height = 70, wall_bump_rate = 200 }
+params = { height = 120, wall_bump_rate = 200 }
 
 
 
-[[openscadgen.instances]]
-params = { height = 100, wall_bump_rate = 50 }
 
 
-[[openscadgen.instances]]
-params = { height = 100, wall_bump_rate = 10 }
-
-[[openscadgen.instances]]
-params = { height = 100, wall_bump_rate = 100 }
-
-[[openscadgen.instances]]
-params = { height = 100, wall_bump_rate = 200 }
 
 # [[openscadgen.input_paths]]
 # path = "./a-second-related-openscad-file.scad"

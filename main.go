@@ -1,10 +1,17 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"flag"
+	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
+	"net/url"
 
 	"github.com/kiwikid/openscadgen/pkg/models"
+	"github.com/kiwikid/openscadgen/pkg/templates"
 
 	"github.com/kiwikid/openscadgen/pkg"
 )
@@ -76,6 +83,10 @@ func main() {
 
 	flag.BoolVar(&cmdFlags.SetBuildInfoInFileAttributes, "fi", true, "Set build info in file attributes (default true)")
 
+	flag.BoolVar(&cmdFlags.Server, "s", false, "Start in server mode")
+
+	flag.StringVar(&cmdFlags.ServerFolder, "sf", "", "Start in server mode, optionally specify a folder to scan for config files")
+
 	flag.Parse()
 
 	// Initialize logger before loading config
@@ -115,14 +126,249 @@ func main() {
 		return
 	}
 
+	if cmdFlags.Server || cmdFlags.ServerFolder != "" {
+		cmdFlags.Server = true
+		StartServer(cmdFlags.ServerFolder)
+		return
+	}
+
 	config, err := pkg.LoadConfig(cmdFlags)
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
 
-	err = pkg.Process(config)
+	processResult, err := pkg.Process(config)
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
 
+	log.Printf("ExportLocation: %s", processResult.ExportLocation)
+
+	// Generate output report
+	_, err = pkg.GenerateOutputReport(config, processResult.Instances, processResult.STLResults, processResult.ImageResults, processResult.ExportLocation, true)
+	if err != nil {
+		if config.ContinueOnError {
+			log.Printf("Warning: failed to generate output report: %v", err)
+		} else {
+			log.Fatalf("failed to generate output report: %v", err)
+		}
+	}
+
+}
+
+var configFiles []models.ConfigFile
+
+func StartServer(serverFolder string) {
+
+	var err error
+	var msg = "Starting server on port 8080"
+	if serverFolder != "" {
+		configFiles, err = pkg.ScanFolderForConfigFiles(serverFolder)
+		if err != nil {
+			log.Fatalf("Error: %v", err)
+		}
+		log.Printf("Found %d config files in %s", len(configFiles), serverFolder)
+		msg += fmt.Sprintf(" and %d config files in %s", len(configFiles), serverFolder)
+
+	}
+	log.Print(msg)
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+
+		switch r.Method {
+		case "GET":
+			log.Printf("GET (Display) request" + r.Method)
+			configEntryPathEncoded := r.URL.Query().Get("config")
+			configEntryPath, err := url.QueryUnescape(configEntryPathEncoded)
+			if err != nil {
+				log.Printf("Error: %v", err)
+			}
+
+			if configEntryPath == "" {
+				if len(configFiles) > 0 {
+					log.Printf("Listing %d config files", len(configFiles))
+					listConfig := templates.ListConfig(configFiles)
+					listConfig.Render(context.Background(), w)
+				}
+				configEntry := templates.EnterConfigPage()
+				configEntry.Render(context.Background(), w)
+			} else {
+				config, err := pkg.LoadConfig(models.CmdFlags{ConfigFile: configEntryPath})
+				if err != nil {
+					warning := templates.Warning(fmt.Sprintf("Error: %v", err))
+					warning.Render(context.Background(), w)
+				}
+
+				report := templates.Report(config, []models.InstanceConfig{}, "", []models.GenerateSTLResult{}, []models.GenerateImageResult{}, []string{}, true, configEntryPath)
+				report.Render(context.Background(), w)
+			}
+		case "POST":
+			log.Printf("POST (Add Config) request" + r.Method)
+
+			configEntry := r.FormValue("path")
+			if configEntry == "" {
+				warning := templates.Warning("No config file provided")
+				warning.Render(context.Background(), w)
+			}
+
+			encodedConfigEntry := url.QueryEscape(configEntry)
+
+			http.Redirect(w, r, "/?config="+encodedConfigEntry, http.StatusSeeOther)
+		case "PUT":
+			log.Printf("PUT (Processing) request" + r.Method)
+			configEntry := r.FormValue("path")
+			if configEntry == "" {
+				warning := templates.Warning("No config file provided")
+				warning.Render(context.Background(), w)
+				return
+			}
+
+			config, err := pkg.LoadConfig(models.CmdFlags{ConfigFile: configEntry})
+			if err != nil {
+				warning := templates.Warning(fmt.Sprintf("Error: %v", err))
+				warning.Render(context.Background(), w)
+				return
+			}
+
+			processResult, err := pkg.Process(config)
+			if err != nil {
+				warning := templates.Warning(fmt.Sprintf("Error: %v", err))
+				warning.Render(context.Background(), w)
+				return
+			}
+
+			htmlContent, err := pkg.GenerateOutputReport(config, processResult.Instances, processResult.STLResults, processResult.ImageResults, "", false)
+			if err != nil {
+				warning := templates.Warning(fmt.Sprintf("Error: %v", err))
+				warning.Render(context.Background(), w)
+				return
+			}
+
+			success := templates.Success("Processing complete")
+			success.Render(context.Background(), w)
+			htmlContent.Render(context.Background(), w)
+
+			return
+
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	// MCP endpoints
+	http.HandleFunc("/v1/metadata", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"name":         "openscadgen",
+			"version":      pkg.GetVersion().OpenSCADGen,
+			"capabilities": []string{"resources", "tools"},
+		})
+	})
+
+	http.HandleFunc("/v1/resources", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode([]map[string]interface{}{
+			{"id": "cube-config", "type": "openscadgen-config", "description": "Cube config for openscadgen"},
+		})
+	})
+
+	http.HandleFunc("/v1/resource/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		id := r.URL.Path[len("/v1/resource/"):]
+		configPath := r.URL.Query().Get("config")
+		if configPath == "" {
+			configPath = "bols2otropolis/cube/config.toml"
+		}
+		config, err := pkg.LoadConfig(models.CmdFlags{ConfigFile: configPath, Server: true})
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		var instanceSummaries []map[string]interface{}
+		for _, inst := range config.Design.ConfiguredInstanceConfig {
+			instanceSummaries = append(instanceSummaries, map[string]interface{}{
+				"name":        inst.Name,
+				"params":      inst.Params,
+				"description": inst.Description,
+			})
+		}
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"id":          id,
+			"config_path": config.ConfigFile,
+			"instances":   instanceSummaries,
+			"raw_config":  config.RawConfigFile,
+		})
+	})
+
+	http.HandleFunc("/v1/tools", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode([]map[string]interface{}{
+			{"id": "list_instances", "description": "List all configured instances"},
+			{"id": "process_instance", "description": "Process a single instance (POST: {\"name\":...})"},
+			{"id": "process_all", "description": "Process all instances"},
+		})
+	})
+
+	http.HandleFunc("/v1/tool/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if !((r.Method == "POST") && (len(r.URL.Path) > len("/v1/tool/") && r.URL.Path[len(r.URL.Path)-len("/invoke"):] == "/invoke")) {
+			http.NotFound(w, r)
+			return
+		}
+		id := r.URL.Path[len("/v1/tool/") : len(r.URL.Path)-len("/invoke")]
+		var req struct {
+			Config string `json:"config"`
+			Name   string `json:"name"`
+		}
+		body, _ := ioutil.ReadAll(r.Body)
+		_ = json.Unmarshal(body, &req)
+		configPath := req.Config
+		if configPath == "" {
+			configPath = "bols2otropolis/cube/config.toml"
+		}
+		config, err := pkg.LoadConfig(models.CmdFlags{ConfigFile: configPath, Server: true})
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		switch id {
+		case "list_instances":
+			var instanceNames []string
+			for _, inst := range config.Design.ConfiguredInstanceConfig {
+				instanceNames = append(instanceNames, inst.Name)
+			}
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"instances": instanceNames,
+			})
+		case "process_instance":
+			if req.Name == "" {
+				http.Error(w, "Missing or invalid instance name", 400)
+				return
+			}
+			config.RegexPattern = req.Name
+			result, err := pkg.Process(config)
+			if err != nil {
+				http.Error(w, err.Error(), 500)
+				return
+			}
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"result": "Processed instance",
+				"output": result,
+			})
+		case "process_all":
+			result, err := pkg.Process(config)
+			if err != nil {
+				http.Error(w, err.Error(), 500)
+				return
+			}
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"result": "Processed all instances",
+				"output": result,
+			})
+		default:
+			http.NotFound(w, r)
+		}
+	})
+
+	http.ListenAndServe(":8080", nil)
 }

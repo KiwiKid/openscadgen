@@ -9,14 +9,17 @@
 
 	module big_label(){
     
-    name = "Diddys";
+    name = "Diddy's";
  text_angle = 10;
  base_width = !is_undef(base_width) ? base_width : 130 ;
 base_size = [base_width, 30, 20];
 
-text_size = 80;
+text_size = 72;
 text_height = 10;
 include_base = "false";
+include_connector = "true";
+connector_size = [300, 3,3];
+
 
 
             difference(){
@@ -27,7 +30,7 @@ include_base = "false";
           //  rotate([-text_angle,0,0])
           //  cylindrical_extrude(or=140, ir=110)
           linear_extrude(height = text_height)
-            text(text=name, size=text_size, halign="center", valign="center");
+            text(text=name, size=text_size, halign="center", valign="center", font="Baskerville");
             
             
             if(include_base =="true"){
@@ -35,78 +38,53 @@ include_base = "false";
                 up(93)
                 cuboid(base_size, rounding=2);
                 }
+             
+            if(include_connector == "true"){
+                // Middle cylinder (straight)
+                fwd(20)
+                up(text_height+1.5)
+                left(150)
+                rotate([90, 0, 90])  // Rotate so cylinder lies along X
+                cylinder(h=connector_size[0], r=connector_size[1]/2, center=false);
+
+                // Left angled cylinder
+                fwd(25)
+                up(text_height+1.5)
+                rotate([0, 0, 50])
+                right(10)
+                back(100)
+                rotate([90, 0, 0])
+                cylinder(h=105, r=connector_size[2]/2, center=false);
+
+                // Middle lower cylinder (optional duplicate? removing it)
+                /*
+                fwd(25)
+                up(text_height+1.5)
+                cylinder(h=connector_size[0], r=connector_size[1]/2, center=false);
+                */
+
+                // Right angled cylinder
+                up(text_height+1.5)
+                right(80)
+                rotate([0, 0, -50])
+                right(-8)
+                back(50)
+                
+                rotate([90, 0, 0])
+                cylinder(h=90, r=connector_size[2]/2, center=false);
             }
+            
+           
             
             }
 	}
-
-
-    sliced(renderType="") {
-        big_label();
     }
+
+
+ big_label();
+    
        
 
 
 
-
-
-
-
-
-	
-     
-module sliced(
-    renderType = "horzSlice",        // "horzSlice", "vertSlice", or "all"
-    sliceSize = 1000,
-    sliceThickness = 0.3,
-    showRawSlices = false,
-    horzSlicePos = [-500, -500, 0],
-    vertSlicePos = [0, -500, -500]
-) {
-   
-    module horz_slice(raw=false) {
-        if (raw) {
-            translate(horzSlicePos)
-                cube([sliceSize, sliceSize, sliceThickness], center=false);
-        } else {
-            intersection() {
-                children();
-                translate(horzSlicePos)
-                    cube([sliceSize, sliceSize, sliceThickness], center=false);
-            }
-        }
-    }
-
-    module vert_slice(raw=false) {
-        if (raw) {
-            translate(vertSlicePos)
-                cube([sliceThickness, sliceSize, sliceSize], center=false);
-        } else {
-            intersection() {
-                children();
-                translate(vertSlicePos)
-                    cube([sliceThickness, sliceSize, sliceSize], center=false);
-            }
-        }
-    }
-
-    if (renderType == "horzSlice") {
-        horz_slice(raw=showRawSlices){
-            children();
-        }
-    } else if (renderType == "vertSlice") {
-        vert_slice(raw=showRawSlices){
-            children();
-        }
-    } else if (renderType == "all") {
-        // show raw slices for reference
-        horz_slice(raw=true);
-        vert_slice(raw=true);
-        // show full object
-        children();
-    } else {
-        // show full object
-        children();
-    }
-}
 

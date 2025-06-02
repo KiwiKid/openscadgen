@@ -7,7 +7,7 @@ description = """\
 
 """
 
-export_name_format = "{designFileName}"
+export_name_format = "export/{designFileName}"
 
 
 version = "v0.1"

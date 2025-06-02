@@ -1,0 +1,21 @@
+[openscadgen]
+name = "text_simple"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "export/{version}/{designFileName}-{content}-{font}"
+[[openscadgen.input_paths]]
+path = "./text_simple.scad"
+
+[[openscadgen.instances]]
+params = { content = "44 ", size = 150, text_size = 110, h = 20, font = "Noteworthy:style=Bold,Georgia:style=Bold,Liberation Mono,Systemskrift:style=Semi Condensed Semibold G3,Optima:style=Bold", spacing = 1.2, direction = "ltr", script = "latin", center = true }
+
+[[openscadgen.instances]]
+params = { content = "Tidewater", size = 150, text_size = 100, h = 25, font = "Noteworthy:style=Bold,Liberation Mono", spacing = 1.2, direction = "ltr", script = "latin", atype = "ycenter", anchor = "ycenter", center = false, hasBase=false }
+
+[[openscadgen.instances]]
+params = { content = "#BizSlutCon2025", size = 150, text_size = 40, h = 5, font = "Didot:style=Italic", spacing = 1.2, direction = "ltr", script = "latin", atype = "ycenter", anchor = "ycenter", center = false, hasBase = true }
+
+
+# Mirrrrriam

@@ -9,9 +9,9 @@ include <BOSL2/paths.scad>;
 
 height = 120;
 wall_bump_rate = 200;
-base_rotate = [0, 10, 0];
+base_rotate = [0, 0, 0];
 
-scaleAll = 4;
+scaleAll = 0.3;
 
 function make_circle_points(r, steps=40) = [
     for(i = [0:steps-1])
@@ -19,27 +19,27 @@ function make_circle_points(r, steps=40) = [
         [r * cos(angle), r * sin(angle)]
 ];
 
-function get_profile(step, total_steps, base_r=25, taper=3, height=40) =
+function get_profile(step, total_steps, base_r=26, taper=3, height=40) =
     let(
         t = step / total_steps,
-        r = base_r - t * taper + sin(step * 15) * 1.5,
-        x = sin(step * 10) * 2,
-        y = cos(step * 12) * 2,
+        r = base_r - t * taper + sin(step * 5) * 4.5,
+        x = sin(step * 10) * 10,
+        y = cos(step * 2) * 3,
         z = t * height
     )
     [x, y, z];
 
-module vase(wall_thickness=2, floor_thickness=3, wall_bump_rate=50, height=40) {
+module vase(wall_thickness=2, floor_thickness=50, wall_bump_rate=40, height=60) {
     // Only allow heights >= 100
    // actual_height = max(height, 100);
     
-    // Simplified path generation with less complex waves
-    path = [for(i = [0:40]) get_profile(i, 40, height=height)];
+    core_radius = height;
+    path = [for(i = [0:40]) get_profile(i, 14, height=height)];
     radii = [
         for(i = [0:40])
             let(
                 t = i / 40,
-                r = 30 - t * 8 + sin(i * wall_bump_rate/2) * 1.5
+                r = core_radius - t * 0.5 + sin(i * wall_bump_rate/2) * 10.5
             )
             r
     ];
@@ -54,12 +54,14 @@ module vase(wall_thickness=2, floor_thickness=3, wall_bump_rate=50, height=40) {
     
     // Create the hollow vase with integrated floor
     
+    wall_thick = 1.1;
+    
     difference() {
         union() {
             
             // Main body
             path_sweep(
-                make_circle_points(1), 
+                make_circle_points(wall_thick), 
                 path, 
                 scale=radii,
                 caps=true
@@ -67,8 +69,8 @@ module vase(wall_thickness=2, floor_thickness=3, wall_bump_rate=50, height=40) {
             
             rotate(base_rotate)
             // Floor as part of the main body
-            translate([first_point.x, first_point.y, -3])
-            cylinder(h=floor_thickness, r=base_radius);
+            translate([first_point.x, first_point.y, -30])
+            cylinder(h=floor_thickness, r=base_radius*wall_thick);
         }
         
         
@@ -83,7 +85,8 @@ module vase(wall_thickness=2, floor_thickness=3, wall_bump_rate=50, height=40) {
         
         // Clean cut at the top using a cylinder
         translate([0, 0, last_point.z])
-        cylinder(h=20, r=top_radius * 2, center=true);
+        rotate(base_rotate)
+        cylinder(h=200, r=top_radius * 2, center=true);
     }
 }
 

@@ -39,7 +39,7 @@ module hex_with_cylinder() {
         // Handle cutout extended
         rotate([0,90,0])
         left(cutout_down+10)
-        cuboid([60,holder_cutour_diameter,300], anchor=BOTTOM);
+        cuboid([60,holder_cutour_diameter*0.7,300], anchor=BOTTOM);
         
         // Side thru cutout
       /*  rotate([90,90,0])

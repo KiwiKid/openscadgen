@@ -1,0 +1,26 @@
+[openscadgen]
+name = "regular_prism"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "export/{version}/{designFileName}"
+
+[[openscadgen.input_paths]]
+path = "./regular_prism.scad"
+
+[[openscadgen.export_images]]
+name = "isometric"
+view = [45, 30, 200]
+background = "#ffffff"
+resolution = [800, 600]
+
+[[openscadgen.instances]]
+params = { regular_prism_n = "5", regular_prism_h = "25", regular_prism_r = "10" }
+
+[[openscadgen.instances]]
+params = { regular_prism_n = "6", regular_prism_h = "40", regular_prism_r = "15", regular_prism_rounding = "5" }
+
+[[openscadgen.instances]]
+params = { regular_prism_n = "3", regular_prism_h = "60", regular_prism_r = "20", regular_prism_rounding = "10" }
+

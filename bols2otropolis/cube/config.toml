@@ -1,0 +1,24 @@
+[openscadgen]
+name = "cube"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "export/{version}/{designFileName}"
+
+[[openscadgen.input_paths]]
+path = "./cube.scad"
+
+[[openscadgen.export_images]]
+name = "side"
+coord = "0,0,0,90,0,0,600"
+
+[[openscadgen.instances]]
+params = { cube_size = "[100,100,100]", cube_center = "true" }
+
+[[openscadgen.instances]]
+params = { cube_size = "[50,150,80]", cube_center = "false" }
+
+[[openscadgen.instances]]
+params = { cube_size = "[30,30,200]", cube_center = "true" }
+

@@ -13,7 +13,7 @@ The coaster is designed to be printed on a flat surface, with the text on the ou
 
 """
 
-export_name_format = "{designFileName}_extrude_{renderType}"
+export_name_format = "export/{designFileName}_extrude_{renderType}"
 
 
 version = "v0.1"

@@ -1,0 +1,26 @@
+[openscadgen]
+name = "cuboid"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "export/{version}/{designFileName}"
+
+[[openscadgen.input_paths]]
+path = "./cuboid.scad"
+
+[[openscadgen.export_images]]
+name = "isometric"
+view = [45, 30, 200]
+background = "#ffffff"
+resolution = [800, 600]
+
+[[openscadgen.instances]]
+params = { cuboid_size = "[100,100,100]", cuboid_chamfer = "0", cuboid_rounding = "0" }
+
+[[openscadgen.instances]]
+params = { cuboid_size = "[80,120,60]", cuboid_chamfer = "10", cuboid_rounding = "0" }
+
+[[openscadgen.instances]]
+params = { cuboid_size = "[60,60,60]", cuboid_chamfer = "0", cuboid_rounding = "15", cuboid_trimcorners = "false" }
+
