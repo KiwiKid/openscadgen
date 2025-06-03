@@ -82,17 +82,17 @@ func TestGetOutputPaths(t *testing.T) {
 				Design: models.DesignConfig{
 					InputPath:        filepath.Join("designs", "test_design.scad"),
 					Version:          "v1.0",
-					ExportNameFormat: "{designFileName}-{version}",
+					ExportNameFormat: "{designFileName}_{version}_name_{instanceName}",
 				},
 				Debug: false,
 			},
 			expected: models.OutputPaths{
-				OutputPath:            filepath.Join(tempDir, "designs", "export", "v1_0", "test_design", "export", "v1_0"),
-				ExportFolderPath:      filepath.Join(tempDir, "designs", "export", "v1_0"),
-				LowQualityWarningPath: filepath.Join(tempDir, "designs", "export", "v1_0", "test_design", "LOW_QUALITY_WARNING.md"),
-				ReadmePath:            filepath.Join(tempDir, "designs", "export", "v1_0", "test_design", "README.md"),
-				LogOutputPath:         filepath.Join(tempDir, "designs", "export", "v1_0", "test_design", "export_log.log"),
-				ReportPath:            filepath.Join(tempDir, "designs", "export", "v1_0", "test_design", "report.html"),
+				OutputPath:            filepath.Join(tempDir, "designs", "export", "v1.0", "test_design", "export", "v1.0"),
+				ExportFolderPath:      filepath.Join(tempDir, "designs", "export", "v1.0"),
+				LowQualityWarningPath: filepath.Join(tempDir, "designs", "export", "v1.0", "test_design", "LOW_QUALITY_WARNING.md"),
+				ReadmePath:            filepath.Join(tempDir, "designs", "export", "v1.0", "test_design", "README.md"),
+				LogOutputPath:         filepath.Join(tempDir, "designs", "export", "v1.0", "test_design", "export_log.log"),
+				ReportPath:            filepath.Join(tempDir, "designs", "export", "v1.0", "test_design", "report.html"),
 			},
 		},
 		{
@@ -106,12 +106,12 @@ func TestGetOutputPaths(t *testing.T) {
 				Debug: false,
 			},
 			expected: models.OutputPaths{
-				OutputPath:            filepath.Join(designsDir, "export", "v1_0", "test_design", "export", "v1_0"),
-				ExportFolderPath:      filepath.Join(designsDir, "export", "v1_0"),
-				LowQualityWarningPath: filepath.Join(designsDir, "export", "v1_0", "test_design", "LOW_QUALITY_WARNING.md"),
-				ReadmePath:            filepath.Join(designsDir, "export", "v1_0", "test_design", "README.md"),
-				LogOutputPath:         filepath.Join(designsDir, "export", "v1_0", "test_design", "export_log.log"),
-				ReportPath:            filepath.Join(designsDir, "export", "v1_0", "test_design", "report.html"),
+				OutputPath:            filepath.Join(designsDir, "export", "v1.0", "test_design", "export", "v1.0"),
+				ExportFolderPath:      filepath.Join(designsDir, "export", "v1.0"),
+				LowQualityWarningPath: filepath.Join(designsDir, "export", "v1.0", "test_design", "LOW_QUALITY_WARNING.md"),
+				ReadmePath:            filepath.Join(designsDir, "export", "v1.0", "test_design", "README.md"),
+				LogOutputPath:         filepath.Join(designsDir, "export", "v1.0", "test_design", "export_log.log"),
+				ReportPath:            filepath.Join(designsDir, "export", "v1.0", "test_design", "report.html"),
 			},
 		},
 		{
@@ -125,12 +125,12 @@ func TestGetOutputPaths(t *testing.T) {
 				Debug: false,
 			},
 			expected: models.OutputPaths{
-				OutputPath:            filepath.Join(filepath.Dir(inputPath), "export", "v1_0", "test_design", "export", "v1_0"),
-				ExportFolderPath:      filepath.Join(filepath.Dir(inputPath), "export", "v1_0"),
-				LowQualityWarningPath: filepath.Join(filepath.Dir(inputPath), "export", "v1_0", "test_design", "LOW_QUALITY_WARNING.md"),
-				ReadmePath:            filepath.Join(filepath.Dir(inputPath), "export", "v1_0", "test_design", "README.md"),
-				LogOutputPath:         filepath.Join(filepath.Dir(inputPath), "export", "v1_0", "test_design", "export_log.log"),
-				ReportPath:            filepath.Join(filepath.Dir(inputPath), "export", "v1_0", "test_design", "report.html"),
+				OutputPath:            filepath.Join(filepath.Dir(inputPath), "export", "v1.0", "test_design", "export", "v1.0"),
+				ExportFolderPath:      filepath.Join(filepath.Dir(inputPath), "export", "v1.0"),
+				LowQualityWarningPath: filepath.Join(filepath.Dir(inputPath), "export", "v1.0", "test_design", "LOW_QUALITY_WARNING.md"),
+				ReadmePath:            filepath.Join(filepath.Dir(inputPath), "export", "v1.0", "test_design", "README.md"),
+				LogOutputPath:         filepath.Join(filepath.Dir(inputPath), "export", "v1.0", "test_design", "export_log.log"),
+				ReportPath:            filepath.Join(filepath.Dir(inputPath), "export", "v1.0", "test_design", "report.html"),
 			},
 		},
 		{
@@ -144,12 +144,12 @@ func TestGetOutputPaths(t *testing.T) {
 				Debug: false,
 			},
 			expected: models.OutputPaths{
-				OutputPath:            filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1_0"),
-				ExportFolderPath:      filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1_0"),
-				LowQualityWarningPath: filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1_0", "LOW_QUALITY_WARNING.md"),
-				ReadmePath:            filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1_0", "README.md"),
-				LogOutputPath:         filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1_0", "export_log.log"),
-				ReportPath:            filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1_0", "report.html"),
+				OutputPath:            filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1.0"),
+				ExportFolderPath:      filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1.0"),
+				LowQualityWarningPath: filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1.0", "LOW_QUALITY_WARNING.md"),
+				ReadmePath:            filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1.0", "README.md"),
+				LogOutputPath:         filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1.0", "export_log.log"),
+				ReportPath:            filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1.0", "report.html"),
 			},
 		},
 		/*{
@@ -163,12 +163,12 @@ func TestGetOutputPaths(t *testing.T) {
 				Debug: false,
 			},
 			expected: models.OutputPaths{
-				OutputPath:           filepath.Join(filepath.Dir(inputPath), "export", "v1_0", "test_design", "export", "v1_0"),
-				ExportFolderPath:      filepath.Join(filepath.Dir(inputPath), "export", "v1_0"),
-				LowQualityWarningPath: filepath.Join(filepath.Dir(inputPath), "export", "v1_0", "test_design", "LOW_QUALITY_WARNING.md"),
-				ReadmePath:            filepath.Join(filepath.Dir(inputPath), "export", "v1_0", "test_design", "README.md"),
-				LogOutputPath:         filepath.Join(filepath.Dir(inputPath), "export", "v1_0", "test_design", "export_log.log"),
-				ReportPath:            filepath.Join(filepath.Dir(inputPath), "export", "v1_0", "test_design", "report.html"),
+				OutputPath:           filepath.Join(filepath.Dir(inputPath), "export", "v1.0", "test_design", "export", "v1.0"),
+				ExportFolderPath:      filepath.Join(filepath.Dir(inputPath), "export", "v1.0"),
+				LowQualityWarningPath: filepath.Join(filepath.Dir(inputPath), "export", "v1.0", "test_design", "LOW_QUALITY_WARNING.md"),
+				ReadmePath:            filepath.Join(filepath.Dir(inputPath), "export", "v1.0", "test_design", "README.md"),
+				LogOutputPath:         filepath.Join(filepath.Dir(inputPath), "export", "v1.0", "test_design", "export_log.log"),
+				ReportPath:            filepath.Join(filepath.Dir(inputPath), "export", "v1.0", "test_design", "report.html"),
 			},
 		},*/
 	}
@@ -294,7 +294,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 							Params: make(map[string]interface{}),
 						},
 					},
-					ExportNameFormat: "test_design_{version}",
+					ExportNameFormat: "{designFileName}_{version}_name_{instanceName}",
 				},
 			},
 			expectedParams: []map[string]interface{}{
@@ -305,7 +305,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				},
 			},
 			expectedOutputPaths: []string{
-				filepath.Join(tempDir, "v1_0/test_design_v1_0.stl"),
+				filepath.Join(tempDir, "v1.0/test_design_v1.0_name_default.stl"),
 			},
 		},
 		{
@@ -324,7 +324,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 							},
 						},
 					},
-					ExportNameFormat: "test_design_{version}_{instanceName}_{width}_{height}",
+					ExportNameFormat: "{designFileName}_{version}_name_{instanceName}_{width}_{height}",
 				},
 			},
 			expectedParams: []map[string]interface{}{
@@ -372,14 +372,14 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				},
 			},
 			expectedOutputPaths: []string{
-				//	filepath.Join(tempDir, "v1_0", "test_design_v1_0_test_10_5.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_test_10_15.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_test_20_5.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_test_20_15.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_test_30_15.stl"),
-				//	filepath.Join(tempDir, "v1_0", "test_design_v1_0_test_20_15.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_test_10_5.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_test_30_5.stl"),
+				//	filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_10_5.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_10_15.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_20_5.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_20_15.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_30_15.stl"),
+				//	filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_20_15.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_10_5.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_30_5.stl"),
 			},
 		},
 		{
@@ -397,7 +397,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 							},
 						},
 					},
-					ExportNameFormat: "test_design_{version}_{instanceName}_{enabled}",
+					ExportNameFormat: "{designFileName}_{version}_name_{instanceName}_{enabled}",
 				},
 			},
 			expectedParams: []map[string]interface{}{
@@ -415,8 +415,8 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				},
 			},
 			expectedOutputPaths: []string{
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_test_true.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_test_false.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_true.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_false.stl"),
 			},
 		},
 		{
@@ -426,7 +426,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				Design: models.DesignConfig{
 					InputPath:        inputPath,
 					Version:          "v1.0",
-					ExportNameFormat: "test_design_{version}_{instanceName}_{type}",
+					ExportNameFormat: "{designFileName}_{version}_name_{type}",
 					ConfiguredInstanceConfig: []models.ConfiguredInstanceConfig{
 						{
 							Name: "test",
@@ -458,9 +458,9 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				},
 			},
 			expectedOutputPaths: []string{
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_test_small.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_test_medium.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_test_large.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_small.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_medium.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_large.stl"),
 			},
 		},
 		{
@@ -470,7 +470,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				Design: models.DesignConfig{
 					InputPath:        inputPath,
 					Version:          "v1.0",
-					ExportNameFormat: "test_design_{version}_{instanceName}_{width}",
+					ExportNameFormat: "{designFileName}_{version}_name_{width}",
 					GlobalParams: map[string]interface{}{
 						"ignored_param_2": "4,5,6",
 					},
@@ -505,8 +505,8 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				},
 			},
 			expectedOutputPaths: []string{
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_name_test.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_name_test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_name_test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_name_test.stl"),
 			},
 		},
 		{
@@ -516,7 +516,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				Design: models.DesignConfig{
 					InputPath:        inputPath,
 					Version:          "v1.0",
-					ExportNameFormat: "test_design_{version}_{instanceName}_{width}",
+					ExportNameFormat: "{designFileName}_{version}_name_{width}",
 					InputPaths: []models.InputPath{
 						{
 							Path:                       inputPath,
@@ -549,8 +549,8 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				},
 			},
 			expectedOutputPaths: []string{
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_name_test.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_name_test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_name_test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_name_test.stl"),
 			},
 		},
 		{
@@ -560,7 +560,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				Design: models.DesignConfig{
 					InputPath:        inputPath,
 					Version:          "v1.0",
-					ExportNameFormat: "test_design_{version}_global_${global}_global2_${global2}_name_${instanceName}",
+					ExportNameFormat: "{designFileName}_{version}_global_${global}_global2_${global2}_name_${instanceName}",
 					GlobalParams: map[string]interface{}{
 						"global":  "value,value2",
 						"global2": "value3,value4",
@@ -642,14 +642,14 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				},
 			},
 			expectedOutputPaths: []string{
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value_global2_$value3_name_$test.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value_global2_$value4_name_$test.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value2_global2_$value3_name_$test.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value2_global2_$value4_name_$test.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value_global2_$value3_name_$test.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value_global2_$value4_name_$test.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value2_global2_$value3_name_$test.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value2_global2_$value4_name_$test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value_global2_$value3_name_$test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value_global2_$value4_name_$test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value2_global2_$value3_name_$test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value2_global2_$value4_name_$test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value_global2_$value3_name_$test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value_global2_$value4_name_$test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value2_global2_$value3_name_$test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value2_global2_$value4_name_$test.stl"),
 			},
 		},
 		/*{
@@ -675,7 +675,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				},
 			},
 			expectedOutputPaths: []string{
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_test_A.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_A.stl"),
 			},
 		},*/
 		{
@@ -685,7 +685,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				Design: models.DesignConfig{
 					InputPath:        inputPath,
 					Version:          "v1.0",
-					ExportNameFormat: "test_design_w{width}_h{height}",
+					ExportNameFormat: "{designFileName}_{version}_name_{width}_{height}",
 					ParamSets: []models.ParamSet{
 						{
 							Name: "param_set_test",
@@ -720,7 +720,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				},
 			},
 			expectedOutputPaths: []string{
-				filepath.Join(tempDir, "v1_0", "test_design_w10_h20.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_10_20.stl"),
 			},
 		},
 		{
@@ -730,7 +730,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				Design: models.DesignConfig{
 					InputPath:        inputPath,
 					Version:          "v1.0",
-					ExportNameFormat: "test_design_{version}_{instanceName}",
+					ExportNameFormat: "{designFileName}_{version}_name_{instanceName}",
 					ParamSets: []models.ParamSet{
 						{
 							Name: "base_params",
@@ -767,7 +767,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				},
 			},
 			expectedOutputPaths: []string{
-				filepath.Join(tempDir, "v1_0/test_design_v1_0_test.stl"),
+				filepath.Join(tempDir, "v1.0/test_design_v1.0_test.stl"),
 			},
 		},
 		{
@@ -777,7 +777,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				Design: models.DesignConfig{
 					InputPath:        inputPath,
 					Version:          "v1.0",
-					ExportNameFormat: "test_design_{version}_name_{instanceName}",
+					ExportNameFormat: "{designFileName}_{version}_name_{instanceName}",
 					ParamSets: []models.ParamSet{
 						{
 							Name: "mixed_params",
@@ -807,7 +807,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				},
 			},
 			expectedOutputPaths: []string{
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_name_test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_name_test.stl"),
 			},
 		},
 		{
@@ -817,7 +817,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				Design: models.DesignConfig{
 					InputPath:        inputPath,
 					Version:          "v1.0",
-					ExportNameFormat: "test_design_{version}_global_{global}_global2_{global2}_name_{instanceName}",
+					ExportNameFormat: "{designFileName}_{version}_global_${global}_global2_${global2}_name_${instanceName}",
 					GlobalParams: map[string]interface{}{
 						"global":  "value,value2",
 						"global2": "value3,value4",
@@ -861,10 +861,10 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				},
 			},
 			expectedOutputPaths: []string{
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value_global2_$value3_name_$test.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value_global2_$value4_name_$test.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value2_global2_$value3_name_$test.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value2_global2_$value4_name_$test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value_global2_$value3_name_$test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value_global2_$value4_name_$test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value2_global2_$value3_name_$test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value2_global2_$value4_name_$test.stl"),
 			},
 		},
 		{
@@ -874,7 +874,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				Design: models.DesignConfig{
 					InputPath:        inputPath,
 					Version:          "v1.0",
-					ExportNameFormat: "test_design_{version}_global_{global}_global2_{global2}_name_{instanceName}",
+					ExportNameFormat: "{designFileName}_{version}_global_${global}_global2_${global2}_name_${instanceName}",
 					GlobalParams:     map[string]interface{}{"foo": "a, b, c"},
 					ConfiguredInstanceConfig: []models.ConfiguredInstanceConfig{
 						{
@@ -915,10 +915,10 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				},
 			},
 			expectedOutputPaths: []string{
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value_global2_$value3_name_$test.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value_global2_$value4_name_$test.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value2_global2_$value3_name_$test.stl"),
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_global_$value2_global2_$value4_name_$test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value_global2_$value3_name_$test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value_global2_$value4_name_$test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value2_global2_$value3_name_$test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value2_global2_$value4_name_$test.stl"),
 			},
 		},
 		{
@@ -928,7 +928,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				Design: models.DesignConfig{
 					InputPath:        inputPath,
 					Version:          "v1.0",
-					ExportNameFormat: "test_design_{version}_name_{instanceName}",
+					ExportNameFormat: "{designFileName}_{version}_name_{instanceName}",
 					ConfiguredInstanceConfig: []models.ConfiguredInstanceConfig{
 						{
 							Name:             "test",
@@ -948,7 +948,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				},
 			},
 			expectedOutputPaths: []string{
-				filepath.Join(tempDir, "v1_0", "test_design_v1_0_name_test.stl"),
+				filepath.Join(tempDir, "v1.0", "test_design_v1.0_name_test.stl"),
 			},
 		},
 	}
@@ -1069,7 +1069,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 			if instance.RunOutputPathV3 == "" {
 				t.Errorf("RunOutputPathV3 is empty")
 			}
-			expectedRelPath := filepath.Join("export", "v1_0", "test_design_v1.0_name_default.stl")
+			expectedRelPath := filepath.Join("export", "v1.0", "test_design_v1.0_name_default.stl")
 			if normalizePath(instance.RunOutputPathV3) != normalizePath(expectedRelPath) {
 				t.Errorf("RunOutputPathV3 = %s; want %s", instance.RunOutputPathV3, expectedRelPath)
 			}
@@ -1205,7 +1205,7 @@ name = "Test Design"
 description = "Test design for path resolution"
 input_path = "design.scad"
 version = "v1.0"
-export_name_format = "test_design_{version}_name_{instanceName}"
+export_name_format = "{designFileName}_{version}_name_{instanceName}"
 
 [[openscadgen.instances]]
 name = "default"
@@ -1238,25 +1238,25 @@ coord = "0,0,0,90,0,0,600"
 			name:           "Run from parent directory",
 			workingDir:     tempDir,
 			configPath:     "subfolder/config.toml",
-			expectedExport: filepath.Join(subfolder, "export", "v1_0"),
-			expectedSTLs:   []string{filepath.Join(subfolder, "export", "v1_0", "test_design_v1.0_name_default.stl")},
-			expectedImages: []string{filepath.Join(subfolder, "export", "v1_0", "test_design_v1.0_name_default.png")},
+			expectedExport: filepath.Join(subfolder, "export", "v1.0"),
+			expectedSTLs:   []string{filepath.Join(subfolder, "export", "v1.0", "test_design_v1.0_name_default.stl")},
+			expectedImages: []string{filepath.Join(subfolder, "export", "v1.0", "test_design_v1.0_name_default.png")},
 		},
 		{
 			name:           "Run from subfolder directory",
 			workingDir:     subfolder,
 			configPath:     "config.toml",
-			expectedExport: filepath.Join("export", "v1_0"),
-			expectedSTLs:   []string{filepath.Join(subfolder, "export", "v1_0", "test_design_v1.0_name_default.stl")},
-			expectedImages: []string{filepath.Join(subfolder, "export", "v1_0", "test_design_v1.0_name_default.png")},
+			expectedExport: filepath.Join("export", "v1.0"),
+			expectedSTLs:   []string{filepath.Join(subfolder, "export", "v1.0", "test_design_v1.0_name_default.stl")},
+			expectedImages: []string{filepath.Join(subfolder, "export", "v1.0", "test_design_v1.0_name_default.png")},
 		},
 		{
 			name:           "Run with absolute path",
 			workingDir:     tempDir,
 			configPath:     filepath.Join(subfolder, "config.toml"),
-			expectedExport: filepath.Join(subfolder, "export", "v1_0"),
-			expectedSTLs:   []string{filepath.Join(subfolder, "export", "v1_0", "test_design_v1.0_name_default.stl")},
-			expectedImages: []string{filepath.Join(subfolder, "export", "v1_0", "test_design_v1.0_name_default.png")},
+			expectedExport: filepath.Join(subfolder, "export", "v1.0"),
+			expectedSTLs:   []string{filepath.Join(subfolder, "export", "v1.0", "test_design_v1.0_name_default.stl")},
+			expectedImages: []string{filepath.Join(subfolder, "export", "v1.0", "test_design_v1.0_name_default.png")},
 		},
 	}
 
@@ -1380,7 +1380,7 @@ coord = "0,0,0,90,0,0,600"
 			if instance.RunOutputPathV3 == "" {
 				t.Errorf("RunOutputPathV3 is empty")
 			}
-			expectedRelPath := filepath.Join("export", "v1_0", "test_design_v1.0_name_default.stl")
+			expectedRelPath := filepath.Join("export", "v1.0", "test_design_v1.0_name_default.stl")
 			if normalizePath(instance.RunOutputPathV3) != normalizePath(expectedRelPath) {
 				t.Errorf("RunOutputPathV3 = %s; want %s", instance.RunOutputPathV3, expectedRelPath)
 			}

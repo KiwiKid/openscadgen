@@ -142,9 +142,6 @@ func main() {
 		log.Fatalf("Error: %v", err)
 	}
 
-	log.Printf("ExportLocation: %s", processResult.ExportLocation)
-
-	// Generate output report
 	_, err = pkg.GenerateOutputReport(config, processResult.Instances, processResult.STLResults, processResult.ImageResults, processResult.ExportLocation, true)
 	if err != nil {
 		if config.ContinueOnError {

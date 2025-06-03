@@ -4,7 +4,7 @@ description = ""
 
 version = "v0.1"
 
-export_name_format = "export/{version}/{designFileName}"
+export_name_format = "/{version}/{designFileName}"
 
 [[openscadgen.input_paths]]
 path = "./cube.scad"

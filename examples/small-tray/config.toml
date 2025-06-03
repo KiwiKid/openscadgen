@@ -5,8 +5,8 @@ description = ""
 
 version = "v0.1"
 
-export_name_format = "export/{designFileName}-{instanceName}-{partType}"
-global_params = { partType = "box,startBox,endBox" }
+export_name_format = "{designFileName}-{instanceName}-{partType}"
+global_params = { partType = "box" }
 
 [[openscadgen.input_paths]]
 path = "./small-tray.scad"

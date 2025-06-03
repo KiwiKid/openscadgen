@@ -310,7 +310,7 @@ func GetFileName(path string) string {
 	return fileName
 }
 
-func makeFileNameReplacements(globalParams map[string]interface{}, instanceParams map[string]interface{}, ignoredParams []string, formatToUse string, version string, fileName string, quality string, instanceName string, partIdLetter string) string {
+func MakeFileNameReplacements(globalParams map[string]interface{}, instanceParams map[string]interface{}, ignoredParams []string, formatToUse string, version string, fileName string, quality string, instanceName string, partIdLetter string) string {
 	// First replace instance parameters and global parameters from instance params
 	for key, value := range instanceParams {
 		formatToUse = strings.ReplaceAll(formatToUse, "{"+key+"}", fmt.Sprintf("%v", value))

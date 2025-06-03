@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"reflect"
 	"regexp"
@@ -202,7 +203,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.3.11-BETA"
+const VERSION = "v2.5.0-BETA"
 
 type Version struct {
 	OpenSCADGen string
@@ -253,7 +254,6 @@ func Process(config *models.Config) (models.ProcessResult, error) {
 	var instances []models.InstanceConfig
 	var stlResults []models.GenerateSTLResult
 	var imageResults []models.GenerateImageResult
-	var exportLocation string
 	if config.Debug {
 		log.Printf("[DEBUG] Generating instances for %d configured instances and %d input paths", len(config.Design.ConfiguredInstanceConfig), len(config.GetInputPaths()))
 	}
@@ -274,7 +274,7 @@ func Process(config *models.Config) (models.ProcessResult, error) {
 			}
 			var err error
 			var newInstances []models.InstanceConfig
-			newInstances, exportLocation, err = generateInstances(config, dynamicInstance, inputPath)
+			newInstances, _, err = generateInstances(config, dynamicInstance, inputPath)
 			if err != nil {
 				if config.ContinueOnError {
 					log.Printf("Warning: failed to generate instances: %v", err)
@@ -317,7 +317,7 @@ func Process(config *models.Config) (models.ProcessResult, error) {
 		}
 		if !config.ContinueOnError {
 			if !config.Server {
-				//	os.Exit(1)
+				os.Exit(1)
 			}
 		}
 	}
@@ -376,8 +376,14 @@ func Process(config *models.Config) (models.ProcessResult, error) {
 		instance.ImageResults = imageResults
 	}
 
+	configDirectory := filepath.Dir(config.ConfigFile)
+	exportLoc := filepath.Join(configDirectory, "export", config.Design.Version)
+
+	if config.Debug {
+		logKeyValuePair("Process complete - ExportLocation:", exportLoc)
+	}
 	return models.ProcessResult{
-		ExportLocation: exportLocation,
+		ExportLocation: exportLoc,
 		Instances:      instances,
 		STLResults:     stlResults,
 		ImageResults:   allImageResults,
@@ -399,7 +405,7 @@ func validateInstances(instances []models.InstanceConfig) []RunError {
 	errors := []RunError{}
 	exportPaths := make(map[string]bool)
 	for _, instance := range instances {
-		if _, exists := exportPaths[instance.OutputPathV2]; exists {
+		if _, exists := exportPaths[instance.RunOutputPathV3]; exists {
 
 			var paramStr string
 			for k, v := range instance.Params {
@@ -407,17 +413,19 @@ func validateInstances(instances []models.InstanceConfig) []RunError {
 				instanceParamCount[k]++
 			}
 
+			logKeyValuePair("Validation", fmt.Sprintf("%s: %+v", instance.RunOutputPathV3, exists))
+
 			errors = append(errors, RunError{
 				ErrorCode: RunErrorCode_DuplicateExportPath,
 				Message:   fmt.Sprintf("Duplicate export path: \n\n\t%s. \n\n Ensure the export_name_format includes all parameters (in {curlyBrackets}) that are different between instances.", instance.OutputPathV2),
 				KVPs: map[string]string{
 					"exportNameFormat": config.Design.ExportNameFormat,
-					"params":           paramStr,
+					"exportPaths":      paramStr,
 					"paramCount":       fmt.Sprintf("%+v", instanceParamCount),
 				},
 			})
 		}
-		exportPaths[instance.OutputPathV2] = true
+		exportPaths[instance.RunOutputPathV3] = true
 	}
 
 	if len(errors) > 0 {
@@ -1188,13 +1196,10 @@ func parseParamValue(value interface{}) ([]interface{}, error) {
 		for _, val := range values {
 			val = strings.TrimSpace(val)
 			if val == "true" || val == "false" {
-				// Handle boolean values
 				parsedValues = append(parsedValues, val == "true")
 			} else if num, err := strconv.ParseFloat(val, 64); err == nil {
-				// Handle numeric values
 				parsedValues = append(parsedValues, num)
 			} else {
-				// Handle string values
 				parsedValues = append(parsedValues, val)
 			}
 		}
@@ -1207,6 +1212,8 @@ func parseParamValue(value interface{}) ([]interface{}, error) {
 			parsedValues = append(parsedValues, float64(num))
 		} else if num, ok := v.(float64); ok {
 			parsedValues = append(parsedValues, num)
+		} else if b, ok := v.(bool); ok {
+			parsedValues = append(parsedValues, b)
 		} else {
 			parsedValues = append(parsedValues, value)
 		}
@@ -1550,7 +1557,10 @@ func generateInstances(config *models.Config, configuredInstanceConfig models.Co
 		}
 
 		// Add required parameters
-		instance.Params["designFileName"] = filepath.Base(inputPath.Path) // includes .scad
+		rawScadFilename := filepath.Base(inputPath.Path)
+		instance.Params["designFileName"] = strings.Split(rawScadFilename, ".")[0]
+
+		logKeyValuePair("param.designFileName", instance.Params["designFileName"].(string))
 		if len(configuredInstanceConfig.Name) > 0 {
 			instance.Params["name"] = configuredInstanceConfig.Name
 		}
@@ -1567,17 +1577,13 @@ func generateInstances(config *models.Config, configuredInstanceConfig models.Co
 		}
 		exportName := formatExportName(exportNameFormat, instance.Params, ignoredParams)
 
-		// RunOutputPathV3: relative, starting with export/v1_0/
-		relOutput := filepath.Join("export", versionSafe, exportName+".stl")
+		// Normalize versionSafe to use underscores for both spaces and dots
+		versionSafe = strings.ReplaceAll(versionSafe, " ", "_")
 
-		relOutputFolder := filepath.Dir(relOutput)
-		err := os.MkdirAll(relOutputFolder, 0755)
-		if err != nil {
-			log.Printf("Failed to create the relOutputFolder folder")
-		}
-
-		instance.RunOutputPathV3 = filepath.ToSlash(relOutput)
-		instance.OutputPathV2 = exportName
+		configFileDir := filepath.Dir(config.ConfigFile)
+		outputPath := filepath.Join(configFileDir, "export", versionSafe, exportName+".stl")
+		instance.OutputPathV2 = outputPath
+		instance.RunOutputPathV3 = filepath.ToSlash(outputPath)
 
 		for k := range ignoredParams {
 			instance.IgnoredParams = append(instance.IgnoredParams, k)
@@ -1601,7 +1607,6 @@ func generateInstances(config *models.Config, configuredInstanceConfig models.Co
 	} else {
 		globalCombos = []map[string]interface{}{{}}
 	}
-
 	// Combine all parameter combinations
 	for _, paramCombo := range parameterCombos {
 		for _, globalCombo := range globalCombos {
@@ -1632,8 +1637,8 @@ func generateInstances(config *models.Config, configuredInstanceConfig models.Co
 				instance.Params[k] = v
 			}
 
-			// Add required parameters
-			instance.Params["designFileName"] = filepath.Base(inputPath.Path) // includes .scad
+			rawScadFilename := filepath.Base(inputPath.Path)
+			instance.Params["designFileName"] = strings.Split(rawScadFilename, ".")[0]
 			if len(configuredInstanceConfig.Name) > 0 {
 				instance.Params["name"] = configuredInstanceConfig.Name
 			}
@@ -1642,22 +1647,28 @@ func generateInstances(config *models.Config, configuredInstanceConfig models.Co
 			instance.Params["version"] = versionSafe
 
 			// Format the export name
-			if exportNameFormat == "" {
+			if exportNameFormat == "" || exportNameFormat == "." {
 				exportNameFormat = "{designFileName}_name_{name}"
 				if config.Debug {
 					log.Printf("[DEBUG] No export_name_format set, using default: %s", exportNameFormat)
 				}
 			}
-			exportName := formatExportName(exportNameFormat, instance.Params, ignoredParams)
+			//exportName := formatExportName(exportNameFormat, instance.Params, ignoredParams)
 
-			/*	if err := os.MkdirAll(exportName, 0755); err != nil {
-				return nil, "", fmt.Errorf("failed to create export subfolder: %w", err)
-			}*/
-			exportFileName := filepath.Join(exportName + ".stl")
-			instance.OutputPathV2 = exportFileName
+			// Normalize versionSafe to use underscores for both spaces and dots
+			versionSafe = strings.ReplaceAll(versionSafe, " ", "_")
 
-			// RunOutputPathV3: relative, starting with export/v1_0/
-			instance.RunOutputPathV3 = filepath.ToSlash(exportFileName)
+			configFileDir := filepath.Dir(config.ConfigFile)
+
+			baseExportPath := path.Join(configFileDir, "export", versionSafe, exportNameFormat)
+
+			// Always use the full relative path for output
+			//outputPath := filepath.Join(config.ConfigFile, versionSafe, exportName+".stl")
+
+			outputPathReplace := models.MakeFileNameReplacements(config.Design.GlobalParams, instance.Params, instance.IgnoredParams, baseExportPath, config.Design.Version, filepath.Dir(instance.InputPath.Path), config.Quality, instance.AutoName, instance.PartIDLetter)
+
+			//	instance.OutputPathV2 = outputPath
+			instance.RunOutputPathV3 = filepath.ToSlash(outputPathReplace + ".stl")
 
 			for k := range ignoredParams {
 				instance.IgnoredParams = append(instance.IgnoredParams, k)
@@ -1667,17 +1678,7 @@ func generateInstances(config *models.Config, configuredInstanceConfig models.Co
 		}
 	}
 
-	// Given an array of instances, get the shortest shared path:
-	exportLocation := ""
-	if len(instances) > 0 {
-		prefix := instances[0].OutputPathV2
-		for _, inst := range instances[1:] {
-			prefix = commonPrefix(prefix, inst.OutputPathV2)
-		}
-		exportLocation = filepath.Dir(prefix)
-	}
-
-	return instances, exportLocation, nil
+	return instances, "NOT USED", nil
 }
 
 func commonPrefix(a, b string) string {
@@ -1972,7 +1973,7 @@ description = ""
 
 version = "v0.1"
 
-export_name_format = "export/{version}/{designFileName}"
+export_name_format = "{designFileName}"
 
 [[openscadgen.input_paths]]
 path = "./{{projectName}}.scad"
@@ -2439,7 +2440,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 	startTime := time.Now()
 
 	// Create directory if not exists
-	os.MkdirAll(instance.RunOutputPathV3, 0755)
+	os.MkdirAll(filepath.Dir(instance.RunOutputPathV3), 0755)
 
 	// Build command arguments
 	args := []string{
@@ -2542,35 +2543,12 @@ func FindOpenSCAD() string {
 	return strings.TrimSpace(string(output))
 }
 
-func GenerateOutputReport(config *models.Config, instances []models.InstanceConfig, stlResults []models.GenerateSTLResult, imageResults []models.GenerateImageResult, outputPath string, toFile bool) (templ.Component, error) {
+func GenerateOutputReport(config *models.Config, instances []models.InstanceConfig, stlResults []models.GenerateSTLResult, imageResults []models.GenerateImageResult, outputDir string, toFile bool) (templ.Component, error) {
 	if config.Debug && toFile {
-		logKeyValuePair("Generating HTML report at", outputPath)
+		logKeyValuePair("Generating HTML report at", outputDir)
 	}
 
-	return nil, nil
-
-	var htmlFile *os.File
-	if toFile {
-		// Create output directory if it doesn't exist
-		if err := os.MkdirAll(filepath.Dir(outputPath), 0755); err != nil {
-			return nil, fmt.Errorf("failed to create output directory: %w", err)
-		}
-
-		// Create the HTML file
-		htmlFile, err := os.Create(outputPath)
-		if err != nil {
-			return nil, fmt.Errorf("GenerateOutputReport - failed to create HTML file: %w", err)
-		}
-		defer htmlFile.Close()
-	}
-
-	if toFile {
-		_, err := htmlFile.WriteString("test write\n")
-		if err != nil {
-			return nil, fmt.Errorf("failed to write test string to file: %w", err)
-		}
-	}
-
+	//return nil, nil
 	// Get all parameter names
 	var allParamNames []string
 	for _, instance := range instances {
@@ -2588,18 +2566,57 @@ func GenerateOutputReport(config *models.Config, instances []models.InstanceConf
 		}
 	}
 
-	// Generate HTML content for both STL and image results
-	htmlContent := templates.Report(config, instances, outputPath, stlResults, imageResults, allParamNames, false, "")
+	outputFile := filepath.Join(outputDir, "report.html")
 
-	// Write the HTML content to the file
+	if config.Debug {
+		logKeyValuePair("REPORT OUTPUT", outputFile)
+
+		logStage("Report Params")
+		logKeyValuePair("config", fmt.Sprintf("%+v", config))
+		logKeyValuePair("instances", fmt.Sprintf("%+v", instances))
+		logKeyValuePair("outputFile", fmt.Sprintf("%+v", outputFile))
+		logKeyValuePair("stlResults", fmt.Sprintf("%+v", stlResults))
+
+		logKeyValuePair("imageResults", fmt.Sprintf("%+v", imageResults))
+		logKeyValuePair("allParamNames", fmt.Sprintf("%+v", allParamNames))
+		logKeyValuePair("false", fmt.Sprintf("%+v", false))
+		logKeyValuePair("serveroutputfile", "")
+
+	}
+	htmlContent := templates.Report(config, instances, outputFile, stlResults, imageResults, allParamNames, false, "")
+
+	var htmlFile *os.File
+	var err error
 	if toFile {
-		if err := htmlContent.Render(context.Background(), htmlFile); err != nil {
-			return nil, fmt.Errorf("htmlContent.Render failed to RENDER HTML contents: %+v", err)
+		if err := os.MkdirAll(filepath.Dir(outputFile), 0755); err != nil {
+			return nil, fmt.Errorf("failed to create output directory: %w", err)
+		}
+		htmlFile, err = os.Create(outputFile)
+		if err != nil {
+			return nil, fmt.Errorf("GenerateOutputReport - failed to create HTML file: %w", err)
+		}
+		if config.Debug {
+			// Log file handle state
+			log.Printf("[DEBUG] About to render HTML: htmlFile.Name()=%v, htmlFile is nil? %v", htmlFile.Name(), htmlFile == nil)
+			log.Printf("[DEBUG] htmlContent type: %T, value: %+v", htmlContent, htmlContent)
 		}
 	}
 
+	// Write the HTML content to the file
+	if toFile {
+		log.Printf("[DEBUG] Calling htmlContent.Render with file: %v", htmlFile)
+		err := htmlContent.Render(context.Background(), htmlFile)
+		if err != nil {
+			log.Printf("[ERROR] htmlContent.Render failed: %v", err)
+			return nil, fmt.Errorf("htmlContent.Render failed to RENDER HTML (%s)\n contents: %+v", outputFile, err)
+		}
+		defer htmlFile.Close()
+
+		log.Printf("[DEBUG] htmlContent.Render succeeded for file: %v", outputFile)
+	}
+
 	if !config.Quiet && !toFile {
-		absPath, err := filepath.Abs(outputPath)
+		absPath, err := filepath.Abs(outputFile)
 		if err != nil {
 			logError(fmt.Sprintf("failed to get absolute path for report: %v", err))
 		} else {

@@ -770,7 +770,7 @@ description = "A simple example design"
 input_path = "./my_design.scad"
 version = "v1.0"
 output_path = "./export"
-export_name_format = "export/{designFileName}-{version}-{instanceName}"
+export_name_format = "/{designFileName}-{version}-{instanceName}"
 
 # Global parameters that apply to all instances
 [openscadgen.global_params]
@@ -1482,9 +1482,9 @@ dont_use_manifold = false         # If true, disables manifold operations
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var63 string
-				templ_7745c5c3_Var63, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.1f", imageResult.TimeTaken))
+				templ_7745c5c3_Var63, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%+v", imageResult.TimeTaken))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 865, Col: 84}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 865, Col: 83}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var63))
 				if templ_7745c5c3_Err != nil {

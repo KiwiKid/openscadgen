@@ -23,7 +23,7 @@ Project file includes:
 """
 
 
-export_name_format = "export/{designFileName}/{cup_holders_mode}-{instanceName}"
+export_name_format = "/{designFileName}/{cup_holders_mode}-{instanceName}"
 
 
 version = "v3.1"

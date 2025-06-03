@@ -1,7 +1,7 @@
 [openscadgen]
 name = "cup-holder"
 description = "A cup holder with multiple components"
-export_name_format = "export/{designFileName}-{diameter}mm"
+export_name_format = "/{designFileName}-{diameter}mm"
 version = "v1.0"
 
 [[openscadgen.input_paths]]

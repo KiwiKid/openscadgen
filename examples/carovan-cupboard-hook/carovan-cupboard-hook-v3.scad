@@ -84,7 +84,7 @@ connector_size = [150, 24];
 holder_width=90;
 
 hook_depth = 85;
-hook_y_offset = 75;
+hook_y_offset = 75;     
 hook_count =6;
 
 

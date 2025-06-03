@@ -4,7 +4,7 @@ description = ""
 
 version = "v0.1"
 
-export_name_format = "export/{version}/{designFileName}-{content}-{font}"
+export_name_format = "/{version}/{designFileName}-{content}-{font}"
 [[openscadgen.input_paths]]
 path = "./text_simple.scad"
 

@@ -4,7 +4,7 @@ description = ""
 
 version = "v0.1"
 
-export_name_format = "export/{designFileName}-height-{height}-wall-bump-rate-{wall_bump_rate}-scaleAll-{scaleAll}"
+export_name_format = "/{designFileName}-height-{height}-wall-bump-rate-{wall_bump_rate}-scaleAll-{scaleAll}"
 
 # export_name_format = "custom-export-name-for-this-file/{designFileName}-{instanceName}"
 

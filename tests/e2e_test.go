@@ -18,7 +18,7 @@ const (
 name = "test"
 version = "1.0"
 description = "Test design"
-export_name_format = "export/{version}/{instanceName}"
+export_name_format = "{designFileName}-{instanceName}"
 
 [[openscadgen.input_paths]]
 path = "default_design.scad"
@@ -33,7 +33,7 @@ name = "top"
 	shoppingListConfig        = `[openscadgen]
 # name of the design, will be used in the name of output files
 name = "list_generator"
-export_name_format = "export/{version}/{name}"
+export_name_format = "{designFileName}-{instanceName}"
 input_path = "default_design_2.scad"
 
 [[openscadgen.instances]]
@@ -154,7 +154,7 @@ func printDirectoryContentsRecursive(t *testing.T, dir string, depth int) {
 	}
 }
 
-var extraArgs = "-d" //"-d"
+var extraArgs = "" //"-d"
 
 var scadFileInputExamples = map[string]string{
 	defaultDesign: `
@@ -194,7 +194,8 @@ func TestOpenSCADGenE2E(t *testing.T) {
 				"default_design.scad",
 				"default_design_2.scad",
 				"shopping-list.toml",
-				"export/1.0/default.stl",
+				"export/1.0/default_design-default-top.png",
+				"export/1.0/default_design-default.stl",
 				"export/1.0/report.html",
 			},
 		},
@@ -208,7 +209,8 @@ func TestOpenSCADGenE2E(t *testing.T) {
 				"default_design.scad",
 				"default_design_2.scad",
 				"shopping-list.toml",
-				"export/1.0/default.stl",
+				"export/1.0/default_design-default.stl",
+				"export/1.0/default_design-default-top.png",
 				"export/1.0/report.html",
 			},
 		},
@@ -219,7 +221,7 @@ func TestOpenSCADGenE2E(t *testing.T) {
 				name = "test"
 				version = "1.0"
 				description = "Test design"
-				export_name_format = "export/{version}/{instanceName}-{size}"
+				export_name_format = "{designFileName}-{instanceName}-{size}"
 
 				global_params = { size = "10,20" }
 
@@ -233,8 +235,8 @@ func TestOpenSCADGenE2E(t *testing.T) {
 				"default_design.scad",
 				"default_design_2.scad",
 				"shopping-list.toml",
-				"export/1.0/default-10.stl",
-				"export/1.0/default-20.stl",
+				"export/1.0/default_design-default-10.stl",
+				"export/1.0/default_design-default-20.stl",
 				"export/1.0/report.html",
 			},
 		},
@@ -243,7 +245,7 @@ func TestOpenSCADGenE2E(t *testing.T) {
 			configContent: `[openscadgen]
 name = "test-project"
 version = "1.0"
-export_name_format = "export/{version}/{designFileName}-{instanceName}-{size}"
+export_name_format = "{designFileName}-{instanceName}-{size}"
 
 global_params = { size = "10,20" }
 
@@ -271,7 +273,7 @@ name = "instance-name"
 			configContent: `[openscadgen]
 name = "test-project"
 version = "1.0"
-export_name_format = "export/{version}/{designFileName}-{instanceName}-{size}"
+export_name_format = "{designFileName}-{instanceName}-{size}"
 
 global_params = { size = "10,20" }
 
@@ -298,7 +300,7 @@ name = "instance-name"
 			configContent: `[openscadgen]
 		name = "test-project"
 		version = "1.0"
-		export_name_format = "export/{version}/{designFileName}-{instanceName}"
+		export_name_format = "{designFileName}-{instanceName}"
 
 		[[openscadgen.input_paths]]
 		path = "./default_design.scad"
@@ -326,7 +328,7 @@ name = "instance-name"
 			configContent: `[openscadgen]
 		name = "test-project"
 		version = "1.0"
-		export_name_format = "export/{version}/{designFileName}-{instanceName}"
+		export_name_format = "{designFileName}-{instanceName}"
 
 		[[openscadgen.input_paths]]
 		path = "./default_design.scad"
@@ -368,7 +370,7 @@ name = "instance-name"
 			configContent: `[openscadgen]
 		name = "test-project"
 		version = "1.0"
-		export_name_format = "export/{version}/{designFileName}-{instanceName}-{size}"
+		export_name_format = "{designFileName}-{instanceName}-{size}"
 
 		[[openscadgen.input_paths]]
 		path = "./default_design.scad"
@@ -417,7 +419,10 @@ name = "instance-name"
 			expectedFiles: []string{
 				"config.toml",
 				"default_design.scad",
+				"default_design_2.scad",
+				"export/1.0/default_design-default-top.png",
 				"export/1.0/report.html",
+				"shopping-list.toml",
 			},
 			shouldFail: false,
 		},
@@ -444,7 +449,7 @@ name = "instance-name"
 			configContent: `[openscadgen]
 		name = "test-project"
 		version = "1.0"
-		export_name_format = "/{designFileName}-{instanceName}"
+		export_name_format = "{designFileName}-{instanceName}"
 
 		[[openscadgen.input_paths]]
 		path = "./default_design.scad"
@@ -464,10 +469,10 @@ name = "instance-name"
 			command:       binaryPath + " -c " + defaultShoppingConfigPath + " -ow",
 			expectedFiles: []string{
 				"export/v0.1/report.html",
-				"export/v0.1/predrive.stl",
-				"export/v0.1/postdrive.stl",
-				"export/v0.1/shopping.stl",
-				"export/v0.1/demo.stl",
+				"export/v0.1/default_design_2-predrive.stl",
+				"export/v0.1/default_design_2-postdrive.stl",
+				"export/v0.1/default_design_2-shopping.stl",
+				"export/v0.1/default_design_2-demo.stl",
 				"shopping-list.toml",
 				"config.toml",
 				"default_design_2.scad",
