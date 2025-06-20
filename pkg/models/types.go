@@ -61,32 +61,34 @@ type ConfiguredInstanceConfig struct {
 
 // Define a struct to hold the command-line flags
 type CmdFlags struct {
-	Quiet                        bool
-	Debug                        bool
-	NoProcessing                 bool
-	Version                      bool
-	RegexPattern                 string
-	MaxInstances                 int
-	ContinueOnError              bool
-	IncludeExportLog             bool
-	OverwriteExisting            bool
-	ShowMan                      bool
-	Server                       bool
-	ServerFolder                 string
-	InitProjectName              string
-	InitProjectNameExtended      string
-	ConfigFile                   string
-	SkipRender                   bool
-	SkipReadme                   bool
-	CustomOpenSCADCommand        string
-	CustomOpenSCADOutputFormat   string
-	Concurrent                   bool
-	MaxConcurrentRequests        int
-	IncludePartIDLetter          bool
-	SetBuildInfoInFileAttributes bool
-	OverrideFN                   int
-	HighQuality                  bool
-	LowQuality                   bool
+	Quiet                        bool   `json:"quiet"`
+	Debug                        bool   `json:"debug"`
+	NoProcessing                 bool   `json:"no_processing"`
+	Version                      bool   `json:"version"`
+	RegexPattern                 string `json:"regex_pattern"`
+	MaxInstances                 int    `json:"max_instances"`
+	ContinueOnError              bool   `json:"continue_on_error"`
+	IncludeExportLog             bool   `json:"include_export_log"`
+	OverwriteExisting            bool   `json:"overwrite_existing"`
+	ShowMan                      bool   `json:"show_man"`
+	Server                       bool   `json:"server"`
+	ServerFolder                 string `json:"server_folder"`
+	InitProjectName              string `json:"init_project_name"`
+	InitProjectNameExtended      string `json:"init_project_name_extended"`
+	ConfigFile                   string `json:"config_file"`
+	SkipRender                   bool   `json:"skip_render"`
+	SkipReadme                   bool   `json:"skip_readme"`
+	CustomOpenSCADCommand        string `json:"custom_openscad_command"`
+	CustomOpenSCADOutputFormat   string `json:"custom_openscad_output_format"`
+	Concurrent                   bool   `json:"concurrent"`
+	MaxConcurrentRequests        int    `json:"max_concurrent_requests"`
+	OnlyImages                   bool   `json:"only_images"`
+	OnlyExport                   bool   `json:"only_export"`
+	IncludePartIDLetter          bool   `json:"include_part_id_letter"`
+	SetBuildInfoInFileAttributes bool   `json:"set_build_info_in_file_attributes"`
+	OverrideFN                   int    `json:"override_fn"`
+	HighQuality                  bool   `json:"high_quality"`
+	LowQuality                   bool   `json:"low_quality"`
 }
 
 type OutputPaths struct {
@@ -133,12 +135,13 @@ type Config struct {
 }
 
 type InputPath struct {
-	Path             string                 `toml:"path" validate:"required"`
-	RawOpenSCADFile  string                 `toml:"raw_openscad_file"`
-	ExportNameFormat string                 `toml:"export_name_format"`
-	ParamSets        string                 `toml:"param_sets"`
-	Params           map[string]interface{} `toml:"params"`
-	SkipImages       bool                   `toml:"skip_images"`
+	Path                string                 `toml:"path" validate:"required"`
+	RawOpenSCADFile     string                 `toml:"raw_openscad_file"`
+	RawOpenSCADFileName string                 `toml:"raw_openscad_file_name"`
+	ExportNameFormat    string                 `toml:"export_name_format"`
+	ParamSets           string                 `toml:"param_sets"`
+	Params              map[string]interface{} `toml:"params"`
+	SkipImages          bool                   `toml:"skip_images"`
 	/*
 		IgnoreParamsWhenProcessing are params that will be ignored when processing this input path
 	*/
@@ -163,6 +166,7 @@ type InstanceConfig struct {
 	IgnoredParams      []string
 	ImageResults       []GenerateImageResult
 	ExportImages       []ExportCameraCoordinates
+	RunOutputImagePath string
 	SkipImages         bool
 	SkippedReason      string
 	SkippedImageReason string
@@ -256,6 +260,7 @@ type ProcessResult struct {
 	Instances      []InstanceConfig
 	STLResults     []GenerateSTLResult
 	ImageResults   []GenerateImageResult
+	TotalTimeTaken time.Duration
 	ExportLocation string
 }
 
@@ -354,22 +359,31 @@ func MakeFileNameReplacements(globalParams map[string]interface{}, instanceParam
 	return formatToUse
 }
 
+func decorateInputPath(inputPath InputPath) InputPath {
+	inputFileName := filepath.Base(inputPath.Path)
+	inputPath.RawOpenSCADFileName = strings.Split(inputFileName, ".")[0]
+	return inputPath
+}
+
 func (config *Config) GetInputPaths() []InputPath {
 	if config.Debug {
 		log.Printf("[DEBUG] GetInputPaths: InputPaths len=%d, InputPath=%s", len(config.Design.InputPaths), config.Design.InputPath)
 	}
 	if len(config.Design.InputPaths) > 0 {
-		if config.Debug {
-			for i, ip := range config.Design.InputPaths {
+		var inputPathResult []InputPath
+		for i, ip := range config.Design.InputPaths {
+			if config.Debug {
 				log.Printf("[DEBUG] GetInputPaths: InputPaths[%d]=%+v", i, ip)
 			}
+			inputPathResult = append(inputPathResult, decorateInputPath(ip))
 		}
-		return config.Design.InputPaths
+
+		return inputPathResult
 	}
 	if config.Debug {
 		log.Printf("[DEBUG] GetInputPaths: Using fallback InputPath: %s", config.Design.InputPath)
 	}
 	return []InputPath{
-		{Path: config.Design.InputPath},
+		decorateInputPath(InputPath{Path: config.Design.InputPath}),
 	}
 }

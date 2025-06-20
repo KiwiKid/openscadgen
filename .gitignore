@@ -7,3 +7,4 @@ openscadgen
 *.3mf
 **/*.stl
 examples/cup-holder-plus/export/*.stl
+*_templ.go

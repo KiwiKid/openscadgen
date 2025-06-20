@@ -1,0 +1,14 @@
+[openscadgen]
+name = "cine_log_35_travel_case"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{caseScale}/{designFileName}"
+
+
+global_params = { caseScale = "1,1.12", renderType="vertSlice"} # 0.8769
+
+[[openscadgen.input_paths]]
+path = "./cine_log_35_travel_case.scad"
+

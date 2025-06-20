@@ -1,0 +1,11 @@
+[openscadgen]
+name = "tile_connect"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}"
+
+[[openscadgen.input_paths]]
+path = "./tile_connect.scad"
+

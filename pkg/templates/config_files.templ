@@ -3,7 +3,6 @@ package templates
 import "github.com/kiwikid/openscadgen/pkg/models"
 import "fmt"
 
-
 templ EnterConfigPage(){
      <head>
             <meta charset="UTF-8"/>
@@ -236,6 +235,18 @@ templ EnterConfig() {
 
     <form action="/" method="post">
         <input type="text" name="path" value="">
+        <details style="margin-top:1em;">
+            <summary style="cursor:pointer; color:#66aaff;">Advanced Options</summary>
+            <div style="margin-top:1em;">
+                <label><input type="checkbox" name="debug"> Debug</label><br>
+                <label><input type="checkbox" name="overwrite_existing"> Overwrite Existing</label><br>
+                <label><input type="checkbox" name="skip_render"> Skip Render</label><br>
+                <label><input type="checkbox" name="high_quality"> High Quality</label><br>
+                <label><input type="checkbox" name="low_quality"> Low Quality</label><br>
+                <label><input type="checkbox" name="concurrent"> Concurrent</label><br>
+                <label>Max Concurrent Requests: <input type="number" name="max_concurrent_requests" min="1" style="width:60px;"></label><br>
+            </div>
+        </details>
         <input type="submit" value="Enter">
     </form>
 }
@@ -257,3 +268,4 @@ templ ListConfig(configFiles []models.ConfigFile) {
         </ul>
     </div>
 }
+

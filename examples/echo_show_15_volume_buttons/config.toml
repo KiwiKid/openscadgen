@@ -1,0 +1,16 @@
+[openscadgen]
+name = "echo_show_15_volume_buttons"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{renderType}"
+
+global_params = { renderType = "normal,vertSlice,horzSlice" }
+
+[[openscadgen.export_images]]
+name = "nice"
+
+[[openscadgen.input_paths]]
+path = "./echo_show_15_volume_buttons.scad"
+

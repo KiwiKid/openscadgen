@@ -1,0 +1,19 @@
+[openscadgen]
+name = "football_cards"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{initals}"
+
+global_params = { initals = "GC,ML,JC," }
+
+[[openscadgen.export_images]]
+name = "nice"
+
+[[openscadgen.export_images]]
+name = "top"
+
+[[openscadgen.input_paths]]
+path = "./football_cards.scad"
+

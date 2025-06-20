@@ -61,7 +61,7 @@ func EnterConfig() templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<form action=\"/\" method=\"post\"><input type=\"text\" name=\"path\" value=\"\"> <input type=\"submit\" value=\"Enter\"></form>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<form action=\"/\" method=\"post\"><input type=\"text\" name=\"path\" value=\"\"> <details style=\"margin-top:1em;\"><summary style=\"cursor:pointer; color:#66aaff;\">Advanced Options</summary><div style=\"margin-top:1em;\"><label><input type=\"checkbox\" name=\"debug\"> Debug</label><br><label><input type=\"checkbox\" name=\"overwrite_existing\"> Overwrite Existing</label><br><label><input type=\"checkbox\" name=\"skip_render\"> Skip Render</label><br><label><input type=\"checkbox\" name=\"high_quality\"> High Quality</label><br><label><input type=\"checkbox\" name=\"low_quality\"> Low Quality</label><br><label><input type=\"checkbox\" name=\"concurrent\"> Concurrent</label><br><label>Max Concurrent Requests: <input type=\"number\" name=\"max_concurrent_requests\" min=\"1\" style=\"width:60px;\"></label><br></div></details> <input type=\"submit\" value=\"Enter\"></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -97,7 +97,7 @@ func Warning(message string) templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(message)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/config_files.templ`, Line: 246, Col: 16}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/config_files.templ`, Line: 257, Col: 16}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -153,7 +153,7 @@ func ListConfig(configFiles []models.ConfigFile) templ.Component {
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(configFile.Path)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/config_files.templ`, Line: 255, Col: 103}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/config_files.templ`, Line: 266, Col: 103}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {

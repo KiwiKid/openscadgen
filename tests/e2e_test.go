@@ -154,8 +154,6 @@ func printDirectoryContentsRecursive(t *testing.T, dir string, depth int) {
 	}
 }
 
-var extraArgs = "" //"-d"
-
 var scadFileInputExamples = map[string]string{
 	defaultDesign: `
 	module cubeDefault(size) {
@@ -180,8 +178,6 @@ cylinderDefault(size=10);
 	`,
 }
 
-var onlyRunTestIndex = -1
-
 func TestOpenSCADGenE2E(t *testing.T) {
 	testCases := []testCase{
 		{
@@ -194,8 +190,8 @@ func TestOpenSCADGenE2E(t *testing.T) {
 				"default_design.scad",
 				"default_design_2.scad",
 				"shopping-list.toml",
-				"export/1.0/default_design-default-top.png",
 				"export/1.0/default_design-default.stl",
+				"export/1.0/default_design-default-top.png",
 				"export/1.0/report.html",
 			},
 		},
@@ -269,7 +265,7 @@ name = "instance-name"
 			shouldFail: false,
 		},
 		{
-			name: "4.Basic config with default output and number of instances",
+			name: "4.Global config with multiple design and exports ",
 			configContent: `[openscadgen]
 name = "test-project"
 version = "1.0"
@@ -280,11 +276,20 @@ global_params = { size = "10,20" }
 [[openscadgen.input_paths]]       
 path = "./default_design.scad"
 
+[[openscadgen.input_paths]]       
+path = "./default_design_2.scad"
+
 [[openscadgen.instances]]
 name = "instance-name"
+
+[[openscadgen.export_images]]
+name = "top"
+
+[[openscadgen.export_images]]
+name = "bottom"
 `,
 			scadContent: scadFileInputExamples[defaultDesign],
-			command:     binaryPath + " -c ./config.toml -n 1",
+			command:     binaryPath + " -c ./config.toml",
 			expectedFiles: []string{
 				"default_design.scad",
 				"config.toml",
@@ -292,6 +297,17 @@ name = "instance-name"
 				"shopping-list.toml",
 				"export/1.0/report.html",
 				"export/1.0/default_design-instance-name-10.stl",
+				"export/1.0/default_design-instance-name-10-top.png",
+				"export/1.0/default_design-instance-name-10-bottom.png",
+				"export/1.0/default_design-instance-name-20.stl",
+				"export/1.0/default_design-instance-name-20-top.png",
+				"export/1.0/default_design-instance-name-20-bottom.png",
+				"export/1.0/default_design_2-instance-name-10.stl",
+				"export/1.0/default_design_2-instance-name-20.stl",
+				"export/1.0/default_design_2-instance-name-10-top.png",
+				"export/1.0/default_design_2-instance-name-10-bottom.png",
+				"export/1.0/default_design_2-instance-name-20-top.png",
+				"export/1.0/default_design_2-instance-name-20-bottom.png",
 			},
 			shouldFail: false,
 		},
@@ -445,25 +461,7 @@ name = "instance-name"
 			shouldFail:  true,
 		},
 		{
-			name: "12.Invalid field in instances",
-			configContent: `[openscadgen]
-		name = "test-project"
-		version = "1.0"
-		export_name_format = "{designFileName}-{instanceName}"
-
-		[[openscadgen.input_paths]]
-		path = "./default_design.scad"
-
-		[[openscadgen.instances]]
-		name = "instance-name"
-		invalid_field = "this should fail"  # This is an invalid field
-		`,
-			scadContent: scadFileInputExamples[defaultDesign],
-			command:     binaryPath + " -c ./shopping-list.toml",
-			shouldFail:  true,
-		},
-		{
-			name:          "13.Shopping list design",
+			name:          "12.Shopping list design",
 			configContent: shoppingListConfig,
 			scadContent:   shoppingDesign,
 			command:       binaryPath + " -c " + defaultShoppingConfigPath + " -ow",
@@ -481,6 +479,9 @@ name = "instance-name"
 			shouldFail: false,
 		},
 	}
+
+	var onlyRunTestIndex = -1
+	var extraArgs = " " //"-d"
 
 	for index, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {

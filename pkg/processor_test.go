@@ -959,7 +959,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 			if len(tc.config.Design.ConfiguredInstanceConfig) > 1 {
 				t.Error("Only one dynamic instance config is supported for testing")
 			}
-			instances, exportLocaiton, err := generateInstances(&tc.config, tc.config.Design.ConfiguredInstanceConfig[0], models.InputPath{Path: inputPath})
+			instances, exportLocation, err := generateInstances(&tc.config, tc.config.Design.ConfiguredInstanceConfig[0], models.InputPath{Path: inputPath})
 			if err != nil {
 				t.Errorf("Error generating instances: %v", err)
 			}
@@ -967,7 +967,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 			if len(instances) != len(tc.expectedParams) {
 				t.Errorf("Expected %d instances, got %d", len(tc.expectedParams), len(instances))
 			}
-			log.Printf("exportLocaiton: %s", exportLocaiton)
+			log.Printf("exportLocaiton: %s", exportLocation)
 
 			// Create a map of expected instances for easier lookup
 			expectedMap := createExpectedInstancesMap(tc.expectedParams)
@@ -1284,19 +1284,19 @@ coord = "0,0,0,90,0,0,600"
 				ConfigFile: tc.configPath,
 			})
 			if err != nil {
-				logKeyValuePair("Config file", tc.configPath)
-				logKeyValuePair("Config file content", configContent)
+				LogKeyValuePair("Config file", tc.configPath)
+				LogKeyValuePair("Config file content", configContent)
 				t.Fatalf("Failed to load config: %v", err)
 			}
 
 			if len(config.GetInputPaths()) == 0 {
-				logKeyValuePair("No input paths found in config", "")
+				LogKeyValuePair("No input paths found in config", "")
 				logWarn("No input paths found in config", true)
 				t.Fatalf("No input paths found in config")
 			} else if config.Debug {
-				logKeyValuePair(fmt.Sprintf("%d Input paths", len(config.Design.InputPaths)), "")
+				LogKeyValuePair(fmt.Sprintf("%d Input paths", len(config.Design.InputPaths)), "")
 				for _, inputPath := range config.Design.InputPaths {
-					logKeyValuePair("", inputPath.Path)
+					LogKeyValuePair("", inputPath.Path)
 				}
 			}
 
@@ -1310,7 +1310,7 @@ coord = "0,0,0,90,0,0,600"
 				}*/
 
 			// Process the config
-			result, err := Process(config)
+			result, err := Process(config, &NoopProgress{}, nil)
 			if err != nil {
 				t.Fatalf("Failed to process config: %v", err)
 			}
@@ -1542,4 +1542,76 @@ func TestScanFolderForConfigFiles(t *testing.T) {
 	if len(files) != 1 || files[0].Path != validPath {
 		t.Errorf("Expected only valid.toml, got: %v", files)
 	}
+}
+
+func TestInstanceConstruction(t *testing.T) {
+	// Initialize logger for testing
+	err := InitLogger("memory")
+	if err != nil {
+		t.Fatalf("Failed to initialize logger: %v", err)
+	}
+
+	tmpDir, err := os.MkdirTemp("", "instanceconstructiontest")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Valid config file
+	validConfigPath := filepath.Join(tmpDir, "config.toml")
+	os.WriteFile(validConfigPath, []byte(fmt.Sprintf(`[openscadgen]
+name = 'foo'
+
+export_name_format = "football_cards_{name}"
+
+[[openscadgen.input_paths]]
+path = "%s/football_cards.scad"
+
+[[openscadgen.export_images]]
+name = "nice"
+	`, tmpDir)), 0644)
+
+	validScadPath := filepath.Join(tmpDir, "football_cards.scad")
+	os.WriteFile(validScadPath, []byte(`
+		cube(10);
+		`), 0644)
+
+	config, err := LoadConfig(models.CmdFlags{
+		ConfigFile: validConfigPath,
+	})
+	if err != nil {
+		t.Fatalf("Failed to load config: %v", err)
+	}
+
+	result, err := Process(config, &NoopProgress{}, nil)
+	if err != nil {
+		t.Fatalf("Failed to process config: %v", err)
+	}
+
+	if len(result.ImageResults) != 1 {
+		t.Fatalf("Expected 1 image result, got %d", len(result.ImageResults))
+	}
+
+	if result.ImageResults[0].CameraName != "nice" {
+		t.Fatalf("Expected image result name to be 'nice', got %s", result.ImageResults[0].CameraName)
+	}
+
+	if result.ImageResults[0].OutputPath != "export/v0.1/nice.png" {
+		t.Fatalf("Expected image result output path to be 'export/v0.1/nice.png', got %s", result.ImageResults[0].OutputPath)
+	}
+
+	// instance specific reference
+
+	if len(result.Instances) != 1 {
+		t.Fatalf("Expected 1 instance, got %d", len(result.Instances))
+	}
+
+	if result.Instances[0].ImageResults[0].CameraName != "nice" {
+		t.Fatalf("Expected instance export image name to be 'nice', got %s", result.Instances[0].ExportImages[0].CameraName)
+	}
+
+	if result.Instances[0].ImageResults[0].OutputPath != fmt.Sprintf("%s/export/v0.1/nice.png", tmpDir) {
+		t.Fatalf("Expected instance export image output path to be 'export/v0.1/nice.png', got %s", result.Instances[0].ImageResults[0].OutputPath)
+	}
+
 }

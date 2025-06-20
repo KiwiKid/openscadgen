@@ -11,6 +11,16 @@ import (
 	"bytes"
 )
 
+func formatDuration(d time.Duration) string {
+    if d < time.Millisecond {
+        return fmt.Sprintf("%.2fµs", float64(d)/float64(time.Microsecond))
+    }
+    if d < time.Second {
+        return fmt.Sprintf("%.2fms", float64(d)/float64(time.Millisecond))
+    }
+    return fmt.Sprintf("%.2fs", float64(d)/float64(time.Second))
+}
+
 templ Success(message string) {
     <div class="notification is-success">
         <strong>Success:</strong> { message }
@@ -68,7 +78,7 @@ templ RenderParams(params map[string]interface{}) {
         <button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button>
             
             
-            <details><summary>Applied Params</summary><code>
+            <details><summary>Applied Params</summary><code><pre>
             for _, name := range getSortedParamNames(params) {
                 switch v := params[name].(type) {
                 case string:
@@ -83,8 +93,11 @@ templ RenderParams(params map[string]interface{}) {
                     { fmt.Sprintf("%s = \"%v\";\n", name, v) }
                 }
             }
-        </code></details>
-        (copy these into the openscad editor to tweak this instance)
+        </pre></code>
+            <p class="is-size-7">
+                    (copy these into the openscad editor to tweak this instance)
+            </p>
+        </details>
 
     </div>
 }
@@ -366,19 +379,17 @@ html, body {
                         </form>
                     }
                 </div>
-                <script>
-                   
-                </script>
             }
                 <div class="global-header">
-                    <div class="container">
+                    <div>
                         <h1 class="title is-4">{ config.Design.Name }</h1>
                     <div class="search-box">
                         <div>
                             <div>
                                 <input class="input" type="text" placeholder="Filter to specific instances etc..." x-model="searchQuery">
                             </div>
-                            <template x-if="searchHistory.length > 0">
+                            <details><summary>History</summary>
+                            <template x-if="searchHistory.length > 0" >
                                 <div class="mt-2">
                                     <strong>Recent Searches:</strong>
                                     <ul style="list-style: disc inside; padding-left: 1em;">
@@ -390,6 +401,7 @@ html, body {
                                     </ul>
                                 </div>
                             </template>
+                            </details>
                         </div>
                     </div>
                     <button class="button" @click="darkMode = !darkMode">
@@ -398,7 +410,6 @@ html, body {
                     </button>
                 </div>
             </div>
-            <div class="container">
             @Collapsable("Config", false) {
             if len(config.Design.GlobalParams) > 0 {
                     <h2 class="is-size-4">Global Parameters</h2>
@@ -703,65 +714,63 @@ dont_use_manifold = false         # If true, disables manifold operations
 
 
 
-                @Collapsable("Instances", true) {
-                if len(instances) > 0 {
-                    <div>
-                    <div class="table-container">
-                        <table class="table is-fullwidth">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Description</th>
-                                    <th>Output Path</th>
-                                    <th>Ignored Params</th>
-                                    <th>Skipped Reason</th>
-                                    <th>Images</th>
-                                    for _, paramName := range allParamNames {
-                                        <th>{ paramName }</th>
-                                    }
-                                    
-                                </tr>
-                            </thead>
-                            <tbody>
-                                for _, instance := range instances {
-                                    <tr class={ getInstanceClassName(instance) } x-show={ fmt.Sprintf(`searchQuery === '' || ('%s %s').toLowerCase().includes(searchQuery.toLowerCase())`, instance.Name, instance.OutputPathV2) }>
-                                        <td>{ instance.Name }</td>
-                                        <td>{ instance.Description }</td>
-                                        <td>{ instance.OutputPathV2 }</td>
-                                        <td>{ fmt.Sprintf("%v", instance.IgnoredParams) }</td>
-                                        <td>{ instance.SkippedReason }</td>
-                                        <td>
-                                            if len(instance.ExportImages) > 0 {
-                                                for _, exportImage := range instance.ExportImages {
-                                                   <td>{ fmt.Sprintf("%v", exportImage) }</td>
-                                                }
-                                            } else {
-                                                no images generated
-                                            }
-                                        </td>
+                @Collapsable("Instances", false) {
+                    if len(instances) > 0 {
+                        <div class="table-container">
+                            <table class="table is-fullwidth">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Description</th>
+                                        <th>Output Path</th>
+                                        <th>Ignored Params</th>
+                                        <th>Skipped Reason</th>
+                                        <th>Images</th>
                                         for _, paramName := range allParamNames {
-                                            if value, ok := instance.Params[paramName]; ok {
-                                                <td>{ fmt.Sprintf("%v", value) }</td>
-                                            } else {
-                                                <td class="is-italic" title="No Param for { paramName }">N/A</td>
-                                            }
+                                            <th>{ paramName }</th>
                                         }
+                                        
                                     </tr>
-                                    if instance.ConfigError != "" {
-                                        <tr>        
-                                            <td colspan={ fmt.Sprintf("%d", len(allParamNames) + 2) } class="is-danger">{ instance.ConfigError }</td>
+                                </thead>
+                                <tbody>
+                                    for _, instance := range instances {
+                                        <tr class={ getInstanceClassName(instance) } x-show={ fmt.Sprintf(`searchQuery === '' || ('%s %s').toLowerCase().includes(searchQuery.toLowerCase())`, instance.Name, instance.OutputPathV2) }>
+                                            <td>{ instance.Name }</td>
+                                            <td>{ instance.Description }</td>
+                                            <td>{ instance.OutputPathV2 }</td>
+                                            <td>{ fmt.Sprintf("%v", instance.IgnoredParams) }</td>
+                                            <td>{ instance.SkippedReason }</td>
+                                            for _, paramName := range allParamNames {
+                                                if value, ok := instance.Params[paramName]; ok {
+                                                    <td>{ fmt.Sprintf("%v", value) }</td>
+                                                } else {
+                                                    <td class="is-italic" title="No Param for { paramName }">N/A</td>
+                                                }
+                                            }
                                         </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                    </div>
-                } else {
-                    <div class="is-danger">No Instances Generated</div>
-                }
-                }
+                                        if instance.ConfigError != "" {
+                                            <tr>        
+                                                <td colspan={ fmt.Sprintf("%d", len(allParamNames) + 2) } class="is-danger">{ instance.ConfigError }</td>
+                                            </tr>
+                                        }
+                                     
+                                    <td>@CollapsableJson("Instance", instance, false)</td>
+                                     
+                                            <tr>
+                                                for _, imageResult := range instance.ImageResults {
+                                                    <td>{ fmt.Sprintf("%v", imageResult) }</td>
+                                                }
+                                            </tr>
+                                      }
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    } else {
+                        <div class="is-danger">No Instances Generated</div>
+                    }
                 <div class="my-2"></div>
+                }
                @Collapsable(fmt.Sprintf("STL Results (%d)", len(stlResults)), len(stlResults) > 0) {
                 if len(stlResults) > 0 {
                         <div class="table-container">
@@ -780,8 +789,8 @@ dont_use_manifold = false         # If true, disables manifold operations
                             <tbody>
                                 for _, stlResult := range sortSTLResults(stlResults) {
                                     <tr x-show={ fmt.Sprintf(`searchQuery === '' || ('%s %s').toLowerCase().includes(searchQuery.toLowerCase())`, stlResult.InstanceConfig.Name, stlResult.OutputPath) }>
-                                        <td>{ fmt.Sprintf("%d IMAGES", len(stlResult.InstanceConfig.ExportImages)) } { stlResult.InstanceConfig.Name } </td>
-                                        <td>{ stlResult.OutputPath }</td>
+                                        <td>{ stlResult.InstanceConfig.Name } { fmt.Sprintf("Generated %d/%d ExportImages found", len(stlResult.InstanceConfig.ImageResults), len(stlResult.InstanceConfig.ExportImages)) } </td>
+                                        <td><a href={ templ.SafeURL(stlResult.OutputPath) } target="_blank"></a></td>
                                         <td>{ fmt.Sprintf("%v", stlResult.TimeTaken) }</td>
                                         if len(stlResult.AppliedParams) > 0 {
                                             <td> @RenderParams(stlResult.AppliedParams) </td>
@@ -805,10 +814,12 @@ dont_use_manifold = false         # If true, disables manifold operations
                                     </tr> 
                                        <tr >
 
-                                    if len(stlResult.InstanceConfig.ExportImages) > 0 {
-                                        for _, exportImage := range stlResult.InstanceConfig.ExportImages {
-                                                <td>{ fmt.Sprintf("%v", exportImage) }</td>
+                                    if len(stlResult.InstanceConfig.ImageResults) > 0 {
+                                        for _, imageResults := range stlResult.InstanceConfig.ImageResults {
+                                                <td>{ fmt.Sprintf("%v", imageResults) }</td>
                                         }
+                                    } else { 
+                                        <td> len(stlResult.InstanceConfig.ImageResults) is 0</td>
                                     }
                                      </tr>
                                 }
@@ -862,7 +873,7 @@ dont_use_manifold = false         # If true, disables manifold operations
                                     <td>{ imageResult.CameraName }</td>
                                     <td>{ imageResult.OutputPath }</td>
 
-                                    <td>{ fmt.Sprintf("%+v", imageResult.TimeTaken) }</td>
+                                    <td>{ formatDuration(imageResult.TimeTaken) }</td>
                                     <td>
                                         <details>
                                             <summary>View Camera Coordinates</summary>
@@ -880,12 +891,12 @@ dont_use_manifold = false         # If true, disables manifold operations
                                     </td>
                                     <td>
                                         if imageResult.Error == "" {
-                                            <img src={ getRelativeImagePath(imageResult.OutputPath, outputPath) } 
+                                            <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)) } 
                                                  alt={ fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName) } 
                                                  class="image-preview"
                                                  onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"
                                             />
-                                            <div class="image-error" style="display: none;">Image failed to load: { getRelativeImagePath(imageResult.OutputPath, outputPath) }</div>
+                                            <div class="image-error" style="display: none;">Image failed to load: { fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)) }</div>
                                         } else {
                                             <span class="tag is-danger">Failed</span>
                                         }
@@ -920,10 +931,9 @@ dont_use_manifold = false         # If true, disables manifold operations
                 <div>
                     <p>Generated by openscadgen { config.OpenSCADVersion } { config.OpenScadGenVersion } at { time.Now().Format("2006-01-02 15:04:05") }</p>
                 </div>
-            </div>
 
 
-        <script>
+     <script>
         function alpineReportData() {
             return {
                 darkMode: true,
@@ -993,6 +1003,17 @@ dont_use_manifold = false         # If true, disables manifold operations
             });
         </script>
 
-        </body>
-    </html>
+    </body>
+</html>
+}
+
+templ CollapsableJson(title string, data interface{}, isOpen bool) {
+    @Collapsable(title, isOpen) {
+        <div class="code-block">CollapsableJson {title}
+            <button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button>
+            <code style="white-space: pre;">
+                <pre>{ formatJson(fmt.Sprintf("%+v", data)) }</pre>
+            </code>
+        </div>
+    }
 }

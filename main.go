@@ -9,7 +9,11 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
+	"sync"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/kiwikid/openscadgen/pkg/models"
 	"github.com/kiwikid/openscadgen/pkg/templates"
 
@@ -19,6 +23,12 @@ import (
 // https://stackoverflow.com/questions/21060945/simple-way-to-copy-a-file
 // CopyFile copies a file from src to dst. If src and dst files exist, and are
 // the same, then return success. If that fail, copy the file contents from src to dst.
+
+var (
+	progressMap = make(map[string]chan string)
+	cancelMap   = make(map[string]chan struct{})
+	mu          sync.Mutex
+)
 
 func main() {
 
@@ -81,6 +91,9 @@ func main() {
 
 	flag.BoolVar(&cmdFlags.LowQuality, "lq", false, "Set low quality (fn = 20)")
 
+	flag.BoolVar(&cmdFlags.OnlyImages, "oi", false, "Only generate images (default is images and stl)")
+	flag.BoolVar(&cmdFlags.OnlyExport, "oe", false, "Only export STLs (default is images and stl)")
+
 	flag.BoolVar(&cmdFlags.SetBuildInfoInFileAttributes, "fi", true, "Set build info in file attributes (default true)")
 
 	flag.BoolVar(&cmdFlags.Server, "s", false, "Start in server mode")
@@ -95,8 +108,10 @@ func main() {
 	}
 
 	version := pkg.GetVersion()
-	log.Printf("OpenSCADGen Version: %s", version.OpenSCADGen)
-	log.Printf("OpenSCAD Version: %s", version.OpenSCAD)
+	if cmdFlags.Debug || cmdFlags.Version {
+		log.Printf("OpenSCADGen Version: %s", version.OpenSCADGen)
+		log.Printf("OpenSCAD Version: %s", version.OpenSCAD)
+	}
 	if cmdFlags.Version {
 		return
 	}
@@ -137,18 +152,26 @@ func main() {
 		log.Fatalf("Error: %v", err)
 	}
 
-	processResult, err := pkg.Process(config)
+	processResult, err := pkg.Process(config, &pkg.NoopProgress{}, nil)
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
 
-	_, err = pkg.GenerateOutputReport(config, processResult.Instances, processResult.STLResults, processResult.ImageResults, processResult.ExportLocation, true)
-	if err != nil {
+	if len(processResult.STLResults) == 0 && len(processResult.ImageResults) == 0 {
+		log.Printf("\033[31m" + "No STLs or images generated" + "\033[0m")
+		os.Exit(1)
+		return
+	}
+
+	_, location, genReportErr := pkg.GenerateOutputReport(config, processResult.Instances, processResult.STLResults, processResult.ImageResults, processResult.ExportLocation, true)
+	if genReportErr != nil {
 		if config.ContinueOnError {
 			log.Printf("Warning: failed to generate output report: %v", err)
 		} else {
 			log.Fatalf("failed to generate output report: %v", err)
 		}
+	} else if config.Debug {
+		pkg.LogKeyValuePair("Output report generated at", location)
 	}
 
 }
@@ -169,6 +192,10 @@ func StartServer(serverFolder string) {
 
 	}
 	log.Print(msg)
+
+	http.HandleFunc("/start", startHandler)
+	http.HandleFunc("/progress", progressHandler)
+	http.HandleFunc("/cancel", cancelHandler)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
@@ -213,38 +240,58 @@ func StartServer(serverFolder string) {
 			http.Redirect(w, r, "/?config="+encodedConfigEntry, http.StatusSeeOther)
 		case "PUT":
 			log.Printf("PUT (Processing) request" + r.Method)
-			configEntry := r.FormValue("path")
-			if configEntry == "" {
+
+			var cmdFlags models.CmdFlags
+			if r.Header.Get("Content-Type") == "application/json" {
+				if err := json.NewDecoder(r.Body).Decode(&cmdFlags); err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					w.Write([]byte("PUT - Processing - Invalid JSON body: " + err.Error()))
+					return
+				}
+			} else {
+				cmdFlags.ConfigFile = r.FormValue("path")
+			}
+
+			if cmdFlags.ConfigFile == "" {
 				warning := templates.Warning("No config file provided")
 				warning.Render(context.Background(), w)
 				return
 			}
 
-			config, err := pkg.LoadConfig(models.CmdFlags{ConfigFile: configEntry})
+			config, err := pkg.LoadConfig(cmdFlags)
 			if err != nil {
 				warning := templates.Warning(fmt.Sprintf("Error: %v", err))
 				warning.Render(context.Background(), w)
 				return
 			}
 
-			processResult, err := pkg.Process(config)
-			if err != nil {
-				warning := templates.Warning(fmt.Sprintf("Error: %v", err))
-				warning.Render(context.Background(), w)
-				return
+			id := uuid.New().String()
+			updates := make(chan string, 10)
+			cancel := make(chan struct{})
+			mu.Lock()
+			progressMap[id] = updates
+			cancelMap[id] = cancel
+			mu.Unlock()
+
+			go func() {
+				pkg.Process(config, &pkg.ChanProgress{Updates: updates}, cancel)
+				close(updates)
+			}()
+
+			w.Header().Set("Content-Type", "text/html")
+			fmt.Fprintf(w, `
+			<div id="progress"></div>
+			<button onclick="fetch('/cancel?id=%s')">Cancel</button>
+			<script>
+			function poll() {
+				fetch('/progress?id=%s').then(r => r.text()).then(msg => {
+					document.getElementById('progress').innerText = msg;
+					if(msg !== 'done' && msg !== 'cancelled') setTimeout(poll, 1000);
+				});
 			}
-
-			htmlContent, err := pkg.GenerateOutputReport(config, processResult.Instances, processResult.STLResults, processResult.ImageResults, "", false)
-			if err != nil {
-				warning := templates.Warning(fmt.Sprintf("Error: %v", err))
-				warning.Render(context.Background(), w)
-				return
-			}
-
-			success := templates.Success("Processing complete")
-			success.Render(context.Background(), w)
-			htmlContent.Render(context.Background(), w)
-
+			poll();
+			</script>
+			`, id, id)
 			return
 
 		default:
@@ -343,7 +390,7 @@ func StartServer(serverFolder string) {
 				return
 			}
 			config.RegexPattern = req.Name
-			result, err := pkg.Process(config)
+			result, err := pkg.Process(config, &pkg.NoopProgress{}, nil)
 			if err != nil {
 				http.Error(w, err.Error(), 500)
 				return
@@ -353,7 +400,7 @@ func StartServer(serverFolder string) {
 				"output": result,
 			})
 		case "process_all":
-			result, err := pkg.Process(config)
+			result, err := pkg.Process(config, &pkg.NoopProgress{}, nil)
 			if err != nil {
 				http.Error(w, err.Error(), 500)
 				return
@@ -368,4 +415,69 @@ func StartServer(serverFolder string) {
 	})
 
 	http.ListenAndServe(":8080", nil)
+}
+
+func startHandler(w http.ResponseWriter, r *http.Request) {
+	id := uuid.New().String()
+	updates := make(chan string, 10)
+	cancel := make(chan struct{})
+	mu.Lock()
+	progressMap[id] = updates
+	cancelMap[id] = cancel
+	mu.Unlock()
+
+	var flags models.CmdFlags
+	err := json.NewDecoder(r.Body).Decode(&flags)
+	if err != nil {
+		http.Error(w, "Invalid JSON: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	config, err := pkg.LoadConfig(flags)
+	if err != nil {
+		http.Error(w, "Error loading config: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	go func() {
+		pkg.Process(config, &pkg.ChanProgress{Updates: updates}, cancel)
+		close(updates)
+	}()
+
+	// Return the ID to the client, which will poll /progress?id=...
+	w.Write([]byte(id))
+}
+
+func progressHandler(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	mu.Lock()
+	updates, ok := progressMap[id]
+	mu.Unlock()
+	if !ok {
+		http.Error(w, "not found", 404)
+		return
+	}
+	select {
+	case msg, ok := <-updates:
+		if !ok {
+			w.Write([]byte("done"))
+			return
+		}
+		w.Write([]byte(msg))
+	case <-time.After(2 * time.Second):
+		w.Write([]byte("waiting"))
+	}
+}
+
+func cancelHandler(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	mu.Lock()
+	cancel, ok := cancelMap[id]
+	if ok {
+		close(cancel)
+		delete(cancelMap, id)
+		delete(progressMap, id)
+	}
+	mu.Unlock()
+	w.Write([]byte("cancelled"))
 }
