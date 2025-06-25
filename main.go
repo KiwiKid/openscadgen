@@ -414,7 +414,10 @@ func StartServer(serverFolder string) {
 		}
 	})
 
-	http.ListenAndServe(":8080", nil)
+	err = http.ListenAndServe(":8080", nil)
+	if err != nil {
+		log.Fatalf("Error: %v", err)
+	}
 }
 
 func startHandler(w http.ResponseWriter, r *http.Request) {

@@ -59,9 +59,15 @@ func getSortedParamNames(params map[string]interface{}) []string {
     return names
 }
 
-templ Collapsable(title string, isOpen bool) {
-    <div x-data={ fmt.Sprintf(`{ isOpen: %v }`, isOpen) }>
-        <button class="button is-large is-fullwidth" @click="isOpen = !isOpen">
+templ Collapsable(title string, isOpen bool, fullWidth bool) {
+    <div x-data={ fmt.Sprintf(`{ isOpen: %v }`, isOpen) } >
+        <button @click="isOpen = !isOpen"
+            if fullWidth {
+                class="button is-large is-fullwidth"
+            } else {
+                class="button is-large"
+            }
+        >
             <span x-show="!isOpen">▼</span>
             <span x-show="isOpen">▲</span>
             { title }
@@ -216,6 +222,7 @@ html, body {
                     margin: 0;
                     background-color: var(--bg-color);
                     color: var(--text-color);
+                    padding: 3rem;
                 }
                 .container {
                     max-width: 1200px;
@@ -410,7 +417,7 @@ html, body {
                     </button>
                 </div>
             </div>
-            @Collapsable("Config", false) {
+            @Collapsable("Config", false, true) {
             if len(config.Design.GlobalParams) > 0 {
                     <h2 class="is-size-4">Global Parameters</h2>
                     <div class="table-container">
@@ -714,7 +721,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 
 
 
-                @Collapsable("Instances", false) {
+                @Collapsable("Instances", false, true) {
                     if len(instances) > 0 {
                         <div class="table-container">
                             <table class="table is-fullwidth">
@@ -724,21 +731,23 @@ dont_use_manifold = false         # If true, disables manifold operations
                                         <th>Description</th>
                                         <th>Output Path</th>
                                         <th>Ignored Params</th>
-                                        <th>Skipped Reason</th>
                                         <th>Images</th>
                                         for _, paramName := range allParamNames {
                                             <th>{ paramName }</th>
                                         }
-                                        
                                     </tr>
                                 </thead>
                                 <tbody>
                                     for _, instance := range instances {
                                         <tr class={ getInstanceClassName(instance) } x-show={ fmt.Sprintf(`searchQuery === '' || ('%s %s').toLowerCase().includes(searchQuery.toLowerCase())`, instance.Name, instance.OutputPathV2) }>
                                             <td>{ instance.Name }</td>
-                                            <td>{ instance.Description }</td>
+                                            <td>{ instance.Description } 
+                                            
+                                                @RenderParams(instance.Params)
+                                            </td>
                                             <td>{ instance.OutputPathV2 }</td>
                                             <td>{ fmt.Sprintf("%v", instance.IgnoredParams) }</td>
+                                            
                                             <td>{ instance.SkippedReason }</td>
                                             for _, paramName := range allParamNames {
                                                 if value, ok := instance.Params[paramName]; ok {
@@ -753,14 +762,18 @@ dont_use_manifold = false         # If true, disables manifold operations
                                                 <td colspan={ fmt.Sprintf("%d", len(allParamNames) + 2) } class="is-danger">{ instance.ConfigError }</td>
                                             </tr>
                                         }
-                                     
-                                    <td>@CollapsableJson("Instance", instance, false)</td>
-                                     
+                                        if instance.SkippedReason != "" {
+                                           <tr><td>{ instance.SkippedReason }</td> </tr>
+                                        }
+                                        if len(instance.ImageResults) > 0 {
                                             <tr>
-                                                for _, imageResult := range instance.ImageResults {
-                                                    <td>{ fmt.Sprintf("%v", imageResult) }</td>
+                                             <td colspan="100%">
+                                                for _, images := range instance.ImageResults {
+                                                   <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(images.OutputPath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';" />
                                                 }
+                                                </td>
                                             </tr>
+                                        }
                                       }
                                     
                                 </tbody>
@@ -771,17 +784,15 @@ dont_use_manifold = false         # If true, disables manifold operations
                     }
                 <div class="my-2"></div>
                 }
-               @Collapsable(fmt.Sprintf("STL Results (%d)", len(stlResults)), len(stlResults) > 0) {
+               @Collapsable(fmt.Sprintf("STL Results (%d)", len(stlResults)), false, true) {
                 if len(stlResults) > 0 {
                         <div class="table-container">
                             <table class="table is-fullwidth">
                                 <thead>
                                     <tr>
-                                        <th style="width: 150px;">Instance</th>
-                                    <th style="width: 200px;">Output Path</th>
+                                    <th style="width: 150px;">Instance</th>
                                     <th style="width: 100px;">Time Taken</th>
                                     <th style="width: 200px;">Params</th>
-                                    <th style="width: 150px;">Error</th>
                                     <th style="width: 150px;">Debug</th>
                                     <th style="width: 200px;">Command</th>
                                 </tr>
@@ -789,7 +800,11 @@ dont_use_manifold = false         # If true, disables manifold operations
                             <tbody>
                                 for _, stlResult := range sortSTLResults(stlResults) {
                                     <tr x-show={ fmt.Sprintf(`searchQuery === '' || ('%s %s').toLowerCase().includes(searchQuery.toLowerCase())`, stlResult.InstanceConfig.Name, stlResult.OutputPath) }>
-                                        <td>{ stlResult.InstanceConfig.Name } { fmt.Sprintf("Generated %d/%d ExportImages found", len(stlResult.InstanceConfig.ImageResults), len(stlResult.InstanceConfig.ExportImages)) } </td>
+                                        <td>{ stlResult.InstanceConfig.Name }
+                                        if stlResult.Error != "" {
+                                            <div class="is-danger">{ stlResult.Error }</div>
+                                        }
+                                        </td>
                                         <td><a href={ templ.SafeURL(stlResult.OutputPath) } target="_blank"></a></td>
                                         <td>{ fmt.Sprintf("%v", stlResult.TimeTaken) }</td>
                                         if len(stlResult.AppliedParams) > 0 {
@@ -797,9 +812,7 @@ dont_use_manifold = false         # If true, disables manifold operations
                                         } else {
                                             <td>@CodeBlock(fmt.Sprintf("%v", stlResult.InstanceConfig.Params), true, false) </td>
                                         }
-                                        if stlResult.Error != "" {
-                                            <td class="is-danger">{ stlResult.Error }</td>
-                                        }
+                                        
                                         <!-- <td>
                                             <details>
                                                 <summary>OpenSCAD Code</summary>
@@ -811,17 +824,7 @@ dont_use_manifold = false         # If true, disables manifold operations
                                                 @CodeBlock(stlResult.Command, true, false)
                                             </details>
                                         </td>
-                                    </tr> 
-                                       <tr >
-
-                                    if len(stlResult.InstanceConfig.ImageResults) > 0 {
-                                        for _, imageResults := range stlResult.InstanceConfig.ImageResults {
-                                                <td>{ fmt.Sprintf("%v", imageResults) }</td>
-                                        }
-                                    } else { 
-                                        <td> len(stlResult.InstanceConfig.ImageResults) is 0</td>
-                                    }
-                                     </tr>
+                                    </tr>
                                 }
                             </tbody>
                             </table>
@@ -849,75 +852,76 @@ dont_use_manifold = false         # If true, disables manifold operations
 
 
                 if len(imageResults) > 0 {
-                    <h2 class="is-size-4">Image Generation Results</h2>
-                    <div>Generated { fmt.Sprintf("%d",len(imageResults)) } images</div>
-                    <div class="table-container">
-                        <table class="table is-fullwidth">
-                        <thead>
-                            <tr>
-                                <th>Instance</th>
-                                <th>Camera</th>
-                                <th>Output Path</th>
-                                <th>Time Taken</th>
-                                <th>Camera Coordinates</th>
-                                <th>Preview</th>
-                                <th>Error</th>
-                                <th>Command</th>
+                    @Collapsable("Image Generation Results", false, true) {
+                        <div>Generated { fmt.Sprintf("%d",len(imageResults)) } images</div>
+                        <div class="table-container">
+                            <table class="table is-fullwidth">
+                            <thead>
+                                <tr>
+                                    <th>Instance</th>
+                                    <th>Camera</th>
+                                    <th>Output Path</th>
+                                    <th>Time Taken</th>
+                                    <th>Camera Coordinates</th>
+                                    <th>Preview</th>
+                                    <th>Error</th>
+                                    <th>Command</th>
 
-                            </tr>
-                        </thead>
-                        <tbody>
-                            for _, imageResult := range imageResults {
-                                <tr x-show={ fmt.Sprintf(`searchQuery === '' || ('%s %s').toLowerCase().includes(searchQuery.toLowerCase())`, imageResult.InstanceConfig.Name, imageResult.OutputPath) }>
-                                    <td>{ imageResult.InstanceConfig.Name }</td>
-                                    <td>{ imageResult.CameraName }</td>
-                                    <td>{ imageResult.OutputPath }</td>
-
-                                    <td>{ formatDuration(imageResult.TimeTaken) }</td>
-                                    <td>
-                                        <details>
-                                            <summary>View Camera Coordinates</summary>
-                                            <div class="camera-coords">
-                                                <p>Format: x,y,z,rotx,roty,rotz,distance</p>
-                                                <ul>
-                                                    <li>x,y,z: Camera position in 3D space</li>
-                                                    <li>rotx,roty,rotz: Rotation angles in degrees</li>
-                                                    <li>distance: Distance from camera to target point</li>
-                                                </ul>
-                                                <p>Coordinates: {imageResult.CameraCoords}</p>
-                                            </div>
-                                        </details>
-                                        @RenderParams(imageResult.AppliedParams)
-                                    </td>
-                                    <td>
-                                        if imageResult.Error == "" {
-                                            <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)) } 
-                                                 alt={ fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName) } 
-                                                 class="image-preview"
-                                                 onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"
-                                            />
-                                            <div class="image-error" style="display: none;">Image failed to load: { fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)) }</div>
-                                        } else {
-                                            <span class="tag is-danger">Failed</span>
-                                        }
-                                    </td>
-                                    if imageResult.Error != "" {
-                                        <td class="is-danger">{ imageResult.Error }</td>
-                                    } else {
-                                        <td></td>
-                                    }
-                                    <td>
-                                        <details>
-                                            @CodeBlock(imageResult.Command, true, false)
-                                        </details>
-                                    </td>
                                 </tr>
-                            }
-                        </tbody>
-                        </table>
-                    </div>
+                            </thead>
+                            <tbody>
+                                for _, imageResult := range imageResults {
+                                    <tr x-show={ fmt.Sprintf(`searchQuery === '' || ('%s %s').toLowerCase().includes(searchQuery.toLowerCase())`, imageResult.InstanceConfig.Name, imageResult.OutputPath) }>
+                                        <td>{ imageResult.InstanceConfig.Name }</td>
+                                        <td>{ imageResult.CameraName }</td>
+                                        <td>{ imageResult.OutputPath }</td>
+
+                                        <td>{ formatDuration(imageResult.TimeTaken) }</td>
+                                        <td>
+                                            <details>
+                                                <summary>View Camera Coordinates</summary>
+                                                <div class="camera-coords">
+                                                    <p>Format: x,y,z,rotx,roty,rotz,distance</p>
+                                                    <ul>
+                                                        <li>x,y,z: Camera position in 3D space</li>
+                                                        <li>rotx,roty,rotz: Rotation angles in degrees</li>
+                                                        <li>distance: Distance from camera to target point</li>
+                                                    </ul>
+                                                    <p>Coordinates: {imageResult.CameraCoords}</p>
+                                                </div>
+                                            </details>
+                                            @RenderParams(imageResult.AppliedParams)
+                                        </td>
+                                        <td>
+                                            if imageResult.Error == "" {
+                                                <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)) } 
+                                                    alt={ fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName) } 
+                                                    class="image-preview"
+                                                    onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"
+                                                />
+                                                <div class="image-error" style="display: none;">Image failed to load: { fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)) }</div>
+                                            } else {
+                                                <span class="tag is-danger">Failed</span>
+                                            }
+                                        </td>
+                                        if imageResult.Error != "" {
+                                            <td class="is-danger">{ imageResult.Error }</td>
+                                        } else {
+                                            <td></td>
+                                        }
+                                        <td>
+                                            <details>
+                                                @CodeBlock(imageResult.Command, true, false)
+                                            </details>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                            </table>
+                        </div>
+                    }
                 } else {
-                    @Collapsable("Images", false) {
+                    @Collapsable("Images", false, true) {
                     <div>
                     Add export images to the config file to generate images for each instance:
                    @CodeBlock(`
@@ -1008,7 +1012,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 }
 
 templ CollapsableJson(title string, data interface{}, isOpen bool) {
-    @Collapsable(title, isOpen) {
+    @Collapsable(title, isOpen, true) {
         <div class="code-block">CollapsableJson {title}
             <button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button>
             <code style="white-space: pre;">
