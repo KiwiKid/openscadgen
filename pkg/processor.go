@@ -55,9 +55,12 @@ func getOutputPaths(config *models.Config) models.OutputPaths {
 	if len(config.GetInputPaths()) > 0 {
 		inputPath := config.GetInputPaths()[0].Path
 		if filepath.IsAbs(inputPath) {
+			// For absolute input paths, use the input file's directory
 			baseDir = filepath.Dir(inputPath)
 		} else {
-			baseDir = filepath.Join(configDir, filepath.Dir(inputPath))
+			// For relative input paths, always use the config file's directory
+			// This ensures exports always go to a sibling 'export' folder relative to the config file
+			baseDir = configDir
 		}
 	} else {
 		baseDir = configDir
@@ -140,7 +143,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.6.1__2025.06.26-BETA"
+const VERSION = "v2.6.2__2025.07.02-BETA"
 
 type Version struct {
 	OpenSCADGen string

@@ -1213,18 +1213,22 @@ dont_use_manifold = false         # If true, disables manifold operations
 							return templ_7745c5c3_Err
 						}
 					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, "3")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, "</tbody></table></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 102, "</tbody></table></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 102, "<div class=\"is-danger\">No Instances Generated</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 103, "<div class=\"is-danger\">No Instances Generated</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 103, " <div class=\"my-2\"></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 104, " <div class=\"my-2\"></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1247,12 +1251,12 @@ dont_use_manifold = false         # If true, disables manifold operations
 			}
 			ctx = templ.InitializeContext(ctx)
 			if len(stlResults) > 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 104, "<div class=\"table-container\"><table class=\"table is-fullwidth\"><thead><tr><th style=\"width: 150px;\">Instance</th><th style=\"width: 100px;\">Time Taken</th><th style=\"width: 200px;\">Params</th><th style=\"width: 150px;\">Debug</th><th style=\"width: 200px;\">Command</th></tr></thead> <tbody>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 105, "<div class=\"table-container\"><table class=\"table is-fullwidth\"><thead><tr><th style=\"width: 150px;\">Instance</th><th style=\"width: 100px;\">Time Taken</th><th style=\"width: 200px;\">Params</th><th style=\"width: 150px;\">Debug</th><th style=\"width: 200px;\">Command</th></tr></thead> <tbody>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				for _, stlResult := range sortSTLResults(stlResults) {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 105, "<tr x-show=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 106, "<tr x-show=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1265,7 +1269,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 106, "\"><td>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 107, "\"><td>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1278,12 +1282,12 @@ dont_use_manifold = false         # If true, disables manifold operations
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 107, " ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 108, " ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					if stlResult.Error != "" {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 108, "<div class=\"is-danger\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 109, "<div class=\"is-danger\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1296,12 +1300,12 @@ dont_use_manifold = false         # If true, disables manifold operations
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 109, "</div>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 110, "</div>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 110, "</td><td><a href=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 111, "</td><td><a href=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1310,7 +1314,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 111, "\" target=\"_blank\"></a></td><td>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 112, "\" target=\"_blank\"></a></td><td>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1323,12 +1327,12 @@ dont_use_manifold = false         # If true, disables manifold operations
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 112, "</td>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 113, "</td>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					if len(stlResult.AppliedParams) > 0 {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 113, "<td>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 114, "<td>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1336,12 +1340,12 @@ dont_use_manifold = false         # If true, disables manifold operations
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 114, "</td>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 115, "</td>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					} else {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 115, "<td>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 116, "<td>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1349,12 +1353,12 @@ dont_use_manifold = false         # If true, disables manifold operations
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 116, "</td>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 117, "</td>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 117, "<!-- <td>\n                                            <details>\n                                                <summary>OpenSCAD Code</summary>\n                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)\n                                            </details>\n                                        </td> --><td><details>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 118, "<!-- <td>\n                                            <details>\n                                                <summary>OpenSCAD Code</summary>\n                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)\n                                            </details>\n                                        </td> --><td><details>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1362,22 +1366,22 @@ dont_use_manifold = false         # If true, disables manifold operations
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 118, "</details></td></tr>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 119, "</details></td></tr>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 119, "</tbody></table></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 120, "</tbody></table></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 120, "<details><summary>No STL Generation Results</summary><div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 121, "<details><summary>No STL Generation Results</summary><div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if config.RegexPattern != "" {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 121, "<div class=\"is-warning\">[ Some may be skipped based on provided regex pattern: ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 122, "<div class=\"is-warning\">[ Some may be skipped based on provided regex pattern: ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1390,13 +1394,13 @@ dont_use_manifold = false         # If true, disables manifold operations
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 122, " ]</div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 123, " ]</div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
 				if config.MaxInstances > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 123, "<div>Max instances: ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 124, "<div>Max instances: ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1409,12 +1413,12 @@ dont_use_manifold = false         # If true, disables manifold operations
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 124, " blocked all instances from being generated?</div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 125, " blocked all instances from being generated?</div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 125, "Add stl generation to the config file to generate stl files for each instance:")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 126, "Add stl generation to the config file to generate stl files for each instance:")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1425,7 +1429,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 126, "</div></details>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 127, "</div></details>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1449,7 +1453,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 127, "<div>Generated ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 128, "<div>Generated ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1462,12 +1466,12 @@ dont_use_manifold = false         # If true, disables manifold operations
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 128, " images</div><div class=\"table-container\"><table class=\"table is-fullwidth\"><thead><tr><th>Instance</th><th>Camera</th><th>Output Path</th><th>Time Taken</th><th>Camera Coordinates</th><th>Preview</th><th>Error</th><th>Command</th></tr></thead> <tbody>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 129, " images</div><div class=\"table-container\"><table class=\"table is-fullwidth\"><thead><tr><th>Instance</th><th>Camera</th><th>Output Path</th><th>Time Taken</th><th>Camera Coordinates</th><th>Preview</th><th>Error</th><th>Command</th></tr></thead> <tbody>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				for _, imageResult := range imageResults {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 129, "<tr x-show=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 130, "<tr x-show=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1480,7 +1484,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 130, "\"><td>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 131, "\"><td>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1493,7 +1497,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 131, "</td><td>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 132, "</td><td>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1506,7 +1510,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 132, "</td><td>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 133, "</td><td>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1519,7 +1523,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 133, "</td><td>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 134, "</td><td>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1532,7 +1536,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 134, "</td><td><details><summary>View Camera Coordinates</summary><div class=\"camera-coords\"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 135, "</td><td><details><summary>View Camera Coordinates</summary><div class=\"camera-coords\"><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul><p>Coordinates: ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1545,7 +1549,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 135, "</p></div></details>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 136, "</p></div></details>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1553,12 +1557,12 @@ dont_use_manifold = false         # If true, disables manifold operations
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 136, "</td><td>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 137, "</td><td>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					if imageResult.Error == "" {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 137, "<img src=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 138, "<img src=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1571,7 +1575,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 138, "\" alt=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 139, "\" alt=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1584,7 +1588,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 139, "\" class=\"image-preview\" onerror=\"this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;\"><div class=\"image-error\" style=\"display: none;\">Image failed to load: ")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 140, "\" class=\"image-preview\" onerror=\"this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;\"><div class=\"image-error\" style=\"display: none;\">Image failed to load: ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1597,22 +1601,22 @@ dont_use_manifold = false         # If true, disables manifold operations
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 140, "</div>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 141, "</div>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					} else {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 141, "<span class=\"tag is-danger\">Failed</span>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 142, "<span class=\"tag is-danger\">Failed</span>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 142, "</td>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 143, "</td>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					if imageResult.Error != "" {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 143, "<td class=\"is-danger\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 144, "<td class=\"is-danger\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1625,17 +1629,17 @@ dont_use_manifold = false         # If true, disables manifold operations
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 144, "</td>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 145, "</td>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					} else {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 145, "<td></td>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 146, "<td></td>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 146, "<td><details>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 147, "<td><details>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1643,12 +1647,12 @@ dont_use_manifold = false         # If true, disables manifold operations
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 147, "</details></td></tr>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 148, "</details></td></tr>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 148, "</tbody></table></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 149, "</tbody></table></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1671,7 +1675,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 149, "<div>Add export images to the config file to generate images for each instance:")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 150, "<div>Add export images to the config file to generate images for each instance:")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1683,7 +1687,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 150, "</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 151, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1694,7 +1698,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 151, "<div><p>Generated by openscadgen ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 152, "<div><p>Generated by openscadgen ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1707,7 +1711,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 152, " ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 153, " ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1720,7 +1724,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 153, " at ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 154, " at ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1733,7 +1737,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 154, "</p></div><script>\n        function alpineReportData() {\n            return {\n                darkMode: true,\n                searchQuery: '',\n                configHistory: JSON.parse(localStorage.getItem('configHistory') || '[]'),\n                configFile: '',\n                savedConfigFile: localStorage.getItem('savedConfigFile') || '',\n                searchHistory: JSON.parse(localStorage.getItem('searchHistory') || '[]'),\n                saveConfigFile(path) {\n                    if (path && !this.configHistory.includes(path)) {\n                        this.configHistory.unshift(path);\n                        localStorage.setItem('configHistory', JSON.stringify(this.configHistory));\n                    }\n                    this.savedConfigFile = path;\n                    localStorage.setItem('savedConfigFile', path);\n                },\n                init() {\n                    // Watchers\n                    this.$watch('darkMode', value => {\n                        localStorage.setItem('darkMode', value);\n                        document.documentElement.classList.toggle('dark', value);\n                    });\n                    this.$watch('searchQuery', value => {\n                        if (value && !this.searchHistory.includes(value)) {\n                            this.searchHistory.unshift(value);\n                            this.searchHistory = this.searchHistory.slice(0, 20);\n                            localStorage.setItem('searchHistory', JSON.stringify(this.searchHistory));\n                        }\n                    });\n\n                    // Initial dark mode setup\n                    this.darkMode = localStorage.getItem('darkMode') === 'true' ||\n                        (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);\n\n                    // Initial config file setup\n                    this.configFile = '")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 155, "</p></div><script>\n        function alpineReportData() {\n            return {\n                darkMode: true,\n                searchQuery: '',\n                configHistory: JSON.parse(localStorage.getItem('configHistory') || '[]'),\n                configFile: '',\n                savedConfigFile: localStorage.getItem('savedConfigFile') || '',\n                searchHistory: JSON.parse(localStorage.getItem('searchHistory') || '[]'),\n                saveConfigFile(path) {\n                    if (path && !this.configHistory.includes(path)) {\n                        this.configHistory.unshift(path);\n                        localStorage.setItem('configHistory', JSON.stringify(this.configHistory));\n                    }\n                    this.savedConfigFile = path;\n                    localStorage.setItem('savedConfigFile', path);\n                },\n                init() {\n                    // Watchers\n                    this.$watch('darkMode', value => {\n                        localStorage.setItem('darkMode', value);\n                        document.documentElement.classList.toggle('dark', value);\n                    });\n                    this.$watch('searchQuery', value => {\n                        if (value && !this.searchHistory.includes(value)) {\n                            this.searchHistory.unshift(value);\n                            this.searchHistory = this.searchHistory.slice(0, 20);\n                            localStorage.setItem('searchHistory', JSON.stringify(this.searchHistory));\n                        }\n                    });\n\n                    // Initial dark mode setup\n                    this.darkMode = localStorage.getItem('darkMode') === 'true' ||\n                        (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);\n\n                    // Initial config file setup\n                    this.configFile = '")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1745,7 +1749,7 @@ dont_use_manifold = false         # If true, disables manifold operations
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 155, "'; // or whatever templating you use\n                    if (this.configFile) {\n                        this.saveConfigFile(this.configFile);\n                    }\n                }\n            }\n        }\n        </script><script>\n            // Enable htmx debug mode\n            window.htmx && (htmx.config.debug = true);\n\n            // Log all htmx events\n            document.body.addEventListener('htmx:afterRequest', function(evt) {\n                console.log('htmx:afterRequest', evt);\n            });\n            document.body.addEventListener('htmx:sendError', function(evt) {\n                console.error('htmx:sendError', evt);\n            });\n            document.body.addEventListener('htmx:responseError', function(evt) {\n                console.error('htmx:responseError', evt);\n            });\n            document.body.addEventListener('htmx:beforeRequest', function(evt) {\n                console.log('htmx:beforeRequest', evt);\n            });\n            document.body.addEventListener('htmx:beforeSend', function(evt) {\n                console.log('htmx:beforeSend', evt);\n            });\n            document.body.addEventListener('htmx:afterOnLoad', function(evt) {\n                console.log('htmx:afterOnLoad', evt);\n            });\n        </script></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 156, "'; // or whatever templating you use\n                    if (this.configFile) {\n                        this.saveConfigFile(this.configFile);\n                    }\n                }\n            }\n        }\n        </script><script>\n            // Enable htmx debug mode\n            window.htmx && (htmx.config.debug = true);\n\n            // Log all htmx events\n            document.body.addEventListener('htmx:afterRequest', function(evt) {\n                console.log('htmx:afterRequest', evt);\n            });\n            document.body.addEventListener('htmx:sendError', function(evt) {\n                console.error('htmx:sendError', evt);\n            });\n            document.body.addEventListener('htmx:responseError', function(evt) {\n                console.error('htmx:responseError', evt);\n            });\n            document.body.addEventListener('htmx:beforeRequest', function(evt) {\n                console.log('htmx:beforeRequest', evt);\n            });\n            document.body.addEventListener('htmx:beforeSend', function(evt) {\n                console.log('htmx:beforeSend', evt);\n            });\n            document.body.addEventListener('htmx:afterOnLoad', function(evt) {\n                console.log('htmx:afterOnLoad', evt);\n            });\n        </script></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1786,7 +1790,7 @@ func CollapsableJson(title string, data interface{}, isOpen bool) templ.Componen
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 156, "<div class=\"code-block\">CollapsableJson ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 157, "<div class=\"code-block\">CollapsableJson ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1799,7 +1803,7 @@ func CollapsableJson(title string, data interface{}, isOpen bool) templ.Componen
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 157, " <button class=\"button is-small is-info\" onclick=\"navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)\">Copy</button> <code style=\"white-space: pre;\"><pre>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 158, " <button class=\"button is-small is-info\" onclick=\"navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)\">Copy</button> <code style=\"white-space: pre;\"><pre>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1812,7 +1816,7 @@ func CollapsableJson(title string, data interface{}, isOpen bool) templ.Componen
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 158, "</pre></code></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 159, "</pre></code></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -1,31 +1,4 @@
-<!doctype html><html lang="en" x-data="{
-        darkMode: true,
-        searchQuery: &#39;&#39;,
-        configHistory: JSON.parse(localStorage.getItem(&#39;configHistory&#39;) || &#39;[]&#39;),
-        configFile: &#39;&#39;,
-        saveConfigFile() {
-            if (this.configFile &amp;&amp; !this.configHistory.includes(this.configFile)) {
-                this.configHistory.unshift(this.configFile);
-                localStorage.setItem(&#39;configHistory&#39;, JSON.stringify(this.configHistory));
-            }
-            localStorage.setItem(&#39;savedConfigFile&#39;, this.configFile);
-        }
-    }" x-init="
-        darkMode = localStorage.getItem(&#39;darkMode&#39;) === &#39;true&#39; || 
-                  (!localStorage.getItem(&#39;darkMode&#39;) &amp;&amp; window.matchMedia(&#39;(prefers-color-scheme: dark)&#39;).matches);
-        $watch(&#39;darkMode&#39;, value =&gt; {
-            localStorage.setItem(&#39;darkMode&#39;, value);
-            document.documentElement.classList.toggle(&#39;dark&#39;, value);
-        });
-        configFile = &#39;{ config.ConfigFile }&#39;;
-        if (configFile) {
-            if (!configHistory.includes(configFile)) {
-                configHistory.unshift(configFile);
-                localStorage.setItem(&#39;configHistory&#39;, JSON.stringify(configHistory));
-            }
-            localStorage.setItem(&#39;savedConfigFile&#39;, configFile);
-        }
-    "><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>small-tray - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><script>
+<!doctype html><html lang="en" x-data="alpineReportData()" x-init="init()"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>small-tray - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script><script>
                 (function() {
                     var darkMode = localStorage.getItem('darkMode');
                     if (darkMode === null) {
@@ -86,6 +59,7 @@ html, body {
                     margin: 0;
                     background-color: var(--bg-color);
                     color: var(--text-color);
+                    padding: 3rem;
                 }
                 .container {
                     max-width: 1200px;
@@ -230,7 +204,7 @@ html, body {
                     color: var(--text-color) !important;
                     background-color: var(--card-bg) !important;
                 }
-            </style></head><body><div class="global-header"><div class="container"><h1 class="title is-4">small-tray</h1><div class="search-box"><div><div><input class="input" type="text" placeholder="Filter to specific instances etc..." x-model="searchQuery"></div><template x-if="configHistory.length &gt; 0"><div class="mt-2"><strong>Config File History:</strong><ul style="list-style: disc inside; padding-left: 1em;"><template x-for="file in configHistory" :key="file"><li x-text="file"></li></template></ul></div></template></div></div><button class="button" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button></div></div><div class="container"><div x-data="{ isOpen: false }"><button class="button is-large is-fullwidth" @click="isOpen = !isOpen"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> small-tray</button><div x-show="isOpen"><h2 class="is-size-4">small-tray</h2><div class="code-block"><code style="white-space: pre;"><pre>code</pre></code></div></div></div><div x-data="{ isOpen: false }"><button class="button is-large is-fullwidth" @click="isOpen = !isOpen"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Configuration Details</button><div x-show="isOpen"><h2 class="is-size-4">Global Parameters</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Parameter</th><th>Value</th></tr></thead> <tbody><tr><td>partType</td><td>box,startBox,endBox</td></tr></tbody></table></div> <div class="instance"><div class="params"><div class="param"><strong>Version:</strong> v0.1</div><div class="param"><strong>Output Path:</strong> </div><div class="param"><strong>OpenSCAD Version:</strong> </div><div class="param"><strong>OpenSCADGen Version:</strong> v2.3.11-BETA</div><div class="param"><strong>Build Info Set In File Attributes</strong></div></div></div><h2 class="is-size-4">Input Paths</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Path</th><!--NEXT-VERSION: <th>OpenSCAD Code</th> --></tr></thead> <tbody><tr><td>./small-tray.scad</td><!-- NEXT-VERSION: <td><details><summary>OpenSCAD Code</summary>
+            </style></head><body><div class="global-header"><div><h1 class="title is-4">small-tray</h1><div class="search-box"><div><div><input class="input" type="text" placeholder="Filter to specific instances etc..." x-model="searchQuery"></div><details><summary>History</summary><template x-if="searchHistory.length &gt; 0"><div class="mt-2"><strong>Recent Searches:</strong><ul style="list-style: disc inside; padding-left: 1em;"><template x-for="term in searchHistory" :key="term"><li><a href="#" @click.prevent="searchQuery = term" x-text="term"></a></li></template></ul></div></template></details></div></div><button class="button" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button></div></div><div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Config</button><div x-show="isOpen"><h2 class="is-size-4">Global Parameters</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Parameter</th><th>Value</th></tr></thead> <tbody><tr><td>partType</td><td>box</td></tr></tbody></table></div> <div class="instance"><div class="params"><div class="param"><strong>Version:</strong> v0.1</div><div class="param"><strong>Output Path:</strong> </div><div class="param"><strong>OpenSCAD Version:</strong> OpenSCAD version 2025.06.06</div><div class="param"><strong>OpenSCADGen Version:</strong> v2.6.2__2025.07.02-BETA</div><div class="param"><strong>Auto Overwrite Existing</strong></div><div class="param"><strong>Build Info Set In File Attributes</strong></div></div></div><h2 class="is-size-4">Input Paths</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Path</th><!--NEXT-VERSION: <th>OpenSCAD Code</th> --></tr></thead> <tbody><tr><td>./small-tray.scad</td><!-- NEXT-VERSION: <td><details><summary>OpenSCAD Code</summary>
                                     { inputPath.RawOpenSCADFile }</details></td> --></tr></tbody></table></div> <h2 class="is-size-4">Config Reference</h2><details><summary>Example Config File</summary><pre><code>
 [[openscadgen]]
 name = &#34;My Design&#34;
@@ -238,7 +212,7 @@ description = &#34;A simple example design&#34;
 input_path = &#34;./my_design.scad&#34;
 version = &#34;v1.0&#34;
 output_path = &#34;./export&#34;
-export_name_format = &#34;export/{designFileName}-{version}-{instanceName}&#34;
+export_name_format = &#34;/{designFileName}-{version}-{instanceName}&#34;
 
 # Global parameters that apply to all instances
 [openscadgen.global_params]
@@ -336,148 +310,150 @@ skip_images = false              # Optional, whether to skip image generation
 
 # Optional: Whether to use manifold operations
 dont_use_manifold = false         # If true, disables manifold operations
-</code></pre></details><h2 class="is-size-4">Output Paths</h2><div class="instance"><div class="param"><strong>OutputPath:</strong> examples/small-tray/export/v0.1/small-tray/export/v0.1</div><div class="param"><strong>ExportFolderPath:</strong> examples/small-tray/export/v0.1</div><div class="param"><strong>ReadmePath:</strong> examples/small-tray/export/v0.1/small-tray/README.md</div><div class="param"><strong>LogOutputPath:</strong> examples/small-tray/export/v0.1/small-tray/export_log.log</div></div></div></div><div x-data="{ isOpen: true }"><button class="button is-large is-fullwidth" @click="isOpen = !isOpen"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Generated Instances</button><div x-show="isOpen"><div><div>(instances: 12) [ConfiguredInstanceConfig:4 * (InputPaths:1)]</div><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Name</th><th>Description</th><th>Output Path</th><th>Ignored Params</th><th>Skipped Reason</th><th>Images</th><th>tray_height</th><th>height</th><th>partType</th><th>designFileName</th><th>instanceName</th><th>v</th><th>tray_width</th></tr></thead> <tbody><tr class="" x-show="searchQuery === &#39;&#39; || (&#39;small-tray /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-small-tray-box.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>small-tray</td><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-small-tray-box.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>28</td><td>box</td><td>small-tray</td><td>small-tray</td><td>v0.1</td><td>46</td></tr><tr class="" x-show="searchQuery === &#39;&#39; || (&#39;small-tray /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-small-tray-startBox.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>small-tray</td><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-small-tray-startBox.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>28</td><td>startBox</td><td>small-tray</td><td>small-tray</td><td>v0.1</td><td>46</td></tr><tr class="" x-show="searchQuery === &#39;&#39; || (&#39;small-tray /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-small-tray-endBox.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>small-tray</td><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-small-tray-endBox.stl</td><td>[]</td><td></td><td>no images generated</td><td>50</td><td>28</td><td>endBox</td><td>small-tray</td><td>small-tray</td><td>v0.1</td><td>46</td></tr><tr class="" x-show="searchQuery === &#39;&#39; || (&#39;large-tray-35 /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-35-box.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-35</td><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-35-box.stl</td><td>[]</td><td></td><td>no images generated</td><td>250</td><td>35</td><td>box</td><td>small-tray</td><td>large-tray-35</td><td>v0.1</td><td>230</td></tr><tr class="" x-show="searchQuery === &#39;&#39; || (&#39;large-tray-35 /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-35-startBox.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-35</td><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-35-startBox.stl</td><td>[]</td><td></td><td>no images generated</td><td>250</td><td>35</td><td>startBox</td><td>small-tray</td><td>large-tray-35</td><td>v0.1</td><td>230</td></tr><tr class="" x-show="searchQuery === &#39;&#39; || (&#39;large-tray-35 /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-35-endBox.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-35</td><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-35-endBox.stl</td><td>[]</td><td></td><td>no images generated</td><td>250</td><td>35</td><td>endBox</td><td>small-tray</td><td>large-tray-35</td><td>v0.1</td><td>230</td></tr><tr class="" x-show="searchQuery === &#39;&#39; || (&#39;large-tray-50 /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-50-box.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-50</td><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-50-box.stl</td><td>[]</td><td></td><td>no images generated</td><td>250</td><td>50</td><td>box</td><td>small-tray</td><td>large-tray-50</td><td>v0.1</td><td>230</td></tr><tr class="" x-show="searchQuery === &#39;&#39; || (&#39;large-tray-50 /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-50-startBox.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-50</td><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-50-startBox.stl</td><td>[]</td><td></td><td>no images generated</td><td>250</td><td>50</td><td>startBox</td><td>small-tray</td><td>large-tray-50</td><td>v0.1</td><td>230</td></tr><tr class="" x-show="searchQuery === &#39;&#39; || (&#39;large-tray-50 /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-50-endBox.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-50</td><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-50-endBox.stl</td><td>[]</td><td></td><td>no images generated</td><td>250</td><td>50</td><td>endBox</td><td>small-tray</td><td>large-tray-50</td><td>v0.1</td><td>230</td></tr><tr class="" x-show="searchQuery === &#39;&#39; || (&#39;large-tray-100 /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-100-box.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-100</td><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-100-box.stl</td><td>[]</td><td></td><td>no images generated</td><td>250</td><td>100</td><td>box</td><td>small-tray</td><td>large-tray-100</td><td>v0.1</td><td>230</td></tr><tr class="" x-show="searchQuery === &#39;&#39; || (&#39;large-tray-100 /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-100-startBox.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-100</td><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-100-startBox.stl</td><td>[]</td><td></td><td>no images generated</td><td>250</td><td>100</td><td>startBox</td><td>small-tray</td><td>large-tray-100</td><td>v0.1</td><td>230</td></tr><tr class="" x-show="searchQuery === &#39;&#39; || (&#39;large-tray-100 /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-100-endBox.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-100</td><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-100-endBox.stl</td><td>[]</td><td></td><td>no images generated</td><td>250</td><td>100</td><td>endBox</td><td>small-tray</td><td>large-tray-100</td><td>v0.1</td><td>230</td></tr></tbody></table></div></div></div></div><div class="my-2"></div><div x-data="{ isOpen: true }"><button class="button is-large is-fullwidth" @click="isOpen = !isOpen"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> STL Results (12)</button><div x-show="isOpen"><div class="table-container"><table class="table is-fullwidth"><thead><tr><th style="width: 150px;">Instance</th><th style="width: 200px;">Output Path</th><th style="width: 200px;">Command</th><th style="width: 100px;">Time Taken</th><th style="width: 200px;">Params</th><th style="width: 150px;">Error</th><th style="width: 150px;">Debug</th></tr></thead> <tbody><tr x-show="searchQuery === &#39;&#39; || (&#39;large-tray-100 /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-100-box.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-100</td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-100-box.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></td><td>2.096039042s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>designFileName = &#34;small-tray&#34;;
-height = 100;
-instanceName = &#34;large-tray-100&#34;;
-partType = &#34;box&#34;;
-tray_height = 250;
-tray_width = 230;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39;large-tray-100 /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-100-endBox.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-100</td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-100-endBox.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></td><td>1.710025375s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>designFileName = &#34;small-tray&#34;;
-height = 100;
-instanceName = &#34;large-tray-100&#34;;
-partType = &#34;endBox&#34;;
-tray_height = 250;
-tray_width = 230;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39;large-tray-100 /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-100-startBox.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-100</td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-100-startBox.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></td><td>1.747393458s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>designFileName = &#34;small-tray&#34;;
-height = 100;
-instanceName = &#34;large-tray-100&#34;;
-partType = &#34;startBox&#34;;
-tray_height = 250;
-tray_width = 230;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39;large-tray-35 /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-35-box.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-35</td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-35-box.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></td><td>1.749462916s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>designFileName = &#34;small-tray&#34;;
-height = 35;
-instanceName = &#34;large-tray-35&#34;;
-partType = &#34;box&#34;;
-tray_height = 250;
-tray_width = 230;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39;large-tray-35 /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-35-endBox.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-35</td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-35-endBox.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></td><td>1.855308375s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>designFileName = &#34;small-tray&#34;;
-height = 35;
-instanceName = &#34;large-tray-35&#34;;
-partType = &#34;endBox&#34;;
-tray_height = 250;
-tray_width = 230;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39;large-tray-35 /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-35-startBox.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-35</td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-35-startBox.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></td><td>1.72814075s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>designFileName = &#34;small-tray&#34;;
-height = 35;
-instanceName = &#34;large-tray-35&#34;;
-partType = &#34;startBox&#34;;
-tray_height = 250;
-tray_width = 230;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39;large-tray-50 /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-50-box.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-50</td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-50-box.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></td><td>1.686522833s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>designFileName = &#34;small-tray&#34;;
-height = 50;
-instanceName = &#34;large-tray-50&#34;;
-partType = &#34;box&#34;;
-tray_height = 250;
-tray_width = 230;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39;large-tray-50 /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-50-endBox.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-50</td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-50-endBox.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></td><td>2.011048958s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>designFileName = &#34;small-tray&#34;;
-height = 50;
-instanceName = &#34;large-tray-50&#34;;
-partType = &#34;endBox&#34;;
-tray_height = 250;
-tray_width = 230;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39;large-tray-50 /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-50-startBox.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-50</td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-large-tray-50-startBox.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></td><td>1.815432458s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>designFileName = &#34;small-tray&#34;;
-height = 50;
-instanceName = &#34;large-tray-50&#34;;
-partType = &#34;startBox&#34;;
-tray_height = 250;
-tray_width = 230;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39;small-tray /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-small-tray-box.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>small-tray</td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-small-tray-box.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></td><td>1.867353416s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>designFileName = &#34;small-tray&#34;;
+</code></pre></details><h2 class="is-size-4">Output Paths</h2><div class="instance"><div class="param"><strong>OutputPath:</strong> /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/report.html</div>=</div></div></div><div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Instances</button><div x-show="isOpen"><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Name</th><th>Description</th><th>Output Path</th><th>Ignored Params</th><th>Images</th><th>name</th><th>version</th><th>tray_width</th><th>tray_height</th><th>height</th><th>partType</th><th>designFileName</th></tr></thead> <tbody><tr class="" x-show="searchQuery === &#39;&#39; || (&#39;small-tray &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>small-tray</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
 height = 28;
-instanceName = &#34;small-tray&#34;;
+name = &#34;small-tray&#34;;
 partType = &#34;box&#34;;
 tray_height = 50;
 tray_width = 46;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>small-tray</td><td>v0.1</td><td>46</td><td>50</td><td>28</td><td>box</td><td>small-tray</td></tr>  <tr class="" x-show="searchQuery === &#39;&#39; || (&#39;large-tray-35 &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-35</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
+height = 35;
+name = &#34;large-tray-35&#34;;
+partType = &#34;box&#34;;
+tray_height = 250;
+tray_width = 230;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>large-tray-35</td><td>v0.1</td><td>230</td><td>250</td><td>35</td><td>box</td><td>small-tray</td></tr>  <tr class="" x-show="searchQuery === &#39;&#39; || (&#39;large-tray-50 &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-50</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
+height = 50;
+name = &#34;large-tray-50&#34;;
+partType = &#34;box&#34;;
+tray_height = 250;
+tray_width = 230;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>large-tray-50</td><td>v0.1</td><td>230</td><td>250</td><td>50</td><td>box</td><td>small-tray</td></tr>  <tr class="" x-show="searchQuery === &#39;&#39; || (&#39;large-tray-100 &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-100</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
+height = 100;
+name = &#34;large-tray-100&#34;;
+partType = &#34;box&#34;;
+tray_height = 250;
+tray_width = 230;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>large-tray-100</td><td>v0.1</td><td>230</td><td>250</td><td>100</td><td>box</td><td>small-tray</td></tr>  </tbody></table></div> <div class="my-2"></div></div></div><div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> STL Results (4)</button><div x-show="isOpen"><div class="table-container"><table class="table is-fullwidth"><thead><tr><th style="width: 150px;">Instance</th><th style="width: 100px;">Time Taken</th><th style="width: 200px;">Params</th><th style="width: 150px;">Debug</th><th style="width: 200px;">Command</th></tr></thead> <tbody><tr x-show="searchQuery === &#39;&#39; || (&#39;large-tray-100 &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-100 </td><td><a href="" target="_blank"></a></td><td>1.708691833s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
+height = 100;
+name = &#34;large-tray-100&#34;;
+partType = &#34;box&#34;;
+tray_height = 250;
+tray_width = 230;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
                                             <details>
                                                 <summary>OpenSCAD Code</summary>
                                                 @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
                                             </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39;small-tray /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-small-tray-endBox.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>small-tray</td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-small-tray-endBox.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></td><td>1.805201125s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>designFileName = &#34;small-tray&#34;;
+                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/usr/local/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box.stl&#39; --render --backend=manifold -D &#39;name=&#34;large-tray-100&#34;&#39; -D &#39;tray_height=250&#39; -D &#39;height=100&#39; -D &#39;tray_width=230&#39; -D &#39;partType=&#34;box&#34;&#39; -D &#39;designFileName=&#34;small-tray&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39;large-tray-35 &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-35 </td><td><a href="" target="_blank"></a></td><td>1.700689792s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
+height = 35;
+name = &#34;large-tray-35&#34;;
+partType = &#34;box&#34;;
+tray_height = 250;
+tray_width = 230;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+                                            <details>
+                                                <summary>OpenSCAD Code</summary>
+                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+                                            </details>
+                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/usr/local/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box.stl&#39; --render --backend=manifold -D &#39;tray_width=230&#39; -D &#39;tray_height=250&#39; -D &#39;height=35&#39; -D &#39;partType=&#34;box&#34;&#39; -D &#39;designFileName=&#34;small-tray&#34;&#39; -D &#39;name=&#34;large-tray-35&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39;large-tray-50 &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>large-tray-50 </td><td><a href="" target="_blank"></a></td><td>1.705528625s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
+height = 50;
+name = &#34;large-tray-50&#34;;
+partType = &#34;box&#34;;
+tray_height = 250;
+tray_width = 230;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+                                            <details>
+                                                <summary>OpenSCAD Code</summary>
+                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+                                            </details>
+                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/usr/local/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box.stl&#39; --render --backend=manifold -D &#39;height=50&#39; -D &#39;partType=&#34;box&#34;&#39; -D &#39;designFileName=&#34;small-tray&#34;&#39; -D &#39;name=&#34;large-tray-50&#34;&#39; -D &#39;tray_width=230&#39; -D &#39;tray_height=250&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39;small-tray &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>small-tray </td><td><a href="" target="_blank"></a></td><td>1.781476625s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
 height = 28;
-instanceName = &#34;small-tray&#34;;
-partType = &#34;endBox&#34;;
+name = &#34;small-tray&#34;;
+partType = &#34;box&#34;;
 tray_height = 50;
 tray_width = 46;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
                                             <details>
                                                 <summary>OpenSCAD Code</summary>
                                                 @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
                                             </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39;small-tray /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-small-tray-startBox.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>small-tray</td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/small-tray-small-tray-startBox.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></td><td>2.5040945s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>designFileName = &#34;small-tray&#34;;
-height = 28;
-instanceName = &#34;small-tray&#34;;
-partType = &#34;startBox&#34;;
-tray_height = 50;
-tray_width = 46;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></details></td></tr></tbody></table></div></div></div><div x-data="{ isOpen: false }"><button class="button is-large is-fullwidth" @click="isOpen = !isOpen"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> No Image Generation Results</button><div x-show="isOpen"><div>Add export images to the config file to generate images for each instance:<div class="code-block"><code style="white-space: pre;"><pre>code</pre></code></div></div></div></div><div><p>Generated by openscadgen  v2.3.11-BETA at 2025-05-19 10:44:34</p></div></div></body></html>
+                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/usr/local/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box.stl&#39; --render --backend=manifold -D &#39;name=&#34;small-tray&#34;&#39; -D &#39;tray_width=46&#39; -D &#39;tray_height=50&#39; -D &#39;height=28&#39; -D &#39;partType=&#34;box&#34;&#39; -D &#39;designFileName=&#34;small-tray&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad</pre></code></div></details></td></tr></tbody></table></div></div></div><div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Images</button><div x-show="isOpen"><div>Add export images to the config file to generate images for each instance:<div class="code-block"><code style="white-space: pre;"><pre>
+                    [[openscadgen.export_images]]
+                    name = &#34;front&#34;
+                    coord = &#34;0,0,0,0,0,0,100&#34;
+                    </pre></code></div></div></div></div><div><p>Generated by openscadgen OpenSCAD version 2025.06.06 v2.6.2__2025.07.02-BETA at 2025-07-02 20:33:53</p></div><script>
+        function alpineReportData() {
+            return {
+                darkMode: true,
+                searchQuery: '',
+                configHistory: JSON.parse(localStorage.getItem('configHistory') || '[]'),
+                configFile: '',
+                savedConfigFile: localStorage.getItem('savedConfigFile') || '',
+                searchHistory: JSON.parse(localStorage.getItem('searchHistory') || '[]'),
+                saveConfigFile(path) {
+                    if (path && !this.configHistory.includes(path)) {
+                        this.configHistory.unshift(path);
+                        localStorage.setItem('configHistory', JSON.stringify(this.configHistory));
+                    }
+                    this.savedConfigFile = path;
+                    localStorage.setItem('savedConfigFile', path);
+                },
+                init() {
+                    // Watchers
+                    this.$watch('darkMode', value => {
+                        localStorage.setItem('darkMode', value);
+                        document.documentElement.classList.toggle('dark', value);
+                    });
+                    this.$watch('searchQuery', value => {
+                        if (value && !this.searchHistory.includes(value)) {
+                            this.searchHistory.unshift(value);
+                            this.searchHistory = this.searchHistory.slice(0, 20);
+                            localStorage.setItem('searchHistory', JSON.stringify(this.searchHistory));
+                        }
+                    });
+
+                    // Initial dark mode setup
+                    this.darkMode = localStorage.getItem('darkMode') === 'true' ||
+                        (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+                    // Initial config file setup
+                    this.configFile = '\/Users\/gregc\/mine\/making\/3d-printing\/openSCAD\/openscadgen\/examples\/small-tray\/config.toml'; // or whatever templating you use
+                    if (this.configFile) {
+                        this.saveConfigFile(this.configFile);
+                    }
+                }
+            }
+        }
+        </script><script>
+            // Enable htmx debug mode
+            window.htmx && (htmx.config.debug = true);
+
+            // Log all htmx events
+            document.body.addEventListener('htmx:afterRequest', function(evt) {
+                console.log('htmx:afterRequest', evt);
+            });
+            document.body.addEventListener('htmx:sendError', function(evt) {
+                console.error('htmx:sendError', evt);
+            });
+            document.body.addEventListener('htmx:responseError', function(evt) {
+                console.error('htmx:responseError', evt);
+            });
+            document.body.addEventListener('htmx:beforeRequest', function(evt) {
+                console.log('htmx:beforeRequest', evt);
+            });
+            document.body.addEventListener('htmx:beforeSend', function(evt) {
+                console.log('htmx:beforeSend', evt);
+            });
+            document.body.addEventListener('htmx:afterOnLoad', function(evt) {
+                console.log('htmx:afterOnLoad', evt);
+            });
+        </script></body></html>
