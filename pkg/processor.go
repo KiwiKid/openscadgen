@@ -36,20 +36,6 @@ func getOutputPaths(config *models.Config) models.OutputPaths {
 	// Get the directory containing the config file - this is our anchor point
 	configDir := filepath.Dir(config.ConfigFile)
 
-	// Convert configDir to relative path if possible
-	workingDir, err := os.Getwd()
-	if err != nil {
-		logError(fmt.Sprintf("Warning: Could not get working directory: %s", err))
-		workingDir = configDir
-	}
-
-	// Try to make configDir relative to working directory
-	relConfigDir, err := filepath.Rel(workingDir, configDir)
-	if err != nil {
-		logError(fmt.Sprintf("Warning: Could not make config dir relative: %s", err))
-		relConfigDir = configDir
-	}
-
 	// Use version as-is for paths (no normalization)
 	versionPath := config.Design.Version
 
@@ -64,90 +50,46 @@ func getOutputPaths(config *models.Config) models.OutputPaths {
 	exportNameFormat := config.Design.ExportNameFormat
 	hasExportPrefix := strings.HasPrefix(exportNameFormat, "export/") || strings.HasPrefix(exportNameFormat, "/export")
 
-	/*if config.Design.OutputPath != "" {
-		// When output path is explicitly specified, use it relative to config dir
-		outputPath := filepath.Join(relConfigDir, config.Design.OutputPath)
-
-		if config.Debug {
-			log.Printf("Output path specified in config: %s", outputPath)
-		}
-
-		if !config.Quiet {
-			LogKeyValuePair("v", config.Design.Version)
-			LogKeyValuePair("getOutputPaths:Output path", filepath.Join(outputPath, config.Design.Version))
-		}
-
-		// Construct paths with the correct directory structure
-		var baseExportPath, exportFolderPath string
-		var output models.OutputPaths
-		if hasExportPrefix {
-			output = models.OutputPaths{
-				OutputPath:            filepath.Join(baseExportPath),
-				ExportFolderPath:      exportFolderPath,
-				LowQualityWarningPath: filepath.Join(baseExportPath, "LOW_QUALITY_WARNING.md"),
-				ReadmePath:            filepath.Join(baseExportPath, "README.md"),
-				LogOutputPath:         filepath.Join(baseExportPath, "export_log.log"),
-				ReportPath:            filepath.Join(baseExportPath, "report.html"),
-			}
-
-				exportFolderPath = relConfigDir
-				baseExportPath = relConfigDir
+	// Determine the base directory for exports
+	var baseDir string
+	if len(config.GetInputPaths()) > 0 {
+		inputPath := config.GetInputPaths()[0].Path
+		if filepath.IsAbs(inputPath) {
+			// For absolute input paths, use the input file's directory
+			baseDir = filepath.Dir(inputPath)
 		} else {
-			exportFolderPath = filepath.Join("export", outputPath)
-			baseExportPath = filepath.Join("export", outputPath, designName)
-			output = models.OutputPaths{
-				OutputPath:            filepath.Join(baseExportPath, "export", versionPath),
-				ExportFolderPath:      exportFolderPath,
-				LowQualityWarningPath: filepath.Join(baseExportPath, "LOW_QUALITY_WARNING.md"),
-				ReadmePath:            filepath.Join(baseExportPath, "README.md"),
-				LogOutputPath:         filepath.Join(baseExportPath, "export_log.log"),
-				ReportPath:            filepath.Join(relConfigDir, "export", versionPath, "report.html"),
-			}
+			// For relative input paths, always use the config file's directory
+			// This ensures exports always go to a sibling 'export' folder relative to the config file
+			baseDir = configDir
 		}
-
-		if exportFolderPath == "" {
-			log.Panicf("hmm empty export folder path ")
-		}
-
-		if filepath.Join(baseExportPath, "export", versionPath) == "" {
-			log.Panicf("hmm empty export folder path ")
-		}
-
-		return output
-
-	}*/
-
-	// For relative config file paths, use paths relative to the config file directory
-	var baseExportPath, exportFolderPath string
-	if hasExportPrefix {
-		exportFolderPath = relConfigDir
-		baseExportPath = relConfigDir
 	} else {
-		exportFolderPath = filepath.Join(relConfigDir)
-		baseExportPath = filepath.Join(relConfigDir, designName)
+		baseDir = configDir
 	}
 
-	// Get the directory of the first input path for prefixing
-	var inputDir string
-	if len(config.GetInputPaths()) > 0 {
-		inputDir = filepath.Dir(config.GetInputPaths()[0].Path)
+	// Construct paths relative to the base directory
+	var exportFolderPath, baseExportPath string
+	if hasExportPrefix {
+		exportFolderPath = baseDir
+		baseExportPath = baseDir
 	} else {
-		inputDir = "."
+		exportFolderPath = filepath.Join(baseDir, "export", versionPath)
+		baseExportPath = filepath.Join(baseDir, "export", versionPath, designName)
 	}
 
 	outputPath := filepath.Join(baseExportPath, "export", versionPath)
 
 	output := models.OutputPaths{
 		OutputPath:            outputPath,
-		ExportFolderPath:      filepath.Join(baseExportPath, exportFolderPath),
+		ExportFolderPath:      exportFolderPath,
 		LowQualityWarningPath: filepath.Join(baseExportPath, "LOW_QUALITY_WARNING.md"),
 		ReadmePath:            filepath.Join(baseExportPath, "README.md"),
 		LogOutputPath:         filepath.Join(baseExportPath, "export_log.log"),
-		ReportPath:            filepath.Join(baseExportPath, inputDir, "report.html"),
+		ReportPath:            filepath.Join(baseExportPath, "report.html"),
 	}
 
 	log.Printf("ExportNameFormat: %+v", config.Design.ExportNameFormat)
-	log.Printf("relConfigDir: %+v", relConfigDir)
+	log.Printf("configDir: %+v", configDir)
+	log.Printf("baseDir: %+v", baseDir)
 	log.Printf("outputPath: %+v", outputPath)
 	log.Printf("exportFolderPath: %+v", exportFolderPath)
 	log.Printf("baseExportPath: %+v", baseExportPath)
@@ -201,7 +143,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.6.0__2025.06.20-BETA"
+const VERSION = "v2.6.2__2025.07.02-BETA"
 
 type Version struct {
 	OpenSCADGen string
@@ -242,15 +184,15 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 	}
 
 	// Get output paths
-	/*outputPaths := getOutputPaths(config)
+	outputPaths := getOutputPaths(config)
 
 	// Create export folder if it doesn't exist
 	if err := os.MkdirAll(outputPaths.ExportFolderPath, 0755); err != nil {
 		return models.ProcessResult{}, fmt.Errorf("Process: failed to create export folder '%s': %w", outputPaths.ExportFolderPath, err)
-	}*/
+	}
 
 	// Check if export folder has existing files
-	//clearExportFolder(config, outputPaths)
+	clearExportFolder(config, outputPaths)
 
 	// Generate instances
 	var instances []models.InstanceConfig
@@ -465,15 +407,15 @@ func clearExportFolder(config *models.Config, outputPaths models.OutputPaths) {
 			return
 		}
 		if config.Debug {
-			LogKeyValuePair("OverwriteExisting set, skipping check", outputPaths.ExportFolderPath)
+			LogKeyValuePair("OverwriteExisting set, skipping check", outputPaths.OutputPath)
 		}
 		if config.Server {
-			LogKeyValuePair("Server mode, skipping check", outputPaths.ExportFolderPath)
+			LogKeyValuePair("Server mode, skipping check", outputPaths.OutputPath)
 		} else if !config.OverwriteExisting {
 			logWarn(fmt.Sprintf("\nThe export folder (%s) has %d existing files: \n%s\n\n(the '-ow' flag will skip this check)\n\n(tip: if you want to keep the existing stl export files, cancel this run and update the 'version' in the config file, this will generate a new folder and keep the existing files)", outputPaths.ExportFolderPath, len(files), filesStr), false)
+			printDirectoryContents(outputPaths.OutputPath)
 
-			logWarn(fmt.Sprintf("\n\n %d files will be deleted from: \n\n\t%s\n\nDo you want to continue? (y/n):", len(files), outputPaths.ExportFolderPath), true)
-
+			logWarn(fmt.Sprintf("\n\n %d files above will be overwritten: \n\n\t%s\n\nDo you want to continue? (y/n):", len(files), outputPaths.ExportFolderPath), true)
 			reader := bufio.NewReader(os.Stdin)
 			response, _ := reader.ReadString('\n')
 			if response != "y\n" && response != "Y\n" {
@@ -485,10 +427,10 @@ func clearExportFolder(config *models.Config, outputPaths models.OutputPaths) {
 			return
 		}
 
-		err := os.RemoveAll(outputPaths.ExportFolderPath)
+		/*err := os.RemoveAll(outputPaths.ExportFolderPath)
 		if err != nil {
 			log.Panicf(colorRed+"Clear export folder Failed to delete export folder (outputPaths.ExportFolderPath): '%s' %s", outputPaths.ExportFolderPath, err)
-		}
+		}*/
 	}
 }
 
@@ -609,8 +551,12 @@ var PRESET_EXPORT_IMAGES = []models.ExportCameraCoordinates{
 	},
 	// "nice" - a diagonal downward looking view
 	{
+		CameraName:        "nice-far",
+		CameraCoordinates: "0,0,0,45,0,45,800",
+	},
+	{
 		CameraName:        "nice",
-		CameraCoordinates: "0,0,0,45,0,45,300",
+		CameraCoordinates: "0,0,0,45,0,45,350",
 	},
 	{
 		CameraName:        "nice-near",
@@ -3023,3 +2969,39 @@ type ChanProgress struct {
 func (c *ChanProgress) Update(msg string) { c.Updates <- msg }
 func (c *ChanProgress) Done()             { c.Updates <- "done" }
 func (c *ChanProgress) Error(err error)   { c.Updates <- "error: " + err.Error() }
+
+func printDirectoryContents(dir string) {
+	printDirectoryContentsRecursive(dir, 0)
+}
+
+func printDirectoryContentsRecursive(dir string, depth int) {
+	contents, err := os.ReadDir(dir)
+	if err != nil {
+		log.Printf("Failed to read directory %s: %v", dir, err)
+		return
+	}
+
+	// Print header only for the root directory
+	if depth == 0 {
+		log.Printf("\n===== Directory Contents:  =====\n (%s)\n", dir)
+	}
+
+	// Create indentation based on depth
+	indent := strings.Repeat("  ", depth)
+
+	for _, entry := range contents {
+		if entry.IsDir() {
+			log.Printf("%s📁 %s/\n", indent, entry.Name())
+			// Recursively print subdirectory contents
+			subDir := filepath.Join(dir, entry.Name())
+			printDirectoryContentsRecursive(subDir, depth+1)
+		} else {
+			log.Printf("%s📄 %s\n", indent, entry.Name())
+		}
+	}
+
+	// Print footer only for the root directory
+	if depth == 0 {
+		log.Printf("=============================\n")
+	}
+}

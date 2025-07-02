@@ -176,8 +176,8 @@ union(){
          }
          
          
-         phone_holder_rotate = [0,80,30];
-         phone_holder_translate = [-30,55,55];
+         phone_holder_rotate = [0,80,25];
+         phone_holder_translate = [-32,60,65];
 
          phone_holder_size = [120,160,20];
          
@@ -195,6 +195,9 @@ union(){
         if(renderType == "bottom_gap"){
             move([-width/2,40,-70])
             cuboid([70,100,100], rounding=4);
+            
+             move([-width/2,height,-20])
+            cuboid([40,180,80], rounding=4);
         }
         }
   }

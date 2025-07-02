@@ -87,12 +87,12 @@ func TestGetOutputPaths(t *testing.T) {
 				Debug: false,
 			},
 			expected: models.OutputPaths{
-				OutputPath:            filepath.Join(tempDir, "designs", "export", "v1.0", "test_design", "export", "v1.0"),
-				ExportFolderPath:      filepath.Join(tempDir, "designs", "export", "v1.0"),
-				LowQualityWarningPath: filepath.Join(tempDir, "designs", "export", "v1.0", "test_design", "LOW_QUALITY_WARNING.md"),
-				ReadmePath:            filepath.Join(tempDir, "designs", "export", "v1.0", "test_design", "README.md"),
-				LogOutputPath:         filepath.Join(tempDir, "designs", "export", "v1.0", "test_design", "export_log.log"),
-				ReportPath:            filepath.Join(tempDir, "designs", "export", "v1.0", "test_design", "report.html"),
+				OutputPath:            filepath.Join(tempDir, "export", "v1.0", "test_design", "export", "v1.0"),
+				ExportFolderPath:      filepath.Join(tempDir, "export", "v1.0"),
+				LowQualityWarningPath: filepath.Join(tempDir, "export", "v1.0", "test_design", "LOW_QUALITY_WARNING.md"),
+				ReadmePath:            filepath.Join(tempDir, "export", "v1.0", "test_design", "README.md"),
+				LogOutputPath:         filepath.Join(tempDir, "export", "v1.0", "test_design", "export_log.log"),
+				ReportPath:            filepath.Join(tempDir, "export", "v1.0", "test_design", "report.html"),
 			},
 		},
 		{
@@ -106,12 +106,12 @@ func TestGetOutputPaths(t *testing.T) {
 				Debug: false,
 			},
 			expected: models.OutputPaths{
-				OutputPath:            filepath.Join(designsDir, "export", "v1.0", "test_design", "export", "v1.0"),
-				ExportFolderPath:      filepath.Join(designsDir, "export", "v1.0"),
-				LowQualityWarningPath: filepath.Join(designsDir, "export", "v1.0", "test_design", "LOW_QUALITY_WARNING.md"),
-				ReadmePath:            filepath.Join(designsDir, "export", "v1.0", "test_design", "README.md"),
-				LogOutputPath:         filepath.Join(designsDir, "export", "v1.0", "test_design", "export_log.log"),
-				ReportPath:            filepath.Join(designsDir, "export", "v1.0", "test_design", "report.html"),
+				OutputPath:            filepath.Join(tempDir, "export", "v1.0", "test_design", "export", "v1.0"),
+				ExportFolderPath:      filepath.Join(tempDir, "export", "v1.0"),
+				LowQualityWarningPath: filepath.Join(tempDir, "export", "v1.0", "test_design", "LOW_QUALITY_WARNING.md"),
+				ReadmePath:            filepath.Join(tempDir, "export", "v1.0", "test_design", "README.md"),
+				LogOutputPath:         filepath.Join(tempDir, "export", "v1.0", "test_design", "export_log.log"),
+				ReportPath:            filepath.Join(tempDir, "export", "v1.0", "test_design", "report.html"),
 			},
 		},
 		{
@@ -144,12 +144,89 @@ func TestGetOutputPaths(t *testing.T) {
 				Debug: false,
 			},
 			expected: models.OutputPaths{
-				OutputPath:            filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1.0"),
+				OutputPath:            filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1.0", "test_design", "export", "v1.0"),
 				ExportFolderPath:      filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1.0"),
-				LowQualityWarningPath: filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1.0", "LOW_QUALITY_WARNING.md"),
-				ReadmePath:            filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1.0", "README.md"),
-				LogOutputPath:         filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1.0", "export_log.log"),
-				ReportPath:            filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1.0", "report.html"),
+				LowQualityWarningPath: filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1.0", "test_design", "LOW_QUALITY_WARNING.md"),
+				ReadmePath:            filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1.0", "test_design", "README.md"),
+				LogOutputPath:         filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1.0", "test_design", "export_log.log"),
+				ReportPath:            filepath.Join(filepath.Dir(filepath.Join("some", "nested", "path", "config.toml")), "export", "v1.0", "test_design", "report.html"),
+			},
+		},
+		{
+			name: "Running from parent directory - ../../openscadgen -c ./folder/config.toml",
+			config: models.Config{
+				ConfigFile: filepath.Join("folder", "config.toml"),
+				Design: models.DesignConfig{
+					InputPath: "test_design.scad",
+					Version:   "v1.0",
+				},
+				Debug: false,
+			},
+			expected: models.OutputPaths{
+				OutputPath:            filepath.Join("folder", "export", "v1.0", "test_design", "export", "v1.0"),
+				ExportFolderPath:      filepath.Join("folder", "export", "v1.0"),
+				LowQualityWarningPath: filepath.Join("folder", "export", "v1.0", "test_design", "LOW_QUALITY_WARNING.md"),
+				ReadmePath:            filepath.Join("folder", "export", "v1.0", "test_design", "README.md"),
+				LogOutputPath:         filepath.Join("folder", "export", "v1.0", "test_design", "export_log.log"),
+				ReportPath:            filepath.Join("folder", "export", "v1.0", "test_design", "report.html"),
+			},
+		},
+		{
+			name: "Running from same directory - ./openscadgen -c ./folder/config.toml",
+			config: models.Config{
+				ConfigFile: filepath.Join(".", "folder", "config.toml"),
+				Design: models.DesignConfig{
+					InputPath: "test_design.scad",
+					Version:   "v1.0",
+				},
+				Debug: false,
+			},
+			expected: models.OutputPaths{
+				OutputPath:            filepath.Join(".", "folder", "export", "v1.0", "test_design", "export", "v1.0"),
+				ExportFolderPath:      filepath.Join(".", "folder", "export", "v1.0"),
+				LowQualityWarningPath: filepath.Join(".", "folder", "export", "v1.0", "test_design", "LOW_QUALITY_WARNING.md"),
+				ReadmePath:            filepath.Join(".", "folder", "export", "v1.0", "test_design", "README.md"),
+				LogOutputPath:         filepath.Join(".", "folder", "export", "v1.0", "test_design", "export_log.log"),
+				ReportPath:            filepath.Join(".", "folder", "export", "v1.0", "test_design", "report.html"),
+			},
+		},
+		{
+			name: "Absolute config path - ./openscadgen -c /absolute/path/config.toml",
+			config: models.Config{
+				ConfigFile: "/absolute/path/config.toml",
+				Design: models.DesignConfig{
+					InputPath: "test_design.scad",
+					Version:   "v1.0",
+				},
+				Debug: false,
+			},
+			expected: models.OutputPaths{
+				OutputPath:            filepath.Join("/absolute/path", "export", "v1.0", "test_design", "export", "v1.0"),
+				ExportFolderPath:      filepath.Join("/absolute/path", "export", "v1.0"),
+				LowQualityWarningPath: filepath.Join("/absolute/path", "export", "v1.0", "test_design", "LOW_QUALITY_WARNING.md"),
+				ReadmePath:            filepath.Join("/absolute/path", "export", "v1.0", "test_design", "README.md"),
+				LogOutputPath:         filepath.Join("/absolute/path", "export", "v1.0", "test_design", "export_log.log"),
+				ReportPath:            filepath.Join("/absolute/path", "export", "v1.0", "test_design", "report.html"),
+			},
+		},
+		{
+			name: "Server mode - should follow same path logic",
+			config: models.Config{
+				ConfigFile: filepath.Join("folder", "config.toml"),
+				Design: models.DesignConfig{
+					InputPath: "test_design.scad",
+					Version:   "v1.0",
+				},
+				Server: true,
+				Debug:  false,
+			},
+			expected: models.OutputPaths{
+				OutputPath:            filepath.Join("folder", "export", "v1.0", "test_design", "export", "v1.0"),
+				ExportFolderPath:      filepath.Join("folder", "export", "v1.0"),
+				LowQualityWarningPath: filepath.Join("folder", "export", "v1.0", "test_design", "LOW_QUALITY_WARNING.md"),
+				ReadmePath:            filepath.Join("folder", "export", "v1.0", "test_design", "README.md"),
+				LogOutputPath:         filepath.Join("folder", "export", "v1.0", "test_design", "export_log.log"),
+				ReportPath:            filepath.Join("folder", "export", "v1.0", "test_design", "report.html"),
 			},
 		},
 		/*{
@@ -188,7 +265,7 @@ func TestGetOutputPaths(t *testing.T) {
 			result := getOutputPaths(&tc.config)
 
 			// Cannot compare log paths directly due to timestamp, so check other fields
-			if tc.name == "With specified output path" {
+			if tc.name == "with_specified_output_path" {
 
 				// Check other fields
 				if normalizePath(result.OutputPath) != normalizePath(tc.expected.OutputPath) {
@@ -642,10 +719,6 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				},
 			},
 			expectedOutputPaths: []string{
-				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value_global2_$value3_name_$test.stl"),
-				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value_global2_$value4_name_$test.stl"),
-				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value2_global2_$value3_name_$test.stl"),
-				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value2_global2_$value4_name_$test.stl"),
 				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value_global2_$value3_name_$test.stl"),
 				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value_global2_$value4_name_$test.stl"),
 				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value2_global2_$value3_name_$test.stl"),
