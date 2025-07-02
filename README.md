@@ -1,6 +1,6 @@
 openscadgen is a simple tool for generating a specific a set of .stl files (or other openscad export formats) from one (or many!) openscad files and a simple human-readable toml config file.
-The config file allows for 
- 
+The config file allows for parameter combinations, multiple input files, image generation, and organized output management.
+
 The goal of the tool is to ease the development, management, production and distribution of large numbers designs or design options based on single openscad file.
 
 A simpler alterative to programmatic wrappers like Makefiles, AnchorSCAD, LuaCAD, PythonSCAD - designed provides a more accessible/structured approach
@@ -11,6 +11,32 @@ https://github.com/user-attachments/assets/61d605fa-3b5a-43c0-98d2-71357f96fc32
 > [!WARNING]
 > Early days and still in active development, please let me know if you encounter any issues or have ideas for improvements.
 
+## Prerequisites
+
+Before using openscadgen, you need:
+
+1. **OpenSCAD** - The tool requires OpenSCAD to be installed and available in your PATH
+2. **A config file** - A `.toml` configuration file that defines your project
+3. **OpenSCAD files** - The `.scad` files you want to generate variations of
+
+## Quick Start
+
+1. **Install openscadgen** from the [releases page](https://github.com/kiwikid/openscadgen/releases)
+2. **Create a simple config**:
+   ```toml
+   [openscadgen]
+   name = "my-design"
+   input_path = "./my-design.scad"
+   export_name_format = "design-{width}mm"
+   version = "v1.0"
+   
+   [[openscadgen.instances]]
+   params = { width = "10,20,30" }
+   ```
+3. **Run the tool**:
+   ```bash
+   ./openscadgen -c config.toml
+   ```
 
 ## Basic Configuration
 
@@ -131,18 +157,61 @@ This configuration:
 - Combines parameter sets to create different configurations
 - Makes it easier to manage complex parameter combinations
 
+## Key Concepts
+
+### Global Parameters
+Use `global_params` to set parameters that apply to all instances:
+
+```toml
+[openscadgen]
+name = "my-design"
+global_params = { partType = "box", material = "PLA" }
+```
+
+### File Name Placeholders
+In `export_name_format`, you can use these placeholders:
+- `{paramName}` - Value of any parameter
+- `{designFileName}` - Name of the source .scad file (without extension)
+- `{instanceName}` - Name of the instance (if specified)
+
+### Output Structure
+Files are organized as:
+```
+export/
+└── v1.0/
+    ├── design-param1-param2.stl
+    ├── design-param1-param2-top.png
+    └── report.html
+```
+
+The `report.html` file provides a visual overview of all generated files with images and metadata, making it easy to browse your results.
+
+### Part Type Generation
+When using `partType` parameter, openscadgen can generate part letters (A, B, C...) for multi-part designs.
+
+### Parameter Processing
+Use `ignore_param_when_processing` to exclude parameters from being passed to OpenSCAD but still use them in file naming:
+
+```toml
+[[openscadgen.input_paths]]
+path = "./design.scad"
+ignore_param_when_processing = "cup_holders_mode"
+```
+
+This is useful when you want to use a parameter for organization but it's not needed by the OpenSCAD file itself.
+
 The config file format uses [toml](https://toml.io/en/) and some examples are include below and more are in the 'examples' directory
 
 To run the tool, you need to have a config file and OpenSCAD executable file available on PATH.
 
 To run, use: 
 ```
-./openscadgen -c path/to/config.yml
+./openscadgen -c path/to/config.toml
 ```
-(where config.yml is the openscadgen config file you want to generate for)
+(where config.toml is the openscadgen config file you want to generate for)
 
 
-An [example config file](./examples/screw-mounted-clip/config.yml) is provided for the excellent "[Command Strip Parametric Broom Handle Clip](https://www.printables.com/model/516117-parametric-broom-handle-holder-openscad-command-st/related)" by [Brian Khuu](https://briankhuu.com/). 
+An [example config file](./examples/screw-mounted-clip/config.toml) is provided for the excellent "[Command Strip Parametric Broom Handle Clip](https://www.printables.com/model/516117-parametric-broom-handle-holder-openscad-command-st/related)" by [Brian Khuu](https://briankhuu.com/). 
 
 # Installation 
 Available via the [github release page](https://github.com/kiwikid/openscadgen/releases)
@@ -150,79 +219,60 @@ Available via the [github release page](https://github.com/kiwikid/openscadgen/r
 
 
 
-# Helpful options
-```flag
--c string
-        Path to config file 
-         the absolute or relative path to the .toml config file
-  -coe
-        Continue on error
-  -config string
-        Path to config file 
-         the absolute or relative path to the .toml config file
-  -continue-on-error
-        Alias for -co
-  -custom-openscad-command string
-        Custom OpenSCAD command to use
-  -d    Alias for -debug
-  -debug
-        debug mode, more output
-  -el
-        Alias for -include-export-log-file
-  -fi
-        Set build info in file attributes (default true) (default true)
-  -fn int
-        Override the default fn value (default none)
-  -h    Alias for -man
-  -hq
-        Set high quality (fn = 200)
-  -i string
-        Alias for -init
-  -ie string
-        Alias for -init
-  -include-export-log-file
-        Include the export log in the README.md file
-  -init string
-        Initialize a new project at the current directory with the given name
-  -init-extended string
-        Initialize a new project at the current directory with the given name - with bosl2 and renderSlicing support
-  -lq
-        Set low quality (fn = 20)
-  -m    Alias for -man
-  -man
-        Display help message
-  -n int
-        Maximum number of instances to process
-  -no-processing
-        'dry-run' mode - will check config and provide instances that will be processed, but not do any processing
-  -np
-        Alias for -no-processing
-  -overwrite
-        Alias for -ow
-  -ow
-        Overrwite existing files
-  -pid
-        Include optional_part_id_letter variable in the call the openscad
-  -q    Alias for -quiet
-  -quiet
-        quiet mode, no log output
-  -r string
-        Alias for -regex
-  -regex string
-        Regex pattern to filter instances by name
-  -sd
-        Alias for -skip-readme
-  -skip-docs
-        Skip generating a README.md file
-  -skip-render
-        Dont run a render before export
-  -sr
-        Alias for -skip-render
-  -v    Alias for -version
-  -version
-        just output the openscadgen and openscad version number
+# Command Line Options
+
+## Basic Usage
+```bash
+-c, -config string     Path to config file (.toml)
+-ow, -overwrite        Overwrite existing files
+-v, -version          Show version information
+-h, -man              Display help message
 ```
 
+## Quality & Performance
+```bash
+-hq                    Set high quality (fn = 200)
+-lq                    Set low quality (fn = 20)
+-fn int               Override the default fn value
+-sr, -skip-render     Don't run a render before export
+```
+
+## Processing Control
+```bash
+-n int                Maximum number of instances to process
+-r, -regex string     Regex pattern to filter instances by name
+-np, -no-processing   Dry-run mode - check config without processing
+-coe, -continue-on-error  Continue on error
+```
+
+## Output Options
+```bash
+-sd, -skip-docs       Skip generating a README.md file
+-el, -include-export-log-file  Include export log in README.md
+-pid                  Include optional_part_id_letter variable
+-fi                   Set build info in file attributes (default: true)
+```
+
+## Project Management
+```bash
+-i, -init string      Initialize a new project
+-ie, -init-extended string  Initialize with BOSL2 and renderSlicing support
+-custom-openscad-command string  Custom OpenSCAD command to use
+```
+
+### Project Initialization
+Use `-init` to quickly create a new project structure:
+```bash
+./openscadgen -init my-new-project
+```
+
+This creates a basic config file and directory structure to get you started quickly.
+
+## Debug & Verbosity
+```bash
+-d, -debug            Debug mode, more output
+-q, -quiet            Quiet mode, no log output
+```
 
 ## Troubleshooting
 
@@ -330,7 +380,7 @@ go build .
 go test -v ./tests
 
 # run
-./openscadgen -c ./examples/screw-mounted-clip/config.yml
+./openscadgen -c ./examples/screw-mounted-clip/config.toml
 
 # test
 
