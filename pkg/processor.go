@@ -143,7 +143,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.6.5__2025.07.02-BETA"
+const VERSION = "v2.6.6__2025.07.02-BETA"
 
 type Version struct {
 	OpenSCADGen string
@@ -2521,7 +2521,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 	}
 
 	if !config.Design.DontUseManifold {
-		args = append(args, "--backend=manifold")
+		//	args = append(args, "--backend=manifold")
 	}
 
 	// Add custom OpenSCAD arguments if provided
@@ -2902,7 +2902,7 @@ func generateImage(instance *models.InstanceConfig, config *models.Config, camer
 		"--projection", "perspective",
 		"--camera", camera.CameraCoordinates,
 		"--preview",
-		"--backend=manifold",
+		//		"--backend Manifold",
 		"--enable=fast-csg",
 	}
 
