@@ -1,6 +1,6 @@
 # These lines configure, where the config file is, how openscad will be run and where the output will be saved
 [openscadgen]
-name = "car-holder-plus"
+name = "text-coasters"
 description = """\
  A simple model that creates a coaster with text on it.
 

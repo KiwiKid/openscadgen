@@ -1,0 +1,22 @@
+[openscadgen]
+name = "icosahedron"
+description = "BOSL2 icosahedron with various sizes"
+
+version = "v0.1"
+
+export_name_format = "/{version}/{designFileName}"
+
+[[openscadgen.input_paths]]
+path = "./icosahedron.scad"
+
+[[openscadgen.export_images]]
+name = "nice"
+
+[[openscadgen.instances]]
+params = { icosahedron_size = 40, icosahedron_anchor = "CENTER" }
+
+[[openscadgen.instances]]
+params = { icosahedron_size = 60, icosahedron_anchor = "CENTER" }
+
+[[openscadgen.instances]]
+params = { icosahedron_size = 25, icosahedron_anchor = "CENTER" } 

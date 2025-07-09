@@ -1,0 +1,22 @@
+[openscadgen]
+name = "cone"
+description = "BOSL2 cone with various sizes"
+
+version = "v0.1"
+
+export_name_format = "/{version}/{designFileName}"
+
+[[openscadgen.input_paths]]
+path = "./cone.scad"
+
+[[openscadgen.export_images]]
+name = "nice"
+
+[[openscadgen.instances]]
+params = { cone_h = 60, cone_r1 = 40, cone_r2 = 0, cone_center = true }
+
+[[openscadgen.instances]]
+params = { cone_h = 40, cone_r1 = 30, cone_r2 = 10, cone_center = false }
+
+[[openscadgen.instances]]
+params = { cone_h = 80, cone_r1 = 20, cone_r2 = 5, cone_center = true } 

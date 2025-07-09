@@ -1,0 +1,16 @@
+[openscadgen]
+name = "cube-tall"
+description = "Tall 30x30x200 cube centered"
+
+version = "v0.1"
+
+export_name_format = "/{version}/{designFileName}"
+
+[[openscadgen.input_paths]]
+path = "./cube-tall.scad"
+
+[[openscadgen.export_images]]
+name = "nice"
+
+[[openscadgen.instances]]
+params = { cube_size = [30,30,200], cube_center = true } 

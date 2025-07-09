@@ -3,7 +3,6 @@ cube_center = true;
 cube_anchor = "CENTER";
 cube_spin = 0;
 cube_orient = undef;
-chamfer = 0;
 
 include <BOSL2/std.scad>;
 
@@ -12,7 +11,7 @@ $fs = $preview ? 5 : 1;
 $fn = 200;
 
 module cube_demo(){
-	cube(size=cube_size, center=cube_center, anchor=cube_anchor, spin=cube_spin, orient=cube_orient, chamfer=chamfer);
+	cube(size=cube_size, center=cube_center, anchor=cube_anchor, spin=cube_spin, orient=cube_orient);
 }
 
-cube_demo();
+cube_demo(); 

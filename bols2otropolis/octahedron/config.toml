@@ -4,23 +4,20 @@ description = ""
 
 version = "v0.1"
 
-export_name_format = "/{version}/{designFileName}"
+export_name_format = "/{version}/{designFileName}-size{octahedron_size}-spin{octahedron_spin}"
 
 [[openscadgen.input_paths]]
 path = "./octahedron.scad"
 
 [[openscadgen.export_images]]
-name = "isometric"
-view = [45, 30, 200]
-background = "#ffffff"
-resolution = [800, 600]
+name = "nice"
 
 [[openscadgen.instances]]
-params = { octahedron_size = "40", octahedron_spin = "0" }
+params = { octahedron_size = 40, octahedron_spin = 0 }
 
 [[openscadgen.instances]]
-params = { octahedron_size = "80", octahedron_spin = "45" }
+params = { octahedron_size = 80, octahedron_spin = 45 }
 
 [[openscadgen.instances]]
-params = { octahedron_size = "20", octahedron_spin = "90" }
+params = { octahedron_size = 20, octahedron_spin = 90 }
 

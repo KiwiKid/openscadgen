@@ -1,6 +1,6 @@
 # These lines configure, where the config file is, how openscad will be run and where the output will be saved
 [openscadgen]
-name = "car-holder-plus"
+name = "carovan-cover-helpers"
 description = """\
  A plastic dome cover to make it easier to get the carovan cover over pipes or jutting edges on the carovan room
 """

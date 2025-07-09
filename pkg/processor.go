@@ -168,12 +168,12 @@ var runErrorCodeName = map[RunErrorCode]string{
 func GetVersion() Version {
 	openSCADVersion, err := findOpenSCAD()
 	if err != nil {
-		log.Printf("Error: %v", err)
+		log.Fatalf("Error: %v", err)
 	}
 	return Version{
 		OpenSCADGen: VERSION,
 		OpenSCAD:    openSCADVersion.Version,
-		IsOutOfDate: openSCADVersion.IsOutOfDate,
+		IsOutOfDate: false,
 	}
 }
 
@@ -218,7 +218,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 			}
 			var err error
 			var newInstances []models.InstanceConfig
-			newInstances, _, err = generateInstances(config, dynamicInstance, inputPath)
+			newInstances, _, err = GenerateInstances(config, dynamicInstance, inputPath)
 			if err != nil {
 				if config.ContinueOnError {
 					logError(fmt.Sprintf("Warning: failed to generate instances: %v", err))
@@ -250,7 +250,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 		log.Printf("[DEBUG] Total instances generated: %d", len(instances))
 	}
 
-	errors := validateInstances(instances)
+	errors := validateInstances(instances, config)
 	if len(errors) > 0 {
 		logError("Validation of generated instances failed:")
 		for _, error := range errors {
@@ -341,7 +341,7 @@ type RunError struct {
 	KVPs      map[string]string
 }
 
-func validateInstances(instances []models.InstanceConfig) []RunError {
+func validateInstances(instances []models.InstanceConfig, config *models.Config) []RunError {
 	if config.Debug {
 		logStage("Validating instances")
 	}
@@ -352,7 +352,7 @@ func validateInstances(instances []models.InstanceConfig) []RunError {
 	for _, instance := range instances {
 		if _, exists := exportPaths[instance.RunOutputPathV3]; exists {
 
-			var paramStr string
+			var paramStr string = "\n"
 			for k, v := range instance.Params {
 				paramStr += fmt.Sprintf("%s=%v\n", k, v)
 				instanceParamCount[k]++
@@ -365,7 +365,7 @@ func validateInstances(instances []models.InstanceConfig) []RunError {
 				Message:   fmt.Sprintf("Duplicate export path: \n\n\t%s. \n\n Ensure the export_name_format includes all parameters (in {curlyBrackets}) that are different between instances.", instance.OutputPathV2),
 				KVPs: map[string]string{
 					"exportNameFormat": config.Design.ExportNameFormat,
-					"exportPaths":      paramStr,
+					"prams":            paramStr,
 					"paramCount":       fmt.Sprintf("%+v", instanceParamCount),
 				},
 			})
@@ -690,8 +690,16 @@ func generateCameraCoordinates(direction, distanceKey string) string {
 func makePresetReplacement(exportImage models.ExportCameraCoordinates) []models.ExportCameraCoordinates {
 	if exportImage.CameraName == "all" {
 		return PRESET_EXPORT_IMAGES
+	} else if strings.HasPrefix(exportImage.CameraName, "all") && len(strings.Split(exportImage.CameraName, "-")) == 2 {
+		suffix := strings.Split(exportImage.CameraName, "-")[1]
+		nearPresetImages := make([]models.ExportCameraCoordinates, 0)
+		for _, cm := range PRESET_EXPORT_IMAGES {
+			if strings.HasSuffix(cm.CameraName, suffix) {
+				nearPresetImages = append(nearPresetImages, cm)
+			}
+		}
+		return nearPresetImages
 	}
-
 	// If custom coordinates are provided, use them directly
 	if exportImage.CameraCoordinates != "" {
 		return []models.ExportCameraCoordinates{
@@ -1521,13 +1529,13 @@ func generateAutoName(configuredInstanceConfig models.ConfiguredInstanceConfig, 
 	return fmt.Sprintf("%s_%s", configuredInstanceConfig.Name, inputPath.Path)
 }
 
-func generateInstances(config *models.Config, configuredInstanceConfig models.ConfiguredInstanceConfig, inputPath models.InputPath) ([]models.InstanceConfig, string, error) {
+func GenerateInstances(config *models.Config, configuredInstanceConfig models.ConfiguredInstanceConfig, inputPath models.InputPath) ([]models.InstanceConfig, string, error) {
 	if config.Debug {
 		logStage("=== Generating Instances === ")
 	}
 
 	if inputPath.Path == "" {
-		return nil, "", fmt.Errorf("generateInstances - input path is empty")
+		return nil, "", fmt.Errorf("GenerateInstances - input path is empty")
 	}
 
 	inputPath.RawOpenSCADFile = "N/A (yet)"
@@ -1709,7 +1717,13 @@ func generateInstances(config *models.Config, configuredInstanceConfig models.Co
 			// Always use the full relative path for output
 			//outputPath := filepath.Join(config.ConfigFile, versionSafe, exportName+".stl")
 
-			outputPathReplace := models.MakeFileNameReplacements(config.Design.GlobalParams, instance.Params, instance.IgnoredParams, baseExportPath, config.Design.Version, filepath.Dir(instance.InputPath.Path), config.Quality, instance.AutoName, instance.PartIDLetter)
+			if config.Debug {
+				log.Printf("[DEBUG] MakeFileNameReplacements input: baseExportPath=%s, instanceParams=%v", baseExportPath, instance.Params)
+			}
+			outputPathReplace := models.MakeFileNameReplacements(config.Design.GlobalParams, instance.Params, instance.IgnoredParams, baseExportPath, config.Design.Version, instance.Params["designFileName"].(string), config.Quality, instance.AutoName, instance.PartIDLetter)
+			if config.Debug {
+				log.Printf("[DEBUG] MakeFileNameReplacements output: %s", outputPathReplace)
+			}
 
 			//	instance.OutputPathV2 = outputPath
 			instance.RunOutputPathV3 = filepath.ToSlash(outputPathReplace + ".stl")
@@ -1742,6 +1756,10 @@ func commonPrefix(a, b string) string {
 func paramHasMultipleValues(value interface{}) bool {
 	if strValue, ok := value.(string); ok {
 		return strings.Contains(strValue, ",")
+	}
+	// Check if it's a slice/array
+	if reflect.TypeOf(value).Kind() == reflect.Slice {
+		return true
 	}
 	return false
 }
@@ -1962,12 +1980,6 @@ type OpenSCADVersion struct {
 // hmm windows support?
 func findOpenSCAD() (OpenSCADVersion, error) {
 	// Try to find openscad using `which` command
-	cmd := exec.Command("which", "openscad")
-	output, err := cmd.Output()
-	if err != nil {
-		log.Fatal("OpenSCAD not found in PATH. Make sure you can run openscad from the command line")
-	}
-
 	cmdVer := exec.Command("openscad", "--version")
 	outputVer, err := cmdVer.CombinedOutput()
 	if err != nil {
@@ -1975,45 +1987,10 @@ func findOpenSCAD() (OpenSCADVersion, error) {
 	}
 
 	versionStr := strings.TrimSpace(string(outputVer))
-	var versionDate time.Time
-	var isOutOfDate bool
-
-	// Try to extract date from version string - handle both YYYY.MM and YYYY.MM.DD formats
-	dateRegex := regexp.MustCompile(`(\d{4})\.(\d{2})(?:\.(\d{2}))?`)
-	matches := dateRegex.FindStringSubmatch(versionStr)
-
-	if len(matches) >= 2 {
-		year, _ := strconv.Atoi(matches[1])
-		month, _ := strconv.Atoi(matches[2])
-
-		// Check if we have a day component
-		day := 1 // Default to 1st day of month if no day specified
-		if len(matches) >= 4 && matches[3] != "" {
-			day, _ = strconv.Atoi(matches[3])
-		}
-
-		// Create date from year, month, and day
-		versionDate = time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
-
-		// Check if version is more than 6 months old
-		sixMonthsAgo := time.Now().AddDate(0, -6, 0)
-		isOutOfDate = versionDate.Before(sixMonthsAgo)
-
-		if isOutOfDate {
-			logWarn(fmt.Sprintf("Warning: OpenSCAD version %s is more than 6 months old. Consider updating to the latest version.", versionStr), false)
-		}
-	} else {
-		// If we can't parse the date, assume it's not dated
-		isOutOfDate = false
-
-		logCreation(fmt.Sprintf("OpenSCAD version %s is unknown", versionStr))
-
-	}
 
 	return OpenSCADVersion{
 		Version:     versionStr,
-		Path:        strings.TrimSpace(string(output)),
-		IsOutOfDate: isOutOfDate,
+		IsOutOfDate: false,
 	}, nil
 }
 
@@ -2594,7 +2571,7 @@ func FindOpenSCAD() string {
 	cmd := exec.Command("which", "openscad")
 	output, err := cmd.Output()
 	if err != nil {
-		log.Fatal("OpenSCAD not found in PATH.")
+		log.Fatalf("OpenSCAD not found in PATH. (%+v)", err)
 	}
 	return strings.TrimSpace(string(output))
 }
@@ -2807,8 +2784,23 @@ func generateOpenSCADCommand(config *models.Config, instance *models.InstanceCon
 }*/
 
 func executeCommand(cmd string) error {
-	if err := exec.Command("sh", "-c", cmd).Run(); err != nil {
-		return fmt.Errorf("error executing command: %w", err)
+	command := exec.Command("sh", "-c", cmd)
+
+	// Capture stdout and stderr
+	var stdout, stderr bytes.Buffer
+	command.Stdout = &stdout
+	command.Stderr = &stderr
+
+	if err := command.Run(); err != nil {
+		// Build detailed error message with command output
+		errorDetails := fmt.Sprintf("command failed: %v", err)
+		if stdout.Len() > 0 {
+			errorDetails += fmt.Sprintf("\nstdout: %s", stdout.String())
+		}
+		if stderr.Len() > 0 {
+			errorDetails += fmt.Sprintf("\nstderr: %s", stderr.String())
+		}
+		return fmt.Errorf("%s", errorDetails)
 	}
 	return nil
 }
@@ -2935,6 +2927,12 @@ func generateImage(instance *models.InstanceConfig, config *models.Config, camer
 
 	// Run the command
 	if err := executeCommand(cmd.String()); err != nil {
+		// Log detailed error information
+		logError(fmt.Sprintf("OpenSCAD command failed for image generation"))
+		logError(fmt.Sprintf("Command: %s", cmd.String()))
+		logError(fmt.Sprintf("Output path: %s", outputImgPath))
+		logError(fmt.Sprintf("Error details: %v", err))
+
 		return imageResult, fmt.Errorf("error running OpenSCAD: %w", err)
 	} else {
 		logCreation("Image generation completed")

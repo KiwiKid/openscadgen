@@ -1,0 +1,22 @@
+[openscadgen]
+name = "torus"
+description = "BOSL2 torus with various sizes"
+
+version = "v0.1"
+
+export_name_format = "/{version}/{designFileName}"
+
+[[openscadgen.input_paths]]
+path = "./torus.scad"
+
+[[openscadgen.export_images]]
+name = "nice"
+
+[[openscadgen.instances]]
+params = { torus_r_maj = 50, torus_r_min = 15, torus_anchor = "CENTER" }
+
+[[openscadgen.instances]]
+params = { torus_r_maj = 40, torus_r_min = 25, torus_anchor = "CENTER" }
+
+[[openscadgen.instances]]
+params = { torus_r_maj = 60, torus_r_min = 8, torus_anchor = "CENTER" } 

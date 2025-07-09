@@ -1,0 +1,16 @@
+[openscadgen]
+name = "cube-rectangular"
+description = "Rectangular 50x150x80 cube not centered"
+
+version = "v0.1"
+
+export_name_format = "/{version}/{designFileName}"
+
+[[openscadgen.input_paths]]
+path = "./cube-rectangular.scad"
+
+[[openscadgen.export_images]]
+name = "nice"
+
+[[openscadgen.instances]]
+params = { cube_size = [50,150,80], cube_center = false } 

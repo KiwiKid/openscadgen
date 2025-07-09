@@ -4,21 +4,21 @@ description = ""
 
 version = "v0.1"
 
-export_name_format = "/{version}/{designFileName}"
+export_name_format = "/{version}/{designFileName}-{instance}-{cube_center}-{cube_size}"
 
 [[openscadgen.input_paths]]
 path = "./cube.scad"
 
+
 [[openscadgen.export_images]]
-name = "side"
-coord = "0,0,0,90,0,0,600"
+name = "nice"
 
 [[openscadgen.instances]]
-params = { cube_size = "[100,100,100]", cube_center = "true" }
+params = { cube_size = 50, cube_center = true, instance = "small" }
 
 [[openscadgen.instances]]
-params = { cube_size = "[50,150,80]", cube_center = "false" }
+params = { cube_size = 50, cube_center = false, instance = "medium" }
 
 [[openscadgen.instances]]
-params = { cube_size = "[30,30,200]", cube_center = "true" }
+params = { cube_size = 50, cube_center = true, instance = "chamfer", chamfer=3 }
 

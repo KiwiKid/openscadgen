@@ -217,13 +217,15 @@ func StartServer(serverFolder string) {
 				configEntry := templates.EnterConfigPage()
 				configEntry.Render(context.Background(), w)
 			} else {
-				config, err := pkg.LoadConfig(models.CmdFlags{ConfigFile: configEntryPath})
+				config, err := pkg.LoadConfig(models.CmdFlags{ConfigFile: configEntryPath, Server: true})
 				if err != nil {
 					warning := templates.Warning(fmt.Sprintf("Error: %v", err))
 					warning.Render(context.Background(), w)
 				}
 
-				report := templates.Report(config, []models.InstanceConfig{}, "", []models.GenerateSTLResult{}, []models.GenerateImageResult{}, []string{}, true, configEntryPath)
+				reportMode := "view-config"
+
+				report := templates.Report(reportMode, config, []models.InstanceConfig{}, "", []models.GenerateSTLResult{}, []models.GenerateImageResult{}, []string{}, true, configEntryPath)
 				report.Render(context.Background(), w)
 			}
 		case "POST":
@@ -257,6 +259,8 @@ func StartServer(serverFolder string) {
 				warning.Render(context.Background(), w)
 				return
 			}
+
+			cmdFlags.Server = true
 
 			config, err := pkg.LoadConfig(cmdFlags)
 			if err != nil {

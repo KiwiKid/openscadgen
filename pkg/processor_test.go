@@ -449,12 +449,10 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				},
 			},
 			expectedOutputPaths: []string{
-				//	filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_10_5.stl"),
 				filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_10_15.stl"),
 				filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_20_5.stl"),
 				filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_20_15.stl"),
 				filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_30_15.stl"),
-				//	filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_20_15.stl"),
 				filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_10_5.stl"),
 				filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_30_5.stl"),
 			},
@@ -725,32 +723,6 @@ func TestGenerateDynamicInstances(t *testing.T) {
 				filepath.Join(tempDir, "v1.0", "test_design_v1.0_global_$value2_global2_$value4_name_$test.stl"),
 			},
 		},
-		/*{
-			name: "Instance naming with PartIDLetter",
-			config: models.Config{
-				ConfigFile: configPath,
-				Design: models.DesignConfig{
-					InputPath: inputPath,
-					Version:   "v1.0",
-					ConfiguredInstanceConfig: []models.ConfiguredInstanceConfig{
-						{
-							Name: "test",
-						},
-					},
-					ExportNameFormat: "test_design_{version}_{instanceName}_{part_id_letter}",
-				},
-			},
-			expectedParams: []map[string]interface{}{
-				{
-					"designFileName": "test_design.scad",
-					"name": "test",
-					"version": "v1.0",
-				},
-			},
-			expectedOutputPaths: []string{
-				filepath.Join(tempDir, "v1.0", "test_design_v1.0_test_A.stl"),
-			},
-		},*/
 		{
 			name: "with_param_set_reference",
 			config: models.Config{
@@ -1032,7 +1004,7 @@ func TestGenerateDynamicInstances(t *testing.T) {
 			if len(tc.config.Design.ConfiguredInstanceConfig) > 1 {
 				t.Error("Only one dynamic instance config is supported for testing")
 			}
-			instances, exportLocation, err := generateInstances(&tc.config, tc.config.Design.ConfiguredInstanceConfig[0], models.InputPath{Path: inputPath})
+			instances, exportLocation, err := GenerateInstances(&tc.config, tc.config.Design.ConfiguredInstanceConfig[0], models.InputPath{Path: inputPath})
 			if err != nil {
 				t.Errorf("Error generating instances: %v", err)
 			}
@@ -1406,7 +1378,7 @@ coord = "0,0,0,90,0,0,600"
 				}*/
 
 			// Get instances from the config
-			instances, exportLocation, err := generateInstances(config, config.Design.ConfiguredInstanceConfig[0], config.Design.InputPaths[0])
+			instances, exportLocation, err := GenerateInstances(config, config.Design.ConfiguredInstanceConfig[0], config.Design.InputPaths[0])
 			if err != nil {
 				t.Fatalf("Failed to generate instances: %v", err)
 			}

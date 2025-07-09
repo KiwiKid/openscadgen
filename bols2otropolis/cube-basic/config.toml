@@ -1,0 +1,16 @@
+[openscadgen]
+name = "cube-basic"
+description = "Basic 100x100x100 cube centered"
+
+version = "v0.1"
+
+export_name_format = "/{version}/{designFileName}"
+
+[[openscadgen.input_paths]]
+path = "./cube-basic.scad"
+
+[[openscadgen.export_images]]
+name = "nice"
+
+[[openscadgen.instances]]
+params = { cube_size = [100,100,100], cube_center = true } 

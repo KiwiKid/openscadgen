@@ -1,0 +1,22 @@
+[openscadgen]
+name = "dodecahedron"
+description = "BOSL2 dodecahedron with various sizes"
+
+version = "v0.1"
+
+export_name_format = "/{version}/{designFileName}"
+
+[[openscadgen.input_paths]]
+path = "./dodecahedron.scad"
+
+[[openscadgen.export_images]]
+name = "nice"
+
+[[openscadgen.instances]]
+params = { dodecahedron_size = 35, dodecahedron_anchor = "CENTER" }
+
+[[openscadgen.instances]]
+params = { dodecahedron_size = 50, dodecahedron_anchor = "CENTER" }
+
+[[openscadgen.instances]]
+params = { dodecahedron_size = 20, dodecahedron_anchor = "CENTER" } 

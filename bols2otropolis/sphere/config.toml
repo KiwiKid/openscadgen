@@ -1,0 +1,22 @@
+[openscadgen]
+name = "sphere"
+description = "BOSL2 sphere with various sizes"
+
+version = "v0.1"
+
+export_name_format = "/{version}/{designFileName}"
+
+[[openscadgen.input_paths]]
+path = "./sphere.scad"
+
+[[openscadgen.export_images]]
+name = "nice"
+
+[[openscadgen.instances]]
+params = { sphere_r = 50, sphere_anchor = "CENTER" }
+
+[[openscadgen.instances]]
+params = { sphere_r = 30, sphere_anchor = "BOTTOM" }
+
+[[openscadgen.instances]]
+params = { sphere_r = 80, sphere_anchor = "TOP" } 

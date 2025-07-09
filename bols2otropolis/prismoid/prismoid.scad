@@ -12,7 +12,7 @@ prismoid_chamfer1 = 0;
 prismoid_chamfer2 = 0;
 prismoid_anchor = "BOTTOM";
 prismoid_spin = 0;
-prismoid_orient = "UP";
+prismoid_orient = undef;
 
 include <BOSL2/std.scad>;
 
@@ -20,6 +20,8 @@ $fa = .01;
 $fs = $preview ? 5 : 1;
 $fn = 200;
 
-module prismoid(){
+module prismoid_demo(){
 	prismoid(size1=prismoid_size1, size2=prismoid_size2, h=prismoid_h, shift=prismoid_shift, xang=prismoid_xang, yang=prismoid_yang, rounding=prismoid_rounding, rounding1=prismoid_rounding1, rounding2=prismoid_rounding2, chamfer=prismoid_chamfer, chamfer1=prismoid_chamfer1, chamfer2=prismoid_chamfer2, anchor=prismoid_anchor, spin=prismoid_spin, orient=prismoid_orient);
 }
+
+prismoid_demo();

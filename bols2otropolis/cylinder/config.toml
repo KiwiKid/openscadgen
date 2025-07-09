@@ -1,0 +1,22 @@
+[openscadgen]
+name = "cylinder"
+description = "BOSL2 cylinder with various sizes and chamfers"
+
+version = "v0.1"
+
+export_name_format = "/{version}/{designFileName}"
+
+[[openscadgen.input_paths]]
+path = "./cylinder.scad"
+
+[[openscadgen.export_images]]
+name = "nice"
+
+[[openscadgen.instances]]
+params = { cylinder_h = 50, cylinder_r = 25, cylinder_center = true }
+
+[[openscadgen.instances]]
+params = { cylinder_h = 80, cylinder_r = 15, cylinder_center = false, cylinder_chamfer = 5 }
+
+[[openscadgen.instances]]
+params = { cylinder_h = 30, cylinder_r = 40, cylinder_center = true, cylinder_rounding = 10 } 
