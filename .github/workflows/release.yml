@@ -30,6 +30,9 @@ jobs:
       - name: Install dependencies
         run: go get .
 
+      - name: Install templ
+        run: go install github.com/a-h/templ/cmd/templ@latest
+
       - name: Install OpenSCAD Nightly
         run: |
           sudo apt-get update
