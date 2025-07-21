@@ -5,10 +5,10 @@ $fs = $preview ? 5 : 1;
 $fn = 200;
 
 
-content="#BizSlutCon2025";
+content="⇋";
 text_size=40;
 h=5;
-font="Didot:style=Italic";
+font="";
 spacing=1.0;
 center=false;
 spin=0;
@@ -69,3 +69,4 @@ text_simple(
     hasBase=hasBase,
     baseHeight=baseHeight
 );
+        

@@ -13,7 +13,7 @@ path = "./small-tray.scad"
 
 [[openscadgen.instances]]
 name = "small-tray"
-params = { tray_width = 46, tray_height = 50, height = 28 }
+params = { tray_width = 48, tray_height = 52, height = 30 }
 
 [[openscadgen.instances]]
 name = "large-tray-35"

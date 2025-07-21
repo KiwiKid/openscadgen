@@ -89,6 +89,7 @@ type CmdFlags struct {
 	OverrideFN                   int    `json:"override_fn"`
 	HighQuality                  bool   `json:"high_quality"`
 	LowQuality                   bool   `json:"low_quality"`
+	EnableFileWatcher            bool   `json:"enable_file_watcher"`
 }
 
 type OutputPaths struct {
@@ -128,6 +129,7 @@ type Config struct {
 	SetBuildInfoInFileAttributes bool   `flag:"fi"`
 	Server                       bool   `flag:"s"`
 	ServerFolder                 string `flag:"sf"`
+	EnableFileWatcher            bool   `flag:"efw"`
 	OpenSCADVersion              string
 	OpenScadGenVersion           string
 	InitProjectName              string
@@ -336,8 +338,6 @@ func MakeFileNameReplacements(globalParams map[string]interface{}, instanceParam
 	// Replace special placeholders
 	formatToUse = strings.ReplaceAll(formatToUse, "{designFileName}", fileName)
 	formatToUse = strings.ReplaceAll(formatToUse, "${designFileName}", fileName)
-	//	formatToUse = strings.ReplaceAll(formatToUse, "{version}", versionPathSafe)
-	//	formatToUse = strings.ReplaceAll(formatToUse, "${version}", versionPathSafe)
 	formatToUse = strings.ReplaceAll(formatToUse, "{part_id_letter}", partIdLetter)
 	formatToUse = strings.ReplaceAll(formatToUse, "${part_id_letter}", partIdLetter)
 
@@ -349,6 +349,8 @@ func MakeFileNameReplacements(globalParams map[string]interface{}, instanceParam
 	if instanceName != "" {
 		formatToUse = strings.ReplaceAll(formatToUse, "{name}", instanceName)
 		formatToUse = strings.ReplaceAll(formatToUse, "${name}", instanceName)
+		formatToUse = strings.ReplaceAll(formatToUse, "{instanceName}", instanceName)
+		formatToUse = strings.ReplaceAll(formatToUse, "${instanceName}", instanceName)
 	}
 
 	for _, ignoredParam := range ignoredParams {
@@ -386,4 +388,12 @@ func (config *Config) GetInputPaths() []InputPath {
 	return []InputPath{
 		decorateInputPath(InputPath{Path: config.Design.InputPath}),
 	}
+}
+
+// WatcherStatusUI holds data for the watcher status UI
+// (for use in templ components, to avoid import cycles)
+type WatcherStatusUI struct {
+	Watching    bool
+	ConfigPaths []string
+	Enabled     bool
 }

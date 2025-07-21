@@ -27,6 +27,7 @@ import (
 	"github.com/kiwikid/openscadgen/pkg/models"
 	"github.com/kiwikid/openscadgen/pkg/templates"
 	"github.com/pkg/xattr"
+	"github.com/pterm/pterm"
 )
 
 func ShowMan() {
@@ -87,15 +88,17 @@ func getOutputPaths(config *models.Config) models.OutputPaths {
 		ReportPath:            filepath.Join(baseExportPath, "report.html"),
 	}
 
-	log.Printf("ExportNameFormat: %+v", config.Design.ExportNameFormat)
-	log.Printf("configDir: %+v", configDir)
-	log.Printf("baseDir: %+v", baseDir)
-	log.Printf("outputPath: %+v", outputPath)
-	log.Printf("exportFolderPath: %+v", exportFolderPath)
-	log.Printf("baseExportPath: %+v", baseExportPath)
+	if config.Debug {
+		log.Printf("ExportNameFormat: %+v", config.Design.ExportNameFormat)
+		log.Printf("configDir: %+v", configDir)
+		log.Printf("baseDir: %+v", baseDir)
+		log.Printf("outputPath: %+v", outputPath)
+		log.Printf("exportFolderPath: %+v", exportFolderPath)
+		log.Printf("baseExportPath: %+v", baseExportPath)
 
-	log.Printf("OutputPaths:\n\n %+v", output)
+		log.Printf("OutputPaths:\n\n %+v", output)
 
+	}
 	if output.ExportFolderPath == "" || output.ExportFolderPath == "." {
 		log.Panicf("2 hmm empty exportFolderPath folder path %s", output.ExportFolderPath)
 	}
@@ -143,7 +146,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.6.6__2025.07.02-BETA"
+const VERSION = "v2.7.0__2025.07.21-BETA"
 
 type Version struct {
 	OpenSCADGen string
@@ -266,11 +269,32 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 		}
 	}
 
+	totalInstances := len(instances)
+	completedInstances := 0
+
+	// Start progress bars if using terminal progress reporter
+	if terminalProgress, ok := progress.(*TerminalProgressReporter); ok && !config.Quiet {
+		// Start the multi printer for simultaneous progress bars
+		if terminalProgress.multiPrinter != nil {
+			terminalProgress.multiPrinter.Start()
+		}
+	}
+
 	for i := range instances {
+		// Check for cancellation
+		select {
+		case <-cancel:
+			return models.ProcessResult{}, fmt.Errorf("processing cancelled")
+		default:
+		}
+
 		// Set PartIDLetter
 		instances[i].PartIDLetter = getPartIDLetter(i)
 
 		if instances[i].SkippedReason == "" {
+			// Update file progress
+			progress.UpdateFileProgress(completedInstances, totalInstances, instances[i].AutoName)
+
 			if config.Debug {
 				logCreation(fmt.Sprintf("Generated instance %s", instances[i].AutoName))
 				log.Printf("[DEBUG] Generating STL for instance %d: OutputPathV2=%s", i, instances[i].OutputPathV2)
@@ -283,6 +307,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 					if config.ContinueOnError && !config.Server {
 						logError(fmt.Sprintf("Warning: failed to generate STL for instance %s:\n Error:\n%+v", instances[i].Name, err))
 						stlResults = append(stlResults, result)
+						completedInstances++
 						continue
 					} else {
 						return models.ProcessResult{}, fmt.Errorf("failed to generate STL: %w", err)
@@ -315,6 +340,11 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 			}
 		}
 
+		completedInstances++
+
+		// Update total progress
+		progress.UpdateTotalProgress(completedInstances, totalInstances)
+
 		if config.Debug {
 			LogKeyValuePair("ImageResults Count", fmt.Sprintf("%d", len(instances[i].ImageResults)))
 		}
@@ -326,12 +356,21 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 	if config.Debug {
 		LogKeyValuePair("Process complete - ExportLocation:", exportLoc)
 	}
+
+	totalTime := time.Since(start)
+
+	// Store processing time for next run
+	storeProcessingTime(config, totalTime)
+
+	// Signal completion
+	progress.Done()
+
 	return models.ProcessResult{
 		ExportLocation: exportLoc,
 		Instances:      instances,
 		STLResults:     stlResults,
 		ImageResults:   allImageResults,
-		TotalTimeTaken: time.Since(start),
+		TotalTimeTaken: totalTime,
 	}, nil
 }
 
@@ -362,8 +401,10 @@ func validateInstances(instances []models.InstanceConfig, config *models.Config)
 
 			errors = append(errors, RunError{
 				ErrorCode: RunErrorCode_DuplicateExportPath,
-				Message:   fmt.Sprintf("Duplicate export path: \n\n\t%s. \n\n Ensure the export_name_format includes all parameters (in {curlyBrackets}) that are different between instances.", instance.OutputPathV2),
+				Message:   fmt.Sprintf("Duplicate export path: \n\n\t%s. \n\n Ensure the export_name_format includes all parameters (in {curlyBrackets}) that are different between instances. Another common cause is including commas in parameters by mistake", instance.RunOutputPathV3),
 				KVPs: map[string]string{
+					"DuplicatePath":    instance.RunOutputPathV3,
+					"InstanceCount":    fmt.Sprintf("%d", len(instances)),
 					"exportNameFormat": config.Design.ExportNameFormat,
 					"prams":            paramStr,
 					"paramCount":       fmt.Sprintf("%+v", instanceParamCount),
@@ -413,15 +454,16 @@ func clearExportFolder(config *models.Config, outputPaths models.OutputPaths) {
 			LogKeyValuePair("Server mode, skipping check", outputPaths.OutputPath)
 		} else if !config.OverwriteExisting {
 			logWarn(fmt.Sprintf("\nThe export folder (%s) has %d existing files: \n%s\n\n(the '-ow' flag will skip this check)\n\n(tip: if you want to keep the existing stl export files, cancel this run and update the 'version' in the config file, this will generate a new folder and keep the existing files)", outputPaths.ExportFolderPath, len(files), filesStr), false)
-			printDirectoryContents(outputPaths.OutputPath)
+			printDirectoryContents(outputPaths.ExportFolderPath)
 
-			logWarn(fmt.Sprintf("\n\n %d files above will be overwritten: \n\n\t%s\n\nDo you want to continue? (y/n):", len(files), outputPaths.ExportFolderPath), true)
+			logWarn(fmt.Sprintf("\n\n the files above can be overwritten: \n\n\t%s\n\nDo you want to continue? (y/n):", outputPaths.ExportFolderPath), true)
 			reader := bufio.NewReader(os.Stdin)
 			response, _ := reader.ReadString('\n')
 			if response != "y\n" && response != "Y\n" {
 				fmt.Println("Aborting operation.")
 				os.Exit(1)
 			}
+			logWarn("Prepare to recieve", false)
 		} else if !strings.HasPrefix(outputPaths.ExportFolderPath, "export") {
 			log.Printf("Export folder path does not start with export, skipping deletion")
 			return
@@ -1164,7 +1206,12 @@ func generateReadme(config *models.Config, dynamicInstances []*models.InstanceCo
 		paths := instance.GetInstancePaths(config)
 		contents += fmt.Sprintf("- [%s](.%s)\n", paths.OutputPath, strings.ToLower(strings.ReplaceAll(paths.OutputPath, " ", "-")))
 
-		contents += fmt.Sprintf("\t- **%s**: %v\n", "InputPath", paths.InputPath)
+		// Use relative path for input path in README
+		relInputPath := paths.InputPathRelative
+		if relInputPath == "" {
+			relInputPath = filepath.Base(paths.InputPath)
+		}
+		contents += fmt.Sprintf("\t- **%s**: %v\n", "InputPath", relInputPath)
 
 		for name, value := range instance.Params {
 			contents += fmt.Sprintf("\t- **%s**: %v\n", name, value)
@@ -1529,6 +1576,21 @@ func generateAutoName(configuredInstanceConfig models.ConfiguredInstanceConfig, 
 	return fmt.Sprintf("%s_%s", configuredInstanceConfig.Name, inputPath.Path)
 }
 
+func generateUniqueAutoName(exportPath string, instanceName string, inputPath string) string {
+	// Extract the filename from the export path (without extension)
+	baseName := filepath.Base(exportPath)
+	if strings.Contains(baseName, ".") {
+		baseName = baseName[:strings.LastIndex(baseName, ".")]
+	}
+
+	// If the baseName is just the instance name, add the input path for uniqueness
+	if baseName == instanceName {
+		return fmt.Sprintf("%s_%s", instanceName, filepath.Base(inputPath))
+	}
+
+	return baseName
+}
+
 func GenerateInstances(config *models.Config, configuredInstanceConfig models.ConfiguredInstanceConfig, inputPath models.InputPath) ([]models.InstanceConfig, string, error) {
 	if config.Debug {
 		logStage("=== Generating Instances === ")
@@ -1669,7 +1731,7 @@ func GenerateInstances(config *models.Config, configuredInstanceConfig models.Co
 				ExportImages:       []models.ExportCameraCoordinates{},
 				ImageResults:       []models.GenerateImageResult{},
 				RunOutputImagePath: "",
-				AutoName:           generateAutoName(configuredInstanceConfig, inputPath),
+				AutoName:           "", // Will be set after parameters are processed
 			}
 
 			// Add non-ignored parameters that don't have multiple values
@@ -1720,10 +1782,13 @@ func GenerateInstances(config *models.Config, configuredInstanceConfig models.Co
 			if config.Debug {
 				log.Printf("[DEBUG] MakeFileNameReplacements input: baseExportPath=%s, instanceParams=%v", baseExportPath, instance.Params)
 			}
-			outputPathReplace := models.MakeFileNameReplacements(config.Design.GlobalParams, instance.Params, instance.IgnoredParams, baseExportPath, config.Design.Version, instance.Params["designFileName"].(string), config.Quality, instance.AutoName, instance.PartIDLetter)
+			outputPathReplace := models.MakeFileNameReplacements(config.Design.GlobalParams, instance.Params, instance.IgnoredParams, baseExportPath, config.Design.Version, instance.Params["designFileName"].(string), config.Quality, configuredInstanceConfig.Name, instance.PartIDLetter)
 			if config.Debug {
 				log.Printf("[DEBUG] MakeFileNameReplacements output: %s", outputPathReplace)
 			}
+
+			// Generate unique AutoName based on the export path
+			instance.AutoName = generateUniqueAutoName(outputPathReplace, configuredInstanceConfig.Name, inputPath.Path)
 
 			//	instance.OutputPathV2 = outputPath
 			instance.RunOutputPathV3 = filepath.ToSlash(outputPathReplace + ".stl")
@@ -1977,9 +2042,9 @@ type OpenSCADVersion struct {
 	IsOutOfDate bool
 }
 
-// hmm windows support?
+// findOpenSCAD finds the OpenSCAD executable and returns its version info
 func findOpenSCAD() (OpenSCADVersion, error) {
-	// Try to find openscad using `which` command
+	// Try to run openscad --version directly
 	cmdVer := exec.Command("openscad", "--version")
 	outputVer, err := cmdVer.CombinedOutput()
 	if err != nil {
@@ -1988,8 +2053,16 @@ func findOpenSCAD() (OpenSCADVersion, error) {
 
 	versionStr := strings.TrimSpace(string(outputVer))
 
+	// Get the path for future use
+	path, err := exec.LookPath("openscad")
+	if err != nil {
+		// If we can run it but can't find the path, just use "openscad"
+		path = "openscad"
+	}
+
 	return OpenSCADVersion{
 		Version:     versionStr,
+		Path:        path,
 		IsOutOfDate: false,
 	}, nil
 }
@@ -2345,6 +2418,98 @@ func SetMetadata(fileName string, metadata map[string]string, config *models.Con
 	return nil
 }
 
+// GetMetadata retrieves metadata from a file
+func GetMetadata(fileName string) (map[string]string, error) {
+	metadata := make(map[string]string)
+
+	// Check if the file exists
+	_, err := os.Stat(fileName)
+	if os.IsNotExist(err) {
+		return metadata, fmt.Errorf("file '%s' does not exist", fileName)
+	} else if err != nil {
+		return metadata, fmt.Errorf("error accessing file '%s': %v", fileName, err)
+	}
+
+	// Get OS details
+	currentOS := runtime.GOOS
+
+	// Get metadata based on the OS
+	switch currentOS {
+	case "linux", "darwin":
+		// For Linux and macOS, use xattrs
+		attrs, err := xattr.List(fileName)
+		if err != nil {
+			return metadata, fmt.Errorf("error listing xattrs for '%s': %v", fileName, err)
+		}
+
+		for _, attr := range attrs {
+			if strings.HasPrefix(attr, "user.") {
+				value, err := xattr.Get(fileName, attr)
+				if err != nil {
+					continue // Skip this attribute if we can't read it
+				}
+				key := strings.TrimPrefix(attr, "user.")
+				metadata[key] = string(value)
+			}
+		}
+	case "windows":
+		// For Windows, use NTFS Alternate Data Streams (ADS)
+		// This is a simplified implementation - in practice you might want to use a library
+		// that properly handles ADS enumeration
+		dir, err := os.ReadDir(filepath.Dir(fileName))
+		if err != nil {
+			return metadata, fmt.Errorf("error reading directory for '%s': %v", fileName, err)
+		}
+
+		baseName := filepath.Base(fileName)
+		for _, entry := range dir {
+			if strings.HasPrefix(entry.Name(), baseName+":") {
+				streamName := strings.TrimPrefix(entry.Name(), baseName+":")
+				adsPath := fileName + ":" + streamName
+				if data, err := os.ReadFile(adsPath); err == nil {
+					metadata[streamName] = string(data)
+				}
+			}
+		}
+	default:
+		return metadata, fmt.Errorf("unsupported operating system: %s", currentOS)
+	}
+
+	return metadata, nil
+}
+
+// loadEstimatedTotalTime loads the estimated total processing time from metadata
+func loadEstimatedTotalTime(config *models.Config) time.Duration {
+	// Try to read from config file metadata first
+	if metadata, err := GetMetadata(config.ConfigFile); err == nil {
+		if lastTimeStr, exists := metadata["last_process_time_taken"]; exists {
+			if lastTime, err := time.ParseDuration(lastTimeStr); err == nil {
+				log.Printf("📊 Using metadata for progress bar estimation: %v (from previous run)", lastTime)
+				return lastTime
+			}
+		}
+	}
+
+	// Fallback: estimate based on number of instances
+	totalInstances := len(config.GetInputPaths()) * len(config.Design.ConfiguredInstanceConfig)
+	if totalInstances == 0 {
+		totalInstances = 1 // Prevent division by zero
+	}
+	estimatedTime := time.Duration(totalInstances) * 30 * time.Second // 30s per instance estimate
+	log.Printf("📊 Using fallback estimation for progress bar: %v (%d instances × 30s)", estimatedTime, totalInstances)
+	return estimatedTime
+}
+
+// storeProcessingTime stores the processing time in metadata for future estimates
+func storeProcessingTime(config *models.Config, totalTime time.Duration) {
+	metadata := map[string]string{
+		"last_process_time_taken": totalTime.String(),
+		"last_process_timestamp":  time.Now().Format(time.RFC3339),
+	}
+	SetMetadata(config.ConfigFile, metadata, config)
+	log.Printf("📊 Saved processing time to metadata: %v (for next run estimation)", totalTime)
+}
+
 // Set all the attributes against the file in the metadata
 func setBuildInfoInFileAttributes(outputPath string, config *models.Config, instance *models.InstanceConfig) {
 	metadata := make(map[string]string)
@@ -2383,6 +2548,8 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 		logStage("Generating STL")
 		LogKeyValuePair("inputPath", instance.InputPath.Path)
 		LogKeyValuePair("exportFolderPath", instance.RunOutputPathV3)
+		log.Printf("[DEBUG] Starting STL generation for instance: %s", instance.Name)
+		log.Printf("[DEBUG] Instance params: %+v", instance.Params)
 	}
 
 	// Validate output path for invalid characters
@@ -2477,7 +2644,19 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 	}
 
 	// Create directory if not exists
-	os.MkdirAll(filepath.Dir(instance.RunOutputPathV3), 0755)
+	stlOutputDir := filepath.Dir(instance.RunOutputPathV3)
+	if config.Debug {
+		log.Printf("[DEBUG] Creating output directory: %s", stlOutputDir)
+	}
+	if err := os.MkdirAll(stlOutputDir, 0755); err != nil {
+		if config.Debug {
+			log.Printf("[DEBUG] Failed to create output directory: %v", err)
+		}
+		return result, fmt.Errorf("failed to create output directory: %w", err)
+	}
+	if config.Debug {
+		log.Printf("[DEBUG] Output directory created/verified: %s", stlOutputDir)
+	}
 
 	// Build command arguments
 	args := []string{
@@ -2498,7 +2677,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 	}
 
 	if !config.Design.DontUseManifold {
-		//	args = append(args, "--backend=manifold")
+		args = append(args, "--backend=manifold")
 	}
 
 	// Add custom OpenSCAD arguments if provided
@@ -2523,7 +2702,16 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 
 	// Create command string
 	commandStr := fmt.Sprintf("%s %s %s", openscadCmd, strings.Join(args, " "), paths.InputPath)
-	if !config.Quiet {
+
+	if config.Debug {
+		log.Printf("[DEBUG] Built OpenSCAD command string")
+		log.Printf("[DEBUG] OpenSCAD executable: %s", openscadCmd)
+		log.Printf("[DEBUG] Arguments: %v", args)
+		log.Printf("[DEBUG] Input path: %s", paths.InputPath)
+		log.Printf("[DEBUG] Full command: %s", commandStr)
+	}
+
+	if config.Debug {
 		logStage(fmt.Sprintf("Running STL generation: %s", instance.Name))
 		LogKeyValuePair("Command", commandStr)
 	}
@@ -2531,10 +2719,26 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 	// Run command through shell
 	cmd := exec.Command("sh", "-c", commandStr)
 
+	if config.Debug {
+		log.Printf("[DEBUG] About to execute OpenSCAD command")
+		log.Printf("[DEBUG] Command: %s", commandStr)
+		log.Printf("[DEBUG] Working directory: %s", filepath.Dir(paths.InputPath))
+	}
+
 	// Capture both stdout and stderr
 	output, err := cmd.CombinedOutput()
 	result.Command = commandStr
 	result.TimeTaken = time.Since(startTime)
+
+	if config.Debug {
+		log.Printf("[DEBUG] OpenSCAD command completed")
+		log.Printf("[DEBUG] Error: %v", err)
+		log.Printf("[DEBUG] Output length: %d bytes", len(output))
+		if len(output) > 0 {
+			log.Printf("[DEBUG] Output: %s", string(output))
+		}
+		log.Printf("[DEBUG] Time taken: %v", result.TimeTaken)
+	}
 
 	if err != nil {
 		result.Error = fmt.Sprintf("error running openscad: %v\nOutput: %s", err, string(output))
@@ -2549,34 +2753,68 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 	}
 
 	// Check if file was created and has content
-	if fileInfo, err := os.Stat(instance.RunOutputPathV3); os.IsNotExist(err) || fileInfo.Size() == 0 {
-		result.Error = fmt.Sprintf("output file was not created or is empty: %s", instance.OutputPathV2)
+	if config.Debug {
+		log.Printf("[DEBUG] Checking if output file exists: %s", instance.RunOutputPathV3)
+	}
+
+	fileInfo, statErr := os.Stat(instance.RunOutputPathV3)
+	if os.IsNotExist(statErr) {
+		result.Error = fmt.Sprintf("output file was not created: %s", instance.RunOutputPathV3)
 		if config.Debug {
-			log.Printf("Output file was not created or is empty at: %s", instance.OutputPathV2)
+			log.Printf("[DEBUG] Output file does not exist: %s", instance.RunOutputPathV3)
 		}
 		if config.ContinueOnError {
 			return result, nil
 		}
-		return result, fmt.Errorf("output file was not created or is empty: %s", instance.OutputPathV2)
+		return result, fmt.Errorf("output file was not created: %s", instance.RunOutputPathV3)
+	} else if statErr != nil {
+		result.Error = fmt.Sprintf("error checking output file: %v", statErr)
+		if config.Debug {
+			log.Printf("[DEBUG] Error checking output file: %v", statErr)
+		}
+		if config.ContinueOnError {
+			return result, nil
+		}
+		return result, fmt.Errorf("error checking output file: %w", statErr)
+	} else if fileInfo.Size() == 0 {
+		result.Error = fmt.Sprintf("output file is empty: %s", instance.RunOutputPathV3)
+		if config.Debug {
+			log.Printf("[DEBUG] Output file is empty (size: %d): %s", fileInfo.Size(), instance.RunOutputPathV3)
+		}
+		if config.ContinueOnError {
+			return result, nil
+		}
+		return result, fmt.Errorf("output file is empty: %s", instance.RunOutputPathV3)
 	} else {
-		logCreation(fmt.Sprintf("STL created in %s at %s", result.TimeTaken, instance.RunOutputPathV3))
+		if config.Debug {
+			log.Printf("[DEBUG] Output file created successfully (size: %d bytes): %s", fileInfo.Size(), instance.RunOutputPathV3)
+		}
+		logCreation(fmt.Sprintf("📦 STL\t\t%s\t\t%s", result.InstanceConfig.AutoName, result.TimeTaken))
+		if config.Debug {
+			LogKeyValuePair("STL File", instance.RunOutputPathV3)
+		}
 	}
 
 	result.OutputPath = instance.OutputPathV2
+
+	if config.Debug {
+		log.Printf("[DEBUG] STL generation completed successfully for instance: %s", instance.Name)
+		log.Printf("[DEBUG] Total time taken: %v", result.TimeTaken)
+	}
+
 	return result, nil
 }
 
 func FindOpenSCAD() string {
-	// Try to find openscad using `which` command
-	cmd := exec.Command("which", "openscad")
-	output, err := cmd.Output()
+	// Use exec.LookPath which is cross-platform
+	path, err := exec.LookPath("openscad")
 	if err != nil {
 		log.Fatalf("OpenSCAD not found in PATH. (%+v)", err)
 	}
-	return strings.TrimSpace(string(output))
+	return path
 }
 
-func GenerateOutputReport(config *models.Config, instances []models.InstanceConfig, stlResults []models.GenerateSTLResult, imageResults []models.GenerateImageResult, outputDir string, toFile bool) (templ.Component, string, error) {
+func GenerateOutputReport(config *models.Config, instances []models.InstanceConfig, stlResults []models.GenerateSTLResult, imageResults []models.GenerateImageResult, outputDir string, toFile bool, totalTimeTaken time.Duration) (templ.Component, string, error) {
 	logStage("Generating HTML report")
 	if config.Debug && toFile {
 		LogKeyValuePair("Generating HTML report at", outputDir)
@@ -2617,7 +2855,7 @@ func GenerateOutputReport(config *models.Config, instances []models.InstanceConf
 		LogKeyValuePair("serveroutputfile", "")
 
 	}
-	htmlContent := templates.Report(config, instances, outputFile, stlResults, imageResults, allParamNames, false, "")
+	htmlContent := templates.Report("complete", config, instances, outputFile, stlResults, imageResults, allParamNames, false, "", totalTimeTaken)
 
 	var htmlFile *os.File
 	var err error
@@ -2821,11 +3059,16 @@ func processImage(config *models.Config, instance *models.InstanceConfig) ([]mod
 
 	for _, camera := range instance.ExportImages {
 		if len(instance.SkippedImageReason) > 0 {
-			logSkip(fmt.Sprintf("Skipping image %s", instance.SkippedImageReason))
+			if config.Debug {
+				logSkip(fmt.Sprintf("Skipping image %s", instance.SkippedImageReason))
+			}
 
 		} else {
-			result, err := generateImage(instance, config, camera, stlResult)
+			result, cmdStr, err := generateImage(instance, config, camera, stlResult)
 			if err != nil {
+				LogKeyValuePair(
+					"Command", cmdStr,
+				)
 				logError(fmt.Sprintf("Error generating image: %v", err))
 				return imageResults, fmt.Errorf("error generating image: %w", err)
 			}
@@ -2841,7 +3084,7 @@ func processImage(config *models.Config, instance *models.InstanceConfig) ([]mod
 	return imageResults, nil
 }
 
-func generateImage(instance *models.InstanceConfig, config *models.Config, camera models.ExportCameraCoordinates, stlResult models.GenerateSTLResult) (models.GenerateImageResult, error) {
+func generateImage(instance *models.InstanceConfig, config *models.Config, camera models.ExportCameraCoordinates, stlResult models.GenerateSTLResult) (models.GenerateImageResult, string, error) {
 	// Initialize result
 	imageResult := models.GenerateImageResult{
 		InstanceConfig: *instance,
@@ -2872,7 +3115,7 @@ func generateImage(instance *models.InstanceConfig, config *models.Config, camer
 	// Find OpenSCAD executable
 	openscadCmd := FindOpenSCAD()
 	if openscadCmd == "" {
-		return imageResult, fmt.Errorf("OpenSCAD not found")
+		return imageResult, "", fmt.Errorf("OpenSCAD not found")
 	}
 
 	// Start timing
@@ -2894,8 +3137,6 @@ func generateImage(instance *models.InstanceConfig, config *models.Config, camer
 		"--projection", "perspective",
 		"--camera", camera.CameraCoordinates,
 		"--preview",
-		//		"--backend Manifold",
-		"--enable=fast-csg",
 	}
 
 	// Add custom OpenSCAD arguments if provided
@@ -2917,25 +3158,27 @@ func generateImage(instance *models.InstanceConfig, config *models.Config, camer
 	// Add input file using the correct path
 	args = append(args, paths.InputPath)
 
+	imgStartTime := time.Now()
 	// Create the command
 	cmd := exec.Command(openscadCmd, args...)
 
-	if !config.Quiet {
+	if config.Debug {
 		logStage("Running Image generation")
 		LogKeyValuePair("Command", cmd.String())
 	}
 
+	cmdStr := cmd.String()
 	// Run the command
-	if err := executeCommand(cmd.String()); err != nil {
+	if err := executeCommand(cmdStr); err != nil {
 		// Log detailed error information
 		logError(fmt.Sprintf("OpenSCAD command failed for image generation"))
 		logError(fmt.Sprintf("Command: %s", cmd.String()))
 		logError(fmt.Sprintf("Output path: %s", outputImgPath))
 		logError(fmt.Sprintf("Error details: %v", err))
 
-		return imageResult, fmt.Errorf("error running OpenSCAD: %w", err)
+		return imageResult, cmdStr, fmt.Errorf("error running OpenSCAD: %w", err)
 	} else {
-		logCreation("Image generation completed")
+		logCreation(fmt.Sprintf("🖼️ Image\t\t%s\t\t%s", instance.AutoName, time.Since(imgStartTime)))
 		if config.Debug {
 			LogKeyValuePair("Image Created", outputImgPath)
 		}
@@ -2945,20 +3188,25 @@ func generateImage(instance *models.InstanceConfig, config *models.Config, camer
 	imageResult.TimeTaken = time.Since(startTime)
 	imageResult.OutputPath = outputImgPath
 
-	return imageResult, nil
+	return imageResult, cmdStr, nil
 }
 
 type ProgressReporter interface {
 	Update(msg string)
 	Done()
 	Error(err error)
+	// New methods for progress bars
+	UpdateFileProgress(current, total int, filename string)
+	UpdateTotalProgress(current, total int)
 }
 
 type NoopProgress struct{}
 
-func (n *NoopProgress) Update(msg string) {}
-func (n *NoopProgress) Done()             {}
-func (n *NoopProgress) Error(err error)   {}
+func (n *NoopProgress) Update(msg string)                                      {}
+func (n *NoopProgress) Done()                                                  {}
+func (n *NoopProgress) Error(err error)                                        {}
+func (n *NoopProgress) UpdateFileProgress(current, total int, filename string) {}
+func (n *NoopProgress) UpdateTotalProgress(current, total int)                 {}
 
 type ChanProgress struct {
 	Updates chan<- string
@@ -2967,6 +3215,179 @@ type ChanProgress struct {
 func (c *ChanProgress) Update(msg string) { c.Updates <- msg }
 func (c *ChanProgress) Done()             { c.Updates <- "done" }
 func (c *ChanProgress) Error(err error)   { c.Updates <- "error: " + err.Error() }
+func (c *ChanProgress) UpdateFileProgress(current, total int, filename string) {
+	c.Updates <- fmt.Sprintf("Processing file %d/%d: %s", current, total, filename)
+}
+func (c *ChanProgress) UpdateTotalProgress(current, total int) {
+	percentage := int((float64(current) / float64(total)) * 100)
+	if percentage > 100 {
+		percentage = 100
+	}
+	c.Updates <- fmt.Sprintf("Total progress: %d%% (%d/%d)", percentage, current, total)
+}
+
+// TerminalProgressReporter provides rich terminal progress reporting
+type TerminalProgressReporter struct {
+	multiPrinter    *pterm.MultiPrinter
+	totalProgress   *pterm.ProgressbarPrinter
+	fileProgress    *pterm.ProgressbarPrinter
+	fileStartTime   time.Time
+	currentFilename string
+	isQuiet         bool
+	stopTimer       chan struct{}
+}
+
+func NewTerminalProgressReporter(config *models.Config) *TerminalProgressReporter {
+	// Create multi printer for simultaneous progress bars
+	multi := pterm.DefaultMultiPrinter
+
+	// Create progress bars with separate writers
+	var totalBar, fileBar *pterm.ProgressbarPrinter
+
+	if !config.Quiet {
+		fileBar, _ = pterm.DefaultProgressbar.WithTotal(100).
+			WithWriter(multi.NewWriter()).
+			WithTitle("File Progress").
+			WithShowElapsedTime(true).
+			WithShowCount(true).
+			WithBarStyle(pterm.NewStyle(pterm.FgBlue)).
+			WithTitleStyle(pterm.NewStyle(pterm.FgYellow, pterm.Bold)).
+			Start("File Progress")
+
+		// Initialize with 0 total - will be set when we know the actual total
+		totalBar, _ = pterm.DefaultProgressbar.WithTotal(0).
+			WithWriter(multi.NewWriter()).
+			WithTitle("Total Progress").
+			WithShowElapsedTime(true).
+			WithShowCount(true).
+			WithBarStyle(pterm.NewStyle(pterm.FgGreen)).
+			WithTitleStyle(pterm.NewStyle(pterm.FgCyan, pterm.Bold)).
+			Start("Total Progress")
+	}
+
+	reporter := &TerminalProgressReporter{
+		multiPrinter:  &multi,
+		totalProgress: totalBar,
+		fileProgress:  fileBar,
+		fileStartTime: time.Now(),
+		isQuiet:       config.Quiet,
+		stopTimer:     make(chan struct{}),
+	}
+
+	return reporter
+}
+
+func (t *TerminalProgressReporter) Update(msg string) {
+	if !t.isQuiet {
+		pterm.Info.Println(msg)
+	}
+}
+
+func (t *TerminalProgressReporter) UpdateFileProgress(current, total int, filename string) {
+	if t.isQuiet || t.fileProgress == nil {
+		return
+	}
+
+	// Check if this is a new file
+	if filename != t.currentFilename {
+		// Stop previous timer if running
+		select {
+		case t.stopTimer <- struct{}{}:
+		default:
+		}
+
+		// Reset progress for new file
+		t.fileProgress.Current = 0
+		t.fileStartTime = time.Now()
+		t.currentFilename = filename
+
+		// Start a timer to update progress every 100ms
+		go func() {
+			ticker := time.NewTicker(100 * time.Millisecond)
+			defer ticker.Stop()
+
+			for {
+				select {
+				case <-ticker.C:
+					t.updateFileProgressBar()
+				case <-t.stopTimer:
+					return
+				}
+			}
+		}()
+	}
+
+	// Update the title with current file being processed and count
+	t.fileProgress.UpdateTitle(fmt.Sprintf("Processing: %s (%d/%d)", filename, current+1, total))
+}
+
+func (t *TerminalProgressReporter) updateFileProgressBar() {
+	if t.isQuiet || t.fileProgress == nil {
+		return
+	}
+
+	// Show progress within current file based on elapsed time
+	elapsed := time.Since(t.fileStartTime)
+	estimatedFileTime := 3 * time.Second // Assume 3 seconds per file
+
+	progress := int((float64(elapsed) / float64(estimatedFileTime)) * 100)
+	if progress > 100 {
+		progress = 100
+	}
+
+	// Update the progress bar
+	targetProgress := int(float64(progress) / 100.0 * float64(t.fileProgress.Total))
+	toIncrement := targetProgress - t.fileProgress.Current
+	if toIncrement > 0 {
+		for i := 0; i < toIncrement; i++ {
+			t.fileProgress.Increment()
+		}
+	}
+}
+
+func (t *TerminalProgressReporter) UpdateTotalProgress(current, total int) {
+	if t.isQuiet || t.totalProgress == nil {
+		return
+	}
+
+	// Set the total if it's different (first time or changed)
+	if t.totalProgress.Total != total {
+		t.totalProgress.Total = total
+	}
+
+	// Calculate how much to increment
+	toIncrement := current - t.totalProgress.Current
+	if toIncrement > 0 {
+		// Use Increment() for each step
+		for i := 0; i < toIncrement; i++ {
+			t.totalProgress.Increment()
+		}
+	}
+}
+
+func (t *TerminalProgressReporter) Done() {
+	// Stop the timer
+	select {
+	case t.stopTimer <- struct{}{}:
+	default:
+	}
+
+	if t.multiPrinter != nil {
+		t.multiPrinter.Stop()
+	}
+	if t.fileProgress != nil {
+		t.fileProgress.Stop()
+	}
+	if t.totalProgress != nil {
+		t.totalProgress.Stop()
+	}
+}
+
+func (t *TerminalProgressReporter) Error(err error) {
+	if !t.isQuiet {
+		pterm.Error.Println(err.Error())
+	}
+}
 
 func printDirectoryContents(dir string) {
 	printDirectoryContentsRecursive(dir, 0)

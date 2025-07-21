@@ -63,13 +63,13 @@ module carovan_hook_shape(
 }
 
 // Define parameters
-r1 = 25; 
+/*r1 = 25; 
 r2 = 12; 
 R = 65;
 length = 70;
 height = 80;
 rounded = true;
-
+*/
 
 // Render the shape
 /*carovan_hook_shape(
@@ -94,8 +94,8 @@ connector_move = [20, 25.4, 0];
 connector_size = [60, 9];
 
 holder_width = 25;
-holder_cutout_move_2 = [-5, 0, 0];
-
+holder_cutout_move_2 = [-10, 0, 0];
+holder_cutout_2_move = 0;
 hook_angle = 30;
 hook_move=  [18,5,0];
 
@@ -104,6 +104,6 @@ carovan_hook_shape(
     r1, r2, R, length, height, true,
     connector_move, connector_size, difference_move=[10, 37.2, 0], difference_size=[-2, -5],
     holder_size=33, holder_width=35, holder_move= [60, 60, 0], 
-    holder_cutout_move= [13, 0, 0], holder_cutout_move_2, holder_cutout_size= [70, 28], 
+    holder_cutout_move= [13, 0, 0], holder_cutout_move_2, holder_cutout_size= [60, 28], 
     holder_cutout_2_move, hook_angle, hook_move, hook_connector_height=13.7, hook_connector_width = 55, hook_connector_size = 7
 );
