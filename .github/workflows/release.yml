@@ -31,7 +31,7 @@ jobs:
         run: go get .
 
       - name: Install templ
-        run: go install github.com/a-h/templ/cmd/templ@latest
+        run: go install github.com/a-h/templ/cmd/templ@v0.3.865
 
       - name: Install OpenSCAD Nightly
         run: |
