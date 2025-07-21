@@ -2,17 +2,29 @@
 name = "text_simple"
 description = ""
 
-version = "v0.1"
+version = "v0.3"
 
-export_name_format = "/{version}/{designFileName}-{content}-{font}"
+export_name_format = "/{version}/{name}/{designFileName}-{font}"
 [[openscadgen.input_paths]]
 path = "./text_simple.scad"
 
-[[openscadgen.instances]]
-params = { content = "44 ", size = 150, text_size = 110, h = 20, font = "Noteworthy:style=Bold,Georgia:style=Bold,Liberation Mono,Systemskrift:style=Semi Condensed Semibold G3,Optima:style=Bold", spacing = 1.2, direction = "ltr", script = "latin", center = true }
+[[openscadgen.export_images]]
+name = "nice-far"
 
 [[openscadgen.instances]]
-params = { content = "Tidewater", size = 150, text_size = 100, h = 25, font = "Noteworthy:style=Bold,Liberation Mono", spacing = 1.2, direction = "ltr", script = "latin", atype = "ycenter", anchor = "ycenter", center = false, hasBase=false }
+params = { name="tidenumbers", content = "44 ", size = 150, text_size = 110, h = 20, font = "Noteworthy:style=Bold,Georgia:style=Bold,Liberation Mono,Systemskrift:style=Semi Condensed Semibold G3,Optima:style=Bold", spacing = 1.2, direction = "ltr", script = "latin", center = true }
+
+[[openscadgen.instances]]
+params = { name="tidewater", content = "Tidewater", size = 150, text_size = 100, h = 25, font = "Noteworthy:style=Bold", spacing = 1.2, direction = "ltr", script = "latin", atype = "ycenter", anchor = "ycenter", center = false, hasBase=false }
+
+[[openscadgen.instances]]
+params = { name="numbers", content ="1 2 3 4 5 6 7 8", size = 150, text_size = 100, h = 2, font = "Palatino:style=Bold", spacing = 1.2, direction = "ltr", script = "latin", atype = "ycenter", anchor = "ycenter", center = false, hasBase=false }
+
+
+[[openscadgen.instances]]
+params = { name="arrows", content ="⇔", size = 150, text_size = 100, h = 3, font = "Palatino:style=Bold", spacing = 1.2, direction = "ltr", script = "latin", atype = "ycenter", anchor = "ycenter", center = false, hasBase=false }
+
+
 
 [[openscadgen.instances]]
 params = { content = "#BizSlutCon2025", size = 150, text_size = 40, h = 5, font = "Didot:style=Italic", spacing = 1.2, direction = "ltr", script = "latin", atype = "ycenter", anchor = "ycenter", center = false, hasBase = true }

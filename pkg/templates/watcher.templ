@@ -1,0 +1,26 @@
+package templates
+
+import "github.com/kiwikid/openscadgen/pkg/models"
+
+templ WatcherStatusComponent(status models.WatcherStatusUI) {
+    <div id="watcher-status" hx-get="/api/watcher/ui" hx-trigger="every 2s" hx-swap="outerHTML oob:true">
+        if status.Enabled {
+            if status.Watching {
+                <span style="color:green">Watching</span> ({ len(status.ConfigPaths) } configs)
+            } else {
+                <span style="color:red">Paused</span> ({ len(status.ConfigPaths) } configs)
+            }
+            <ul>
+                for _, path := range status.ConfigPaths {
+                    <li>{ path }</li>
+                }
+            </ul>
+            <button hx-post="/api/watcher/pause" hx-swap="none">Pause</button>
+            <button hx-post="/api/watcher/resume" hx-swap="none">Resume</button>
+        } else {
+            <span style="color:gray">File watching disabled</span>
+        }
+        <hr/>
+        <div id="regen-queue">[Regeneration queue UI coming soon]</div>
+    </div>
+} 

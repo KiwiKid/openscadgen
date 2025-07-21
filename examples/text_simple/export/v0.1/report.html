@@ -1,31 +1,4 @@
-<!doctype html><html lang="en" x-data="{
-        darkMode: true,
-        searchQuery: &#39;&#39;,
-        configHistory: JSON.parse(localStorage.getItem(&#39;configHistory&#39;) || &#39;[]&#39;),
-        configFile: &#39;&#39;,
-        saveConfigFile() {
-            if (this.configFile &amp;&amp; !this.configHistory.includes(this.configFile)) {
-                this.configHistory.unshift(this.configFile);
-                localStorage.setItem(&#39;configHistory&#39;, JSON.stringify(this.configHistory));
-            }
-            localStorage.setItem(&#39;savedConfigFile&#39;, this.configFile);
-        }
-    }" x-init="
-        darkMode = localStorage.getItem(&#39;darkMode&#39;) === &#39;true&#39; || 
-                  (!localStorage.getItem(&#39;darkMode&#39;) &amp;&amp; window.matchMedia(&#39;(prefers-color-scheme: dark)&#39;).matches);
-        $watch(&#39;darkMode&#39;, value =&gt; {
-            localStorage.setItem(&#39;darkMode&#39;, value);
-            document.documentElement.classList.toggle(&#39;dark&#39;, value);
-        });
-        configFile = &#39;{ config.ConfigFile }&#39;;
-        if (configFile) {
-            if (!configHistory.includes(configFile)) {
-                configHistory.unshift(configFile);
-                localStorage.setItem(&#39;configHistory&#39;, JSON.stringify(configHistory));
-            }
-            localStorage.setItem(&#39;savedConfigFile&#39;, configFile);
-        }
-    "><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>text_simple - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><script>
+<!doctype html><html lang="en" x-data="alpineReportData()" x-init="init()"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>text_simple - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script><script>
                 (function() {
                     var darkMode = localStorage.getItem('darkMode');
                     if (darkMode === null) {
@@ -86,6 +59,7 @@ html, body {
                     margin: 0;
                     background-color: var(--bg-color);
                     color: var(--text-color);
+                    padding: 3rem;
                 }
                 .container {
                     max-width: 1200px;
@@ -230,7 +204,281 @@ html, body {
                     color: var(--text-color) !important;
                     background-color: var(--card-bg) !important;
                 }
-            </style></head><body><div class="global-header"><div class="container"><h1 class="title is-4">text_simple</h1><div class="search-box"><div><div><input class="input" type="text" placeholder="Filter to specific instances etc..." x-model="searchQuery"></div><template x-if="configHistory.length &gt; 0"><div class="mt-2"><strong>Config File History:</strong><ul style="list-style: disc inside; padding-left: 1em;"><template x-for="file in configHistory" :key="file"><li x-text="file"></li></template></ul></div></template></div></div><button class="button" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button></div></div><div class="container"><div x-data="{ isOpen: false }"><button class="button is-large is-fullwidth" @click="isOpen = !isOpen"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> text_simple</button><div x-show="isOpen"><h2 class="is-size-4">text_simple</h2><div class="code-block"><code style="white-space: pre;"><pre>code</pre></code></div></div></div><div x-data="{ isOpen: false }"><button class="button is-large is-fullwidth" @click="isOpen = !isOpen"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Configuration Details</button><div x-show="isOpen"><details><summary>No [global_params]</summary><p>Add global params via a heading at the top level of the config file:</p><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></details> <div class="instance"><div class="params"><div class="param"><strong>Version:</strong> v0.1</div><div class="param"><strong>Output Path:</strong> </div><div class="param"><strong>OpenSCAD Version:</strong> </div><div class="param"><strong>OpenSCADGen Version:</strong> v2.3.11-BETA</div><div class="param"><strong>Build Info Set In File Attributes</strong></div></div></div><h2 class="is-size-4">Input Paths</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Path</th><!--NEXT-VERSION: <th>OpenSCAD Code</th> --></tr></thead> <tbody><tr><td>./text_simple.scad</td><!-- NEXT-VERSION: <td><details><summary>OpenSCAD Code</summary>
+            </style></head><body><div class="global-header"><div><h1 class="title is-4">text_simple</h1><div class="search-box"><div><div><input class="input" type="text" placeholder="Filter to specific instances etc..." x-model="searchQuery"></div><details><summary>History</summary><template x-if="searchHistory.length &gt; 0"><div class="mt-2"><strong>Recent Searches:</strong><ul style="list-style: disc inside; padding-left: 1em;"><template x-for="term in searchHistory" :key="term"><li><a href="#" @click.prevent="searchQuery = term" x-text="term"></a></li></template></ul></div></template></details></div></div><button class="button" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button></div></div><div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Instances (9)</button><div x-show="isOpen"><div class="table-container"><table class="table is-fullwidth" id="instances-table"><thead><tr><th>Name</th><th>Description</th><th>Output Path</th><th>Ignored Params</th><th>Images</th><th>direction</th><th>h</th><th>designFileName</th><th>version</th><th>content</th><th>size</th><th>text_size</th><th>center</th><th>spacing</th><th>font</th><th>script</th><th>anchor</th><th>hasBase</th><th>atype</th></tr></thead> <tbody><tr id="instance-0" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>center = true;
+content = 44;
+designFileName = &#34;text_simple&#34;;
+direction = &#34;ltr&#34;;
+font = &#34;Noteworthy:style=Bold&#34;;
+h = 20;
+script = &#34;latin&#34;;
+size = 150;
+spacing = 1.2;
+text_size = 110;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>ltr</td><td>20</td><td>text_simple</td><td>v0.1</td><td>44</td><td>150</td><td>110</td><td>true</td><td>1.2</td><td>Noteworthy:style=Bold</td><td>latin</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr id="instance-1" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>center = true;
+content = 44;
+designFileName = &#34;text_simple&#34;;
+direction = &#34;ltr&#34;;
+font = &#34;Georgia:style=Bold&#34;;
+h = 20;
+script = &#34;latin&#34;;
+size = 150;
+spacing = 1.2;
+text_size = 110;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>ltr</td><td>20</td><td>text_simple</td><td>v0.1</td><td>44</td><td>150</td><td>110</td><td>true</td><td>1.2</td><td>Georgia:style=Bold</td><td>latin</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr id="instance-2" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>center = true;
+content = 44;
+designFileName = &#34;text_simple&#34;;
+direction = &#34;ltr&#34;;
+font = &#34;Liberation Mono&#34;;
+h = 20;
+script = &#34;latin&#34;;
+size = 150;
+spacing = 1.2;
+text_size = 110;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>ltr</td><td>20</td><td>text_simple</td><td>v0.1</td><td>44</td><td>150</td><td>110</td><td>true</td><td>1.2</td><td>Liberation Mono</td><td>latin</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr id="instance-3" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>center = true;
+content = 44;
+designFileName = &#34;text_simple&#34;;
+direction = &#34;ltr&#34;;
+font = &#34;Systemskrift:style=Semi Condensed Semibold G3&#34;;
+h = 20;
+script = &#34;latin&#34;;
+size = 150;
+spacing = 1.2;
+text_size = 110;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>ltr</td><td>20</td><td>text_simple</td><td>v0.1</td><td>44</td><td>150</td><td>110</td><td>true</td><td>1.2</td><td>Systemskrift:style=Semi Condensed Semibold G3</td><td>latin</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr id="instance-4" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>center = true;
+content = 44;
+designFileName = &#34;text_simple&#34;;
+direction = &#34;ltr&#34;;
+font = &#34;Optima:style=Bold&#34;;
+h = 20;
+script = &#34;latin&#34;;
+size = 150;
+spacing = 1.2;
+text_size = 110;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>ltr</td><td>20</td><td>text_simple</td><td>v0.1</td><td>44</td><td>150</td><td>110</td><td>true</td><td>1.2</td><td>Optima:style=Bold</td><td>latin</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr id="instance-5" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>anchor = &#34;ycenter&#34;;
+atype = &#34;ycenter&#34;;
+center = false;
+content = &#34;Tidewater&#34;;
+designFileName = &#34;text_simple&#34;;
+direction = &#34;ltr&#34;;
+font = &#34;Noteworthy:style=Bold&#34;;
+h = 25;
+hasBase = false;
+script = &#34;latin&#34;;
+size = 150;
+spacing = 1.2;
+text_size = 100;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>ltr</td><td>25</td><td>text_simple</td><td>v0.1</td><td>Tidewater</td><td>150</td><td>100</td><td>false</td><td>1.2</td><td>Noteworthy:style=Bold</td><td>latin</td><td>ycenter</td><td>false</td><td>ycenter</td></tr><tr id="instance-6" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>anchor = &#34;ycenter&#34;;
+atype = &#34;ycenter&#34;;
+center = false;
+content = &#34;Tidewater&#34;;
+designFileName = &#34;text_simple&#34;;
+direction = &#34;ltr&#34;;
+font = &#34;Liberation Mono&#34;;
+h = 25;
+hasBase = false;
+script = &#34;latin&#34;;
+size = 150;
+spacing = 1.2;
+text_size = 100;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>ltr</td><td>25</td><td>text_simple</td><td>v0.1</td><td>Tidewater</td><td>150</td><td>100</td><td>false</td><td>1.2</td><td>Liberation Mono</td><td>latin</td><td>ycenter</td><td>false</td><td>ycenter</td></tr><tr id="instance-7" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>anchor = &#34;ycenter&#34;;
+atype = &#34;ycenter&#34;;
+center = false;
+content = &#34;1 2 3 4 5 6 7 8&#34;;
+designFileName = &#34;text_simple&#34;;
+direction = &#34;ltr&#34;;
+font = &#34;Palatino:style=Bold&#34;;
+h = 25;
+hasBase = false;
+script = &#34;latin&#34;;
+size = 150;
+spacing = 1.2;
+text_size = 100;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>ltr</td><td>25</td><td>text_simple</td><td>v0.1</td><td>1 2 3 4 5 6 7 8</td><td>150</td><td>100</td><td>false</td><td>1.2</td><td>Palatino:style=Bold</td><td>latin</td><td>ycenter</td><td>false</td><td>ycenter</td></tr><tr id="instance-8" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>anchor = &#34;ycenter&#34;;
+atype = &#34;ycenter&#34;;
+center = false;
+content = &#34;#BizSlutCon2025&#34;;
+designFileName = &#34;text_simple&#34;;
+direction = &#34;ltr&#34;;
+font = &#34;Didot:style=Italic&#34;;
+h = 5;
+hasBase = true;
+script = &#34;latin&#34;;
+size = 150;
+spacing = 1.2;
+text_size = 40;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>ltr</td><td>5</td><td>text_simple</td><td>v0.1</td><td>#BizSlutCon2025</td><td>150</td><td>40</td><td>false</td><td>1.2</td><td>Didot:style=Italic</td><td>latin</td><td>ycenter</td><td>true</td><td>ycenter</td></tr></tbody></table></div> <div class="my-2"></div></div></div> <div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> STL Results (9)</button><div x-show="isOpen"><div class="table-container"><table class="table is-fullwidth" id="stl-results-table"><thead><tr><th style="width: 150px;">Instance</th><th style="width: 100px;">Time Taken</th><th style="width: 200px;">Params</th><th style="width: 150px;">Debug</th><th style="width: 200px;">Command</th></tr></thead> <tbody><tr id="stl-result-0" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>562.109875ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>center = true;
+content = 44;
+designFileName = &#34;text_simple&#34;;
+direction = &#34;ltr&#34;;
+font = &#34;Noteworthy:style=Bold&#34;;
+h = 20;
+script = &#34;latin&#34;;
+size = 150;
+spacing = 1.2;
+text_size = 110;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/usr/local/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/v0.1/text_simple-44-Noteworthy:style=Bold.stl&#39; --render --backend=manifold -D &#39;script=&#34;latin&#34;&#39; -D &#39;size=150&#39; -D &#39;text_size=110&#39; -D &#39;direction=&#34;ltr&#34;&#39; -D &#39;center=true&#39; -D &#39;spacing=1.2&#39; -D &#39;font=&#34;Noteworthy:style=Bold&#34;&#39; -D &#39;content=44&#39; -D &#39;h=20&#39; -D &#39;designFileName=&#34;text_simple&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/text_simple.scad</pre></code></div></details></td></tr><tr id="stl-result-1" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>381.504958ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>center = true;
+content = 44;
+designFileName = &#34;text_simple&#34;;
+direction = &#34;ltr&#34;;
+font = &#34;Georgia:style=Bold&#34;;
+h = 20;
+script = &#34;latin&#34;;
+size = 150;
+spacing = 1.2;
+text_size = 110;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/usr/local/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/v0.1/text_simple-44-Georgia:style=Bold.stl&#39; --render --backend=manifold -D &#39;spacing=1.2&#39; -D &#39;designFileName=&#34;text_simple&#34;&#39; -D &#39;content=44&#39; -D &#39;size=150&#39; -D &#39;text_size=110&#39; -D &#39;font=&#34;Georgia:style=Bold&#34;&#39; -D &#39;direction=&#34;ltr&#34;&#39; -D &#39;script=&#34;latin&#34;&#39; -D &#39;center=true&#39; -D &#39;h=20&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/text_simple.scad</pre></code></div></details></td></tr><tr id="stl-result-2" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>386.300208ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>center = true;
+content = 44;
+designFileName = &#34;text_simple&#34;;
+direction = &#34;ltr&#34;;
+font = &#34;Liberation Mono&#34;;
+h = 20;
+script = &#34;latin&#34;;
+size = 150;
+spacing = 1.2;
+text_size = 110;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/usr/local/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/v0.1/text_simple-44-Liberation Mono.stl&#39; --render --backend=manifold -D &#39;h=20&#39; -D &#39;spacing=1.2&#39; -D &#39;text_size=110&#39; -D &#39;designFileName=&#34;text_simple&#34;&#39; -D &#39;content=44&#39; -D &#39;center=true&#39; -D &#39;size=150&#39; -D &#39;font=&#34;Liberation Mono&#34;&#39; -D &#39;direction=&#34;ltr&#34;&#39; -D &#39;script=&#34;latin&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/text_simple.scad</pre></code></div></details></td></tr><tr id="stl-result-3" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>451.480125ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>center = true;
+content = 44;
+designFileName = &#34;text_simple&#34;;
+direction = &#34;ltr&#34;;
+font = &#34;Systemskrift:style=Semi Condensed Semibold G3&#34;;
+h = 20;
+script = &#34;latin&#34;;
+size = 150;
+spacing = 1.2;
+text_size = 110;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/usr/local/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/v0.1/text_simple-44-Systemskrift:style=Semi Condensed Semibold G3.stl&#39; --render --backend=manifold -D &#39;size=150&#39; -D &#39;h=20&#39; -D &#39;designFileName=&#34;text_simple&#34;&#39; -D &#39;spacing=1.2&#39; -D &#39;direction=&#34;ltr&#34;&#39; -D &#39;center=true&#39; -D &#39;script=&#34;latin&#34;&#39; -D &#39;text_size=110&#39; -D &#39;font=&#34;Systemskrift:style=Semi Condensed Semibold G3&#34;&#39; -D &#39;content=44&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/text_simple.scad</pre></code></div></details></td></tr><tr id="stl-result-4" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>429.270208ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>center = true;
+content = 44;
+designFileName = &#34;text_simple&#34;;
+direction = &#34;ltr&#34;;
+font = &#34;Optima:style=Bold&#34;;
+h = 20;
+script = &#34;latin&#34;;
+size = 150;
+spacing = 1.2;
+text_size = 110;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/usr/local/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/v0.1/text_simple-44-Optima:style=Bold.stl&#39; --render --backend=manifold -D &#39;spacing=1.2&#39; -D &#39;font=&#34;Optima:style=Bold&#34;&#39; -D &#39;designFileName=&#34;text_simple&#34;&#39; -D &#39;size=150&#39; -D &#39;direction=&#34;ltr&#34;&#39; -D &#39;center=true&#39; -D &#39;h=20&#39; -D &#39;script=&#34;latin&#34;&#39; -D &#39;content=44&#39; -D &#39;text_size=110&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/text_simple.scad</pre></code></div></details></td></tr><tr id="stl-result-5" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>474.077416ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>anchor = &#34;ycenter&#34;;
+atype = &#34;ycenter&#34;;
+center = false;
+content = &#34;Tidewater&#34;;
+designFileName = &#34;text_simple&#34;;
+direction = &#34;ltr&#34;;
+font = &#34;Noteworthy:style=Bold&#34;;
+h = 25;
+hasBase = false;
+script = &#34;latin&#34;;
+size = 150;
+spacing = 1.2;
+text_size = 100;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/usr/local/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/v0.1/text_simple-Tidewater-Noteworthy:style=Bold.stl&#39; --render --backend=manifold -D &#39;size=150&#39; -D &#39;designFileName=&#34;text_simple&#34;&#39; -D &#39;text_size=100&#39; -D &#39;font=&#34;Noteworthy:style=Bold&#34;&#39; -D &#39;center=false&#39; -D &#39;h=25&#39; -D &#39;atype=&#34;ycenter&#34;&#39; -D &#39;content=&#34;Tidewater&#34;&#39; -D &#39;anchor=&#34;ycenter&#34;&#39; -D &#39;script=&#34;latin&#34;&#39; -D &#39;spacing=1.2&#39; -D &#39;direction=&#34;ltr&#34;&#39; -D &#39;hasBase=false&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/text_simple.scad</pre></code></div></details></td></tr><tr id="stl-result-6" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>451.180792ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>anchor = &#34;ycenter&#34;;
+atype = &#34;ycenter&#34;;
+center = false;
+content = &#34;Tidewater&#34;;
+designFileName = &#34;text_simple&#34;;
+direction = &#34;ltr&#34;;
+font = &#34;Liberation Mono&#34;;
+h = 25;
+hasBase = false;
+script = &#34;latin&#34;;
+size = 150;
+spacing = 1.2;
+text_size = 100;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/usr/local/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/v0.1/text_simple-Tidewater-Liberation Mono.stl&#39; --render --backend=manifold -D &#39;h=25&#39; -D &#39;center=false&#39; -D &#39;direction=&#34;ltr&#34;&#39; -D &#39;size=150&#39; -D &#39;hasBase=false&#39; -D &#39;script=&#34;latin&#34;&#39; -D &#39;content=&#34;Tidewater&#34;&#39; -D &#39;anchor=&#34;ycenter&#34;&#39; -D &#39;text_size=100&#39; -D &#39;font=&#34;Liberation Mono&#34;&#39; -D &#39;designFileName=&#34;text_simple&#34;&#39; -D &#39;spacing=1.2&#39; -D &#39;atype=&#34;ycenter&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/text_simple.scad</pre></code></div></details></td></tr><tr id="stl-result-7" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>617.116917ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>anchor = &#34;ycenter&#34;;
+atype = &#34;ycenter&#34;;
+center = false;
+content = &#34;1 2 3 4 5 6 7 8&#34;;
+designFileName = &#34;text_simple&#34;;
+direction = &#34;ltr&#34;;
+font = &#34;Palatino:style=Bold&#34;;
+h = 25;
+hasBase = false;
+script = &#34;latin&#34;;
+size = 150;
+spacing = 1.2;
+text_size = 100;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/usr/local/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/v0.1/text_simple-1 2 3 4 5 6 7 8-Palatino:style=Bold.stl&#39; --render --backend=manifold -D &#39;anchor=&#34;ycenter&#34;&#39; -D &#39;direction=&#34;ltr&#34;&#39; -D &#39;hasBase=false&#39; -D &#39;h=25&#39; -D &#39;font=&#34;Palatino:style=Bold&#34;&#39; -D &#39;script=&#34;latin&#34;&#39; -D &#39;designFileName=&#34;text_simple&#34;&#39; -D &#39;content=&#34;1 2 3 4 5 6 7 8&#34;&#39; -D &#39;spacing=1.2&#39; -D &#39;atype=&#34;ycenter&#34;&#39; -D &#39;text_size=100&#39; -D &#39;size=150&#39; -D &#39;center=false&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/text_simple.scad</pre></code></div></details></td></tr><tr id="stl-result-8" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>907.02825ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>anchor = &#34;ycenter&#34;;
+atype = &#34;ycenter&#34;;
+center = false;
+content = &#34;#BizSlutCon2025&#34;;
+designFileName = &#34;text_simple&#34;;
+direction = &#34;ltr&#34;;
+font = &#34;Didot:style=Italic&#34;;
+h = 5;
+hasBase = true;
+script = &#34;latin&#34;;
+size = 150;
+spacing = 1.2;
+text_size = 40;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/usr/local/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/v0.1/text_simple-#BizSlutCon2025-Didot:style=Italic.stl&#39; --render --backend=manifold -D &#39;spacing=1.2&#39; -D &#39;script=&#34;latin&#34;&#39; -D &#39;direction=&#34;ltr&#34;&#39; -D &#39;center=false&#39; -D &#39;text_size=40&#39; -D &#39;atype=&#34;ycenter&#34;&#39; -D &#39;h=5&#39; -D &#39;font=&#34;Didot:style=Italic&#34;&#39; -D &#39;content=&#34;#BizSlutCon2025&#34;&#39; -D &#39;hasBase=true&#39; -D &#39;size=150&#39; -D &#39;anchor=&#34;ycenter&#34;&#39; -D &#39;designFileName=&#34;text_simple&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/text_simple.scad</pre></code></div></details></td></tr></tbody></table></div></div></div> <div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Images</button><div x-show="isOpen"><div>Add export images to the config file to generate images for each instance:<div class="code-block"><code style="white-space: pre;"><pre>
+                    [[openscadgen.export_images]]
+                    name = &#34;front&#34;
+                    coord = &#34;0,0,0,0,0,0,100&#34;
+                    </pre></code></div></div></div></div> <div><div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Config</button><div x-show="isOpen"><details><summary>No [global_params]</summary><p>Add global params via a heading at the top level of the config file:</p><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>
+                            [openscadgen.global_params]
+                            params = { text=&#34;First,Second,Third&#34;, height=100 }
+                        </pre></code></div></details> <div class="instance"><div class="params"><div class="param"><strong>Version:</strong> v0.1</div><div class="param"><strong>Output Path:</strong> </div><div class="param"><strong>OpenSCAD Version:</strong> OpenSCAD version 2025.06.06</div><div class="param"><strong>OpenSCADGen Version:</strong> v2.6.6__2025.07.02-BETA</div><div class="param"><strong>Build Info Set In File Attributes</strong></div></div></div><h2 class="is-size-4">Input Paths</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Path</th><!--NEXT-VERSION: <th>OpenSCAD Code</th> --></tr></thead> <tbody><tr><td>./text_simple.scad</td><!-- NEXT-VERSION: <td><details><summary>OpenSCAD Code</summary>
                                     { inputPath.RawOpenSCADFile }</details></td> --></tr></tbody></table></div> <h2 class="is-size-4">Config Reference</h2><details><summary>Example Config File</summary><pre><code>
 [[openscadgen]]
 name = &#34;My Design&#34;
@@ -238,7 +486,7 @@ description = &#34;A simple example design&#34;
 input_path = &#34;./my_design.scad&#34;
 version = &#34;v1.0&#34;
 output_path = &#34;./export&#34;
-export_name_format = &#34;export/{designFileName}-{version}-{instanceName}&#34;
+export_name_format = &#34;/{designFileName}-{version}-{instanceName}&#34;
 
 # Global parameters that apply to all instances
 [openscadgen.global_params]
@@ -336,141 +584,70 @@ skip_images = false              # Optional, whether to skip image generation
 
 # Optional: Whether to use manifold operations
 dont_use_manifold = false         # If true, disables manifold operations
-</code></pre></details><h2 class="is-size-4">Output Paths</h2><div class="instance"><div class="param"><strong>OutputPath:</strong> examples/text_simple/export/v0.1/text_simple/export/v0.1</div><div class="param"><strong>ExportFolderPath:</strong> examples/text_simple/export/v0.1</div><div class="param"><strong>ReadmePath:</strong> examples/text_simple/export/v0.1/text_simple/README.md</div><div class="param"><strong>LogOutputPath:</strong> examples/text_simple/export/v0.1/text_simple/export_log.log</div></div></div></div><div x-data="{ isOpen: true }"><button class="button is-large is-fullwidth" @click="isOpen = !isOpen"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Generated Instances</button><div x-show="isOpen"><div><div>(instances: 8) [ConfiguredInstanceConfig:3 * (InputPaths:1)]</div><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Name</th><th>Description</th><th>Output Path</th><th>Ignored Params</th><th>Skipped Reason</th><th>Images</th><th>direction</th><th>v</th><th>font</th><th>script</th><th>h</th><th>content</th><th>designFileName</th><th>text_size</th><th>spacing</th><th>size</th><th>center</th><th>anchor</th><th>hasBase</th><th>atype</th></tr></thead> <tbody><tr class="" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-44-Noteworthy:style=Bold.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-44-Noteworthy:style=Bold.stl</td><td>[]</td><td></td><td>no images generated</td><td>ltr</td><td>v0.1</td><td>Noteworthy:style=Bold</td><td>latin</td><td>20</td><td>44</td><td>text_simple</td><td>110</td><td>1.2</td><td>150</td><td>true</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr class="" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-44-Georgia:style=Bold.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-44-Georgia:style=Bold.stl</td><td>[]</td><td></td><td>no images generated</td><td>ltr</td><td>v0.1</td><td>Georgia:style=Bold</td><td>latin</td><td>20</td><td>44</td><td>text_simple</td><td>110</td><td>1.2</td><td>150</td><td>true</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr class="" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-44-Liberation Mono.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-44-Liberation Mono.stl</td><td>[]</td><td></td><td>no images generated</td><td>ltr</td><td>v0.1</td><td>Liberation Mono</td><td>latin</td><td>20</td><td>44</td><td>text_simple</td><td>110</td><td>1.2</td><td>150</td><td>true</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr class="" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-44-Systemskrift:style=Semi Condensed Semibold G3.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-44-Systemskrift:style=Semi Condensed Semibold G3.stl</td><td>[]</td><td></td><td>no images generated</td><td>ltr</td><td>v0.1</td><td>Systemskrift:style=Semi Condensed Semibold G3</td><td>latin</td><td>20</td><td>44</td><td>text_simple</td><td>110</td><td>1.2</td><td>150</td><td>true</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr class="" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-44-Optima:style=Bold.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-44-Optima:style=Bold.stl</td><td>[]</td><td></td><td>no images generated</td><td>ltr</td><td>v0.1</td><td>Optima:style=Bold</td><td>latin</td><td>20</td><td>44</td><td>text_simple</td><td>110</td><td>1.2</td><td>150</td><td>true</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr class="" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-Tidewater-Noteworthy:style=Bold.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-Tidewater-Noteworthy:style=Bold.stl</td><td>[]</td><td></td><td>no images generated</td><td>ltr</td><td>v0.1</td><td>Noteworthy:style=Bold</td><td>latin</td><td>25</td><td>Tidewater</td><td>text_simple</td><td>100</td><td>1.2</td><td>150</td><td>false</td><td>ycenter</td><td>false</td><td>ycenter</td></tr><tr class="" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-Tidewater-Liberation Mono.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-Tidewater-Liberation Mono.stl</td><td>[]</td><td></td><td>no images generated</td><td>ltr</td><td>v0.1</td><td>Liberation Mono</td><td>latin</td><td>25</td><td>Tidewater</td><td>text_simple</td><td>100</td><td>1.2</td><td>150</td><td>false</td><td>ycenter</td><td>false</td><td>ycenter</td></tr><tr class="" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-#BizSlutCon2025-Didot:style=Italic.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-#BizSlutCon2025-Didot:style=Italic.stl</td><td>[]</td><td></td><td>no images generated</td><td>ltr</td><td>v0.1</td><td>Didot:style=Italic</td><td>latin</td><td>5</td><td>#BizSlutCon2025</td><td>text_simple</td><td>40</td><td>1.2</td><td>150</td><td>false</td><td>ycenter</td><td>true</td><td>ycenter</td></tr></tbody></table></div></div></div></div><div class="my-2"></div><div x-data="{ isOpen: true }"><button class="button is-large is-fullwidth" @click="isOpen = !isOpen"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> STL Results (8)</button><div x-show="isOpen"><div class="table-container"><table class="table is-fullwidth"><thead><tr><th style="width: 150px;">Instance</th><th style="width: 200px;">Output Path</th><th style="width: 200px;">Command</th><th style="width: 100px;">Time Taken</th><th style="width: 200px;">Params</th><th style="width: 150px;">Error</th><th style="width: 150px;">Debug</th></tr></thead> <tbody><tr x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-#BizSlutCon2025-Didot:style=Italic.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-#BizSlutCon2025-Didot:style=Italic.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></td><td>527.05925ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>anchor = &#34;ycenter&#34;;
-atype = &#34;ycenter&#34;;
-center = false;
-content = &#34;#BizSlutCon2025&#34;;
-designFileName = &#34;text_simple&#34;;
-direction = &#34;ltr&#34;;
-font = &#34;Didot:style=Italic&#34;;
-h = 5;
-hasBase = true;
-script = &#34;latin&#34;;
-size = 150;
-spacing = 1.2;
-text_size = 40;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-44-Georgia:style=Bold.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-44-Georgia:style=Bold.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></td><td>177.25125ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>center = true;
-content = 44;
-designFileName = &#34;text_simple&#34;;
-direction = &#34;ltr&#34;;
-font = &#34;Georgia:style=Bold&#34;;
-h = 20;
-script = &#34;latin&#34;;
-size = 150;
-spacing = 1.2;
-text_size = 110;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-44-Liberation Mono.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-44-Liberation Mono.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></td><td>181.343125ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>center = true;
-content = 44;
-designFileName = &#34;text_simple&#34;;
-direction = &#34;ltr&#34;;
-font = &#34;Liberation Mono&#34;;
-h = 20;
-script = &#34;latin&#34;;
-size = 150;
-spacing = 1.2;
-text_size = 110;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-44-Noteworthy:style=Bold.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-44-Noteworthy:style=Bold.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></td><td>220.40925ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>center = true;
-content = 44;
-designFileName = &#34;text_simple&#34;;
-direction = &#34;ltr&#34;;
-font = &#34;Noteworthy:style=Bold&#34;;
-h = 20;
-script = &#34;latin&#34;;
-size = 150;
-spacing = 1.2;
-text_size = 110;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-44-Optima:style=Bold.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-44-Optima:style=Bold.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></td><td>198.918125ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>center = true;
-content = 44;
-designFileName = &#34;text_simple&#34;;
-direction = &#34;ltr&#34;;
-font = &#34;Optima:style=Bold&#34;;
-h = 20;
-script = &#34;latin&#34;;
-size = 150;
-spacing = 1.2;
-text_size = 110;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-44-Systemskrift:style=Semi Condensed Semibold G3.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-44-Systemskrift:style=Semi Condensed Semibold G3.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></td><td>179.867041ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>center = true;
-content = 44;
-designFileName = &#34;text_simple&#34;;
-direction = &#34;ltr&#34;;
-font = &#34;Systemskrift:style=Semi Condensed Semibold G3&#34;;
-h = 20;
-script = &#34;latin&#34;;
-size = 150;
-spacing = 1.2;
-text_size = 110;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-Tidewater-Liberation Mono.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-Tidewater-Liberation Mono.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></td><td>198.235958ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>anchor = &#34;ycenter&#34;;
-atype = &#34;ycenter&#34;;
-center = false;
-content = &#34;Tidewater&#34;;
-designFileName = &#34;text_simple&#34;;
-direction = &#34;ltr&#34;;
-font = &#34;Liberation Mono&#34;;
-h = 25;
-hasBase = false;
-script = &#34;latin&#34;;
-size = 150;
-spacing = 1.2;
-text_size = 100;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-Tidewater-Noteworthy:style=Bold.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_simple/export/v0.1/text_simple-Tidewater-Noteworthy:style=Bold.stl</td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></td><td>220.077292ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary></details><pre><code>anchor = &#34;ycenter&#34;;
-atype = &#34;ycenter&#34;;
-center = false;
-content = &#34;Tidewater&#34;;
-designFileName = &#34;text_simple&#34;;
-direction = &#34;ltr&#34;;
-font = &#34;Noteworthy:style=Bold&#34;;
-h = 25;
-hasBase = false;
-script = &#34;latin&#34;;
-size = 150;
-spacing = 1.2;
-text_size = 100;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>code</pre></code></div></details></td></tr></tbody></table></div></div></div><div x-data="{ isOpen: false }"><button class="button is-large is-fullwidth" @click="isOpen = !isOpen"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> No Image Generation Results</button><div x-show="isOpen"><div>Add export images to the config file to generate images for each instance:<div class="code-block"><code style="white-space: pre;"><pre>code</pre></code></div></div></div></div><div><p>Generated by openscadgen  v2.3.11-BETA at 2025-05-30 23:15:18</p></div></div></body></html>
+</code></pre></details><h2 class="is-size-4">Output Paths</h2><div class="instance"><div class="param"><strong>OutputPath:</strong> report.html</div>=</div></div></div><p>Generated by openscadgen OpenSCAD version 2025.06.06 v2.6.6__2025.07.02-BETA at 2025-07-16 16:45:50</p><p>Total processing time: 6.43s</p></div><script>
+        function alpineReportData() {
+            return {
+                darkMode: true,
+                searchQuery: '',
+                configHistory: JSON.parse(localStorage.getItem('configHistory') || '[]'),
+                configFile: '',
+                savedConfigFile: localStorage.getItem('savedConfigFile') || '',
+                searchHistory: JSON.parse(localStorage.getItem('searchHistory') || '[]'),
+                saveConfigFile(path) {
+                    if (path && !this.configHistory.includes(path)) {
+                        this.configHistory.unshift(path);
+                        localStorage.setItem('configHistory', JSON.stringify(this.configHistory));
+                    }
+                    this.savedConfigFile = path;
+                    localStorage.setItem('savedConfigFile', path);
+                },
+                init() {
+                    // Watchers
+                    this.$watch('darkMode', value => {
+                        localStorage.setItem('darkMode', value);
+                        document.documentElement.classList.toggle('dark', value);
+                    });
+                    this.$watch('searchQuery', value => {
+                        if (value && !this.searchHistory.includes(value)) {
+                            this.searchHistory.unshift(value);
+                            this.searchHistory = this.searchHistory.slice(0, 20);
+                            localStorage.setItem('searchHistory', JSON.stringify(this.searchHistory));
+                        }
+                    });
+
+                    // Initial dark mode setup
+                    this.darkMode = localStorage.getItem('darkMode') === 'true' ||
+                        (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+                    // Initial config file setup
+                    this.configFile = '\/Users\/gregc\/mine\/making\/3d-printing\/openSCAD\/openscadgen\/examples\/text_simple\/config.toml'; // or whatever templating you use
+                    if (this.configFile) {
+                        this.saveConfigFile(this.configFile);
+                    }
+                }
+            }
+        }
+        </script> <script>
+            // Enable htmx debug mode
+            window.htmx && (htmx.config.debug = true);
+
+            // Log all htmx events
+            document.body.addEventListener('htmx:afterRequest', function(evt) {
+                console.log('htmx:afterRequest', evt);
+            });
+            document.body.addEventListener('htmx:sendError', function(evt) {
+                console.error('htmx:sendError', evt);
+            });
+            document.body.addEventListener('htmx:responseError', function(evt) {
+                console.error('htmx:responseError', evt);
+            });
+            document.body.addEventListener('htmx:beforeRequest', function(evt) {
+                console.log('htmx:beforeRequest', evt);
+            });
+            document.body.addEventListener('htmx:beforeSend', function(evt) {
+                console.log('htmx:beforeSend', evt);
+            });
+            document.body.addEventListener('htmx:afterOnLoad', function(evt) {
+                console.log('htmx:afterOnLoad', evt);
+            });
+        </script></body></html>
