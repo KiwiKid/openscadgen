@@ -61,6 +61,9 @@ jobs:
           ls -la /usr/bin/openscad || echo "OpenSCAD not in /usr/bin"
           ls -la /usr/local/bin/openscad || echo "OpenSCAD not in /usr/local/bin"
 
+      - name: Templ Generate
+        run: templ generate
+
       - name: Build
         run: go build -v ./... 
 
