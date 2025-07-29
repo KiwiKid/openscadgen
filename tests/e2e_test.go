@@ -179,36 +179,73 @@ cylinderDefault(size=10);
 }
 
 func TestOpenSCADGenE2E(t *testing.T) {
+	// Check if we're in a CI environment (headless)
+	isCI := os.Getenv("CI") != "" || os.Getenv("DISPLAY") == ""
+
 	testCases := []testCase{
 		{
 			name:          "0. Default Default design",
 			configContent: defaultConfig,
 			scadContent:   scadFileInputExamples[defaultDesign],
-			command:       binaryPath + " -c " + defaultConfigPath + " -ow",
-			expectedFiles: []string{
-				"config.toml",
-				"default_design.scad",
-				"default_design_2.scad",
-				"shopping-list.toml",
-				"export/1.0/default_design-default.stl",
-				"export/1.0/default_design-default-top.png",
-				"export/1.0/report.html",
-			},
+			command: func() string {
+				if isCI {
+					return binaryPath + " -c " + defaultConfigPath + " -ow --oe"
+				}
+				return binaryPath + " -c " + defaultConfigPath + " -ow"
+			}(),
+			expectedFiles: func() []string {
+				if isCI {
+					return []string{
+						"config.toml",
+						"default_design.scad",
+						"default_design_2.scad",
+						"shopping-list.toml",
+						"export/1.0/default_design-default.stl",
+						"export/1.0/report.html",
+					}
+				}
+				return []string{
+					"config.toml",
+					"default_design.scad",
+					"default_design_2.scad",
+					"shopping-list.toml",
+					"export/1.0/default_design-default.stl",
+					"export/1.0/default_design-default-top.png",
+					"export/1.0/report.html",
+				}
+			}(),
 		},
 		{
 			name:          "1.Default design",
 			configContent: defaultConfig,
 			scadContent:   scadFileInputExamples[defaultDesign],
-			command:       binaryPath + " -c " + defaultConfigPath + " -ow",
-			expectedFiles: []string{
-				"config.toml",
-				"default_design.scad",
-				"default_design_2.scad",
-				"shopping-list.toml",
-				"export/1.0/default_design-default.stl",
-				"export/1.0/default_design-default-top.png",
-				"export/1.0/report.html",
-			},
+			command: func() string {
+				if isCI {
+					return binaryPath + " -c " + defaultConfigPath + " -ow --oe"
+				}
+				return binaryPath + " -c " + defaultConfigPath + " -ow"
+			}(),
+			expectedFiles: func() []string {
+				if isCI {
+					return []string{
+						"config.toml",
+						"default_design.scad",
+						"default_design_2.scad",
+						"shopping-list.toml",
+						"export/1.0/default_design-default.stl",
+						"export/1.0/report.html",
+					}
+				}
+				return []string{
+					"config.toml",
+					"default_design.scad",
+					"default_design_2.scad",
+					"shopping-list.toml",
+					"export/1.0/default_design-default.stl",
+					"export/1.0/default_design-default-top.png",
+					"export/1.0/report.html",
+				}
+			}(),
 		},
 		{
 			name: "2.Default design 2",
@@ -289,26 +326,46 @@ name = "top"
 name = "bottom"
 `,
 			scadContent: scadFileInputExamples[defaultDesign],
-			command:     binaryPath + " -c ./config.toml",
-			expectedFiles: []string{
-				"default_design.scad",
-				"config.toml",
-				"default_design_2.scad",
-				"shopping-list.toml",
-				"export/1.0/report.html",
-				"export/1.0/default_design-instance-name-10.stl",
-				"export/1.0/default_design-instance-name-10-top.png",
-				"export/1.0/default_design-instance-name-10-bottom.png",
-				"export/1.0/default_design-instance-name-20.stl",
-				"export/1.0/default_design-instance-name-20-top.png",
-				"export/1.0/default_design-instance-name-20-bottom.png",
-				"export/1.0/default_design_2-instance-name-10.stl",
-				"export/1.0/default_design_2-instance-name-20.stl",
-				"export/1.0/default_design_2-instance-name-10-top.png",
-				"export/1.0/default_design_2-instance-name-10-bottom.png",
-				"export/1.0/default_design_2-instance-name-20-top.png",
-				"export/1.0/default_design_2-instance-name-20-bottom.png",
-			},
+			command: func() string {
+				if isCI {
+					return binaryPath + " -c ./config.toml --oe"
+				}
+				return binaryPath + " -c ./config.toml"
+			}(),
+			expectedFiles: func() []string {
+				if isCI {
+					return []string{
+						"default_design.scad",
+						"config.toml",
+						"default_design_2.scad",
+						"shopping-list.toml",
+						"export/1.0/report.html",
+						"export/1.0/default_design-instance-name-10.stl",
+						"export/1.0/default_design-instance-name-20.stl",
+						"export/1.0/default_design_2-instance-name-10.stl",
+						"export/1.0/default_design_2-instance-name-20.stl",
+					}
+				}
+				return []string{
+					"default_design.scad",
+					"config.toml",
+					"default_design_2.scad",
+					"shopping-list.toml",
+					"export/1.0/report.html",
+					"export/1.0/default_design-instance-name-10.stl",
+					"export/1.0/default_design-instance-name-10-top.png",
+					"export/1.0/default_design-instance-name-10-bottom.png",
+					"export/1.0/default_design-instance-name-20.stl",
+					"export/1.0/default_design-instance-name-20-top.png",
+					"export/1.0/default_design-instance-name-20-bottom.png",
+					"export/1.0/default_design_2-instance-name-10.stl",
+					"export/1.0/default_design_2-instance-name-20.stl",
+					"export/1.0/default_design_2-instance-name-10-top.png",
+					"export/1.0/default_design_2-instance-name-10-bottom.png",
+					"export/1.0/default_design_2-instance-name-20-top.png",
+					"export/1.0/default_design_2-instance-name-20-bottom.png",
+				}
+			}(),
 			shouldFail: false,
 		},
 		{
@@ -431,15 +488,31 @@ name = "bottom"
 			name:          "10.invalid design - with correct config	",
 			configContent: defaultConfig,
 			scadContent:   scadFileInputExamples[invalidDesign],
-			command:       binaryPath + " -c " + defaultConfigPath + " -ow -coe",
-			expectedFiles: []string{
-				"config.toml",
-				"default_design.scad",
-				"default_design_2.scad",
-				"export/1.0/default_design-default-top.png",
-				"export/1.0/report.html",
-				"shopping-list.toml",
-			},
+			command: func() string {
+				if isCI {
+					return binaryPath + " -c " + defaultConfigPath + " -ow -coe --oe"
+				}
+				return binaryPath + " -c " + defaultConfigPath + " -ow -coe"
+			}(),
+			expectedFiles: func() []string {
+				if isCI {
+					return []string{
+						"config.toml",
+						"default_design.scad",
+						"default_design_2.scad",
+						"export/1.0/report.html",
+						"shopping-list.toml",
+					}
+				}
+				return []string{
+					"config.toml",
+					"default_design.scad",
+					"default_design_2.scad",
+					"export/1.0/default_design-default-top.png",
+					"export/1.0/report.html",
+					"shopping-list.toml",
+				}
+			}(),
 			shouldFail: false,
 		},
 		{
