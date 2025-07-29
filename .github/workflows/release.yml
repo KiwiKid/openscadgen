@@ -28,7 +28,7 @@ jobs:
           go-version: stable
 
       - name: Install dependencies
-        run: go get .
+        run: go mod download
 
       - name: Install templ
         run: go install github.com/a-h/templ/cmd/templ@v0.3.865
