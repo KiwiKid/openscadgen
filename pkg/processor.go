@@ -146,7 +146,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.7.3__2025.07.21-BETA"
+const VERSION = "v2.7.4__2025.07.21-BETA"
 
 type Version struct {
 	OpenSCADGen string
@@ -2089,7 +2089,14 @@ func openScadTemplateExtended(projectNameUnderLined string) string {
 	$fs = $preview ? 5 : 1;
 	$fn = 200;
 
-	renderType = "all"
+	/*
+	renderType:
+	use to print a test slice and confirm sizing before printing:
+	 - "horzSlice" - horizontal slices (default)
+	 - "vertSlice" - vertical slices
+	 - "all" - the whole object
+	*/
+	renderType = "obj";
 
 
 	module %s(){
@@ -2097,7 +2104,7 @@ func openScadTemplateExtended(projectNameUnderLined string) string {
 	}
 
 
-    sliced(renderType="") {
+    sliced(renderType=renderType) {
         %s();
     }
        
@@ -2179,7 +2186,7 @@ $fn = 200;
 
 
 module %s(){
-	cuboid([100,100,100]);
+	cuboid([10,10,10]);
 }
 `, projectNameUnderLined)
 }
@@ -2257,6 +2264,7 @@ func InitConfig(projectPathRaw string, extended bool) error {
 
 	logCreation(fmt.Sprintf("Project Successfully Initialized: %s", projectName))
 	LogKeyValuePair("Project Path", projectPath)
+	logCreation("\nUse the command:\n\n\tcd " + projectPath + "\n\topenscadgen\n\nto start the project")
 	return nil
 }
 
@@ -2302,7 +2310,7 @@ func InitLogger(logFilePath string) error {
 }
 
 func LogKeyValuePair(key string, value string) {
-	logger.Printf(colorYellow+"%s: "+colorWhite+"\t\t\t%s"+colorReset, key, value)
+	logger.Printf(colorYellow+"%s: "+colorWhite+"\t\t\t\t%s"+colorReset, key, value)
 }
 
 func logSkip(message string) {
@@ -2610,7 +2618,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 	}
 
 	if config.Debug {
-		LogKeyValuePair("Applied parameters for STL generation:", "")
+		LogKeyValuePair("Applied parameters for STL generation", "")
 		for key, value := range result.AppliedParams {
 			LogKeyValuePair(key, fmt.Sprintf("%v", value))
 		}
@@ -2677,7 +2685,12 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 	}
 
 	if !config.Design.DontUseManifold {
-		//	args = append(args, "--backend=manifold")
+		args = append(args, "--backend=manifold")
+	}
+
+	if config.Debug {
+		args = append(args, "--debug", "all")
+		args = append(args, "--summary", "all")
 	}
 
 	// Add custom OpenSCAD arguments if provided
