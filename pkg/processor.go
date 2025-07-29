@@ -146,7 +146,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.7.4__2025.07.21-BETA"
+const VERSION = "v2.7.5__2025.07.21-BETA"
 
 type Version struct {
 	OpenSCADGen string
@@ -2685,7 +2685,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 	}
 
 	if !config.Design.DontUseManifold {
-		args = append(args, "--backend=manifold")
+		//args = append(args, "--backend=manifold")
 	}
 
 	if config.Debug {
@@ -2955,89 +2955,9 @@ func generateAllCameraCombinations(direction string) []models.ExportCameraCoordi
 	return cameras
 }
 
-/*
-func processInstance(config *models.Config, instance models.InstanceConfig) error {
-	if config.Debug {
-		logStage("=== Processing Instance === ")
-		log.Printf("Processing instance: %s", instance.Name)
-	}
-
-	// Skip if instance is marked to be skipped
-	if instance.SkippedReason != "" {
-		log.Printf("Skipping instance %s: %s", instance.Name, instance.SkippedReason)
-		return nil
-	}
-
-	// Generate OpenSCAD command
-	cmd := generateOpenSCADCommand(config, &instance)
-	if config.Debug {
-		log.Printf("OpenSCAD command: %s", cmd)
-	}
-
-	// Execute OpenSCAD command
-	if err := executeCommand(cmd); err != nil {
-		return fmt.Errorf("error executing OpenSCAD command: %v", err)
-	}
-	/*
-		// Process images if not skipped
-		if !instance.SkipImages {
-			_, err := processImage(config, &instance)
-			if err != nil {
-				return fmt.Errorf("error processing images: %v", err)
-			}
-		}
-
-	return nil
-}
-
-func generateOpenSCADCommand(config *models.Config, instance *models.InstanceConfig) string {
-	args := []string{"-o", instance.RunOutputPathV3}
-
-	if config.Quiet {
-		args = append(args, "-q")
-	}
-
-	// Add parameters to command
-	for name, value := range instance.Params {
-		if reflect.TypeOf(value).Kind() == reflect.String && value != "true" && value != "false" {
-			args = append(args, "-D", fmt.Sprintf("'%s=\"%v\"'", name, value))
-		} else {
-			args = append(args, "-D", fmt.Sprintf("'%s=%v'", name, value))
-		}
-	}
-
-	if config.IncludePartIDLetter || !config.Design.NoPartIDLetter {
-		args = append(args, "-D", fmt.Sprintf("'part_id_letter=\"%s\"'", instance.PartIDLetter))
-	}
-
-	if config.OverrideFN > 0 {
-		args = append(args, "-D", fmt.Sprintf("'$fn=%d'", config.OverrideFN))
-	}
-
-	// Get the absolute path of the input file
-	absPath := getAbsPath(config.ConfigFile, instance.InputPath.Path)
-	args = append(args, fmt.Sprintf("\"%s\"", absPath))
-
-	if !config.SkipRender {
-		args = append(args, "--render")
-	}
-
-	if !config.Design.DontUseManifold {
-		args = append(args, "--backend=manifold")
-	}
-
-	command := "openscad"
-	if config.CustomOpenSCADCommand != "" {
-		command = config.CustomOpenSCADCommand
-	}
-
-	return fmt.Sprintf("%s %s", command, strings.Join(args, " "))
-}*/
-
 func executeCommand(cmd string) error {
 	command := exec.Command("sh", "-c", cmd)
 
-	// Capture stdout and stderr
 	var stdout, stderr bytes.Buffer
 	command.Stdout = &stdout
 	command.Stderr = &stderr
