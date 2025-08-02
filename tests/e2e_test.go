@@ -19,6 +19,7 @@ name = "test"
 version = "1.0"
 description = "Test design"
 export_name_format = "{designFileName}-{instanceName}"
+dont_use_manifold = true
 
 [[openscadgen.input_paths]]
 path = "default_design.scad"
@@ -35,6 +36,8 @@ name = "top"
 name = "list_generator"
 export_name_format = "{designFileName}-{instanceName}"
 input_path = "default_design_2.scad"
+
+dont_use_manifold = true
 
 [[openscadgen.instances]]
 params = { name="shopping", title_text= "Shopping List", rows=20, cols=1 }
@@ -256,6 +259,8 @@ func TestOpenSCADGenE2E(t *testing.T) {
 				description = "Test design"
 				export_name_format = "{designFileName}-{instanceName}-{size}"
 
+				dont_use_manifold = true
+
 				global_params = { size = "10,20" }
 
 				[[openscadgen.input_paths]]
@@ -281,6 +286,8 @@ version = "1.0"
 export_name_format = "{designFileName}-{instanceName}-{size}"
 
 global_params = { size = "10,20" }
+
+dont_use_manifold = true
 
 [[openscadgen.input_paths]]       
 path = "./default_design.scad"
@@ -309,6 +316,8 @@ version = "1.0"
 export_name_format = "{designFileName}-{instanceName}-{size}"
 
 global_params = { size = "10,20" }
+
+dont_use_manifold = true
 
 [[openscadgen.input_paths]]       
 path = "./default_design.scad"
@@ -375,6 +384,8 @@ name = "bottom"
 		version = "1.0"
 		export_name_format = "{designFileName}-{instanceName}"
 
+		dont_use_manifold = true
+
 		[[openscadgen.input_paths]]
 		path = "./default_design.scad"
 
@@ -402,6 +413,8 @@ name = "bottom"
 		name = "test-project"
 		version = "1.0"
 		export_name_format = "{designFileName}-{instanceName}"
+
+		dont_use_manifold = true
 
 		[[openscadgen.input_paths]]
 		path = "./default_design.scad"
@@ -444,6 +457,8 @@ name = "bottom"
 		name = "test-project"
 		version = "1.0"
 		export_name_format = "{designFileName}-{instanceName}-{size}"
+
+		dont_use_manifold = true
 
 		[[openscadgen.input_paths]]
 		path = "./default_design.scad"
@@ -521,7 +536,8 @@ name = "bottom"
 		name = "test-project"
 		version = "1.0"
 		export_name_format = "{designFileName}-{instanceName}"
-
+		dont_use_manifold = true
+		
 		[[openscadgen.input_paths]]
 		path = "./default_design.scad"
 
