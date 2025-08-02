@@ -13,7 +13,7 @@ The coaster is designed to be printed on a flat surface, with the text on the ou
 
 """
 
-export_name_format = "/{designFileName}_extrude_{renderType}"
+export_name_format = "/{designFileName}_extrude_{renderType}_{clip_cutout_width}"
 
 
 version = "v0.2"
@@ -22,4 +22,4 @@ version = "v0.2"
 path = "./coffee-cup-holder-v2.scad"
 
 [[openscadgen.instances]]
-params = { renderType = "horz-slice,vert-slice,all,bottom_gap"}
+params = { renderType = "horz-slice,vert-slice,all,bottom_gap", clip_cutout_width = [17, 25, 35]}

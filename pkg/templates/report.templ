@@ -545,8 +545,14 @@ html, body {
                     Add export images to the config file to generate images for each instance:
                    @CodeBlock(`
                     [[openscadgen.export_images]]
+                    name = "nice"
+
+                    [[openscadgen.export_images]]
                     name = "front"
-                    coord = "0,0,0,0,0,0,100"
+
+                    [[openscadgen.export_images]]
+                    name = "custom"
+                    coord = "0,0,0,90,0,0,600"
                     `, false, false)
                     </div>
                     }

@@ -27,7 +27,6 @@ import (
 	"github.com/kiwikid/openscadgen/pkg/models"
 	"github.com/kiwikid/openscadgen/pkg/templates"
 	"github.com/pkg/xattr"
-	"github.com/pterm/pterm"
 )
 
 func ShowMan() {
@@ -146,7 +145,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.7.10"
+const VERSION = "v2.7.12"
 
 type Version struct {
 	OpenSCADGen string
@@ -269,16 +268,17 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 		}
 	}
 
-	totalInstances := len(instances)
-	completedInstances := 0
-
-	// Start progress bars if using terminal progress reporter
-	if terminalProgress, ok := progress.(*TerminalProgressReporter); ok && !config.Quiet {
-		// Start the multi printer for simultaneous progress bars
-		if terminalProgress.multiPrinter != nil {
-			terminalProgress.multiPrinter.Start()
+	nonSkippedInstances := 0
+	for _, instance := range instances {
+		if instance.SkippedReason == "" {
+			nonSkippedInstances++
 		}
 	}
+
+	completedInstances := 0
+
+	// Construct progress for all instances
+	progress.Construct(instances, nonSkippedInstances)
 
 	for i := range instances {
 		// Check for cancellation
@@ -292,8 +292,8 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 		instances[i].PartIDLetter = getPartIDLetter(i)
 
 		if instances[i].SkippedReason == "" {
-			// Update file progress
-			progress.UpdateFileProgress(completedInstances, totalInstances, instances[i].AutoName)
+			// Start processing this instance
+			progress.StartInstance(instances[i].ID)
 
 			if config.Debug {
 				logCreation(fmt.Sprintf("Generated instance %s", instances[i].AutoName))
@@ -317,8 +317,11 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 				}
 			}
 
+			// Progress - STL complete
+			//progress.ProgressInstance(instances[i].ID, 100)
+
 			if !config.OnlyExport {
-				genImageResult, err := processImage(config, &instances[i])
+				genImageResult, err := processImage(config, &instances[i], progress)
 				if err != nil {
 					if config.ContinueOnError && !config.Server {
 						logError(fmt.Sprintf("Warning: failed to generate image for instance %s:\n Error:\n%+v", instances[i].Name, err))
@@ -334,16 +337,19 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 				logSkip(fmt.Sprintf("Skipping image for instance %s", instances[i].AutoName))
 			}
 
+			// Progress - complete
+			//progress.ProgressInstance(instances[i].ID, 100)
+
 		} else {
 			if config.Debug {
 				logSkip(fmt.Sprintf("STL skipped %s %s", instances[i].AutoName, instances[i].SkippedReason))
 			}
 		}
 
-		completedInstances++
+		// Finish this instance
+		progress.FinishInstance()
 
-		// Update total progress
-		progress.UpdateTotalProgress(completedInstances, totalInstances)
+		completedInstances++
 
 		if config.Debug {
 			LogKeyValuePair("ImageResults Count", fmt.Sprintf("%d", len(instances[i].ImageResults)))
@@ -361,6 +367,8 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 
 	// Store processing time for next run
 	storeProcessingTime(config, totalTime)
+
+	// Processing complete
 
 	// Signal completion
 	progress.Done()
@@ -1583,6 +1591,36 @@ func generateUniqueAutoName(exportPath string, instanceName string, inputPath st
 		baseName = baseName[:strings.LastIndex(baseName, ".")]
 	}
 
+	// Extract the parent directory and add the name to the baseName, until we hit the export folder
+	currentDir := filepath.Dir(exportPath)
+	parentNames := []string{}
+
+	// Walk up the directory tree until we hit an "export" folder
+	for {
+		dirName := filepath.Base(currentDir)
+		if dirName == "export" {
+			break
+		}
+		parentNames = append([]string{dirName}, parentNames...) // Prepend to maintain order
+		currentDir = filepath.Dir(currentDir)
+
+		// Safety check to prevent infinite loop
+		if currentDir == filepath.Dir(currentDir) {
+			break // Reached root directory
+		}
+	}
+
+	// Build the final name with parent directories
+	if len(parentNames) > 0 {
+		for i := 1; i < len(parentNames); i++ {
+			if len(parentNames[i]) > 0 {
+				baseName = parentNames[i] + "_" + baseName
+			} else {
+				baseName = baseName
+			}
+		}
+	}
+
 	// If the baseName is just the instance name, add the input path for uniqueness
 	if baseName == instanceName {
 		return fmt.Sprintf("%s_%s", instanceName, filepath.Base(inputPath))
@@ -2390,11 +2428,9 @@ func SetMetadata(fileName string, metadata map[string]string, config *models.Con
 			if err := xattr.Set(fileName, xattrKey, []byte(value)); err != nil {
 				logWarn(fmt.Sprintf("warning: error setting xattr '%s' on file '%s': %v", key, fileName, err), false)
 				return fmt.Errorf("error setting xattr '%s' on file '%s': %v", key, fileName, err)
-			}
-			if config.Debug {
+			} else if config.Debug {
 				LogKeyValuePair("Set xattr", xattrKey)
 				fmt.Printf("Set xattr '%s' on file '%s' with value: %s\n", xattrKey, fileName, value)
-
 			}
 		}
 	case "windows":
@@ -2405,6 +2441,8 @@ func SetMetadata(fileName string, metadata map[string]string, config *models.Con
 			if err != nil {
 				logWarn(fmt.Sprintf("warning: error opening ADS '%s': %v", adsName, err), false)
 				return fmt.Errorf("error opening ADS '%s': %v", adsName, err)
+			} else if config.Debug {
+				log.Printf("📊 Set ADS: %s", adsName)
 			}
 			defer file.Close()
 
@@ -2412,9 +2450,8 @@ func SetMetadata(fileName string, metadata map[string]string, config *models.Con
 			if err != nil {
 				logWarn(fmt.Sprintf("warning: error writing to ADS '%s': %v", adsName, err), false)
 				return fmt.Errorf("error writing to ADS '%s': %v", adsName, err)
-			}
-			if config.Debug {
-				LogKeyValuePair("Set ADS", adsName)
+			} else if config.Debug {
+				log.Printf("📊 Set ADS: %s with value: %s", adsName, value)
 			}
 			fmt.Printf("Set ADS '%s' on file '%s' with value: %s\n", key, fileName, value)
 		}
@@ -2515,7 +2552,7 @@ func storeProcessingTime(config *models.Config, totalTime time.Duration) {
 		"last_process_timestamp":  time.Now().Format(time.RFC3339),
 	}
 	SetMetadata(config.ConfigFile, metadata, config)
-	log.Printf("📊 Saved processing time to metadata: %v (for next run estimation)", totalTime)
+
 }
 
 // Set all the attributes against the file in the metadata
@@ -2685,7 +2722,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 	}
 
 	if !config.Design.DontUseManifold {
-		//args = append(args, "--backend=manifold")
+		args = append(args, "--backend=manifold")
 	}
 
 	if config.Debug {
@@ -2802,7 +2839,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 		if config.Debug {
 			log.Printf("[DEBUG] Output file created successfully (size: %d bytes): %s", fileInfo.Size(), instance.RunOutputPathV3)
 		}
-		logCreation(fmt.Sprintf("📦 STL\t\t%s\t\t%s", result.InstanceConfig.AutoName, result.TimeTaken))
+		logCreation(fmt.Sprintf("\n📦 STL\t\t%s\t\t%s", result.InstanceConfig.AutoName, result.TimeTaken))
 		if config.Debug {
 			LogKeyValuePair("STL File", instance.RunOutputPathV3)
 		}
@@ -2976,7 +3013,7 @@ func executeCommand(cmd string) error {
 	return nil
 }
 
-func processImage(config *models.Config, instance *models.InstanceConfig) ([]models.GenerateImageResult, error) {
+func processImage(config *models.Config, instance *models.InstanceConfig, progress ProgressReporter) ([]models.GenerateImageResult, error) {
 
 	var imageResults []models.GenerateImageResult
 
@@ -2990,13 +3027,20 @@ func processImage(config *models.Config, instance *models.InstanceConfig) ([]mod
 		AppliedParams:  instance.Params,
 	}
 
+	//totalImages := len(instance.ExportImages)
+	completedImages := 0
+
 	for _, camera := range instance.ExportImages {
 		if len(instance.SkippedImageReason) > 0 {
 			if config.Debug {
 				logSkip(fmt.Sprintf("Skipping image %s", instance.SkippedImageReason))
 			}
-
 		} else {
+			// Update progress for current image
+			//if progress != nil {
+			//		progress.ProgressInstance(instance.ID, int(float64(completedImages)/float64(totalImages)*100))
+			//}
+
 			result, cmdStr, err := generateImage(instance, config, camera, stlResult)
 			if err != nil {
 				LogKeyValuePair(
@@ -3012,6 +3056,7 @@ func processImage(config *models.Config, instance *models.InstanceConfig) ([]mod
 			imageResults = append(imageResults, result)
 		}
 
+		completedImages++
 	}
 
 	return imageResults, nil
@@ -3111,7 +3156,7 @@ func generateImage(instance *models.InstanceConfig, config *models.Config, camer
 
 		return imageResult, cmdStr, fmt.Errorf("error running OpenSCAD: %w", err)
 	} else {
-		logCreation(fmt.Sprintf("🖼️ Image\t\t%s\t\t%s", instance.AutoName, time.Since(imgStartTime)))
+		logCreation(fmt.Sprintf("\n🖼️  Image\t%s\t\t%s", instance.AutoName, time.Since(imgStartTime)))
 		if config.Debug {
 			LogKeyValuePair("Image Created", outputImgPath)
 		}
@@ -3122,204 +3167,6 @@ func generateImage(instance *models.InstanceConfig, config *models.Config, camer
 	imageResult.OutputPath = outputImgPath
 
 	return imageResult, cmdStr, nil
-}
-
-type ProgressReporter interface {
-	Update(msg string)
-	Done()
-	Error(err error)
-	// New methods for progress bars
-	UpdateFileProgress(current, total int, filename string)
-	UpdateTotalProgress(current, total int)
-}
-
-type NoopProgress struct{}
-
-func (n *NoopProgress) Update(msg string)                                      {}
-func (n *NoopProgress) Done()                                                  {}
-func (n *NoopProgress) Error(err error)                                        {}
-func (n *NoopProgress) UpdateFileProgress(current, total int, filename string) {}
-func (n *NoopProgress) UpdateTotalProgress(current, total int)                 {}
-
-type ChanProgress struct {
-	Updates chan<- string
-}
-
-func (c *ChanProgress) Update(msg string) { c.Updates <- msg }
-func (c *ChanProgress) Done()             { c.Updates <- "done" }
-func (c *ChanProgress) Error(err error)   { c.Updates <- "error: " + err.Error() }
-func (c *ChanProgress) UpdateFileProgress(current, total int, filename string) {
-	c.Updates <- fmt.Sprintf("Processing file %d/%d: %s", current, total, filename)
-}
-func (c *ChanProgress) UpdateTotalProgress(current, total int) {
-	percentage := int((float64(current) / float64(total)) * 100)
-	if percentage > 100 {
-		percentage = 100
-	}
-	c.Updates <- fmt.Sprintf("Total progress: %d%% (%d/%d)", percentage, current, total)
-}
-
-// TerminalProgressReporter provides rich terminal progress reporting
-type TerminalProgressReporter struct {
-	multiPrinter    *pterm.MultiPrinter
-	totalProgress   *pterm.ProgressbarPrinter
-	fileProgress    *pterm.ProgressbarPrinter
-	fileStartTime   time.Time
-	currentFilename string
-	isQuiet         bool
-	stopTimer       chan struct{}
-}
-
-func NewTerminalProgressReporter(config *models.Config) *TerminalProgressReporter {
-	// Create multi printer for simultaneous progress bars
-	multi := pterm.DefaultMultiPrinter
-
-	// Create progress bars with separate writers
-	var totalBar, fileBar *pterm.ProgressbarPrinter
-
-	if !config.Quiet {
-		fileBar, _ = pterm.DefaultProgressbar.WithTotal(100).
-			WithWriter(multi.NewWriter()).
-			WithTitle("File Progress").
-			WithShowElapsedTime(true).
-			WithShowCount(true).
-			WithBarStyle(pterm.NewStyle(pterm.FgBlue)).
-			WithTitleStyle(pterm.NewStyle(pterm.FgYellow, pterm.Bold)).
-			Start("File Progress")
-
-		// Initialize with 0 total - will be set when we know the actual total
-		totalBar, _ = pterm.DefaultProgressbar.WithTotal(0).
-			WithWriter(multi.NewWriter()).
-			WithTitle("Total Progress").
-			WithShowElapsedTime(true).
-			WithShowCount(true).
-			WithBarStyle(pterm.NewStyle(pterm.FgGreen)).
-			WithTitleStyle(pterm.NewStyle(pterm.FgCyan, pterm.Bold)).
-			Start("Total Progress")
-	}
-
-	reporter := &TerminalProgressReporter{
-		multiPrinter:  &multi,
-		totalProgress: totalBar,
-		fileProgress:  fileBar,
-		fileStartTime: time.Now(),
-		isQuiet:       config.Quiet,
-		stopTimer:     make(chan struct{}),
-	}
-
-	return reporter
-}
-
-func (t *TerminalProgressReporter) Update(msg string) {
-	if !t.isQuiet {
-		pterm.Info.Println(msg)
-	}
-}
-
-func (t *TerminalProgressReporter) UpdateFileProgress(current, total int, filename string) {
-	if t.isQuiet || t.fileProgress == nil {
-		return
-	}
-
-	// Check if this is a new file
-	if filename != t.currentFilename {
-		// Stop previous timer if running
-		select {
-		case t.stopTimer <- struct{}{}:
-		default:
-		}
-
-		// Reset progress for new file
-		t.fileProgress.Current = 0
-		t.fileStartTime = time.Now()
-		t.currentFilename = filename
-
-		// Start a timer to update progress every 100ms
-		go func() {
-			ticker := time.NewTicker(100 * time.Millisecond)
-			defer ticker.Stop()
-
-			for {
-				select {
-				case <-ticker.C:
-					t.updateFileProgressBar()
-				case <-t.stopTimer:
-					return
-				}
-			}
-		}()
-	}
-
-	// Update the title with current file being processed and count
-	t.fileProgress.UpdateTitle(fmt.Sprintf("Processing: %s (%d/%d)", filename, current+1, total))
-}
-
-func (t *TerminalProgressReporter) updateFileProgressBar() {
-	if t.isQuiet || t.fileProgress == nil {
-		return
-	}
-
-	// Show progress within current file based on elapsed time
-	elapsed := time.Since(t.fileStartTime)
-	estimatedFileTime := 3 * time.Second // Assume 3 seconds per file
-
-	progress := int((float64(elapsed) / float64(estimatedFileTime)) * 100)
-	if progress > 100 {
-		progress = 100
-	}
-
-	// Update the progress bar
-	targetProgress := int(float64(progress) / 100.0 * float64(t.fileProgress.Total))
-	toIncrement := targetProgress - t.fileProgress.Current
-	if toIncrement > 0 {
-		for i := 0; i < toIncrement; i++ {
-			t.fileProgress.Increment()
-		}
-	}
-}
-
-func (t *TerminalProgressReporter) UpdateTotalProgress(current, total int) {
-	if t.isQuiet || t.totalProgress == nil {
-		return
-	}
-
-	// Set the total if it's different (first time or changed)
-	if t.totalProgress.Total != total {
-		t.totalProgress.Total = total
-	}
-
-	// Calculate how much to increment
-	toIncrement := current - t.totalProgress.Current
-	if toIncrement > 0 {
-		// Use Increment() for each step
-		for i := 0; i < toIncrement; i++ {
-			t.totalProgress.Increment()
-		}
-	}
-}
-
-func (t *TerminalProgressReporter) Done() {
-	// Stop the timer
-	select {
-	case t.stopTimer <- struct{}{}:
-	default:
-	}
-
-	if t.multiPrinter != nil {
-		t.multiPrinter.Stop()
-	}
-	if t.fileProgress != nil {
-		t.fileProgress.Stop()
-	}
-	if t.totalProgress != nil {
-		t.totalProgress.Stop()
-	}
-}
-
-func (t *TerminalProgressReporter) Error(err error) {
-	if !t.isQuiet {
-		pterm.Error.Println(err.Error())
-	}
 }
 
 func printDirectoryContents(dir string) {

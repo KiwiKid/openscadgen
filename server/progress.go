@@ -52,7 +52,7 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 	mu.Unlock()
 
 	go func() {
-		result, err := pkg.Process(config, &pkg.ChanProgress{Updates: updates}, cancel)
+		result, err := pkg.Process(config, pkg.NewTerminalProgressReporter(config), cancel)
 		if err != nil {
 			updates <- "error: " + err.Error()
 		} else {
@@ -143,7 +143,7 @@ func StartProcessingJob(config *models.Config) string {
 	mu.Unlock()
 
 	go func() {
-		result, err := pkg.Process(config, &pkg.ChanProgress{Updates: updates}, cancel)
+		result, err := pkg.Process(config, pkg.NewTerminalProgressReporter(config), cancel)
 		if err != nil {
 			log.Printf("Processing error: %v", err)
 		} else {

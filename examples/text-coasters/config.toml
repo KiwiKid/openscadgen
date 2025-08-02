@@ -21,6 +21,17 @@ version = "v0.1"
 [[openscadgen.input_paths]]
 path = "./text-coasters.scad"
 
+
+[[openscadgen.export_images]]
+name = "nice"
+
+[[openscadgen.export_images]]
+name = "front"
+
+[[openscadgen.export_images]]
+name = "custom"
+coord = "0,0,0,90,0,0,600"
+
 #[[openscadgen.instances]]
 #params = { textContent = "LEFTY",  textSubContent = "Only Drink with Left Hand", textAround = "LEFT LEFT LEFT LEFT LEFT LEF LEFT LEFT LEFT LEFT LEFT LEFT" }
 

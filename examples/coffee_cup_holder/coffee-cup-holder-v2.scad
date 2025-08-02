@@ -126,7 +126,8 @@ union(){
         clip_width = 21;
         clip_height = 100;
         
-        clip_cutout_size = [10000,14,170];
+        clip_cutout_width = 17;
+        clip_cutout_size = [10000,clip_cutout_width,170];
         clip_cutout_y_offset = 10;
         
         // back clip
@@ -169,7 +170,7 @@ union(){
          
          down(clip_height)
          fwd(clip_cutout_y_offset)
-         cuboid(clip_cutout_size, edges=[TOP+FRONT+LEFT, TOP+FRONT+RIGHT, 
+         #cuboid(clip_cutout_size, edges=[TOP+FRONT+LEFT, TOP+FRONT+RIGHT, 
          TOP+FRONT+LEFT, TOP+BACK+LEFT], rounding=3);
          
          }

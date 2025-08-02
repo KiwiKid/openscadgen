@@ -204,10 +204,176 @@ html, body {
                     color: var(--text-color) !important;
                     background-color: var(--card-bg) !important;
                 }
-            </style></head><body><div class="global-header"><div><h1 class="title is-4">coffee-cup-holder</h1><div class="search-box"><div><div><input class="input" type="text" placeholder="Filter to specific instances etc..." x-model="searchQuery"></div><details><summary>History</summary><template x-if="searchHistory.length &gt; 0"><div class="mt-2"><strong>Recent Searches:</strong><ul style="list-style: disc inside; padding-left: 1em;"><template x-for="term in searchHistory" :key="term"><li><a href="#" @click.prevent="searchQuery = term" x-text="term"></a></li></template></ul></div></template></details></div></div><button class="button" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button></div></div><div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Config</button><div x-show="isOpen"><details><summary>No [global_params]</summary><p>Add global params via a heading at the top level of the config file:</p><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>
+            </style></head><body><div class="global-header"><div><h1 class="title is-4">coffee-cup-holder</h1><div class="search-box"><div><div><input class="input" type="text" placeholder="Filter to specific instances etc..." x-model="searchQuery"></div><details><summary>History</summary><template x-if="searchHistory.length > 0"><div class="mt-2"><strong>Recent Searches:</strong><ul style="list-style: disc inside; padding-left: 1em;"><template x-for="term in searchHistory" :key="term"><li><a href="#" @click.prevent="searchQuery = term" x-text="term"></a></li></template></ul></div></template></details></div></div><button class="button" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button></div></div><div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Instances (12)</button><div x-show="isOpen"><div class="table-container"><table class="table is-fullwidth" id="instances-table"><thead><tr><th>Name</th><th>Description</th><th>Output Path</th><th>Ignored Params</th><th>Images</th><th>renderType</th><th>clip_cutout_width</th><th>designFileName</th><th>version</th></tr></thead> <tbody><tr id="instance-0" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>coffee-cup-holder-v2_extrude_horz-slice_17 ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 17;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;horz-slice&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>horz-slice</td><td>17</td><td>coffee-cup-holder-v2</td><td>v0.2</td></tr><tr id="instance-1" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>coffee-cup-holder-v2_extrude_vert-slice_17 ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 17;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;vert-slice&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>vert-slice</td><td>17</td><td>coffee-cup-holder-v2</td><td>v0.2</td></tr><tr id="instance-2" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>coffee-cup-holder-v2_extrude_all_17 ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 17;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;all&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>all</td><td>17</td><td>coffee-cup-holder-v2</td><td>v0.2</td></tr><tr id="instance-3" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>coffee-cup-holder-v2_extrude_bottom_gap_17 ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 17;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;bottom_gap&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>bottom_gap</td><td>17</td><td>coffee-cup-holder-v2</td><td>v0.2</td></tr><tr id="instance-4" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>coffee-cup-holder-v2_extrude_horz-slice_25 ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 25;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;horz-slice&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>horz-slice</td><td>25</td><td>coffee-cup-holder-v2</td><td>v0.2</td></tr><tr id="instance-5" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>coffee-cup-holder-v2_extrude_vert-slice_25 ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 25;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;vert-slice&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>vert-slice</td><td>25</td><td>coffee-cup-holder-v2</td><td>v0.2</td></tr><tr id="instance-6" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>coffee-cup-holder-v2_extrude_all_25 ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 25;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;all&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>all</td><td>25</td><td>coffee-cup-holder-v2</td><td>v0.2</td></tr><tr id="instance-7" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>coffee-cup-holder-v2_extrude_bottom_gap_25 ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 25;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;bottom_gap&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>bottom_gap</td><td>25</td><td>coffee-cup-holder-v2</td><td>v0.2</td></tr><tr id="instance-8" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>coffee-cup-holder-v2_extrude_horz-slice_35 ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 35;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;horz-slice&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>horz-slice</td><td>35</td><td>coffee-cup-holder-v2</td><td>v0.2</td></tr><tr id="instance-9" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>coffee-cup-holder-v2_extrude_vert-slice_35 ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 35;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;vert-slice&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>vert-slice</td><td>35</td><td>coffee-cup-holder-v2</td><td>v0.2</td></tr><tr id="instance-10" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>coffee-cup-holder-v2_extrude_all_35 ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 35;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;all&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>all</td><td>35</td><td>coffee-cup-holder-v2</td><td>v0.2</td></tr><tr id="instance-11" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>coffee-cup-holder-v2_extrude_bottom_gap_35 ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 35;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;bottom_gap&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>bottom_gap</td><td>35</td><td>coffee-cup-holder-v2</td><td>v0.2</td></tr></tbody></table></div> <div class="my-2"></div></div></div> <div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> STL Results (12)</button><div x-show="isOpen"><div class="table-container"><table class="table is-fullwidth" id="stl-results-table"><thead><tr><th style="width: 150px;">Instance</th><th style="width: 100px;">Time Taken</th><th style="width: 200px;">Params</th><th style="width: 150px;">Debug</th><th style="width: 200px;">Command</th></tr></thead> <tbody><tr id="stl-result-0" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.458587958s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 17;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;horz-slice&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/export/v0.2/coffee-cup-holder-v2_extrude_horz-slice_17.stl&#39; --render --backend=manifold -D &#39;renderType=&#34;horz-slice&#34;&#39; -D &#39;clip_cutout_width=17&#39; -D &#39;designFileName=&#34;coffee-cup-holder-v2&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/coffee-cup-holder-v2.scad</pre></code></div></details></td></tr><tr id="stl-result-1" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.494054667s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 17;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;vert-slice&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/export/v0.2/coffee-cup-holder-v2_extrude_vert-slice_17.stl&#39; --render --backend=manifold -D &#39;clip_cutout_width=17&#39; -D &#39;designFileName=&#34;coffee-cup-holder-v2&#34;&#39; -D &#39;renderType=&#34;vert-slice&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/coffee-cup-holder-v2.scad</pre></code></div></details></td></tr><tr id="stl-result-2" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.526111166s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 17;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;all&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/export/v0.2/coffee-cup-holder-v2_extrude_all_17.stl&#39; --render --backend=manifold -D &#39;clip_cutout_width=17&#39; -D &#39;renderType=&#34;all&#34;&#39; -D &#39;designFileName=&#34;coffee-cup-holder-v2&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/coffee-cup-holder-v2.scad</pre></code></div></details></td></tr><tr id="stl-result-3" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>3.29690175s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 17;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;bottom_gap&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/export/v0.2/coffee-cup-holder-v2_extrude_bottom_gap_17.stl&#39; --render --backend=manifold -D &#39;clip_cutout_width=17&#39; -D &#39;renderType=&#34;bottom_gap&#34;&#39; -D &#39;designFileName=&#34;coffee-cup-holder-v2&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/coffee-cup-holder-v2.scad</pre></code></div></details></td></tr><tr id="stl-result-4" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.417519167s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 25;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;horz-slice&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/export/v0.2/coffee-cup-holder-v2_extrude_horz-slice_25.stl&#39; --render --backend=manifold -D &#39;designFileName=&#34;coffee-cup-holder-v2&#34;&#39; -D &#39;clip_cutout_width=25&#39; -D &#39;renderType=&#34;horz-slice&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/coffee-cup-holder-v2.scad</pre></code></div></details></td></tr><tr id="stl-result-5" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.39246325s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 25;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;vert-slice&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/export/v0.2/coffee-cup-holder-v2_extrude_vert-slice_25.stl&#39; --render --backend=manifold -D &#39;clip_cutout_width=25&#39; -D &#39;designFileName=&#34;coffee-cup-holder-v2&#34;&#39; -D &#39;renderType=&#34;vert-slice&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/coffee-cup-holder-v2.scad</pre></code></div></details></td></tr><tr id="stl-result-6" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.625337625s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 25;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;all&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/export/v0.2/coffee-cup-holder-v2_extrude_all_25.stl&#39; --render --backend=manifold -D &#39;clip_cutout_width=25&#39; -D &#39;renderType=&#34;all&#34;&#39; -D &#39;designFileName=&#34;coffee-cup-holder-v2&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/coffee-cup-holder-v2.scad</pre></code></div></details></td></tr><tr id="stl-result-7" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>3.322780042s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 25;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;bottom_gap&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/export/v0.2/coffee-cup-holder-v2_extrude_bottom_gap_25.stl&#39; --render --backend=manifold -D &#39;clip_cutout_width=25&#39; -D &#39;renderType=&#34;bottom_gap&#34;&#39; -D &#39;designFileName=&#34;coffee-cup-holder-v2&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/coffee-cup-holder-v2.scad</pre></code></div></details></td></tr><tr id="stl-result-8" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.417364625s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 35;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;horz-slice&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/export/v0.2/coffee-cup-holder-v2_extrude_horz-slice_35.stl&#39; --render --backend=manifold -D &#39;clip_cutout_width=35&#39; -D &#39;renderType=&#34;horz-slice&#34;&#39; -D &#39;designFileName=&#34;coffee-cup-holder-v2&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/coffee-cup-holder-v2.scad</pre></code></div></details></td></tr><tr id="stl-result-9" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.401607834s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 35;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;vert-slice&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/export/v0.2/coffee-cup-holder-v2_extrude_vert-slice_35.stl&#39; --render --backend=manifold -D &#39;designFileName=&#34;coffee-cup-holder-v2&#34;&#39; -D &#39;clip_cutout_width=35&#39; -D &#39;renderType=&#34;vert-slice&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/coffee-cup-holder-v2.scad</pre></code></div></details></td></tr><tr id="stl-result-10" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.613392292s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 35;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;all&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/export/v0.2/coffee-cup-holder-v2_extrude_all_35.stl&#39; --render --backend=manifold -D &#39;clip_cutout_width=35&#39; -D &#39;renderType=&#34;all&#34;&#39; -D &#39;designFileName=&#34;coffee-cup-holder-v2&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/coffee-cup-holder-v2.scad</pre></code></div></details></td></tr><tr id="stl-result-11" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>3.459602625s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>clip_cutout_width = 35;
+designFileName = &#34;coffee-cup-holder-v2&#34;;
+renderType = &#34;bottom_gap&#34;;
+version = &#34;v0.2&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/export/v0.2/coffee-cup-holder-v2_extrude_bottom_gap_35.stl&#39; --render --backend=manifold -D &#39;designFileName=&#34;coffee-cup-holder-v2&#34;&#39; -D &#39;clip_cutout_width=35&#39; -D &#39;renderType=&#34;bottom_gap&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/coffee-cup-holder-v2.scad</pre></code></div></details></td></tr></tbody></table></div></div></div> <div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Images</button><div x-show="isOpen"><div>Add export images to the config file to generate images for each instance:<div class="code-block"><code style="white-space: pre;"><pre>
+                    [[openscadgen.export_images]]
+                    name = &#34;nice&#34;
+
+                    [[openscadgen.export_images]]
+                    name = &#34;front&#34;
+
+                    [[openscadgen.export_images]]
+                    name = &#34;custom&#34;
+                    coord = &#34;0,0,0,90,0,0,600&#34;
+                    </pre></code></div></div></div></div> <div><div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Config</button><div x-show="isOpen"><details><summary>No [global_params]</summary><p>Add global params via a heading at the top level of the config file:</p><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>
                             [openscadgen.global_params]
                             params = { text=&#34;First,Second,Third&#34;, height=100 }
-                        </pre></code></div></details> <div class="instance"><div class="params"><div class="param"><strong>Version:</strong> v0.2</div><div class="param"><strong>Output Path:</strong> </div><div class="param"><strong>OpenSCAD Version:</strong> OpenSCAD version 2025.06.06</div><div class="param"><strong>OpenSCADGen Version:</strong> v2.6.0__2025.06.20-BETA</div><div class="param"><strong>Build Info Set In File Attributes</strong></div></div></div><h2 class="is-size-4">Input Paths</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Path</th><!--NEXT-VERSION: <th>OpenSCAD Code</th> --></tr></thead> <tbody><tr><td>./coffee-cup-holder-v2.scad</td><!-- NEXT-VERSION: <td><details><summary>OpenSCAD Code</summary>
+                        </pre></code></div></details> <div class="instance"><div class="params"><div class="param"><strong>Version:</strong> v0.2</div><div class="param"><strong>Output Path:</strong> </div><div class="param"><strong>OpenSCAD Version:</strong> OpenSCAD version 2025.07.21</div><div class="param"><strong>OpenSCADGen Version:</strong> v2.7.11</div><div class="param"><strong>Build Info Set In File Attributes</strong></div></div></div><h2 class="is-size-4">Input Paths</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Path</th><!--NEXT-VERSION: <th>OpenSCAD Code</th> --></tr></thead> <tbody><tr><td>./coffee-cup-holder-v2.scad</td><!-- NEXT-VERSION: <td><details><summary>OpenSCAD Code</summary>
                                     { inputPath.RawOpenSCADFile }</details></td> --></tr></tbody></table></div> <h2 class="is-size-4">Config Reference</h2><details><summary>Example Config File</summary><pre><code>
 [[openscadgen]]
 name = &#34;My Design&#34;
@@ -313,55 +479,7 @@ skip_images = false              # Optional, whether to skip image generation
 
 # Optional: Whether to use manifold operations
 dont_use_manifold = false         # If true, disables manifold operations
-</code></pre></details><h2 class="is-size-4">Output Paths</h2><div class="instance"><div class="param"><strong>OutputPath:</strong> /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/export/v0.2/report.html</div>=</div></div></div><div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Instances</button><div x-show="isOpen"><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Name</th><th>Description</th><th>Output Path</th><th>Ignored Params</th><th>Images</th><th>version</th><th>renderType</th><th>designFileName</th></tr></thead> <tbody><tr class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;coffee-cup-holder-v2&#34;;
-renderType = &#34;horz-slice&#34;;
-version = &#34;v0.2&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>v0.2</td><td>horz-slice</td><td>coffee-cup-holder-v2</td></tr>  <tr class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;coffee-cup-holder-v2&#34;;
-renderType = &#34;vert-slice&#34;;
-version = &#34;v0.2&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>v0.2</td><td>vert-slice</td><td>coffee-cup-holder-v2</td></tr>  <tr class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;coffee-cup-holder-v2&#34;;
-renderType = &#34;all&#34;;
-version = &#34;v0.2&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>v0.2</td><td>all</td><td>coffee-cup-holder-v2</td></tr>  <tr class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;coffee-cup-holder-v2&#34;;
-renderType = &#34;bottom_gap&#34;;
-version = &#34;v0.2&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>v0.2</td><td>bottom_gap</td><td>coffee-cup-holder-v2</td></tr>  </tbody></table></div> <div class="my-2"></div></div></div><div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> STL Results (4)</button><div x-show="isOpen"><div class="table-container"><table class="table is-fullwidth"><thead><tr><th style="width: 150px;">Instance</th><th style="width: 100px;">Time Taken</th><th style="width: 200px;">Params</th><th style="width: 150px;">Debug</th><th style="width: 200px;">Command</th></tr></thead> <tbody><tr x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.524990292s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;coffee-cup-holder-v2&#34;;
-renderType = &#34;horz-slice&#34;;
-version = &#34;v0.2&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/usr/local/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/export/v0.2/coffee-cup-holder-v2_extrude_horz-slice.stl&#39; --render --backend=manifold -D &#39;renderType=&#34;horz-slice&#34;&#39; -D &#39;designFileName=&#34;coffee-cup-holder-v2&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/coffee-cup-holder-v2.scad</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.512417709s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;coffee-cup-holder-v2&#34;;
-renderType = &#34;vert-slice&#34;;
-version = &#34;v0.2&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/usr/local/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/export/v0.2/coffee-cup-holder-v2_extrude_vert-slice.stl&#39; --render --backend=manifold -D &#39;renderType=&#34;vert-slice&#34;&#39; -D &#39;designFileName=&#34;coffee-cup-holder-v2&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/coffee-cup-holder-v2.scad</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.471920958s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;coffee-cup-holder-v2&#34;;
-renderType = &#34;all&#34;;
-version = &#34;v0.2&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/usr/local/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/export/v0.2/coffee-cup-holder-v2_extrude_all.stl&#39; --render --backend=manifold -D &#39;designFileName=&#34;coffee-cup-holder-v2&#34;&#39; -D &#39;renderType=&#34;all&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/coffee-cup-holder-v2.scad</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>3.190631083s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;coffee-cup-holder-v2&#34;;
-renderType = &#34;bottom_gap&#34;;
-version = &#34;v0.2&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/usr/local/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/export/v0.2/coffee-cup-holder-v2_extrude_bottom_gap.stl&#39; --render --backend=manifold -D &#39;designFileName=&#34;coffee-cup-holder-v2&#34;&#39; -D &#39;renderType=&#34;bottom_gap&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/coffee_cup_holder/coffee-cup-holder-v2.scad</pre></code></div></details></td></tr></tbody></table></div></div></div><div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Images</button><div x-show="isOpen"><div>Add export images to the config file to generate images for each instance:<div class="code-block"><code style="white-space: pre;"><pre>
-                    [[openscadgen.export_images]]
-                    name = &#34;front&#34;
-                    coord = &#34;0,0,0,0,0,0,100&#34;
-                    </pre></code></div></div></div></div><div><p>Generated by openscadgen OpenSCAD version 2025.06.06 v2.6.0__2025.06.20-BETA at 2025-06-27 23:17:31</p></div><script>
+</code></pre></details><h2 class="is-size-4">Output Paths</h2><div class="instance"><div class="param"><strong>OutputPath:</strong> report.html</div>=</div></div></div><p>Generated by openscadgen OpenSCAD version 2025.07.21 v2.7.11 at 2025-08-02 17:47:25</p><p>Total processing time: 33.55s</p></div><script>
         function alpineReportData() {
             return {
                 darkMode: true,
@@ -404,7 +522,7 @@ version = &#34;v0.2&#34;;
                 }
             }
         }
-        </script><script>
+        </script> <script>
             // Enable htmx debug mode
             window.htmx && (htmx.config.debug = true);
 

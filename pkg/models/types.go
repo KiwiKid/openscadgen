@@ -105,31 +105,31 @@ type OutputPaths struct {
 type Config struct {
 	Design                       DesignConfig `toml:"openscadgen"`
 	RawConfigFile                string
-	ConfigFile                   string `flag:"c,config"`
-	Quiet                        bool   `flag:"q"`
-	Debug                        bool   `flag:"d"`
-	NoProcessing                 bool   `flag:"np"`
-	Quality                      string `flag:"quality"`
-	Version                      bool   `flag:"v"`
-	RegexPattern                 string `flag:"f"`
-	MaxInstances                 int    `flag:"n"`
-	ContinueOnError              bool   `flag:"coe"`
-	IncludeExportLog             bool   `flag:"el"`
-	Overwrite                    bool   `flag:"r"`
-	SkipRender                   bool   `flag:"sr"`
-	OverwriteExisting            bool   `flag:"ow"`
-	SkipReadme                   bool   `flag:"skip-readme"`
-	CustomOpenSCADCommand        string `flag:"cmd"`
-	Concurrent                   bool   `flag:"p"`
-	MaxConcurrentRequests        int    `flag:"pn"`
-	IncludePartIDLetter          bool   `flag:"pid"`
-	OverrideFN                   int    `flag:"fn"`
-	OnlyImages                   bool   `flag:"oi"`
-	OnlyExport                   bool   `flag:"oe"`
-	SetBuildInfoInFileAttributes bool   `flag:"fi"`
-	Server                       bool   `flag:"s"`
-	ServerFolder                 string `flag:"sf"`
-	EnableFileWatcher            bool   `flag:"efw"`
+	ConfigFile                   string //`flag:"c,config"`
+	Quiet                        bool   //`flag:"q"`
+	Debug                        bool   //`flag:"d"`
+	NoProcessing                 bool   //`flag:"np"`
+	Quality                      string //`flag:"quality"`
+	Version                      bool   ///`flag:"v"`
+	RegexPattern                 string //`flag:"f"`
+	MaxInstances                 int    //`flag:"n"`
+	ContinueOnError              bool   //`flag:"coe"`
+	IncludeExportLog             bool   // `flag:"el"`
+	Overwrite                    bool   //`flag:"r"`
+	SkipRender                   bool   //`flag:"sr"`
+	OverwriteExisting            bool   //`flag:"ow"`
+	SkipReadme                   bool   //`flag:"skip-readme"`
+	CustomOpenSCADCommand        string //`flag:"cmd"`
+	Concurrent                   bool   //`flag:"p"`
+	MaxConcurrentRequests        int    //`flag:"pn"`
+	IncludePartIDLetter          bool   //`flag:"pid"`
+	OverrideFN                   int    //`flag:"fn"`
+	OnlyImages                   bool   //`flag:"oi"`
+	OnlyExport                   bool   //`flag:"oe"`
+	SetBuildInfoInFileAttributes bool   //`flag:"fi"`
+	Server                       bool   //`flag:"s"`
+	ServerFolder                 string //`flag:"sf"`
+	EnableFileWatcher            bool   //`flag:"efw"`
 	OpenSCADVersion              string
 	OpenScadGenVersion           string
 	InitProjectName              string
@@ -356,6 +356,11 @@ func MakeFileNameReplacements(globalParams map[string]interface{}, instanceParam
 	for _, ignoredParam := range ignoredParams {
 		formatToUse = strings.ReplaceAll(formatToUse, "{"+ignoredParam+"}", "")
 		formatToUse = strings.ReplaceAll(formatToUse, "${"+ignoredParam+"}", "")
+	}
+
+	nonPathValidChars := []string{":", "*", "?", "\"", "<", ">", "|", " "}
+	for _, char := range nonPathValidChars {
+		formatToUse = strings.ReplaceAll(formatToUse, char, "")
 	}
 
 	return formatToUse
