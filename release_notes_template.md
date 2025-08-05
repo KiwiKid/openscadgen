@@ -4,12 +4,12 @@
 
 | Platform | Architecture | Download |
 |----------|--------------|----------|
-| **Windows** | x86-64 (64-bit) | [openscadgen-Windows-amd64-v{{ .Version }}.zip]({{ .URL }}) |
-| **Windows** | ARM64 | [openscadgen-Windows-arm64-v{{ .Version }}.zip]({{ .URL }}) |
-| **macOS** | Intel (x86-64) | [openscadgen-macOS-Intel-v{{ .Version }}.tar.gz]({{ .URL }}) |
-| **macOS** | Apple Silicon (ARM64) | [openscadgen-macOS-AppleSilicon-v{{ .Version }}.tar.gz]({{ .URL }}) |
-| **Linux** | x86-64 (64-bit) | [openscadgen-Linux-amd64-v{{ .Version }}.tar.gz]({{ .URL }}) |
-| **Linux** | ARM64 | [openscadgen-Linux-arm64-v{{ .Version }}.tar.gz]({{ .URL }}) |
+| **Windows** | x86-64 (64-bit) | [openscadgen-Windows-amd64-v{{ .Version }}.zip]({{ .Env.GITHUB_SERVER_URL }}/{{ .Env.GITHUB_REPOSITORY }}/releases/download/{{ .Tag }}/openscadgen-Windows-amd64-v{{ .Version }}.zip) |
+| **Windows** | ARM64 | [openscadgen-Windows-arm64-v{{ .Version }}.zip]({{ .Env.GITHUB_SERVER_URL }}/{{ .Env.GITHUB_REPOSITORY }}/releases/download/{{ .Tag }}/openscadgen-Windows-arm64-v{{ .Version }}.zip) |
+| **macOS** | Intel (x86-64) | [openscadgen-macOS-Intel-v{{ .Version }}.tar.gz]({{ .Env.GITHUB_SERVER_URL }}/{{ .Env.GITHUB_REPOSITORY }}/releases/download/{{ .Tag }}/openscadgen-macOS-Intel-v{{ .Version }}.tar.gz) |
+| **macOS** | Apple Silicon (ARM64) | [openscadgen-macOS-AppleSilicon-v{{ .Version }}.tar.gz]({{ .Env.GITHUB_SERVER_URL }}/{{ .Env.GITHUB_REPOSITORY }}/releases/download/{{ .Tag }}/openscadgen-macOS-AppleSilicon-v{{ .Version }}.tar.gz) |
+| **Linux** | x86-64 (64-bit) | [openscadgen-Linux-amd64-v{{ .Version }}.tar.gz]({{ .Env.GITHUB_SERVER_URL }}/{{ .Env.GITHUB_REPOSITORY }}/releases/download/{{ .Tag }}/openscadgen-Linux-amd64-v{{ .Version }}.tar.gz) |
+| **Linux** | ARM64 | [openscadgen-Linux-arm64-v{{ .Version }}.tar.gz]({{ .Env.GITHUB_SERVER_URL }}/{{ .Env.GITHUB_REPOSITORY }}/releases/download/{{ .Tag }}/openscadgen-Linux-arm64-v{{ .Version }}.tar.gz) |
 
 ### Quick Install
 
