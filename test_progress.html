@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Progress Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .progress { margin: 20px 0; padding: 10px; background: #f0f0f0; }
+        .instances { margin: 20px 0; }
+        .instance { margin: 10px 0; padding: 10px; border: 1px solid #ccc; background: #fff; }
+        button { padding: 10px 20px; font-size: 16px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>OpenSCAD Progress Test</h1>
+    
+    <button onclick="startJob()">Start Processing Job</button>
+    
+    <div id="progress" class="progress">Ready to start...</div>
+    
+    <div id="instances-container" class="instances">
+        <h2>Instances</h2>
+        <table id="instances-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Output Path</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        let currentJobId = null;
+        
+        function startJob() {
+            document.getElementById('progress').textContent = 'Starting job...';
+            document.getElementById('instances-table').querySelector('tbody').innerHTML = '';
+            
+            fetch('/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    configFile: './examples/small-tray/config.toml',
+                    overwrite: true
+                })
+            })
+            .then(response => response.text())
+            .then(jobId => {
+                currentJobId = jobId;
+                document.getElementById('progress').textContent = 'Job started with ID: ' + jobId;
+                pollProgress(jobId);
+            })
+            .catch(error => {
+                document.getElementById('progress').textContent = 'Error starting job: ' + error;
+            });
+        }
+        
+        function pollProgress(jobId) {
+            fetch('/progress?id=' + jobId)
+            .then(response => {
+                const status = response.headers.get('X-Progress-Status');
+                return response.text().then(msg => ({ status, msg }));
+            })
+            .then(({ status, msg }) => {
+                console.log('Progress update:', status, msg.substring(0, 100) + '...');
+                
+                if (status === 'complete') {
+                    document.getElementById('progress').textContent = 'Job completed!';
+                    document.body.innerHTML = msg;
+                } else if (status === 'html') {
+                    // HTML update received, append to instances table
+                    const tbody = document.querySelector('#instances-table tbody');
+                    tbody.insertAdjacentHTML('beforeend', msg);
+                    document.getElementById('progress').textContent = 'Instance completed and added to table';
+                    // Continue polling
+                    setTimeout(() => pollProgress(jobId), 1000);
+                } else {
+                    document.getElementById('progress').textContent = msg;
+                    if (status !== 'done' && status !== 'cancelled' && !msg.startsWith('error:')) {
+                        setTimeout(() => pollProgress(jobId), 1000);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Progress polling error:', error);
+                document.getElementById('progress').textContent = 'Error polling progress: ' + error;
+                setTimeout(() => pollProgress(jobId), 1000);
+            });
+        }
+    </script>
+</body>
+</html> 

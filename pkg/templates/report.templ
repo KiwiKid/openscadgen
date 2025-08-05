@@ -458,6 +458,9 @@ html, body {
                                         }
                                     </tr>
                                 </thead>
+                                 for i, instance := range instances {
+                                        @Debug(fmt.Sprintf("Instance %d", i), fmt.Sprintf("%v", instance))
+                                    }
                                 <tbody>
                                     for i, instance := range instances {
                                         @ReportInstance(instance, allParamNames, outputPath, i, false)

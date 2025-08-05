@@ -1,0 +1,10 @@
+package templates
+
+import "fmt"
+
+templ Debug(title string, detail string) {
+    <details>
+        <summary>{title}</summary>
+        <p>{fmt.Sprintf("%+v", detail)}</p>
+    </details>
+}
