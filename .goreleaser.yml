@@ -17,7 +17,7 @@ builds:
         - -s -w
 
 archives:
-  - formats: [ 'zip' ]
+  - format: tar.gz
     name_template: "{{ .ProjectName }}-{{ if eq .Os \"darwin\" }}{{ if eq .Arch \"amd64\" }}macOS-Intel{{ else }}macOS-AppleSilicon{{ end }}{{ else if eq .Os \"windows\" }}Windows-{{ .Arch | title }}{{ else if eq .Os \"linux\" }}Linux-{{ .Arch | title }}{{ end }}-v{{ .Version }}"
     files:
       - README.md
@@ -25,10 +25,11 @@ archives:
       - examples/**
     format_overrides:
       - goos: windows
-        formats: [ 'zip' ]
+        format: zip
 
 release:
   github:
     owner: kiwikid
     name: openscadgen
   name_template: 'v{{ .Version }}'
+  release_notes: RELEASE_NOTES.md
