@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 )
@@ -172,6 +173,14 @@ type InstanceConfig struct {
 	SkipImages         bool
 	SkippedReason      string
 	SkippedImageReason string
+}
+
+type InstanceConfigSlice []InstanceConfig
+
+func SortInstanceConfigsByAutoName(instances InstanceConfigSlice) {
+	sort.Slice(instances, func(i, j int) bool {
+		return instances[i].AutoName < instances[j].AutoName
+	})
 }
 
 type GenerateSTLResult struct {

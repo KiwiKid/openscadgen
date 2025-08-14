@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -80,7 +81,17 @@ func main() {
 	//}
 
 	if len(processResult.STLResults) == 0 && len(processResult.ImageResults) == 0 {
-		log.Printf("\033[31m" + "No STLs or images generated" + "\033[0m")
+		log.Printf("Match options:")
+		for _, instance := range processResult.Instances {
+			instanceStr := fmt.Sprintf("  - %s", instance.Name)
+			/*for _, param := range instance.Params {
+				instanceStr += fmt.Sprintf(" %v", param)
+			}*/
+			log.Println(instanceStr)
+		}
+		pkg.LogWarn("No STLs or images generated", true)
+		pkg.LogWarn(fmt.Sprintf("Regex pattern didn't match any instances: %s\n\n(match options listed above)", config.RegexPattern), false)
+
 		os.Exit(1)
 		return
 	}

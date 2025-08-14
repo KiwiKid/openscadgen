@@ -145,7 +145,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.7.21"
+const VERSION = "v2.7.22"
 
 type Version struct {
 	OpenSCADGen string
@@ -373,6 +373,8 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 	// Signal completion
 	progress.Done()
 
+	models.SortInstanceConfigsByAutoName(instances)
+
 	return models.ProcessResult{
 		ExportLocation: exportLoc,
 		Instances:      instances,
@@ -461,17 +463,17 @@ func clearExportFolder(config *models.Config, outputPaths models.OutputPaths) {
 		if config.Server {
 			LogKeyValuePair("Server mode, skipping check", outputPaths.OutputPath)
 		} else if !config.OverwriteExisting {
-			logWarn(fmt.Sprintf("\nThe export folder (%s) has %d existing files: \n%s\n\n(the '-ow' flag will skip this check)\n\n(tip: if you want to keep the existing stl export files, cancel this run and update the 'version' in the config file, this will generate a new folder and keep the existing files)", outputPaths.ExportFolderPath, len(files), filesStr), false)
+			LogWarn(fmt.Sprintf("\nThe export folder (%s) has %d existing files: \n%s\n\n(the '-ow' flag will skip this check)\n\n(tip: if you want to keep the existing stl export files, cancel this run and update the 'version' in the config file, this will generate a new folder and keep the existing files)", outputPaths.ExportFolderPath, len(files), filesStr), false)
 			printDirectoryContents(outputPaths.ExportFolderPath)
 
-			logWarn(fmt.Sprintf("\n\n the files above can be overwritten: \n\n\t%s\n\nDo you want to continue? (y/n):", outputPaths.ExportFolderPath), true)
+			LogWarn(fmt.Sprintf("\n\n the files above can be overwritten: \n\n\t%s\n\nDo you want to continue? (y/n):", outputPaths.ExportFolderPath), true)
 			reader := bufio.NewReader(os.Stdin)
 			response, _ := reader.ReadString('\n')
 			if response != "y\n" && response != "Y\n" {
 				fmt.Println("Aborting operation.")
 				os.Exit(1)
 			}
-			logWarn("Prepare to recieve", false)
+			LogWarn("Prepare to recieve", false)
 		} else if !strings.HasPrefix(outputPaths.ExportFolderPath, "export") {
 			log.Printf("Export folder path does not start with export, skipping deletion")
 			return
@@ -655,7 +657,12 @@ func populateExportImages(config *models.Config, instances []models.InstanceConf
 		// Then add instance-specific export images if they exist
 		for _, configuredInstance := range config.Design.ConfiguredInstanceConfig {
 			if configuredInstance.Name == instances[i].Name && len(configuredInstance.ExportImages) > 0 {
-				allExportImages = append(allExportImages, configuredInstance.ExportImages...)
+				for _, exportImage := range configuredInstance.ExportImages {
+					exportImages := makePresetReplacement(exportImage)
+					if len(exportImages) > 0 {
+						allExportImages = append(allExportImages, exportImages...)
+					}
+				}
 			}
 		}
 
@@ -710,6 +717,8 @@ func parseCameraName(cameraName string) (string, string) {
 			return parts[0], parts[1]
 		}
 	}
+
+	LogWarn(fmt.Sprintf("Camera name '%s' is not a preset and has no coordinates specified", cameraName), true)
 
 	// If we can't parse it properly, return the original name and empty distance
 	return cameraName, ""
@@ -1037,7 +1046,7 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 			LogKeyValuePair("ExportNameFormat", exportNameFormat)
 		}
 		if !strings.Contains(conf.Design.ExportNameFormat, paramName) {
-			logWarn(fmt.Sprintf("ExportNameFormat contains param: \n\n -\t(%s)\n\n that is not in the params. Include every param in the export_name_format (in the format '{param_name}') to ensure all instances are generated to unique files.", paramName), true)
+			LogWarn(fmt.Sprintf("ExportNameFormat contains param: \n\n -\t(%s)\n\n that is not in the params. Include every param in the export_name_format (in the format '{param_name}') to ensure all instances are generated to unique files.", paramName), true)
 		}
 	}
 
@@ -1071,7 +1080,7 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 						if len(conf.Design.InputPaths) > 1 {
 							nameHasDesignFileName := strings.Contains(exportNameFormat, "{designFileName}")
 							if !nameHasDesignFileName {
-								logWarn("If more than one input is specified, the export_name_format need to include designFileName (add {designFileName} to the export_name_format)", true)
+								LogWarn("If more than one input is specified, the export_name_format need to include designFileName (add {designFileName} to the export_name_format)", true)
 								LogKeyValuePair("ExportNameFormat missing {designFileName}", exportNameFormat)
 								LogKeyValuePair("from config file:", flags.ConfigFile)
 								os.Exit(1)
@@ -1093,7 +1102,7 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 							LogKeyValuePair("Missing Param name", paramName)
 							LogKeyValuePair("Param value", fmt.Sprintf("%v", paramValue))
 							LogKeyValuePair("Config file", flags.ConfigFile)
-							logWarn(fmt.Sprintf(`Export instance name:
+							LogWarn(fmt.Sprintf(`Export instance name:
 							   %s
 
 							   does not contain param:
@@ -1115,7 +1124,7 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 		}
 		name := strings.Split(paramName, "}")[0]
 		if !strings.Contains(conf.Design.ExportNameFormat, name) {
-			logWarn(fmt.Sprintf("ExportNameFormat contains param (%s) that is not in the params", name), true)
+			LogWarn(fmt.Sprintf("ExportNameFormat contains param (%s) that is not in the params", name), true)
 		}
 	}
 
@@ -1431,9 +1440,10 @@ func getAllParams(dynamicInstance models.ConfiguredInstanceConfig, globalParams 
 			}
 		}
 	}
+
 	paramSetsKeys := append(strings.Split(dynamicInstance.ParamSets, ","), strings.Split(inputPath.ParamSets, ",")...)
 
-	for _, paramSet := range config.Design.ParamSets {
+	for _, paramSet := range paramSets {
 		if slices.Contains(paramSetsKeys, paramSet.Name) {
 			for k, v := range paramSet.Params {
 				shouldSkip := false
@@ -1492,6 +1502,17 @@ func getAllParams(dynamicInstance models.ConfiguredInstanceConfig, globalParams 
 	}
 
 	for k, v := range inputPath.Params {
+		// Skip if this parameter should be ignored
+		shouldSkip := false
+		for _, ignoredKey := range ignoredKeys {
+			if k == ignoredKey {
+				shouldSkip = true
+				break
+			}
+		}
+		if shouldSkip {
+			continue
+		}
 		if strValue, ok := v.(string); ok && strings.Contains(strValue, ",") {
 			values := strings.Split(strValue, ",")
 			var parsedValues []interface{}
@@ -2302,7 +2323,7 @@ func InitConfig(projectPathRaw string, extended bool) error {
 
 	logCreation(fmt.Sprintf("Project Successfully Initialized: %s", projectName))
 	LogKeyValuePair("Project Path", projectPath)
-	logCreation("\nUse the command:\n\n\tcd " + projectPath + "\n\topenscadgen\n\nto start the project")
+	logCreation("\nUse the command:\n\n\tcd " + projectPath + "\n\topenscadgen -c ./config.toml\n\nto start the project")
 	return nil
 }
 
@@ -2355,7 +2376,7 @@ func logSkip(message string) {
 	logger.Printf(colorYellow+"%s"+colorReset, message)
 }
 
-func logWarn(message string, critical bool) {
+func LogWarn(message string, critical bool) {
 	if critical {
 		logger.Printf(colorRed+"%s"+colorReset, message)
 	} else {
@@ -2407,10 +2428,10 @@ func SetMetadata(fileName string, metadata map[string]string, config *models.Con
 	// Check if the file exists
 	_, err := os.Stat(fileName)
 	if os.IsNotExist(err) {
-		logWarn(fmt.Sprintf("[SetMetadata] warning: file '%s' does not exist", fileName), false)
+		LogWarn(fmt.Sprintf("[SetMetadata] warning: file '%s' does not exist", fileName), false)
 		return fmt.Errorf("warning: file '%s' does not exist", fileName)
 	} else if err != nil {
-		logWarn(fmt.Sprintf("[SetMetadata] warning: error accessing file '%s': %v", fileName, err), false)
+		LogWarn(fmt.Sprintf("[SetMetadata] warning: error accessing file '%s': %v", fileName, err), false)
 		return fmt.Errorf("error accessing file '%s': %v", fileName, err)
 	}
 
@@ -2426,7 +2447,7 @@ func SetMetadata(fileName string, metadata map[string]string, config *models.Con
 		for key, value := range metadata {
 			xattrKey := "user." + key
 			if err := xattr.Set(fileName, xattrKey, []byte(value)); err != nil {
-				logWarn(fmt.Sprintf("warning: error setting xattr '%s' on file '%s': %v", key, fileName, err), false)
+				LogWarn(fmt.Sprintf("warning: error setting xattr '%s' on file '%s': %v", key, fileName, err), false)
 				return fmt.Errorf("error setting xattr '%s' on file '%s': %v", key, fileName, err)
 			} else if config.Debug {
 				LogKeyValuePair("Set xattr", xattrKey)
@@ -2439,7 +2460,7 @@ func SetMetadata(fileName string, metadata map[string]string, config *models.Con
 			adsName := fileName + ":" + key
 			file, err := os.OpenFile(adsName, os.O_CREATE|os.O_RDWR, 0600)
 			if err != nil {
-				logWarn(fmt.Sprintf("warning: error opening ADS '%s': %v", adsName, err), false)
+				LogWarn(fmt.Sprintf("warning: error opening ADS '%s': %v", adsName, err), false)
 				return fmt.Errorf("error opening ADS '%s': %v", adsName, err)
 			} else if config.Debug {
 				log.Printf("📊 Set ADS: %s", adsName)
@@ -2448,7 +2469,7 @@ func SetMetadata(fileName string, metadata map[string]string, config *models.Con
 
 			_, err = file.Write([]byte(value))
 			if err != nil {
-				logWarn(fmt.Sprintf("warning: error writing to ADS '%s': %v", adsName, err), false)
+				LogWarn(fmt.Sprintf("warning: error writing to ADS '%s': %v", adsName, err), false)
 				return fmt.Errorf("error writing to ADS '%s': %v", adsName, err)
 			} else if config.Debug {
 				log.Printf("📊 Set ADS: %s with value: %s", adsName, value)
@@ -2456,7 +2477,7 @@ func SetMetadata(fileName string, metadata map[string]string, config *models.Con
 			fmt.Printf("Set ADS '%s' on file '%s' with value: %s\n", key, fileName, value)
 		}
 	default:
-		logWarn(fmt.Sprintf("warning: unsupported operating system: %s", currentOS), false)
+		LogWarn(fmt.Sprintf("warning: unsupported operating system: %s", currentOS), false)
 		return fmt.Errorf("unsupported operating system: %s", currentOS)
 	}
 
@@ -3046,7 +3067,7 @@ func processImage(config *models.Config, instance *models.InstanceConfig, progre
 				LogKeyValuePair(
 					"Command", cmdStr,
 				)
-				logError(fmt.Sprintf("Error generating image: %v", err))
+				logError(fmt.Sprintf("Error generating image: '%s' (%s) %v", camera.CameraName, camera.CameraCoordinates, err))
 				return imageResults, fmt.Errorf("error generating image: %w", err)
 			}
 			if config.Debug {

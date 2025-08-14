@@ -1339,7 +1339,7 @@ coord = "0,0,0,90,0,0,600"
 
 			if len(config.GetInputPaths()) == 0 {
 				LogKeyValuePair("No input paths found in config", "")
-				logWarn("No input paths found in config", true)
+				LogWarn("No input paths found in config", true)
 				t.Fatalf("No input paths found in config")
 			} else if config.Debug {
 				LogKeyValuePair(fmt.Sprintf("%d Input paths", len(config.Design.InputPaths)), "")
@@ -1488,35 +1488,176 @@ func TestGetAllParams(t *testing.T) {
 				ignoredKeys: nil,
 			},
 		},
-		/*{
-			name: "normal param with comma-separated values",
+		{
+			name: "global param overridden by param set",
 			input: Input{
 				dynamicInstance: models.ConfiguredInstanceConfig{
-					Params: map[string]interface{}{"foo": "a, b, c"},
+					Name:      "inst1",
+					ParamSets: "set1",
+				},
+				globalParams: map[string]interface{}{"width": 10, "height": 20},
+				paramSets: []models.ParamSet{
+					{Name: "set1", Params: map[string]interface{}{"width": 15, "depth": 5}},
+				},
+				inputPath: models.InputPath{},
+			},
+			output: Output{
+				params: map[string]interface{}{
+					"width": float64(15), // param set overrides global
+					"depth": float64(5),  // param set only
+				},
+				globalParamsMap: map[string][]interface{}{
+					"width":  {float64(10)},
+					"height": {float64(20)},
+				},
+				ignoredKeys: nil,
+			},
+		},
+		{
+			name: "param set overridden by instance params",
+			input: Input{
+				dynamicInstance: models.ConfiguredInstanceConfig{
+					Name:      "inst1",
+					Params:    map[string]interface{}{"width": 25, "color": "red"},
+					ParamSets: "set1",
+				},
+				globalParams: map[string]interface{}{"width": 10, "height": 20},
+				paramSets: []models.ParamSet{
+					{Name: "set1", Params: map[string]interface{}{"width": 15, "depth": 5}},
+				},
+				inputPath: models.InputPath{},
+			},
+			output: Output{
+				params: map[string]interface{}{
+					"width": float64(25), // instance overrides param set
+					"depth": float64(5),  // param set only
+					"color": "red",       // instance only
+				},
+				globalParamsMap: map[string][]interface{}{
+					"width":  {float64(10)},
+					"height": {float64(20)},
+				},
+				ignoredKeys: nil,
+			},
+		},
+		{
+			name: "input path params override everything",
+			input: Input{
+				dynamicInstance: models.ConfiguredInstanceConfig{
+					Name:      "inst1",
+					Params:    map[string]interface{}{"width": 25, "color": "red"},
+					ParamSets: "set1",
+				},
+				globalParams: map[string]interface{}{"width": 10, "height": 20},
+				paramSets: []models.ParamSet{
+					{Name: "set1", Params: map[string]interface{}{"width": 15, "depth": 5}},
+				},
+				inputPath: models.InputPath{
+					Params: map[string]interface{}{"width": 30, "material": "plastic"},
+				},
+			},
+			output: Output{
+				params: map[string]interface{}{
+					"width":    float64(30), // input path overrides instance
+					"depth":    float64(5),  // param set only
+					"color":    "red",       // instance only
+					"material": "plastic",   // input path only
+				},
+				globalParamsMap: map[string][]interface{}{
+					"width":  {float64(10)},
+					"height": {float64(20)},
+				},
+				ignoredKeys: nil,
+			},
+		},
+		{
+			name: "multiple param sets with override hierarchy",
+			input: Input{
+				dynamicInstance: models.ConfiguredInstanceConfig{
+					Name:      "inst1",
+					Params:    map[string]interface{}{"quality": "high"},
+					ParamSets: "base,style",
+				},
+				globalParams: map[string]interface{}{"size": "large", "color": "blue"},
+				paramSets: []models.ParamSet{
+					{Name: "base", Params: map[string]interface{}{"size": "medium", "weight": 100}},
+					{Name: "style", Params: map[string]interface{}{"color": "red", "finish": "matte"}},
+				},
+				inputPath: models.InputPath{},
+			},
+			output: Output{
+				params: map[string]interface{}{
+					"size":    "medium",     // base param set overrides global
+					"weight":  float64(100), // base param set only
+					"color":   "red",        // style param set overrides global
+					"finish":  "matte",      // style param set only
+					"quality": "high",       // instance overrides all
+				},
+				globalParamsMap: map[string][]interface{}{
+					"size":  {"large"},
+					"color": {"blue"},
+				},
+				ignoredKeys: nil,
+			},
+		},
+		{
+			name: "ignored parameters are excluded from all sources",
+			input: Input{
+				dynamicInstance: models.ConfiguredInstanceConfig{
+					Name:      "inst1",
+					Params:    map[string]interface{}{"width": 25, "ignored": "should_be_ignored"},
+					ParamSets: "set1",
+				},
+				globalParams: map[string]interface{}{"width": 10, "ignored": "also_ignored"},
+				paramSets: []models.ParamSet{
+					{Name: "set1", Params: map[string]interface{}{"width": 15, "ignored": "ignored_too"}},
+				},
+				inputPath: models.InputPath{
+					Params:                     map[string]interface{}{"width": 30, "ignored": "still_ignored"},
+					IgnoreParamsWhenProcessing: "ignored",
+				},
+			},
+			output: Output{
+				params: map[string]interface{}{
+					"width": float64(30), // only non-ignored params remain
+				},
+				globalParamsMap: map[string][]interface{}{
+					"width": {float64(10)},
+				},
+				ignoredKeys: []string{"ignored"},
+			},
+		},
+		{
+			name: "string values with comma separation",
+			input: Input{
+				dynamicInstance: models.ConfiguredInstanceConfig{
+					Name:   "inst1",
+					Params: map[string]interface{}{"colors": "red,blue,green"},
 				},
 				globalParams: map[string]interface{}{},
-				paramSets:    nil,
+				paramSets:    []models.ParamSet{},
 				inputPath:    models.InputPath{},
 			},
 			output: Output{
 				params: map[string]interface{}{
-					"foo": []interface{}{"a", "b", "c"},
+					"colors": []interface{}{"red", "blue", "green"},
 				},
 				globalParamsMap: map[string][]interface{}{},
 				ignoredKeys:     nil,
 			},
-		}, {
-			name: "global param with comma-separated values",
+		},
+		{
+			name: "global params with comma separation",
 			input: Input{
 				dynamicInstance: models.ConfiguredInstanceConfig{},
-				globalParams:    map[string]interface{}{"foo": "a, b, c"},
-				paramSets:       nil,
+				globalParams:    map[string]interface{}{"sizes": "small,medium,large"},
+				paramSets:       []models.ParamSet{},
 				inputPath:       models.InputPath{},
 			},
 			output: Output{
 				params: map[string]interface{}{},
 				globalParamsMap: map[string][]interface{}{
-					"foo": {"a", "b", "c"},
+					"sizes": {"small", "medium", "large"},
 				},
 				ignoredKeys: nil,
 			},
@@ -1528,7 +1669,7 @@ func TestGetAllParams(t *testing.T) {
 					ParamsNumberated: map[string]interface{}{"foo": "a,b,c"},
 				},
 				globalParams: map[string]interface{}{},
-				paramSets:    nil,
+				paramSets:    []models.ParamSet{},
 				inputPath:    models.InputPath{},
 			},
 			output: Output{
@@ -1540,7 +1681,65 @@ func TestGetAllParams(t *testing.T) {
 				globalParamsMap: map[string][]interface{}{},
 				ignoredKeys:     nil,
 			},
-		},*/
+		},
+		{
+			name: "complete override hierarchy with all parameter types",
+			input: Input{
+				dynamicInstance: models.ConfiguredInstanceConfig{
+					Name:      "inst1",
+					Params:    map[string]interface{}{"width": 25, "enabled": true, "name": "instance_name"},
+					ParamSets: "base,advanced",
+				},
+				globalParams: map[string]interface{}{
+					"width":   10,
+					"height":  20,
+					"enabled": false,
+					"name":    "global_name",
+				},
+				paramSets: []models.ParamSet{
+					{
+						Name: "base",
+						Params: map[string]interface{}{
+							"width":   15,
+							"depth":   5,
+							"enabled": true,
+							"name":    "base_name",
+						},
+					},
+					{
+						Name: "advanced",
+						Params: map[string]interface{}{
+							"quality": "high",
+							"name":    "advanced_name",
+						},
+					},
+				},
+				inputPath: models.InputPath{
+					Params: map[string]interface{}{
+						"width":    30,
+						"material": "steel",
+						"name":     "input_name",
+					},
+				},
+			},
+			output: Output{
+				params: map[string]interface{}{
+					"width":    float64(30),  // input path overrides all
+					"depth":    float64(5),   // base param set only
+					"enabled":  true,         // instance overrides base param set
+					"quality":  "high",       // advanced param set only
+					"material": "steel",      // input path only
+					"name":     "input_name", // input path overrides all
+				},
+				globalParamsMap: map[string][]interface{}{
+					"width":   {float64(10)},
+					"height":  {float64(20)},
+					"enabled": {false},
+					"name":    {"global_name"},
+				},
+				ignoredKeys: nil,
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -1665,4 +1864,41 @@ name = "nice"
 		t.Fatalf("Expected instance export image output path to be 'export/v0.1/nice.png', got %s", result.Instances[0].ImageResults[0].OutputPath)
 	}
 
+}
+
+func TestParseCameraNameValidDirections(t *testing.T) {
+	// Test cases for valid camera names that should result in non-empty direction strings
+	testCases := []struct {
+		cameraName        string
+		expectedDirection string
+		expectedDistance  string
+	}{
+		{"nice", "nice", ""},
+		{"front", "front", ""},
+		{"top", "top", ""},
+		{"nice-far", "nice", "far"},
+		{"front-near", "front", "near"},
+		{"top-far", "top", "far"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.cameraName, func(t *testing.T) {
+			direction, distance := parseCameraName(tc.cameraName)
+
+			// Check that direction is not empty
+			if direction == "" {
+				t.Errorf("Camera name '%s' resulted in empty direction, expected '%s'", tc.cameraName, tc.expectedDirection)
+			}
+
+			// Check that direction matches expected
+			if direction != tc.expectedDirection {
+				t.Errorf("Camera name '%s' resulted in direction '%s', expected '%s'", tc.cameraName, direction, tc.expectedDirection)
+			}
+
+			// Check that distance matches expected
+			if distance != tc.expectedDistance {
+				t.Errorf("Camera name '%s' resulted in distance '%s', expected '%s'", tc.cameraName, distance, tc.expectedDistance)
+			}
+		})
+	}
 }
