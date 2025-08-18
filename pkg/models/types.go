@@ -18,6 +18,11 @@ type ExportCameraCoordinates struct {
 	ParamFilter       map[string]interface{} `toml:"param_filter"`
 }
 
+type ExportTextSizing struct {
+	Font      string `toml:"font"`
+	ParamName string `toml:"param_name"`
+}
+
 type ParamSet struct {
 	Name   string                 `toml:"name"`
 	Params map[string]interface{} `toml:"params"`
@@ -39,6 +44,7 @@ type DesignConfig struct {
 	CustomOpenSCADArgs         string                    `toml:"custom_openscad_args"`
 	ExportImageQuality         string                    `toml:"export_image_quality"`
 	ExportImages               []ExportCameraCoordinates `toml:"export_images"` // 'all', 'front' 'back', 'front,back' etc
+	ExportTextSizing           []ExportTextSizing        `toml:"export_text_sizing"`
 	// Instances             []InstanceConfig        `toml:"instances"`
 	ConfiguredInstanceConfig []ConfiguredInstanceConfig `toml:"instances"`
 	DontUseManifold          bool                       `toml:"dont_use_manifold"`

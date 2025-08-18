@@ -60,9 +60,6 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags) {
 	http.HandleFunc("/api/watcher/ui", handleWatcherUI)
 	http.HandleFunc("/", handleMainRequest)
 
-	// Setup MCP server
-	SetupMCPServer()
-
 	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatalf("Error: %v", err)

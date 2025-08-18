@@ -657,12 +657,7 @@ func populateExportImages(config *models.Config, instances []models.InstanceConf
 		// Then add instance-specific export images if they exist
 		for _, configuredInstance := range config.Design.ConfiguredInstanceConfig {
 			if configuredInstance.Name == instances[i].Name && len(configuredInstance.ExportImages) > 0 {
-				for _, exportImage := range configuredInstance.ExportImages {
-					exportImages := makePresetReplacement(exportImage)
-					if len(exportImages) > 0 {
-						allExportImages = append(allExportImages, exportImages...)
-					}
-				}
+				allExportImages = append(allExportImages, configuredInstance.ExportImages...)
 			}
 		}
 
