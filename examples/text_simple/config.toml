@@ -8,7 +8,7 @@ export_name_format = "/{version}/{name}/{designFileName}-{font}"
 [[openscadgen.input_paths]]
 path = "./text_simple.scad"
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "nice-far"
 
 [[openscadgen.instances]]

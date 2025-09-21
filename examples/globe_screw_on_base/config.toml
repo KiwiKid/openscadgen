@@ -1,0 +1,18 @@
+[openscadgen]
+name = "globe_screw_on_base"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{base_radius_1}"
+
+global_params = { thread_pitch = 2.5, screw_radius = 7.9,   base_height = 25 }
+
+
+[[openscadgen.input_paths]]
+path = "./globe_screw_on_base.scad"
+
+[[openscadgen.instances]]
+name = "default"
+params = { base_radius_1 = 120, base_radius_2 = 9, rounding_amount= 70, screw_height = 33 }
+

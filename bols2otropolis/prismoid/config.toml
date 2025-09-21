@@ -9,7 +9,7 @@ export_name_format = "/{version}/{designFileName}-size1{prismoid_size1[0]}x{pris
 [[openscadgen.input_paths]]
 path = "./prismoid.scad"
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "nice"
 
 [[openscadgen.instances]]

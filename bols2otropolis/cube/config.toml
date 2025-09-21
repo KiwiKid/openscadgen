@@ -10,7 +10,7 @@ export_name_format = "/{version}/{designFileName}-{instance}-{cube_center}-{cube
 path = "./cube.scad"
 
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "nice"
 
 [[openscadgen.instances]]

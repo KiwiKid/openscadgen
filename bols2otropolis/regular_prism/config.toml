@@ -9,7 +9,7 @@ export_name_format = "/{version}/{designFileName}-n{regular_prism_n}-h{regular_p
 [[openscadgen.input_paths]]
 path = "./regular_prism.scad"
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "nice"
 
 [[openscadgen.instances]]

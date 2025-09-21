@@ -11,6 +11,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/kiwikid/openscadgen/pkg/models"
 )
@@ -1258,7 +1259,7 @@ export_name_format = "{designFileName}_{version}_name_{instanceName}"
 [[openscadgen.instances]]
 name = "default"
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "side"
 coord = "0,0,0,90,0,0,600"
 `
@@ -1817,7 +1818,7 @@ export_name_format = "football_cards_{name}"
 [[openscadgen.input_paths]]
 path = "%s/football_cards.scad"
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "nice"
 	`, tmpDir)), 0644)
 
@@ -1901,4 +1902,193 @@ func TestParseCameraNameValidDirections(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestHTMLProgressReport(t *testing.T) {
+	// Save and restore original logger after test
+	originalLogger := logger
+	originalOutput := log.Writer()
+	// Redirect log output to discard during test
+	log.SetOutput(ioutil.Discard)
+	defer func() {
+		logger = originalLogger
+		log.SetOutput(originalOutput)
+	}()
+
+	// Create a test logger that won't output anything
+	var logBuffer bytes.Buffer
+	testLogger := log.New(&logBuffer, "", 0)
+	logger = testLogger
+
+	tmpDir, err := os.MkdirTemp("", "htmlreporttest")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Create test config
+	config := &models.Config{
+		Design: models.DesignConfig{
+			Name:             "Test Design",
+			Version:          "v1.0",
+			OutputPath:       tmpDir,
+			ExportNameFormat: "test_{name}",
+		},
+		Debug: true,
+	}
+
+	// Create test instances
+	instances := []models.InstanceConfig{
+		{
+			Name:         "instance1",
+			AutoName:     "instance1",
+			OutputPathV2: filepath.Join(tmpDir, "export", "v1.0", "test_instance1.stl"),
+			Params: map[string]interface{}{
+				"width":  10,
+				"height": 20,
+			},
+		},
+		{
+			Name:         "instance2",
+			AutoName:     "instance2",
+			OutputPathV2: filepath.Join(tmpDir, "export", "v1.0", "test_instance2.stl"),
+			Params: map[string]interface{}{
+				"width":  15,
+				"height": 25,
+			},
+		},
+	}
+
+	// Create test STL results
+	stlResults := []models.GenerateSTLResult{
+		{
+			InstanceConfig: instances[0],
+			OutputPath:     filepath.Join(tmpDir, "export", "v1.0", "test_instance1.stl"),
+			Command:        "openscad -o test_instance1.stl test.scad",
+			TimeTaken:      time.Millisecond * 100,
+		},
+		{
+			InstanceConfig: instances[1],
+			OutputPath:     filepath.Join(tmpDir, "export", "v1.0", "test_instance2.stl"),
+			Command:        "openscad -o test_instance2.stl test.scad",
+			TimeTaken:      time.Millisecond * 150,
+		},
+	}
+
+	// Create test image results
+	imageResults := []models.GenerateImageResult{
+		{
+			InstanceConfig: instances[0],
+			OutputPath:     filepath.Join(tmpDir, "export", "v1.0", "test_instance1_nice.png"),
+			CameraName:     "nice",
+			CameraCoords:   "0,0,0,0,0,0,100",
+			Command:        "openscad -o test_instance1_nice.png test.scad",
+			TimeTaken:      time.Millisecond * 50,
+		},
+		{
+			InstanceConfig: instances[1],
+			OutputPath:     filepath.Join(tmpDir, "export", "v1.0", "test_instance2_nice.png"),
+			CameraName:     "nice",
+			CameraCoords:   "0,0,0,0,0,0,100",
+			Command:        "openscad -o test_instance2_nice.png test.scad",
+			TimeTaken:      time.Millisecond * 75,
+		},
+	}
+
+	// Generate HTML report
+	htmlContent, outputFile, err := GenerateOutputReport(config, instances, stlResults, imageResults, tmpDir, true, time.Second*2)
+	if err != nil {
+		t.Fatalf("Failed to generate HTML report: %v", err)
+	}
+
+	// Verify HTML content was generated
+	if htmlContent == nil {
+		t.Fatal("HTML content is nil")
+	}
+
+	// Read the generated HTML file
+	htmlBytes, err := os.ReadFile(outputFile)
+	if err != nil {
+		t.Fatalf("Failed to read HTML file: %v", err)
+	}
+	htmlContentStr := string(htmlBytes)
+
+	// Test 1: Verify instance count in HTML
+	expectedInstanceCount := len(instances)
+	if !strings.Contains(htmlContentStr, fmt.Sprintf("Instances (%d)", expectedInstanceCount)) {
+		t.Errorf("HTML should contain instance count %d, but content was: %s", expectedInstanceCount, htmlContentStr)
+	}
+
+	// Test 2: Verify STL results count in HTML
+	expectedSTLCount := len(stlResults)
+	if !strings.Contains(htmlContentStr, fmt.Sprintf("STL Results (%d)", expectedSTLCount)) {
+		t.Errorf("HTML should contain STL results count %d", expectedSTLCount)
+	}
+
+	// Test 3: Verify image results count in HTML
+	expectedImageCount := len(imageResults)
+	if !strings.Contains(htmlContentStr, fmt.Sprintf("Image Generation Results (%d)", expectedImageCount)) {
+		t.Errorf("HTML should contain image results count %d", expectedImageCount)
+	}
+
+	// Test 4: Verify STL file paths are present
+	for _, stlResult := range stlResults {
+		relativePath := strings.TrimPrefix(stlResult.OutputPath, tmpDir)
+		relativePath = strings.TrimPrefix(relativePath, "/")
+		if !strings.Contains(htmlContentStr, relativePath) {
+			t.Errorf("HTML should contain STL path: %s", relativePath)
+		}
+	}
+
+	// Test 5: Verify image file paths are present
+	for _, imageResult := range imageResults {
+		relativePath := strings.TrimPrefix(imageResult.OutputPath, tmpDir)
+		relativePath = strings.TrimPrefix(relativePath, "/")
+		if !strings.Contains(htmlContentStr, relativePath) {
+			t.Errorf("HTML should contain image path: %s", relativePath)
+		}
+	}
+
+	// Test 6: Verify instance names are present
+	for _, instance := range instances {
+		if !strings.Contains(htmlContentStr, instance.Name) {
+			t.Errorf("HTML should contain instance name: %s", instance.Name)
+		}
+	}
+
+	// Test 7: Verify camera names are present
+	for _, imageResult := range imageResults {
+		if !strings.Contains(htmlContentStr, imageResult.CameraName) {
+			t.Errorf("HTML should contain camera name: %s", imageResult.CameraName)
+		}
+	}
+
+	// Test 8: Verify design name is present
+	if !strings.Contains(htmlContentStr, config.Design.Name) {
+		t.Errorf("HTML should contain design name: %s", config.Design.Name)
+	}
+
+	// Test 9: Verify total processing time is present
+	if !strings.Contains(htmlContentStr, "Total processing time:") {
+		t.Error("HTML should contain total processing time")
+	}
+
+	// Test 10: Verify HTML structure contains required elements
+	requiredElements := []string{
+		"<html",
+		"<head>",
+		"<body>",
+		"<table",
+		"<thead>",
+		"<tbody>",
+		"</html>",
+	}
+	for _, element := range requiredElements {
+		if !strings.Contains(htmlContentStr, element) {
+			t.Errorf("HTML should contain element: %s", element)
+		}
+	}
+
+	t.Logf("HTML report generated successfully at: %s", outputFile)
+	t.Logf("HTML content length: %d characters", len(htmlContentStr))
 }

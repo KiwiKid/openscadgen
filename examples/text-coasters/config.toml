@@ -22,13 +22,13 @@ version = "v0.1"
 path = "./text-coasters.scad"
 
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "nice"
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "front"
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "custom"
 coord = "0,0,0,90,0,0,600"
 

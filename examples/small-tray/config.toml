@@ -27,5 +27,6 @@ params = {  tray_width = 230, tray_height = 250, height = 50 }
 name = "large-tray-100"
 params = {  tray_width = 230, tray_height = 250, height = 100 }
 
-[[openscadgen.instances.export_images]]
+[[openscadgen.images]]
 name = "front"
+coord = "0,0,0,0,0,0,100"

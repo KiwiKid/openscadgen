@@ -145,7 +145,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.7.22"
+const VERSION = "v2.7.23"
 
 type Version struct {
 	OpenSCADGen string
@@ -528,7 +528,7 @@ func ScanFolderForConfigFiles(folder string) ([]models.ConfigFile, error) {
 	return configFiles, nil
 }
 
-var PRESET_EXPORT_IMAGES = []models.ExportCameraCoordinates{
+var PRESET_images = []models.ExportCameraCoordinates{
 	{
 		CameraName:        "top",
 		CameraCoordinates: "0,0,0,0,0,0,300",
@@ -743,11 +743,11 @@ func generateCameraCoordinates(direction, distanceKey string) string {
 
 func makePresetReplacement(exportImage models.ExportCameraCoordinates) []models.ExportCameraCoordinates {
 	if exportImage.CameraName == "all" {
-		return PRESET_EXPORT_IMAGES
+		return PRESET_images
 	} else if strings.HasPrefix(exportImage.CameraName, "all") && len(strings.Split(exportImage.CameraName, "-")) == 2 {
 		suffix := strings.Split(exportImage.CameraName, "-")[1]
 		nearPresetImages := make([]models.ExportCameraCoordinates, 0)
-		for _, cm := range PRESET_EXPORT_IMAGES {
+		for _, cm := range PRESET_images {
 			if strings.HasSuffix(cm.CameraName, suffix) {
 				nearPresetImages = append(nearPresetImages, cm)
 			}
@@ -786,7 +786,7 @@ func makePresetReplacement(exportImage models.ExportCameraCoordinates) []models.
 	}
 
 	// Look for matching preset camera in the static list
-	for _, preset := range PRESET_EXPORT_IMAGES {
+	for _, preset := range PRESET_images {
 		if preset.CameraName == exportImage.CameraName {
 			return []models.ExportCameraCoordinates{
 				{
@@ -800,7 +800,7 @@ func makePresetReplacement(exportImage models.ExportCameraCoordinates) []models.
 	}
 
 	log.Printf("Preset Export Camera Names:")
-	for _, preset := range PRESET_EXPORT_IMAGES {
+	for _, preset := range PRESET_images {
 		log.Printf(preset.CameraName)
 	}
 
@@ -821,7 +821,7 @@ func getPresetExportImages(config *models.Config) []models.ExportCameraCoordinat
 	for _, exportImage := range config.Design.ExportImages {
 		if exportImage.CameraName == "all" {
 			// If "all" is specified, add all preset cameras
-			allExportImages = append(allExportImages, PRESET_EXPORT_IMAGES...)
+			allExportImages = append(allExportImages, PRESET_images...)
 			break
 		}
 	}
@@ -866,7 +866,7 @@ func getPresetExportImages(config *models.Config) []models.ExportCameraCoordinat
 
 		// Look for matching preset camera in the static list
 		found := false
-		for _, preset := range PRESET_EXPORT_IMAGES {
+		for _, preset := range PRESET_images {
 			if preset.CameraName == exportImage.CameraName {
 				allExportImages = append(allExportImages, preset)
 				found = true
@@ -2129,9 +2129,13 @@ version = "v0.1"
 
 export_name_format = "{designFileName}"
 
+global_params = { renderType = "obj,vertSlice,horzSlice,all" }
+
 [[openscadgen.input_paths]]
 path = "./{{projectName}}.scad"
 
+[[openscadgen.images]]
+name = "nice"
 `
 
 func openScadTemplateExtended(projectNameUnderLined string) string {
@@ -2175,7 +2179,7 @@ func openScadTemplateExtended(projectNameUnderLined string) string {
 module sliced(
     renderType = "horzSlice",        // "horzSlice", "vertSlice", or "all"
     sliceSize = 1000,
-    sliceThickness = 0.3,
+    sliceThickness = 0.1,
     showRawSlices = false,
     horzSlicePos = [-500, -500, 0],
     vertSlicePos = [0, -500, -500]
@@ -2318,7 +2322,7 @@ func InitConfig(projectPathRaw string, extended bool) error {
 
 	logCreation(fmt.Sprintf("Project Successfully Initialized: %s", projectName))
 	LogKeyValuePair("Project Path", projectPath)
-	logCreation("\nUse the command:\n\n\tcd " + projectPath + "\n\topenscadgen -c ./config.toml\n\nto start the project")
+	logCreation("\nUse the command:\n\n\topenscadgen -c ./" + projectPath + "/config.toml\n\nto start the project")
 	return nil
 }
 

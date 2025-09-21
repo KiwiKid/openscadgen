@@ -1,0 +1,232 @@
+# Cursor Rules for OpenSCAD 3D Printing Project with openscadgen
+
+## Project Overview
+This project uses openscadgen, a tool for generating multiple .stl files from a single .scad file with different parameters. The project structure follows a pattern where each design has:
+- A `.scad` file with parametric OpenSCAD code
+- A `config.toml` file defining instances and parameters
+- An `export/` directory with generated files
+
+## OpenSCAD Code Standards
+
+### File Structure
+- Always include `include <BOSL2/std.scad>;` at the top for modern OpenSCAD features
+- Set quality variables: `$fa = .01;`, `$fs = $preview ? 5 : 1;`, `$fn = 200;`
+- Define a main module with descriptive name and parameters
+- Use the `sliced()` module for testing with different render types
+
+### Parameter Naming
+- Use descriptive parameter names: `base_radius_1`, `screw_height`, `thread_pitch`
+- Group related parameters together
+- Provide default values for all parameters
+- Use consistent units (mm for dimensions)
+
+### Code Organization
+- Define helper modules before the main module
+- Use clear variable names that describe their purpose
+- Add comments explaining complex geometry
+- Keep the main module call at the bottom of the file
+
+### Testing and Debugging
+- Always include a `renderType` parameter for slicing: `"horzSlice"`, `"vertSlice"`, `"all"`
+- Use the `sliced()` module to test different views
+- Test with small parameter values first
+- Use `#` for debugging geometry visibility
+
+## Config.toml Standards
+
+### Basic Structure
+```toml
+[openscadgen]
+name = "design-name"
+description = """
+Multi-line description of the design
+Include usage notes and material recommendations
+"""
+version = "v0.1"
+export_name_format = "{designFileName}"
+```
+
+### Input Paths
+- Use `[[openscadgen.input_paths]]` for multiple files
+- Use `input_path` for single files (deprecated)
+- Always use relative paths: `"./filename.scad"`
+
+### Parameter Configuration
+- Use comma-separated values for multiple options: `"value1,value2,value3"`
+- Use arrays for numeric ranges: `[10, 20, 30]`
+- Group related parameters in the same instance
+- Use descriptive parameter names that match the .scad file
+
+### Instance Examples
+```toml
+# Test instance for development
+[[openscadgen.instances]]
+params = { renderType = "horzSlice,vertSlice,all", param1 = "test-value" }
+
+# Production instances
+[[openscadgen.instances]]
+params = { param1 = "value1,value2", param2 = [10, 20, 30] }
+```
+
+## Project-Specific Templates
+
+### Simple Parametric Design
+```toml
+[openscadgen]
+name = "my-design"
+description = """
+A parametric [description] for [use case].
+
+Material: PLA recommended
+Print settings: [layer height, infill, supports]
+"""
+version = "v0.1"
+export_name_format = "{designFileName}-{param1}-{param2}"
+
+[[openscadgen.input_paths]]
+path = "./my-design.scad"
+
+[[openscadgen.instances]]
+params = { renderType = "horzSlice,vertSlice,all", param1 = "test" }
+```
+
+### Multi-Part Design
+```toml
+[openscadgen]
+name = "multi-part-design"
+description = """
+A design with multiple parts that work together.
+
+Parts:
+- Part 1: [description]
+- Part 2: [description]
+"""
+version = "v0.1"
+export_name_format = "{designFileName}"
+
+[[openscadgen.input_paths]]
+path = "./part1.scad"
+[[openscadgen.input_paths]]
+path = "./part2.scad"
+
+[[openscadgen.instances]]
+params = { renderType = "horzSlice,vertSlice,all" }
+```
+
+### Size Variant Design
+```toml
+[openscadgen]
+name = "size-variant-design"
+description = """
+A design with multiple size variants.
+
+Sizes: Small, Medium, Large
+"""
+version = "v0.1"
+export_name_format = "{designFileName}-{size}"
+
+[[openscadgen.input_paths]]
+path = "./design.scad"
+
+[[openscadgen.instances]]
+params = { size = "small,medium,large", renderType = "horzSlice,vertSlice,all" }
+```
+
+## Development Workflow
+
+### Testing Changes
+1. Always add a test instance to config.toml:
+```toml
+[[openscadgen.instances]]
+params = { renderType = "horzSlice,vertSlice,all", param1 = "a-custom-value" }
+```
+
+2. Use horizontal slices to verify dimensions
+3. Use vertical slices to check internal geometry
+4. Test with "all" to see the complete object
+
+### File Organization
+- Keep each design in its own directory
+- Use descriptive directory names: `coffee-cup-holder`, `carovan-cupboard-hook`
+- Include a `config.toml` in each design directory
+- Use the `export/` directory for generated files
+
+### Version Management
+- Increment version numbers for significant changes
+- Use semantic versioning: `v0.1`, `v0.2`, `v1.0`
+- Document changes in the description field
+
+## Common Patterns
+
+### Threaded Holes
+```openscad
+threaded_rod(d=screw_radius*2, l=screw_height, pitch=thread_pitch, internal=true, $fn=32);
+```
+
+### Parametric Cylinders
+```openscad
+cylinder(h=height, r1=radius_1, r2=radius_2);
+```
+
+### BOSL2 Usage
+- Use `cuboid()` instead of `cube()`
+- Use `move()`, `fwd()`, `back()`, `left()`, `right()`, `up()`, `down()` for positioning
+- Use `hull()` for complex shapes
+- Use `difference()` and `union()` for boolean operations
+
+### Slicing Module
+```openscad
+module sliced(
+    renderType = "horzSlice",
+    sliceSize = 1000,
+    sliceThickness = 0.3,
+    showRawSlices = false,
+    horzSlicePos = [-500, -500, 0],
+    vertSlicePos = [0, -500, -500]
+) {
+    // Implementation for testing slices
+}
+```
+
+## Best Practices
+
+### Design Principles
+- Make designs parametric whenever possible
+- Use meaningful parameter names
+- Provide reasonable default values
+- Test with different parameter combinations
+- Document material requirements and print settings
+
+### Performance
+- Use appropriate `$fn` values (20 for preview, 200 for final)
+- Avoid excessive detail in test renders
+- Use `$preview` to optimize for different modes
+
+### Documentation
+- Include usage instructions in descriptions
+- Document material requirements
+- Note any special print settings
+- Include source attributions when applicable
+
+### Error Prevention
+- Always test with small parameter values first
+- Use the slicing features to verify geometry
+- Check for common issues: overhangs, wall thickness, clearance
+- Validate config.toml syntax before running openscadgen
+
+## Troubleshooting
+
+### Common Issues
+- Missing BOSL2 include
+- Incorrect parameter names in config.toml
+- File path issues
+- Parameter type mismatches
+
+### Debugging Steps
+1. Check OpenSCAD syntax in the .scad file
+2. Validate config.toml syntax
+3. Test with simple parameters first
+4. Use slicing to verify geometry
+5. Check file permissions and paths
+
+Remember: Always test your changes with the slicing features before generating final STL files!

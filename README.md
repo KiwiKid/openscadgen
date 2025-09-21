@@ -102,13 +102,13 @@ version = "v1.0"
 [[openscadgen.instances]]
 params = { angle = "45,60,75" }
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "top"
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "front"
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "side"
 coord = "0,0,0,90,0,0,600"
 ```

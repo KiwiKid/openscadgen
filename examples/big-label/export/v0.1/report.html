@@ -1,4 +1,4 @@
-<!doctype html><html lang="en" x-data="alpineReportData()" x-init="init()"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>big-label - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script><script>
+<!doctype html><html lang="en" x-data="alpineReportData()" x-init="init()"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>big-label - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><script>
                 (function() {
                     var darkMode = localStorage.getItem('darkMode');
                     if (darkMode === null) {
@@ -12,7 +12,7 @@
                         document.documentElement.classList.remove('dark');
                     }
                 })();
-            </script><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><script>
+            </script><script>
                 function copyDetailsContent() {
                     const button = $el.querySelector('button');
                     const codeBlock = $el.querySelector('pre code');
@@ -204,10 +204,310 @@ html, body {
                     color: var(--text-color) !important;
                     background-color: var(--card-bg) !important;
                 }
-            </style></head><body><div class="global-header"><div><h1 class="title is-4">big-label</h1><div class="search-box"><div><div><input class="input" type="text" placeholder="Filter to specific instances etc..." x-model="searchQuery"></div><details><summary>History</summary><template x-if="searchHistory.length &gt; 0"><div class="mt-2"><strong>Recent Searches:</strong><ul style="list-style: disc inside; padding-left: 1em;"><template x-for="term in searchHistory" :key="term"><li><a href="#" @click.prevent="searchQuery = term" x-text="term"></a></li></template></ul></div></template></details></div></div><button class="button" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button></div></div><div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Instances (1)</button><div x-show="isOpen"><div class="table-container"><table class="table is-fullwidth" id="instances-table"><thead><tr><th>Name</th><th>Description</th><th>Output Path</th><th>Ignored Params</th><th>Images</th><th>designFileName</th><th>name</th><th>version</th></tr></thead> <tbody><tr id="instance-0" class="" x-show="searchQuery === &#39;&#39; || (&#39;default &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>big-label (default)</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;big-label&#34;;
+            </style></head><body><div class="global-header"><div><h1 class="title is-4">big-label</h1><div class="search-box"><div><div><input class="input" type="text" placeholder="Filter to specific instances etc..." x-model="searchQuery"></div><details><summary>History</summary><template x-if="searchHistory.length > 0"><div class="mt-2"><strong>Recent Searches:</strong><ul style="list-style: disc inside; padding-left: 1em;"><template x-for="term in searchHistory" :key="term"><li><a href="#" @click.prevent="searchQuery = term" x-text="term"></a></li></template></ul></div></template></details></div></div><button class="button" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button></div></div><div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Instances (1)</button><div x-show="isOpen"><div class="table-container"><table class="table is-fullwidth" id="instances-table"><thead><tr><th>Name</th><th>Description</th><th>Output Path</th><th>Ignored Params</th><th>Images</th><th>designFileName</th><th>name</th><th>version</th></tr></thead> <style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer"><summary class="json-viewer-title">Instance 0</summary><div class="json-viewer-content"><pre class="json-pretty">{
+  &#34;ID&#34;: &#34;&#34;,
+  &#34;Name&#34;: &#34;default&#34;,
+  &#34;AutoName&#34;: &#34;big-label&#34;,
+  &#34;Description&#34;: &#34;&#34;,
+  &#34;ExportNameFormat&#34;: &#34;&#34;,
+  &#34;InputPath&#34;: {
+    &#34;Path&#34;: &#34;./big-label.scad&#34;,
+    &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+    &#34;RawOpenSCADFileName&#34;: &#34;big-label&#34;,
+    &#34;ExportNameFormat&#34;: &#34;&#34;,
+    &#34;ParamSets&#34;: &#34;&#34;,
+    &#34;Params&#34;: null,
+    &#34;SkipImages&#34;: false,
+    &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+  },
+  &#34;Params&#34;: {
+    &#34;designFileName&#34;: &#34;big-label&#34;,
+    &#34;name&#34;: &#34;default&#34;,
+    &#34;version&#34;: &#34;v0.1&#34;
+  },
+  &#34;PartIDLetter&#34;: &#34;A&#34;,
+  &#34;UniqueID&#34;: &#34;&#34;,
+  &#34;ConfigError&#34;: &#34;&#34;,
+  &#34;OutputPathV2&#34;: &#34;&#34;,
+  &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label.stl&#34;,
+  &#34;IgnoredParams&#34;: null,
+  &#34;ImageResults&#34;: [
+    {
+      &#34;InstanceConfig&#34;: {
+        &#34;ID&#34;: &#34;&#34;,
+        &#34;Name&#34;: &#34;default&#34;,
+        &#34;AutoName&#34;: &#34;big-label&#34;,
+        &#34;Description&#34;: &#34;&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;InputPath&#34;: {
+          &#34;Path&#34;: &#34;./big-label.scad&#34;,
+          &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+          &#34;RawOpenSCADFileName&#34;: &#34;big-label&#34;,
+          &#34;ExportNameFormat&#34;: &#34;&#34;,
+          &#34;ParamSets&#34;: &#34;&#34;,
+          &#34;Params&#34;: null,
+          &#34;SkipImages&#34;: false,
+          &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+        },
+        &#34;Params&#34;: {
+          &#34;designFileName&#34;: &#34;big-label&#34;,
+          &#34;name&#34;: &#34;default&#34;,
+          &#34;version&#34;: &#34;v0.1&#34;
+        },
+        &#34;PartIDLetter&#34;: &#34;A&#34;,
+        &#34;UniqueID&#34;: &#34;&#34;,
+        &#34;ConfigError&#34;: &#34;&#34;,
+        &#34;OutputPathV2&#34;: &#34;&#34;,
+        &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label.stl&#34;,
+        &#34;IgnoredParams&#34;: null,
+        &#34;ImageResults&#34;: [],
+        &#34;ExportImages&#34;: [
+          {
+            &#34;CameraName&#34;: &#34;front&#34;,
+            &#34;CameraCoordinates&#34;: &#34;0,0,0,90,0,0,300&#34;,
+            &#34;ImageSize&#34;: &#34;&#34;,
+            &#34;ParamFilter&#34;: null
+          },
+          {
+            &#34;CameraName&#34;: &#34;back&#34;,
+            &#34;CameraCoordinates&#34;: &#34;0,0,0,270,0,0,300&#34;,
+            &#34;ImageSize&#34;: &#34;&#34;,
+            &#34;ParamFilter&#34;: null
+          }
+        ],
+        &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label&#34;,
+        &#34;SkipImages&#34;: false,
+        &#34;SkippedReason&#34;: &#34;&#34;,
+        &#34;SkippedImageReason&#34;: &#34;&#34;
+      },
+      &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label-front.png&#34;,
+      &#34;Command&#34;: &#34;&#34;,
+      &#34;Error&#34;: &#34;&#34;,
+      &#34;AppliedParams&#34;: {
+        &#34;designFileName&#34;: &#34;big-label&#34;,
+        &#34;name&#34;: &#34;default&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;TimeTaken&#34;: 431105958,
+      &#34;Skipped&#34;: false,
+      &#34;CameraName&#34;: &#34;front&#34;,
+      &#34;CameraCoords&#34;: &#34;0,0,0,90,0,0,300&#34;
+    },
+    {
+      &#34;InstanceConfig&#34;: {
+        &#34;ID&#34;: &#34;&#34;,
+        &#34;Name&#34;: &#34;default&#34;,
+        &#34;AutoName&#34;: &#34;big-label&#34;,
+        &#34;Description&#34;: &#34;&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;InputPath&#34;: {
+          &#34;Path&#34;: &#34;./big-label.scad&#34;,
+          &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+          &#34;RawOpenSCADFileName&#34;: &#34;big-label&#34;,
+          &#34;ExportNameFormat&#34;: &#34;&#34;,
+          &#34;ParamSets&#34;: &#34;&#34;,
+          &#34;Params&#34;: null,
+          &#34;SkipImages&#34;: false,
+          &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+        },
+        &#34;Params&#34;: {
+          &#34;designFileName&#34;: &#34;big-label&#34;,
+          &#34;name&#34;: &#34;default&#34;,
+          &#34;version&#34;: &#34;v0.1&#34;
+        },
+        &#34;PartIDLetter&#34;: &#34;A&#34;,
+        &#34;UniqueID&#34;: &#34;&#34;,
+        &#34;ConfigError&#34;: &#34;&#34;,
+        &#34;OutputPathV2&#34;: &#34;&#34;,
+        &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label.stl&#34;,
+        &#34;IgnoredParams&#34;: null,
+        &#34;ImageResults&#34;: [],
+        &#34;ExportImages&#34;: [
+          {
+            &#34;CameraName&#34;: &#34;front&#34;,
+            &#34;CameraCoordinates&#34;: &#34;0,0,0,90,0,0,300&#34;,
+            &#34;ImageSize&#34;: &#34;&#34;,
+            &#34;ParamFilter&#34;: null
+          },
+          {
+            &#34;CameraName&#34;: &#34;back&#34;,
+            &#34;CameraCoordinates&#34;: &#34;0,0,0,270,0,0,300&#34;,
+            &#34;ImageSize&#34;: &#34;&#34;,
+            &#34;ParamFilter&#34;: null
+          }
+        ],
+        &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label&#34;,
+        &#34;SkipImages&#34;: false,
+        &#34;SkippedReason&#34;: &#34;&#34;,
+        &#34;SkippedImageReason&#34;: &#34;&#34;
+      },
+      &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label-back.png&#34;,
+      &#34;Command&#34;: &#34;&#34;,
+      &#34;Error&#34;: &#34;&#34;,
+      &#34;AppliedParams&#34;: {
+        &#34;designFileName&#34;: &#34;big-label&#34;,
+        &#34;name&#34;: &#34;default&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;TimeTaken&#34;: 385533042,
+      &#34;Skipped&#34;: false,
+      &#34;CameraName&#34;: &#34;back&#34;,
+      &#34;CameraCoords&#34;: &#34;0,0,0,270,0,0,300&#34;
+    }
+  ],
+  &#34;ExportImages&#34;: [
+    {
+      &#34;CameraName&#34;: &#34;front&#34;,
+      &#34;CameraCoordinates&#34;: &#34;0,0,0,90,0,0,300&#34;,
+      &#34;ImageSize&#34;: &#34;&#34;,
+      &#34;ParamFilter&#34;: null
+    },
+    {
+      &#34;CameraName&#34;: &#34;back&#34;,
+      &#34;CameraCoordinates&#34;: &#34;0,0,0,270,0,0,300&#34;,
+      &#34;ImageSize&#34;: &#34;&#34;,
+      &#34;ParamFilter&#34;: null
+    }
+  ],
+  &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label&#34;,
+  &#34;SkipImages&#34;: false,
+  &#34;SkippedReason&#34;: &#34;&#34;,
+  &#34;SkippedImageReason&#34;: &#34;&#34;
+}</pre></div></details><tbody><tr id="instance-0" class="" x-show="searchQuery === &#39;&#39; || (&#39;default &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>big-label (default)</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;big-label&#34;;
 name = &#34;default&#34;;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>big-label</td><td>default</td><td>v0.1</td></tr></tbody></table></div> <div class="my-2"></div></div></div> <div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> STL Results (1)</button><div x-show="isOpen"><div class="table-container"><table class="table is-fullwidth" id="stl-results-table"><thead><tr><th style="width: 150px;">Instance</th><th style="width: 100px;">Time Taken</th><th style="width: 200px;">Params</th><th style="width: 150px;">Debug</th><th style="width: 200px;">Command</th></tr></thead> <tbody><tr id="stl-result-0" x-show="searchQuery === &#39;&#39; || (&#39;default &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>default </td><td><a href="" target="_blank"></a></td><td>276.137459ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;big-label&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>big-label</td><td>default</td><td>v0.1</td></tr><tr id="instance-images-0"><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label-front.png" alt="Preview of default from front" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label-back.png" alt="Preview of default from back" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"></td></tr></tbody></table></div> <div class="my-2"></div></div></div> <div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> STL Results (1)</button><div x-show="isOpen"><style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer"><summary class="json-viewer-title">STL Results</summary><div class="json-viewer-content"><pre class="json-pretty">[
+  {
+    &#34;InstanceConfig&#34;: {
+      &#34;ID&#34;: &#34;&#34;,
+      &#34;Name&#34;: &#34;default&#34;,
+      &#34;AutoName&#34;: &#34;big-label&#34;,
+      &#34;Description&#34;: &#34;&#34;,
+      &#34;ExportNameFormat&#34;: &#34;&#34;,
+      &#34;InputPath&#34;: {
+        &#34;Path&#34;: &#34;./big-label.scad&#34;,
+        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+        &#34;RawOpenSCADFileName&#34;: &#34;big-label&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;ParamSets&#34;: &#34;&#34;,
+        &#34;Params&#34;: null,
+        &#34;SkipImages&#34;: false,
+        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+      },
+      &#34;Params&#34;: {
+        &#34;designFileName&#34;: &#34;big-label&#34;,
+        &#34;name&#34;: &#34;default&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;PartIDLetter&#34;: &#34;A&#34;,
+      &#34;UniqueID&#34;: &#34;&#34;,
+      &#34;ConfigError&#34;: &#34;&#34;,
+      &#34;OutputPathV2&#34;: &#34;&#34;,
+      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label.stl&#34;,
+      &#34;IgnoredParams&#34;: null,
+      &#34;ImageResults&#34;: [],
+      &#34;ExportImages&#34;: [
+        {
+          &#34;CameraName&#34;: &#34;front&#34;,
+          &#34;CameraCoordinates&#34;: &#34;0,0,0,90,0,0,300&#34;,
+          &#34;ImageSize&#34;: &#34;&#34;,
+          &#34;ParamFilter&#34;: null
+        },
+        {
+          &#34;CameraName&#34;: &#34;back&#34;,
+          &#34;CameraCoordinates&#34;: &#34;0,0,0,270,0,0,300&#34;,
+          &#34;ImageSize&#34;: &#34;&#34;,
+          &#34;ParamFilter&#34;: null
+        }
+      ],
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label&#34;,
+      &#34;SkipImages&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;SkippedImageReason&#34;: &#34;&#34;
+    },
+    &#34;OutputPath&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label.stl&#39; --render --backend=manifold -D &#39;designFileName=\&#34;big-label\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/big-label.scad&#34;,
+    &#34;Error&#34;: &#34;&#34;,
+    &#34;AppliedParams&#34;: {
+      &#34;designFileName&#34;: &#34;big-label&#34;,
+      &#34;name&#34;: &#34;default&#34;,
+      &#34;version&#34;: &#34;v0.1&#34;
+    },
+    &#34;TimeTaken&#34;: 255441917,
+    &#34;Skipped&#34;: false,
+    &#34;LowQuality&#34;: false,
+    &#34;SkippedReason&#34;: &#34;&#34;,
+    &#34;GenerateImageResult&#34;: null
+  }
+]</pre></div></details> <div class="table-container"><table class="table is-fullwidth" id="stl-results-table"><thead><tr><th style="width: 150px;">Instance</th><th style="width: 100px;">Time Taken</th><th style="width: 200px;">Params</th><th style="width: 150px;">Debug</th><th style="width: 200px;">Command</th></tr></thead> <tbody><tr id="stl-result-0" x-show="searchQuery === &#39;&#39; || (&#39;default &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>default </td><td><a href="" target="_blank"></a></td><td>255.441917ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;big-label&#34;;
 name = &#34;default&#34;;
 version = &#34;v0.1&#34;;
 </pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
@@ -215,14 +515,173 @@ version = &#34;v0.1&#34;;
                 <summary>OpenSCAD Code</summary>
                 @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
             </details>
-        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label.stl&#39; --render --backend=manifold -D &#39;designFileName=&#34;big-label&#34;&#39; -D &#39;name=&#34;default&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/big-label.scad</pre></code></div></details></td></tr></tbody></table></div></div></div> <div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Images</button><div x-show="isOpen"><div>Add export images to the config file to generate images for each instance:<div class="code-block"><code style="white-space: pre;"><pre>
-                    [[openscadgen.export_images]]
-                    name = &#34;front&#34;
-                    coord = &#34;0,0,0,0,0,0,100&#34;
-                    </pre></code></div></div></div></div> <div><div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Config</button><div x-show="isOpen"><details><summary>No [global_params]</summary><p>Add global params via a heading at the top level of the config file:</p><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>
+        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label.stl&#39; --render --backend=manifold -D &#39;designFileName=&#34;big-label&#34;&#39; -D &#39;name=&#34;default&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/big-label.scad</pre></code></div></details></td></tr></tbody></table></div></div></div> <div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Image Generation Results (2)</button><div x-show="isOpen"><div>Generated 2 images</div><style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer"><summary class="json-viewer-title">Image Results</summary><div class="json-viewer-content"><pre class="json-pretty">[
+  {
+    &#34;InstanceConfig&#34;: {
+      &#34;ID&#34;: &#34;&#34;,
+      &#34;Name&#34;: &#34;default&#34;,
+      &#34;AutoName&#34;: &#34;big-label&#34;,
+      &#34;Description&#34;: &#34;&#34;,
+      &#34;ExportNameFormat&#34;: &#34;&#34;,
+      &#34;InputPath&#34;: {
+        &#34;Path&#34;: &#34;./big-label.scad&#34;,
+        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+        &#34;RawOpenSCADFileName&#34;: &#34;big-label&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;ParamSets&#34;: &#34;&#34;,
+        &#34;Params&#34;: null,
+        &#34;SkipImages&#34;: false,
+        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+      },
+      &#34;Params&#34;: {
+        &#34;designFileName&#34;: &#34;big-label&#34;,
+        &#34;name&#34;: &#34;default&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;PartIDLetter&#34;: &#34;A&#34;,
+      &#34;UniqueID&#34;: &#34;&#34;,
+      &#34;ConfigError&#34;: &#34;&#34;,
+      &#34;OutputPathV2&#34;: &#34;&#34;,
+      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label.stl&#34;,
+      &#34;IgnoredParams&#34;: null,
+      &#34;ImageResults&#34;: [],
+      &#34;ExportImages&#34;: [
+        {
+          &#34;CameraName&#34;: &#34;front&#34;,
+          &#34;CameraCoordinates&#34;: &#34;0,0,0,90,0,0,300&#34;,
+          &#34;ImageSize&#34;: &#34;&#34;,
+          &#34;ParamFilter&#34;: null
+        },
+        {
+          &#34;CameraName&#34;: &#34;back&#34;,
+          &#34;CameraCoordinates&#34;: &#34;0,0,0,270,0,0,300&#34;,
+          &#34;ImageSize&#34;: &#34;&#34;,
+          &#34;ParamFilter&#34;: null
+        }
+      ],
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label&#34;,
+      &#34;SkipImages&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;SkippedImageReason&#34;: &#34;&#34;
+    },
+    &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label-front.png&#34;,
+    &#34;Command&#34;: &#34;&#34;,
+    &#34;Error&#34;: &#34;&#34;,
+    &#34;AppliedParams&#34;: {
+      &#34;designFileName&#34;: &#34;big-label&#34;,
+      &#34;name&#34;: &#34;default&#34;,
+      &#34;version&#34;: &#34;v0.1&#34;
+    },
+    &#34;TimeTaken&#34;: 431105958,
+    &#34;Skipped&#34;: false,
+    &#34;CameraName&#34;: &#34;front&#34;,
+    &#34;CameraCoords&#34;: &#34;0,0,0,90,0,0,300&#34;
+  },
+  {
+    &#34;InstanceConfig&#34;: {
+      &#34;ID&#34;: &#34;&#34;,
+      &#34;Name&#34;: &#34;default&#34;,
+      &#34;AutoName&#34;: &#34;big-label&#34;,
+      &#34;Description&#34;: &#34;&#34;,
+      &#34;ExportNameFormat&#34;: &#34;&#34;,
+      &#34;InputPath&#34;: {
+        &#34;Path&#34;: &#34;./big-label.scad&#34;,
+        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+        &#34;RawOpenSCADFileName&#34;: &#34;big-label&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;ParamSets&#34;: &#34;&#34;,
+        &#34;Params&#34;: null,
+        &#34;SkipImages&#34;: false,
+        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+      },
+      &#34;Params&#34;: {
+        &#34;designFileName&#34;: &#34;big-label&#34;,
+        &#34;name&#34;: &#34;default&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;PartIDLetter&#34;: &#34;A&#34;,
+      &#34;UniqueID&#34;: &#34;&#34;,
+      &#34;ConfigError&#34;: &#34;&#34;,
+      &#34;OutputPathV2&#34;: &#34;&#34;,
+      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label.stl&#34;,
+      &#34;IgnoredParams&#34;: null,
+      &#34;ImageResults&#34;: [],
+      &#34;ExportImages&#34;: [
+        {
+          &#34;CameraName&#34;: &#34;front&#34;,
+          &#34;CameraCoordinates&#34;: &#34;0,0,0,90,0,0,300&#34;,
+          &#34;ImageSize&#34;: &#34;&#34;,
+          &#34;ParamFilter&#34;: null
+        },
+        {
+          &#34;CameraName&#34;: &#34;back&#34;,
+          &#34;CameraCoordinates&#34;: &#34;0,0,0,270,0,0,300&#34;,
+          &#34;ImageSize&#34;: &#34;&#34;,
+          &#34;ParamFilter&#34;: null
+        }
+      ],
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label&#34;,
+      &#34;SkipImages&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;SkippedImageReason&#34;: &#34;&#34;
+    },
+    &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label-back.png&#34;,
+    &#34;Command&#34;: &#34;&#34;,
+    &#34;Error&#34;: &#34;&#34;,
+    &#34;AppliedParams&#34;: {
+      &#34;designFileName&#34;: &#34;big-label&#34;,
+      &#34;name&#34;: &#34;default&#34;,
+      &#34;version&#34;: &#34;v0.1&#34;
+    },
+    &#34;TimeTaken&#34;: 385533042,
+    &#34;Skipped&#34;: false,
+    &#34;CameraName&#34;: &#34;back&#34;,
+    &#34;CameraCoords&#34;: &#34;0,0,0,270,0,0,300&#34;
+  }
+]</pre></div></details> <div class="table-container"><table class="table is-fullwidth" id="image-results-table"><thead><tr><th>Instance</th><th>Camera</th><th>Output Path</th><th>Time Taken</th><th>Camera Coordinates</th><th>Preview</th><th>Error</th><th>Command</th></tr></thead> <tbody><tr id="image-result-0" x-show="searchQuery === &#39;&#39; || (&#39;default /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label-front.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>default</td><td>front</td><td>../big-label-front.png</td><td>431.11ms</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,90,0,0,300</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;big-label&#34;;
+name = &#34;default&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label-front.png" alt="Preview of default from front" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label-front.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-1" x-show="searchQuery === &#39;&#39; || (&#39;default /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label-back.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>default</td><td>back</td><td>../big-label-back.png</td><td>385.53ms</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,270,0,0,300</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;big-label&#34;;
+name = &#34;default&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label-back.png" alt="Preview of default from back" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/big-label/export/v0.1/big-label-back.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr></tbody></table></div></div></div> <div><div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Config</button><div x-show="isOpen"><details><summary>No [global_params]</summary><p>Add global params via a heading at the top level of the config file:</p><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>
                             [openscadgen.global_params]
                             params = { text=&#34;First,Second,Third&#34;, height=100 }
-                        </pre></code></div></details> <div class="instance"><div class="params"><div class="param"><strong>Version:</strong> v0.1</div><div class="param"><strong>Output Path:</strong> </div><div class="param"><strong>OpenSCAD Version:</strong> OpenSCAD version 2025.07.21</div><div class="param"><strong>OpenSCADGen Version:</strong> v2.7.11</div><div class="param"><strong>Build Info Set In File Attributes</strong></div></div></div><h2 class="is-size-4">Input Paths</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Path</th><!--NEXT-VERSION: <th>OpenSCAD Code</th> --></tr></thead> <tbody><tr><td>./big-label.scad</td><!-- NEXT-VERSION: <td><details><summary>OpenSCAD Code</summary>
+                        </pre></code></div></details> <div class="instance"><div class="params"><div class="param"><strong>Version:</strong> v0.1</div><div class="param"><strong>Output Path:</strong> </div><div class="param"><strong>OpenSCAD Version:</strong> OpenSCAD version 2025.07.21</div><div class="param"><strong>OpenSCADGen Version:</strong> v2.7.23</div><div class="param"><strong>Auto Overwrite Existing</strong></div><div class="param"><strong>Build Info Set In File Attributes</strong></div></div></div><h2 class="is-size-4">Input Paths</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Path</th><!--NEXT-VERSION: <th>OpenSCAD Code</th> --></tr></thead> <tbody><tr><td>./big-label.scad</td><!-- NEXT-VERSION: <td><details><summary>OpenSCAD Code</summary>
                                     { inputPath.RawOpenSCADFile }</details></td> --></tr></tbody></table></div> <h2 class="is-size-4">Config Reference</h2><details><summary>Example Config File</summary><pre><code>
 [[openscadgen]]
 name = &#34;My Design&#34;
@@ -328,7 +787,7 @@ skip_images = false              # Optional, whether to skip image generation
 
 # Optional: Whether to use manifold operations
 dont_use_manifold = false         # If true, disables manifold operations
-</code></pre></details><h2 class="is-size-4">Output Paths</h2><div class="instance"><div class="param"><strong>OutputPath:</strong> report.html</div>=</div></div></div><p>Generated by openscadgen OpenSCAD version 2025.07.21 v2.7.11 at 2025-08-02 08:32:41</p><p>Total processing time: 1.48s</p></div><script>
+</code></pre></details><h2 class="is-size-4">Output Paths</h2><div class="instance"><div class="param"><strong>OutputPath:</strong> report.html</div>=</div></div></div><p>Generated by openscadgen OpenSCAD version 2025.07.21 v2.7.23 at 2025-09-21 15:14:38</p><p>Total processing time: 1.07s</p></div><script>
         function alpineReportData() {
             return {
                 darkMode: true,

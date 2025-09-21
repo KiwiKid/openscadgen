@@ -1,0 +1,129 @@
+package templates
+
+import (
+	"fmt"
+	"github.com/kiwikid/openscadgen/pkg/models"
+)
+
+
+
+templ ReportImageResult(imageResult models.GenerateImageResult, outputPath string, resultIndex int, isOOB bool) {
+    <tr id={ fmt.Sprintf("image-result-%d", resultIndex) } x-show={ fmt.Sprintf(`searchQuery === '' || ('%s %s').toLowerCase().includes(searchQuery.toLowerCase())`, imageResult.InstanceConfig.Name, imageResult.OutputPath) } if isOOB { hx-swap-oob="beforeend:#image-results-table tbody" }>
+        <td>{ imageResult.InstanceConfig.Name }</td>
+        <td>{ imageResult.CameraName }</td>
+        <td>{ getRelativePath(imageResult.OutputPath, outputPath) }</td>
+
+        <td>{ formatDuration(imageResult.TimeTaken) }</td>
+        <td>
+            <details>
+                <summary>View Camera Coordinates</summary>
+                <p>Coordinates: {imageResult.CameraCoords}</p>
+                <div>
+                    <p>Format: x,y,z,rotx,roty,rotz,distance</p>
+                    <ul>
+                        <li>x,y,z: Camera position in 3D space</li>
+                        <li>rotx,roty,rotz: Rotation angles in degrees</li>
+                        <li>distance: Distance from camera to target point</li>
+                    </ul>
+                </div>
+            </details>
+            @RenderParams(imageResult.AppliedParams)
+        </td>
+        <td>
+            if imageResult.Error == "" {
+                <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)) } 
+                    alt={ fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName) } 
+                    class="image-preview"
+                    onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"
+                />
+                <div class="image-error" style="display: none;">Image failed to load: { fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)) }</div>
+            } else {
+                <span class="tag is-danger">Failed</span>
+            }
+        </td>
+        if imageResult.Error != "" {
+            <td class="is-danger">{ imageResult.Error }</td>
+        } else {
+            <td></td>
+        }
+        <td>
+           
+                @CodeBlock(imageResult.Command, true, false)
+        </td>
+    </tr>
+}
+
+// Component for updating instance status in real-time
+templ UpdateInstanceStatus(instance models.InstanceConfig, allParamNames []string, outputPath string, instanceIndex int) {
+    <tr id={ fmt.Sprintf("instance-%d", instanceIndex) } class={ getInstanceClassName(instance) } hx-swap-oob="outerHTML">
+        <td>{ instance.Name }</td>
+        <td>{ instance.Description } 
+        
+            @RenderParams(instance.Params)
+        </td>
+        <td>{ getRelativePath(instance.OutputPathV2, outputPath) }</td>
+        <td>{ fmt.Sprintf("%v", instance.IgnoredParams) }</td>
+        
+        <td>{ instance.SkippedReason }</td>
+        for _, paramName := range allParamNames {
+            if value, ok := instance.Params[paramName]; ok {
+                <td>{ fmt.Sprintf("%v", value) }</td>
+            } else {
+                <td class="is-italic" title="No Param for { paramName }">N/A</td>
+            }
+        }
+    </tr>
+    if instance.ConfigError != "" {
+        <tr id={ fmt.Sprintf("instance-error-%d", instanceIndex) } hx-swap-oob="beforeend:#instances-table tbody">        
+            <td colspan={ fmt.Sprintf("%d", len(allParamNames) + 2) } class="is-danger">{ instance.ConfigError }</td>
+        </tr>
+    }
+    if instance.SkippedReason != "" {
+       <tr id={ fmt.Sprintf("instance-skipped-%d", instanceIndex) } hx-swap-oob="beforeend:#instances-table tbody"><td>{ instance.SkippedReason }</td> </tr>
+    }
+    if len(instance.ImageResults) > 0 {
+        <tr id={ fmt.Sprintf("instance-images-%d", instanceIndex) } hx-swap-oob="beforeend:#instances-table tbody">
+         <td colspan="100%">
+            for _, images := range instance.ImageResults {
+               <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(images.OutputPath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';" />
+            }
+            </td>
+        </tr>
+    }
+}
+
+templ InstanceNavItem(instance models.InstanceConfig, outputPath string, instanceIndex int) {
+    <li>
+        <a href="#" @click.prevent="searchQuery = instance.Name" class="menu-item">
+            <div class="media">
+                <div class="media-left">
+                    if len(instance.ImageResults) > 0 {
+                        <figure class="image is-48x48">
+                            <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(instance.ImageResults[0].OutputPath, outputPath)) } 
+                                alt={ fmt.Sprintf("Preview of %s", instance.Name) } 
+                                class="is-rounded"
+                                style="object-fit: cover; width: 48px; height: 48px;"
+                                onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"
+                            />
+                            <div class="image-error" style="display: none; width: 48px; height: 48px; background-color: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.8em; color: var(--text-color);">No Image</div>
+                        </figure>
+                    } else {
+                        <figure class="image is-48x48">
+                            <div style="width: 48px; height: 48px; background-color: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.8em; color: var(--text-color);">No Image</div>
+                        </figure>
+                    }
+                </div>
+                <div class="media-content">
+                    <p class="title is-6 mb-1">{ instance.Name }</p>
+                    if instance.Description != "" {
+                        <p class="subtitle is-7 has-text-grey">{ instance.Description }</p>
+                    }
+                    if instance.SkippedReason != "" {
+                        <span class="tag is-warning is-small">Skipped</span>
+                    }
+                </div>
+            </div>
+        </a>
+    </li>
+}
+

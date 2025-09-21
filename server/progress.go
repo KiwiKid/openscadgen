@@ -230,8 +230,59 @@ func ProgressHandler(w http.ResponseWriter, r *http.Request) {
 			mu.Unlock()
 
 			if hasResult && hasConfig {
-				// Generate the complete report
-				report := templates.Report("complete", config, result.Instances, result.ExportLocation, result.STLResults, result.ImageResults, []string{}, true, config.ConfigFile, result.TotalTimeTaken)
+				// Debug: Log the results
+				log.Printf("Server mode - STLResults count: %d", len(result.STLResults))
+				log.Printf("Server mode - ImageResults count: %d", len(result.ImageResults))
+				log.Printf("Server mode - Instances count: %d", len(result.Instances))
+
+				// Calculate allParamNames like in direct mode
+				var allParamNames []string
+				for _, instance := range result.Instances {
+					for paramName := range instance.Params {
+						found := false
+						for _, existingName := range allParamNames {
+							if existingName == paramName {
+								found = true
+								break
+							}
+						}
+						if !found {
+							allParamNames = append(allParamNames, paramName)
+						}
+					}
+				}
+
+				// Calculate the correct base path for relative image calculations
+				// This should match the logic in getOutputPaths function
+				configDir := filepath.Dir(config.ConfigFile)
+				versionPath := config.Design.Version
+
+				// designName is not needed for exportFolderPath calculation
+
+				exportNameFormat := config.Design.ExportNameFormat
+				hasExportPrefix := strings.HasPrefix(exportNameFormat, "export/") || strings.HasPrefix(exportNameFormat, "/export")
+
+				var baseDir string
+				if len(config.GetInputPaths()) > 0 {
+					inputPath := config.GetInputPaths()[0].Path
+					if filepath.IsAbs(inputPath) {
+						baseDir = filepath.Dir(inputPath)
+					} else {
+						baseDir = configDir
+					}
+				} else {
+					baseDir = configDir
+				}
+
+				var exportFolderPath string
+				if hasExportPrefix {
+					exportFolderPath = baseDir
+				} else {
+					exportFolderPath = filepath.Join(baseDir, "export", versionPath)
+				}
+
+				// Generate the complete report with correct base path
+				report := templates.Report("complete", config, result.Instances, exportFolderPath, result.STLResults, result.ImageResults, allParamNames, true, config.ConfigFile, result.TotalTimeTaken)
 				w.Header().Set("Content-Type", "text/html")
 				w.Header().Set("X-Progress-Status", "complete")
 				report.Render(context.Background(), w)

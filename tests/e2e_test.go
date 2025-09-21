@@ -24,7 +24,7 @@ dont_use_manifold = true
 [[openscadgen.input_paths]]
 path = "default_design.scad"
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "top"
 
 
@@ -328,10 +328,10 @@ path = "./default_design_2.scad"
 [[openscadgen.instances]]
 name = "instance-name"
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "top"
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "bottom"
 `,
 			scadContent: scadFileInputExamples[defaultDesign],

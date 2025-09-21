@@ -8,10 +8,10 @@ export_name_format = "{designFileName}_{initals}"
 
 global_params = { initals = "GC,ML,JC," }
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "nice"
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "top"
 
 [[openscadgen.input_paths]]

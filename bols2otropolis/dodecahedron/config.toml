@@ -9,7 +9,7 @@ export_name_format = "/{version}/{designFileName}"
 [[openscadgen.input_paths]]
 path = "./dodecahedron.scad"
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "nice"
 
 [[openscadgen.instances]]

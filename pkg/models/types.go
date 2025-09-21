@@ -43,7 +43,7 @@ type DesignConfig struct {
 	CustomOpenSCADOutputFormat string                    `toml:"custom_openscad_output_format"`
 	CustomOpenSCADArgs         string                    `toml:"custom_openscad_args"`
 	ExportImageQuality         string                    `toml:"export_image_quality"`
-	ExportImages               []ExportCameraCoordinates `toml:"export_images"` // 'all', 'front' 'back', 'front,back' etc
+	ExportImages               []ExportCameraCoordinates `toml:"images"` // 'all', 'front' 'back', 'front,back' etc
 	ExportTextSizing           []ExportTextSizing        `toml:"export_text_sizing"`
 	// Instances             []InstanceConfig        `toml:"instances"`
 	ConfiguredInstanceConfig []ConfiguredInstanceConfig `toml:"instances"`
@@ -62,7 +62,7 @@ type ConfiguredInstanceConfig struct {
 	Params           map[string]interface{}    `toml:"params"`
 	ParamSets        string                    `toml:"param_sets"`      // comma separated list of param sets to use
 	ParamsNumberated map[string]interface{}    `toml:"params_numbered"` // comma separated list of keys to number
-	ExportImages     []ExportCameraCoordinates `toml:"export_images"`
+	ExportImages     []ExportCameraCoordinates `toml:"images"`
 	SkipImages       bool                      `toml:"skip_images"`
 }
 

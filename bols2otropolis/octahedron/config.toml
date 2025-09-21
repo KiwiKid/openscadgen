@@ -9,7 +9,7 @@ export_name_format = "/{version}/{designFileName}-size{octahedron_size}-spin{oct
 [[openscadgen.input_paths]]
 path = "./octahedron.scad"
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "nice"
 
 [[openscadgen.instances]]

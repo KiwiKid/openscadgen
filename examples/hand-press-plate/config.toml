@@ -19,10 +19,10 @@ params = { plateType = "none", attachCyliderHeight = 25  }
 
 
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "top"
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "left"
 
 

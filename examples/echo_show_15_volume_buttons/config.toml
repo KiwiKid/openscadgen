@@ -8,7 +8,7 @@ export_name_format = "{designFileName}_{renderType}"
 
 global_params = { renderType = "normal,vertSlice,horzSlice" }
 
-[[openscadgen.export_images]]
+[[openscadgen.images]]
 name = "nice"
 
 [[openscadgen.input_paths]]

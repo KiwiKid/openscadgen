@@ -1,0 +1,23 @@
+package templates
+
+import (
+	"fmt"
+	"github.com/kiwikid/openscadgen/pkg/models"
+	"time"
+)
+
+templ ConfigSummaryMinimal(config models.Config, outputPath string, totalTimeTaken time.Duration) {
+    <div>
+        <h1>Config Summary</h1>
+        <p>Output Path: { outputPath }</p>
+        <p>Total Time: { formatDuration(totalTimeTaken) }</p>
+        if len(config.Design.GlobalParams) > 0 {
+            <h2>Global Parameters</h2>
+            for name, value := range config.Design.GlobalParams {
+                <p>{ name }: { fmt.Sprintf("%v", value) }</p>
+            }
+        } else {
+            <p>No global parameters</p>
+        }
+    </div>
+}

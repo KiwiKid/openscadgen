@@ -1,10 +1,93 @@
 package templates
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
+
+func JSONString(data interface{}) string {
+	jsonBytes, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		return fmt.Sprintf("Error marshaling JSON: %v", err)
+	}
+	return string(jsonBytes)
+}
 
 templ Debug(title string, detail string) {
     <details>
         <summary>{title}</summary>
         <p>{fmt.Sprintf("%+v", detail)}</p>
     </details>
+}
+
+templ JSONViewer(title string, data interface{}) {
+    <details class="json-viewer">
+        <summary class="json-viewer-title">{title}</summary>
+        <div class="json-viewer-content">
+            <pre class="json-pretty">{JSONString(data)}</pre>
+        </div>
+    </details>
+}
+
+templ JSONViewerWithStyle(title string, data interface{}) {
+    <style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+    
+    <details class="json-viewer">
+        <summary class="json-viewer-title">{title}</summary>
+        <div class="json-viewer-content">
+            <pre class="json-pretty">{JSONString(data)}</pre>
+        </div>
+    </details>
+}
+templ Collapsable(title string, isOpen bool, fullWidth bool) {
+    <div x-data={ fmt.Sprintf(`{ isOpen: %v }`, isOpen) } >
+        <button @click="isOpen = !isOpen"
+            if fullWidth {
+                class="button is-large is-fullwidth"
+            } else {
+                class="button is-large"
+            }
+        >
+            <span x-show="!isOpen">▼</span>
+            <span x-show="isOpen">▲</span>
+            { title }
+        </button>
+        <div x-show="isOpen">
+           { children... }
+        </div>
+    </div>
 }

@@ -1,0 +1,17 @@
+[openscadgen]
+name = "round_lid"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{renderType}"
+
+global_params = { renderType = "obj,vertSlice,horzSlice,all" }
+
+
+[[openscadgen.input_paths]]
+path = "./round_lid.scad"
+
+[[openscadgen.images]]
+name = "nice"
+

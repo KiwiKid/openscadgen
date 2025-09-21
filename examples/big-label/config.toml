@@ -11,6 +11,12 @@ export_name_format = "/{designFileName}"
 [[openscadgen.input_paths]]
 path = "./big-label.scad"
 
+[[openscadgen.images]]
+name = "front"
+
+[[openscadgen.images]]
+name = "back"
+
 # [[openscadgen.input_paths]]
 # path = "./a-second-related-openscad-file.scad"
 
