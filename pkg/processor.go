@@ -135,7 +135,7 @@ const (
 /*
 ```sh
 git commit -m "New and improved version"
-git tag "v2.0.11-BETA"
+git tag "v2.7.24"
 git push && git push --tags
 ```
 
@@ -145,7 +145,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.7.24"
+const VERSION = "v2.7.25"
 
 type Version struct {
 	OpenSCADGen string
@@ -1400,7 +1400,12 @@ func getAllParams(dynamicInstance models.ConfiguredInstanceConfig, globalParams 
 			continue
 		}
 
-		if strValue, ok := value.(string); ok && strings.Contains(strValue, ",") {
+		shouldNotSplitOnComma := false
+		if slices.Contains(dynamicInstance.IgnoreCommaInParams, key) {
+			shouldNotSplitOnComma = true
+		}
+
+		if strValue, ok := value.(string); ok && strings.Contains(strValue, ",") && !shouldNotSplitOnComma {
 			values := strings.Split(strValue, ",")
 			var parsedValues []interface{}
 			for _, val := range values {
@@ -1483,7 +1488,13 @@ func getAllParams(dynamicInstance models.ConfiguredInstanceConfig, globalParams 
 		if shouldSkip {
 			continue
 		}
-		if strValue, ok := v.(string); ok && strings.Contains(strValue, ",") {
+
+		shouldNotSplitOnComma := false
+		if slices.Contains(dynamicInstance.IgnoreCommaInParams, k) {
+			shouldNotSplitOnComma = true
+		}
+
+		if strValue, ok := v.(string); ok && strings.Contains(strValue, ",") && !shouldNotSplitOnComma {
 			values := strings.Split(strValue, ",")
 			var parsedValues []interface{}
 			for _, val := range values {
@@ -2322,7 +2333,7 @@ func InitConfig(projectPathRaw string, extended bool) error {
 
 	logCreation(fmt.Sprintf("Project Successfully Initialized: %s", projectName))
 	LogKeyValuePair("Project Path", projectPath)
-	logCreation("\nUse the command:\n\n\topenscadgen -c ./" + projectPath + "/config.toml\n\nto start the project")
+	logCreation("\nUse the command:\n\n\topenscadgen -c ./" + projectPath + "/config.toml\n\nto generate the STL files")
 	return nil
 }
 

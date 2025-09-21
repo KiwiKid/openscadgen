@@ -1648,6 +1648,26 @@ func TestGetAllParams(t *testing.T) {
 			},
 		},
 		{
+			name: "string values with comma separation",
+			input: Input{
+				dynamicInstance: models.ConfiguredInstanceConfig{
+					Name:                "inst1",
+					Params:              map[string]interface{}{"colors": "red,blue,green"},
+					IgnoreCommaInParams: []string{"colors"},
+				},
+				globalParams: map[string]interface{}{},
+				paramSets:    []models.ParamSet{},
+				inputPath:    models.InputPath{},
+			},
+			output: Output{
+				params: map[string]interface{}{
+					"colors": "red,blue,green",
+				},
+				globalParamsMap: map[string][]interface{}{},
+				ignoredKeys:     nil,
+			},
+		},
+		{
 			name: "global params with comma separation",
 			input: Input{
 				dynamicInstance: models.ConfiguredInstanceConfig{},

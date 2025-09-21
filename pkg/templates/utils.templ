@@ -66,7 +66,7 @@ templ JSONViewerWithStyle(title string, data interface{}) {
         }
     </style>
     
-    <details class="json-viewer">
+    <details class="json-viewer" x-show="showDebug">
         <summary class="json-viewer-title">{title}</summary>
         <div class="json-viewer-content">
             <pre class="json-pretty">{JSONString(data)}</pre>

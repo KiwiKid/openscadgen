@@ -1,0 +1,50 @@
+[openscadgen]
+name = "extrude"
+description = "Linear and rotate extrude examples with BOSL2"
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{renderType}_{name}"
+
+global_params = { renderType = "obj,vertSlice" }
+
+[[openscadgen.input_paths]]
+path = "./extrude.scad"
+
+# Linear Extrude Examples
+[[openscadgen.instances]]
+params = { name = "linear-basic", extrude_type = "linear", shape_type = "circle", height = 20 }
+
+[[openscadgen.instances]]
+params = { name = "linear-scaled", extrude_type = "linear", shape_type = "square", height = 30, scale_factor = 0.5 }
+
+[[openscadgen.instances]]
+params = { name = "linear-twisted", extrude_type = "linear", shape_type = "circle", height = 40, twist = 180 }
+
+[[openscadgen.instances]]
+params = { name = "linear-complex", extrude_type = "linear", shape_type = "star", height = 50, scale_factor = 0.2, twist = 360 }
+
+[[openscadgen.instances]]
+params = { name = "linear-polygon", extrude_type = "linear", shape_type = "polygon", height = 25, scale_factor = 1.5 }
+
+# Rotate Extrude Examples
+[[openscadgen.instances]]
+params = { name = "rotate-basic", extrude_type = "rotate", shape_type = "circle" }
+
+[[openscadgen.instances]]
+params = { name = "rotate-square", extrude_type = "rotate", shape_type = "square" }
+
+[[openscadgen.instances]]
+params = { name = "rotate-star", extrude_type = "rotate", shape_type = "star" }
+
+[[openscadgen.instances]]
+params = { name = "rotate-polygon", extrude_type = "rotate", shape_type = "polygon" }
+
+[[openscadgen.instances]]
+params = { name = "rotate-torus", extrude_type = "rotate", shape_type = "circle", height = 30 }
+
+[[openscadgen.images]]
+name = "nice"
+
+[[openscadgen.images]]
+name = "top"

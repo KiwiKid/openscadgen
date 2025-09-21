@@ -57,13 +57,14 @@ func (d *DesignConfig) ClearVersion(version string) string {
 }
 
 type ConfiguredInstanceConfig struct {
-	Name             string                    `toml:"name"`
-	Description      string                    `toml:"description,omitempty"`
-	Params           map[string]interface{}    `toml:"params"`
-	ParamSets        string                    `toml:"param_sets"`      // comma separated list of param sets to use
-	ParamsNumberated map[string]interface{}    `toml:"params_numbered"` // comma separated list of keys to number
-	ExportImages     []ExportCameraCoordinates `toml:"images"`
-	SkipImages       bool                      `toml:"skip_images"`
+	Name                string                    `toml:"name"`
+	Description         string                    `toml:"description,omitempty"`
+	Params              map[string]interface{}    `toml:"params"`
+	ParamSets           string                    `toml:"param_sets"`      // comma separated list of param sets to use
+	ParamsNumberated    map[string]interface{}    `toml:"params_numbered"` // comma separated list of keys to number
+	IgnoreCommaInParams []string                  `toml:"ignore_comma_in_params"`
+	ExportImages        []ExportCameraCoordinates `toml:"images"`
+	SkipImages          bool                      `toml:"skip_images"`
 }
 
 // Define a struct to hold the command-line flags

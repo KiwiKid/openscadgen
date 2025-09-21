@@ -20,6 +20,9 @@ params = { name="tidewater", content = "Tidewater", size = 150, text_size = 100,
 [[openscadgen.instances]]
 params = { name="numbers", content ="1 2 3 4 5 6 7 8", size = 150, text_size = 100, h = 2, font = "Palatino:style=Bold", spacing = 1.2, direction = "ltr", script = "latin", atype = "ycenter", anchor = "ycenter", center = false, hasBase=false }
 
+[[openscadgen.instances]]
+params = { name="protest", content = "Public Service, Public Good, Stop the Cuts", size = 150, text_size = 100, h = 25, font = "Palatino:style=Bold", spacing = 1.2, direction = "ltr", script = "latin", atype = "ycenter", anchor = "ycenter", center = false, hasBase=false }
+ignore_comma_in_params = ["content"]
 
 [[openscadgen.instances]]
 params = { name="arrows", content ="⇔", size = 150, text_size = 100, h = 3, font = "Palatino:style=Bold", spacing = 1.2, direction = "ltr", script = "latin", atype = "ycenter", anchor = "ycenter", center = false, hasBase=false }

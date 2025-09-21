@@ -887,7 +887,7 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "'; // or whatever templating you use\n                    if (this.configFile) {\n                        this.saveConfigFile(this.configFile);\n                    }\n                }\n            }\n        }\n        </script><script>\n                (function() {\n                    var darkMode = localStorage.getItem('darkMode');\n                    if (darkMode === null) {\n                        darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;\n                    } else {\n                        darkMode = darkMode === 'true';\n                    }\n                    if (darkMode) {\n                        document.documentElement.classList.add('dark');\n                    } else {\n                        document.documentElement.classList.remove('dark');\n                    }\n                })();\n            </script><script>\n                function copyDetailsContent() {\n                    const button = $el.querySelector('button');\n                    const codeBlock = $el.querySelector('pre code');\n                    const content = codeBlock.textContent;\n                    navigator.clipboard.writeText(content).then(() => {\n                        const originalText = button.textContent;\n                        button.textContent = 'Copied!';\n                        setTimeout(() => {\n                            button.textContent = originalText;\n                        }, 1000);\n                    });\n                }\n            </script><style>\n                :root {\n                    --bg-color: #ffffff;\n                    --text-color: #333333;\n                    --card-bg: #ffffff;\n                    --border-color: #eee;\n                    --accent-color: #0066cc;\n                    --hover-bg: #f5f5f5;\n                    --error-color: #b00020;\n                    --success-color: #007e33;\n                    \n                }\n\nhtml, body {\n    min-height: 100vh;\n}\n               \n                .dark {\n                    --bg-color: #1a1a1a;\n                    --text-color: #f5f5f5 !important;\n                    --card-bg: #2d2d2d;\n                    --border-color: #404040;\n                    --accent-color: #66aaff;\n                    --hover-bg: #23272e;\n                    --error-color: #ff6f6f;\n                    --success-color: #4caf50;\n                    color: var(--text-color) !important;\n                }\n\n                body {\n                    font-family: Arial, sans-serif;\n                    margin: 0;\n                    background-color: var(--bg-color);\n                    color: var(--text-color);\n                    padding: 3rem;\n                }\n                .container {\n                    max-width: 1200px;\n                    margin: 0 auto;\n                    padding: 20px;\n                    background-color: var(--bg-color);\n                    color: var(--text-color);\n                }\n                .global-header {\n                    position: sticky;\n                    top: 0;\n                    background-color: var(--bg-color);\n                    z-index: 1000;\n                    padding: 1rem;\n                    border-bottom: 1px solid var(--border-color);\n                    margin-bottom: 2rem;\n                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n                }\n                .global-header .container {\n                    display: flex;\n                    justify-content: space-between;\n                    align-items: center;\n                    padding: 0;\n                }\n                .search-box {\n                    flex: 1;\n                    max-width: 400px;\n                    margin: 0 1rem;\n                }\n                .table-container {\n                    margin: 20px 0;\n                    overflow-x: auto;\n                    position: relative;\n                }\n                .table {\n                    width: 100%;\n                    border-collapse: collapse;\n                    margin: 20px 0;\n                    background-color: var(--card-bg);\n                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);\n                }\n                .table thead {\n                    position: sticky;\n                    top: 0;\n                    z-index: 10;\n                }\n                .table th, .table td {\n                    padding: 12px;\n                    text-align: left;\n                    border-bottom: 1px solid #ddd;\n                    color: var(--text-color);\n                }\n                .table thead th, .table thead td {\n                    color: var(--text-color) !important;\n                }\n                h1 {\n                    color: var(--text-color);\n                    border-bottom: 2px solid var(--text-color);\n                    padding-bottom: 10px;\n                }\n                h2, h3 {\n                    color: var(--text-color);\n                }\n                .header {\n                    margin-bottom: 30px;\n                    position: sticky;\n                    top: 0;\n                    background-color: var(--bg-color);\n                    z-index: 100;\n                    padding: 1rem 0;\n                    border-bottom: 1px solid var(--border-color);\n                }\n                .header .level {\n                    margin-bottom: 0;\n                }\n                /*.params {\n                    display: grid;\n                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));\n                    gap: 10px;\n                    margin-top: 10px;\n                }\n                .param {\n                    background: var(--card-bg);\n                    padding: 10px;\n                    border-radius: 4px;\n                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);\n                    color: var(--text-color);\n                }*/\n\n                \n       \n                tr:hover {\n                    background-color: var(--hover-bg);\n                }\n                .error {\n                    color: var(--error-color);\n                }\n                .success {\n                    color: var(--success-color);\n                }\n                .camera-coords {\n                    background-color: var(--card-bg);\n                    padding: 10px;\n                    border-radius: 4px;\n                    margin: 5px 0;\n                    color: var(--text-color);\n                }\n                .camera-coords ul {\n                    margin: 5px 0;\n                    padding-left: 20px;\n                }\n                .camera-coords p {\n                    margin: 5px 0;\n                }\n                details {\n                    cursor: pointer;\n                }\n                details summary {\n                    color: var(--accent-color);\n                }\n                details summary:hover {\n                    text-decoration: underline;\n                }\n                .image-preview {\n                    max-width: 200px;\n                    max-height: 200px;\n                    border: 1px solid var(--border-color);\n                    border-radius: 4px;\n                    object-fit: contain;\n                }\n                .image-error {\n                    color: var(--text-color);\n                    font-style: italic;\n                    font-size: 0.9em;\n                }\n                .button {\n                    color: var(--text-color) !important;\n                    background-color: var(--card-bg) !important;\n                    border: 1px solid var(--border-color) !important;\n                }\n                pre, code {\n                    color: var(--text-color) !important;\n                    background-color: var(--card-bg) !important;\n                }\n                \n                /* Side Navigation Styles */\n                .menu-item {\n                    color: var(--text-color) !important;\n                    text-decoration: none;\n                    display: block;\n                    padding: 0.5rem;\n                    border-radius: 4px;\n                    transition: background-color 0.2s;\n                }\n                \n                .menu-item:hover {\n                    background-color: var(--hover-bg);\n                    color: var(--text-color) !important;\n                }\n                \n                .menu-item:active {\n                    background-color: var(--accent-color);\n                    color: white !important;\n                }\n                \n                .menu-list {\n                    list-style: none;\n                    padding: 0;\n                    margin: 0;\n                }\n                \n                .menu-list li {\n                    margin-bottom: 0.5rem;\n                }\n                \n                .media {\n                    display: flex;\n                    align-items: center;\n                }\n                \n                .media-left {\n                    margin-right: 0.75rem;\n                }\n                \n                .media-content {\n                    flex: 1;\n                }\n                \n                .p-4 {\n                    padding: 1rem;\n                }\n                \n                .mb-1 {\n                    margin-bottom: 0.25rem;\n                }\n                \n                .mb-4 {\n                    margin-bottom: 1rem;\n                }\n                \n                .mt-2 {\n                    margin-top: 0.5rem;\n                }\n                \n                .has-text-grey {\n                    color: #6b7280 !important;\n                }\n                \n                .is-rounded {\n                    border-radius: 50%;\n                }\n            </style></head><body>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "'; // or whatever templating you use\n                    if (this.configFile) {\n                        this.saveConfigFile(this.configFile);\n                    }\n                }\n            }\n        }\n        </script><script>\n                (function() {\n                    var darkMode = localStorage.getItem('darkMode');\n                    if (darkMode === null) {\n                        darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;\n                    } else {\n                        darkMode = darkMode === 'true';\n                    }\n                    if (darkMode) {\n                        document.documentElement.classList.add('dark');\n                    } else {\n                        document.documentElement.classList.remove('dark');\n                    }\n                })();\n            </script><script>\n                function copyDetailsContent() {\n                    const button = $el.querySelector('button');\n                    const codeBlock = $el.querySelector('pre code');\n                    const content = codeBlock.textContent;\n                    navigator.clipboard.writeText(content).then(() => {\n                        const originalText = button.textContent;\n                        button.textContent = 'Copied!';\n                        setTimeout(() => {\n                            button.textContent = originalText;\n                        }, 1000);\n                    });\n                }\n            </script><style>\n                :root {\n                    --bg-color: #ffffff;\n                    --text-color: #333333;\n                    --card-bg: #ffffff;\n                    --border-color: #eee;\n                    --accent-color: #0066cc;\n                    --hover-bg: #f5f5f5;\n                    --error-color: #b00020;\n                    --success-color: #007e33;\n                    \n                }\n\nhtml, body {\n    min-height: 100vh;\n}\n               \n                .dark {\n                    --bg-color: #1a1a1a;\n                    --text-color: #f5f5f5 !important;\n                    --card-bg: #2d2d2d;\n                    --border-color: #404040;\n                    --accent-color: #66aaff;\n                    --hover-bg: #23272e;\n                    --error-color: #ff6f6f;\n                    --success-color: #4caf50;\n                    color: var(--text-color) !important;\n                }\n\n                body {\n                    font-family: Arial, sans-serif;\n                    margin: 0;\n                    background-color: var(--bg-color);\n                    color: var(--text-color);\n                    padding: 3rem;\n                }\n                .container {\n                    max-width: 1200px;\n                    margin: 0 auto;\n                    padding: 20px;\n                    background-color: var(--bg-color);\n                    color: var(--text-color);\n                }\n                .global-header {\n                    position: sticky;\n                    top: 0;\n                    background-color: var(--bg-color);\n                    z-index: 1000;\n                    padding: 1rem;\n                    border-bottom: 1px solid var(--border-color);\n                    margin-bottom: 2rem;\n                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n                }\n                .global-header .container {\n                    display: flex;\n                    justify-content: space-between;\n                    align-items: center;\n                    padding: 0;\n                }\n                .search-box {\n                    flex: 1;\n                    max-width: 400px;\n                    margin: 0 1rem;\n                }\n                .table-container {\n                    margin: 20px 0;\n                    overflow-x: auto;\n                    position: relative;\n                }\n                .table {\n                    width: 100%;\n                    border-collapse: collapse;\n                    margin: 20px 0;\n                    background-color: var(--card-bg);\n                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);\n                }\n                .table thead {\n                    position: sticky;\n                    top: 0;\n                    z-index: 10;\n                }\n                .table th, .table td {\n                    padding: 12px;\n                    text-align: left;\n                    border-bottom: 1px solid #ddd;\n                    color: var(--text-color);\n                }\n                .table thead th, .table thead td {\n                    color: var(--text-color) !important;\n                }\n                h1 {\n                    color: var(--text-color);\n                    border-bottom: 2px solid var(--text-color);\n                    padding-bottom: 10px;\n                }\n                h2, h3 {\n                    color: var(--text-color);\n                }\n                .header {\n                    margin-bottom: 30px;\n                    position: sticky;\n                    top: 0;\n                    background-color: var(--bg-color);\n                    z-index: 100;\n                    padding: 1rem 0;\n                    border-bottom: 1px solid var(--border-color);\n                }\n                .header .level {\n                    margin-bottom: 0;\n                }\n                /*.params {\n                    display: grid;\n                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));\n                    gap: 10px;\n                    margin-top: 10px;\n                }\n                .param {\n                    background: var(--card-bg);\n                    padding: 10px;\n                    border-radius: 4px;\n                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);\n                    color: var(--text-color);\n                }*/\n\n                \n       \n                tr:hover {\n                    background-color: var(--hover-bg);\n                }\n                .error {\n                    color: var(--error-color);\n                }\n                .success {\n                    color: var(--success-color);\n                }\n                .camera-coords {\n                    background-color: var(--card-bg);\n                    padding: 10px;\n                    border-radius: 4px;\n                    margin: 5px 0;\n                    color: var(--text-color);\n                }\n                .camera-coords ul {\n                    margin: 5px 0;\n                    padding-left: 20px;\n                }\n                .camera-coords p {\n                    margin: 5px 0;\n                }\n                details {\n                    cursor: pointer;\n                }\n                details summary {\n                    color: var(--accent-color);\n                }\n                details summary:hover {\n                    text-decoration: underline;\n                }\n                .image-preview {\n                    max-width: 200px;\n                    max-height: 200px;\n                    border: 1px solid var(--border-color);\n                    border-radius: 4px;\n                    object-fit: contain;\n                }\n                .image-error {\n                    color: var(--text-color);\n                    font-style: italic;\n                    font-size: 0.9em;\n                }\n                .button {\n                    color: var(--text-color) !important;\n                    background-color: var(--card-bg) !important;\n                    border: 1px solid var(--border-color) !important;\n                }\n                pre, code {\n                    color: var(--text-color) !important;\n                    background-color: var(--card-bg) !important;\n                }\n                \n                /* Side Navigation Styles */\n                .menu-item {\n                    color: var(--text-color) !important;\n                    text-decoration: none;\n                    display: block;\n                    padding: 0.5rem;\n                    border-radius: 4px;\n                    transition: background-color 0.2s;\n                }\n                \n                .menu-item:hover {\n                    background-color: var(--hover-bg);\n                    color: var(--text-color) !important;\n                }\n                \n                .menu-item:active {\n                    background-color: var(--accent-color);\n                    color: white !important;\n                }\n                \n                .menu-list {\n                    list-style: none;\n                    padding: 0;\n                    margin: 0;\n                }\n                \n                .menu-list li {\n                    margin-bottom: 0.5rem;\n                }\n                \n                .media {\n                    display: flex;\n                    align-items: center;\n                }\n                \n                .media-left {\n                    margin-right: 0.75rem;\n                }\n                \n                .media-content {\n                    flex: 1;\n                }\n                \n                .p-4 {\n                    padding: 1rem;\n                }\n                \n                .mb-1 {\n                    margin-bottom: 0.25rem;\n                }\n                \n                .mb-4 {\n                    margin-bottom: 1rem;\n                }\n                \n                .mt-2 {\n                    margin-top: 0.5rem;\n                }\n                \n                .has-text-grey {\n                    color: #6b7280 !important;\n                }\n                \n                .is-rounded {\n                    border-radius: 50%;\n                }\n            </style></head><body><div x-show=\"showDebug\">Show DEBUG ON</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -904,7 +904,7 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 				var templ_7745c5c3_Var42 string
 				templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(serverModeConfigFile)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 566, Col: 89}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 567, Col: 89}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 				if templ_7745c5c3_Err != nil {
@@ -932,7 +932,7 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 		var templ_7745c5c3_Var43 string
 		templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(len(instances))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 583, Col: 79}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 584, Col: 79}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 		if templ_7745c5c3_Err != nil {
@@ -955,7 +955,7 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 		var templ_7745c5c3_Var44 string
 		templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(config.Design.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 598, Col: 71}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 599, Col: 71}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 		if templ_7745c5c3_Err != nil {
@@ -991,7 +991,7 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 						var templ_7745c5c3_Var46 string
 						templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(paramName)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 649, Col: 59}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 650, Col: 59}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
 						if templ_7745c5c3_Err != nil {
@@ -1094,7 +1094,7 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 						var templ_7745c5c3_Var48 string
 						templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(config.RegexPattern)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 694, Col: 128}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 695, Col: 128}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 						if templ_7745c5c3_Err != nil {
@@ -1113,7 +1113,7 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 						var templ_7745c5c3_Var49 string
 						templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", config.MaxInstances))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 698, Col: 88}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 699, Col: 88}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var49))
 						if templ_7745c5c3_Err != nil {
@@ -1170,7 +1170,7 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 					var templ_7745c5c3_Var51 string
 					templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(imageResults)))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 714, Col: 76}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 715, Col: 76}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var51))
 					if templ_7745c5c3_Err != nil {
@@ -1307,7 +1307,7 @@ func CollapsableJson(title string, data interface{}, isOpen bool) templ.Componen
 			var templ_7745c5c3_Var55 string
 			templ_7745c5c3_Var55, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 799, Col: 54}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 800, Col: 54}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var55))
 			if templ_7745c5c3_Err != nil {
@@ -1320,7 +1320,7 @@ func CollapsableJson(title string, data interface{}, isOpen bool) templ.Componen
 			var templ_7745c5c3_Var56 string
 			templ_7745c5c3_Var56, templ_7745c5c3_Err = templ.JoinStringErrs(formatJson(fmt.Sprintf("%+v", data)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 802, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 803, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var56))
 			if templ_7745c5c3_Err != nil {
@@ -1369,7 +1369,7 @@ func AddSTLResult(stlResult models.GenerateSTLResult, outputPath string, resultI
 		var templ_7745c5c3_Var58 string
 		templ_7745c5c3_Var58, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("stl-result-%d", resultIndex))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 811, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 812, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var58))
 		if templ_7745c5c3_Err != nil {
@@ -1382,7 +1382,7 @@ func AddSTLResult(stlResult models.GenerateSTLResult, outputPath string, resultI
 		var templ_7745c5c3_Var59 string
 		templ_7745c5c3_Var59, templ_7745c5c3_Err = templ.JoinStringErrs(stlResult.InstanceConfig.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 812, Col: 43}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 813, Col: 43}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var59))
 		if templ_7745c5c3_Err != nil {
@@ -1400,7 +1400,7 @@ func AddSTLResult(stlResult models.GenerateSTLResult, outputPath string, resultI
 			var templ_7745c5c3_Var60 string
 			templ_7745c5c3_Var60, templ_7745c5c3_Err = templ.JoinStringErrs(stlResult.Error)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 814, Col: 52}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 815, Col: 52}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var60))
 			if templ_7745c5c3_Err != nil {
@@ -1418,7 +1418,7 @@ func AddSTLResult(stlResult models.GenerateSTLResult, outputPath string, resultI
 		var templ_7745c5c3_Var61 templ.SafeURL
 		templ_7745c5c3_Var61, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(getRelativePath(stlResult.OutputPath, outputPath)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 817, Col: 86}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 818, Col: 86}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var61))
 		if templ_7745c5c3_Err != nil {
@@ -1431,7 +1431,7 @@ func AddSTLResult(stlResult models.GenerateSTLResult, outputPath string, resultI
 		var templ_7745c5c3_Var62 string
 		templ_7745c5c3_Var62, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%v", stlResult.TimeTaken))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 818, Col: 52}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 819, Col: 52}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var62))
 		if templ_7745c5c3_Err != nil {
@@ -1513,7 +1513,7 @@ func AddImageResult(imageResult models.GenerateImageResult, outputPath string, r
 		var templ_7745c5c3_Var64 string
 		templ_7745c5c3_Var64, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("image-result-%d", resultIndex))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 835, Col: 56}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 836, Col: 56}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var64))
 		if templ_7745c5c3_Err != nil {
@@ -1526,7 +1526,7 @@ func AddImageResult(imageResult models.GenerateImageResult, outputPath string, r
 		var templ_7745c5c3_Var65 string
 		templ_7745c5c3_Var65, templ_7745c5c3_Err = templ.JoinStringErrs(imageResult.InstanceConfig.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 836, Col: 45}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 837, Col: 45}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var65))
 		if templ_7745c5c3_Err != nil {
@@ -1539,7 +1539,7 @@ func AddImageResult(imageResult models.GenerateImageResult, outputPath string, r
 		var templ_7745c5c3_Var66 string
 		templ_7745c5c3_Var66, templ_7745c5c3_Err = templ.JoinStringErrs(imageResult.CameraName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 837, Col: 36}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 838, Col: 36}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var66))
 		if templ_7745c5c3_Err != nil {
@@ -1552,7 +1552,7 @@ func AddImageResult(imageResult models.GenerateImageResult, outputPath string, r
 		var templ_7745c5c3_Var67 string
 		templ_7745c5c3_Var67, templ_7745c5c3_Err = templ.JoinStringErrs(getRelativePath(imageResult.OutputPath, outputPath))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 838, Col: 65}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 839, Col: 65}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var67))
 		if templ_7745c5c3_Err != nil {
@@ -1565,7 +1565,7 @@ func AddImageResult(imageResult models.GenerateImageResult, outputPath string, r
 		var templ_7745c5c3_Var68 string
 		templ_7745c5c3_Var68, templ_7745c5c3_Err = templ.JoinStringErrs(formatDuration(imageResult.TimeTaken))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 840, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 841, Col: 51}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var68))
 		if templ_7745c5c3_Err != nil {
@@ -1578,7 +1578,7 @@ func AddImageResult(imageResult models.GenerateImageResult, outputPath string, r
 		var templ_7745c5c3_Var69 string
 		templ_7745c5c3_Var69, templ_7745c5c3_Err = templ.JoinStringErrs(imageResult.CameraCoords)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 844, Col: 57}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 845, Col: 57}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var69))
 		if templ_7745c5c3_Err != nil {
@@ -1604,7 +1604,7 @@ func AddImageResult(imageResult models.GenerateImageResult, outputPath string, r
 			var templ_7745c5c3_Var70 string
 			templ_7745c5c3_Var70, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 858, Col: 110}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 859, Col: 110}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var70))
 			if templ_7745c5c3_Err != nil {
@@ -1617,7 +1617,7 @@ func AddImageResult(imageResult models.GenerateImageResult, outputPath string, r
 			var templ_7745c5c3_Var71 string
 			templ_7745c5c3_Var71, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 859, Col: 119}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 860, Col: 119}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var71))
 			if templ_7745c5c3_Err != nil {
@@ -1630,7 +1630,7 @@ func AddImageResult(imageResult models.GenerateImageResult, outputPath string, r
 			var templ_7745c5c3_Var72 string
 			templ_7745c5c3_Var72, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 863, Col: 171}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 864, Col: 171}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var72))
 			if templ_7745c5c3_Err != nil {
@@ -1658,7 +1658,7 @@ func AddImageResult(imageResult models.GenerateImageResult, outputPath string, r
 			var templ_7745c5c3_Var73 string
 			templ_7745c5c3_Var73, templ_7745c5c3_Err = templ.JoinStringErrs(imageResult.Error)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 869, Col: 53}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 870, Col: 53}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var73))
 			if templ_7745c5c3_Err != nil {
