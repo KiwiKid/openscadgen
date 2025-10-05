@@ -83,7 +83,7 @@ func main() {
 
 	processResult, err := pkg.Process(config, progress, nil, pkg.Operations{
 		GenerateReport: true,
-	})
+	}, false)
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}

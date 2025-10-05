@@ -1093,7 +1093,7 @@ func InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMod
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "\" class=\"image-preview\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "\" class=\"image-preview\"> ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1124,71 +1124,77 @@ func InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMod
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 88, "\" class=\"image-preview\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 88, "\" class=\"image-preview\"> ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 89, "<form hx-put=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
+			if isServerMode {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 89, "<form hx-put=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var55 string
+				templ_7745c5c3_Var55, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/?regex=%s", instance.AutoName))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 272, Col: 87}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var55))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 90, "\" hx-target=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var56 string
+				templ_7745c5c3_Var56, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("#instance-%s", instance.AutoName))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 272, Col: 148}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var56))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 91, "\" hx-indicator=\"#loading-indicator\"><input type=\"hidden\" name=\"path\" value=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var57 string
+				templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.JoinStringErrs(serverModeConfigFile)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 273, Col: 93}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var57))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 92, "\"> <button class=\"button is-large\" id=\"process-btn\" type=\"submit\">Process ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var58 string
+				templ_7745c5c3_Var58, templ_7745c5c3_Err = templ.JoinStringErrs(instance.AutoName)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 274, Col: 122}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var58))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, "</button></form>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 			}
-			var templ_7745c5c3_Var55 string
-			templ_7745c5c3_Var55, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/?regex=%s", instance.AutoName))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 272, Col: 87}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var55))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 90, "\" hx-target=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var56 string
-			templ_7745c5c3_Var56, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("#instance-%s", instance.AutoName))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 272, Col: 148}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var56))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 91, "\" hx-indicator=\"#loading-indicator\"><input type=\"hidden\" name=\"path\" value=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var57 string
-			templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.JoinStringErrs(serverModeConfigFile)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 273, Col: 93}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var57))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 92, "\"> <button class=\"button is-large\" id=\"process-btn\" type=\"submit\">Process ")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var58 string
-			templ_7745c5c3_Var58, templ_7745c5c3_Err = templ.JoinStringErrs(instance.AutoName)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 274, Col: 122}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var58))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, "</button></form></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 94, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else if reportMode != "view" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 94, "<div class=\"content\"><p>Loading... ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 95, "<div class=\"content\"><p>Loading... ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1201,12 +1207,12 @@ func InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMod
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 95, "</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 96, "</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 96, "<div class=\"content\"><p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 97, "<div class=\"content\"><p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1219,12 +1225,12 @@ func InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMod
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 97, "</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 98, "</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 98, "</div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 99, "</div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1253,7 +1259,7 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 			templ_7745c5c3_Var61 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 99, "<!doctype html><html lang=\"en\" x-data=\"alpineReportData()\" x-init=\"init()\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><base href=\".\"><title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 100, "<!doctype html><html lang=\"en\" x-data=\"alpineReportData()\" x-init=\"init()\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><base href=\".\"><title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1267,17 +1273,17 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 100, " - OpenSCAD Generation Report")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, " - OpenSCAD Generation Report")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, "OpenSCAD Generation Report")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 102, "OpenSCAD Generation Report")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 102, "</title><link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css\"><link href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css\" rel=\"stylesheet\"><script src=\"https://unpkg.com/htmx.org@2.0.4\" integrity=\"sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+\" crossorigin=\"anonymous\"></script><script defer src=\"https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js\"></script><script src=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js\"></script><script>\n        function alpineReportData() {\n            return {\n                darkMode: true,\n                showDebug: false,\n                navSelected: \"instances\",\n                searchQuery: '',\n                configHistory: JSON.parse(localStorage.getItem('configHistory') || '[]'),\n                configFile: '',\n                savedConfigFile: localStorage.getItem('savedConfigFile') || '',\n                searchHistory: JSON.parse(localStorage.getItem('searchHistory') || '[]'),\n                saveConfigFile(path) {\n                    if (path && !this.configHistory.includes(path)) {\n                        this.configHistory.unshift(path);\n                        localStorage.setItem('configHistory', JSON.stringify(this.configHistory));\n                    }\n                    this.savedConfigFile = path;\n                    localStorage.setItem('savedConfigFile', path);\n                },\n                init() {\n                    // Watchers\n                    this.$watch('darkMode', value => {\n                        localStorage.setItem('darkMode', value);\n                        document.documentElement.classList.toggle('dark', value);\n                    });\n                    this.$watch('showDebug', value => {\n                        localStorage.setItem('showDebug', value);\n                    });\n                    this.$watch('searchQuery', value => {\n                        if (value && !this.searchHistory.includes(value)) {\n                            this.searchHistory.unshift(value);\n                            this.searchHistory = this.searchHistory.slice(0, 20);\n                            localStorage.setItem('searchHistory', JSON.stringify(this.searchHistory));\n                        }\n                    });\n\n                    // Initial dark mode setup\n                    this.darkMode = localStorage.getItem('darkMode') === 'true' ||\n                        (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);\n\n                    this.showDebug = localStorage.getItem('showDebug') === 'true';\n                    // Initial config file setup\n                    this.configFile = '")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 103, "</title><link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css\"><link href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css\" rel=\"stylesheet\"><script src=\"https://unpkg.com/htmx.org@2.0.4\" integrity=\"sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+\" crossorigin=\"anonymous\"></script><script defer src=\"https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js\"></script><script src=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js\"></script><script>\n        function alpineReportData() {\n            return {\n                darkMode: true,\n                showDebug: false,\n                navSelected: \"instances\",\n                searchQuery: '',\n                configHistory: JSON.parse(localStorage.getItem('configHistory') || '[]'),\n                configFile: '',\n                savedConfigFile: localStorage.getItem('savedConfigFile') || '',\n                searchHistory: JSON.parse(localStorage.getItem('searchHistory') || '[]'),\n                saveConfigFile(path) {\n                    if (path && !this.configHistory.includes(path)) {\n                        this.configHistory.unshift(path);\n                        localStorage.setItem('configHistory', JSON.stringify(this.configHistory));\n                    }\n                    this.savedConfigFile = path;\n                    localStorage.setItem('savedConfigFile', path);\n                },\n                init() {\n                    // Watchers\n                    this.$watch('darkMode', value => {\n                        localStorage.setItem('darkMode', value);\n                        document.documentElement.classList.toggle('dark', value);\n                    });\n                    this.$watch('showDebug', value => {\n                        localStorage.setItem('showDebug', value);\n                    });\n                    this.$watch('searchQuery', value => {\n                        if (value && !this.searchHistory.includes(value)) {\n                            this.searchHistory.unshift(value);\n                            this.searchHistory = this.searchHistory.slice(0, 20);\n                            localStorage.setItem('searchHistory', JSON.stringify(this.searchHistory));\n                        }\n                    });\n\n                    // Initial dark mode setup\n                    this.darkMode = localStorage.getItem('darkMode') === 'true' ||\n                        (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);\n\n                    this.showDebug = localStorage.getItem('showDebug') === 'true';\n                    // Initial config file setup\n                    this.configFile = '")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1289,7 +1295,7 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 103, "'; // or whatever templating you use\n                    if (this.configFile) {\n                        this.saveConfigFile(this.configFile);\n                    }\n                }\n            }\n        }\n        </script><script>\n                (function() {\n                    var darkMode = localStorage.getItem('darkMode');\n                    if (darkMode === null) {\n                        darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;\n                    } else {\n                        darkMode = darkMode === 'true';\n                    }\n                    if (darkMode) {\n                        document.documentElement.classList.add('dark');\n                    } else {\n                        document.documentElement.classList.remove('dark');\n                    }\n                })();\n            </script><script>\n                function copyDetailsContent() {\n                    const button = $el.querySelector('button');\n                    const codeBlock = $el.querySelector('pre code');\n                    const content = codeBlock.textContent;\n                    navigator.clipboard.writeText(content).then(() => {\n                        const originalText = button.textContent;\n                        button.textContent = 'Copied!';\n                        setTimeout(() => {\n                            button.textContent = originalText;\n                        }, 1000);\n                    });\n                }\n            </script><style>\n                :root {\n                    --bg-color: #ffffff;\n                    --text-color: #333333;\n                    --card-bg: #ffffff;\n                    --border-color: #eee;\n                    --accent-color: #0066cc;\n                    --hover-bg: #f5f5f5;\n                    --error-color: #b00020;\n                    --success-color: #007e33;\n                    \n                }\n\nhtml, body {\n    min-height: 100vh;\n}\n               \n                .dark {\n                    --bg-color: #1a1a1a;\n                    --text-color: #f5f5f5 !important;\n                    --card-bg: #2d2d2d;\n                    --border-color: #404040;\n                    --accent-color: #66aaff;\n                    --hover-bg: #23272e;\n                    --error-color: #ff6f6f;\n                    --success-color: #4caf50;\n                    color: var(--text-color) !important;\n                }\n\n                body {\n                    font-family: Arial, sans-serif;\n                    margin: 0;\n                    background-color: var(--bg-color);\n                    color: var(--text-color);\n                    padding: 3rem;\n                }\n                .container {\n                    max-width: 1200px;\n                    margin: 0 auto;\n                    padding: 20px;\n                    background-color: var(--bg-color);\n                    color: var(--text-color);\n                }\n                .global-header {\n                    position: sticky;\n                    top: 0;\n                    background-color: var(--bg-color);\n                    z-index: 1000;\n                    padding: 1rem;\n                    border-bottom: 1px solid var(--border-color);\n                    margin-bottom: 2rem;\n                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n                }\n                .global-header .container {\n                    display: flex;\n                    justify-content: space-between;\n                    align-items: center;\n                    padding: 0;\n                }\n                .search-box {\n                    flex: 1;\n                    max-width: 400px;\n                    margin: 0 1rem;\n                }\n                .table-container {\n                    margin: 20px 0;\n                    overflow-x: auto;\n                    position: relative;\n                }\n                .table {\n                    width: 100%;\n                    border-collapse: collapse;\n                    margin: 20px 0;\n                    background-color: var(--card-bg);\n                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);\n                }\n                .table thead {\n                    position: sticky;\n                    top: 0;\n                    z-index: 10;\n                }\n                .table th, .table td {\n                    padding: 12px;\n                    text-align: left;\n                    border-bottom: 1px solid #ddd;\n                    color: var(--text-color);\n                }\n                .table thead th, .table thead td {\n                    color: var(--text-color) !important;\n                }\n                h1 {\n                    color: var(--text-color);\n                    border-bottom: 2px solid var(--text-color);\n                    padding-bottom: 10px;\n                }\n                h2, h3 {\n                    color: var(--text-color);\n                }\n                .header {\n                    margin-bottom: 30px;\n                    position: sticky;\n                    top: 0;\n                    background-color: var(--bg-color);\n                    z-index: 100;\n                    padding: 1rem 0;\n                    border-bottom: 1px solid var(--border-color);\n                }\n                .header .level {\n                    margin-bottom: 0;\n                }\n                /*.params {\n                    display: grid;\n                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));\n                    gap: 10px;\n                    margin-top: 10px;\n                }\n                .param {\n                    background: var(--card-bg);\n                    padding: 10px;\n                    border-radius: 4px;\n                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);\n                    color: var(--text-color);\n                }*/\n\n                \n       \n                tr:hover {\n                    background-color: var(--hover-bg);\n                }\n                .error {\n                    color: var(--error-color);\n                }\n                .success {\n                    color: var(--success-color);\n                }\n                .camera-coords {\n                    background-color: var(--card-bg);\n                    padding: 10px;\n                    border-radius: 4px;\n                    margin: 5px 0;\n                    color: var(--text-color);\n                }\n                .camera-coords ul {\n                    margin: 5px 0;\n                    padding-left: 20px;\n                }\n                .camera-coords p {\n                    margin: 5px 0;\n                }\n                details {\n                    cursor: pointer;\n                }\n                details summary {\n                    color: var(--accent-color);\n                }\n                details summary:hover {\n                    text-decoration: underline;\n                }\n                .image-preview {\n                    max-width: 200px;\n                    max-height: 200px;\n                    border: 1px solid var(--border-color);\n                    border-radius: 4px;\n                    object-fit: contain;\n                }\n                .image-error {\n                    color: var(--text-color);\n                    font-style: italic;\n                    font-size: 0.9em;\n                }\n                .button {\n                    color: var(--text-color) !important;\n                    background-color: var(--card-bg) !important;\n                    border: 1px solid var(--border-color) !important;\n                }\n                pre, code {\n                    color: var(--text-color) !important;\n                    background-color: var(--card-bg) !important;\n                }\n                \n                /* Side Navigation Styles */\n                .menu-item {\n                    color: var(--text-color) !important;\n                    text-decoration: none;\n                    display: block;\n                    padding: 0.5rem;\n                    border-radius: 4px;\n                    transition: background-color 0.2s;\n                }\n                \n                .menu-item:hover {\n                    background-color: var(--hover-bg);\n                    color: var(--text-color) !important;\n                }\n                \n                .menu-item:active {\n                    background-color: var(--accent-color);\n                    color: white !important;\n                }\n                \n                .menu-list {\n                    list-style: none;\n                    padding: 0;\n                    margin: 0;\n                }\n                \n                .menu-list li {\n                    margin-bottom: 0.5rem;\n                }\n                \n                .media {\n                    display: flex;\n                    align-items: center;\n                }\n                \n                .media-left {\n                    margin-right: 0.75rem;\n                }\n                \n                .media-content {\n                    flex: 1;\n                }\n                \n                .p-4 {\n                    padding: 1rem;\n                }\n                \n                .mb-1 {\n                    margin-bottom: 0.25rem;\n                }\n                \n                .mb-4 {\n                    margin-bottom: 1rem;\n                }\n                \n                .mt-2 {\n                    margin-top: 0.5rem;\n                }\n                \n                .has-text-grey {\n                    color: #6b7280 !important;\n                }\n                \n                .is-rounded {\n                    border-radius: 50%;\n                }\n                \n                /* Dark mode card styling */\n                .dark .card {\n                    background-color: var(--card-bg) !important;\n                    color: var(--text-color) !important;\n                }\n                \n                .dark .card-content {\n                    background-color: var(--card-bg) !important;\n                    color: var(--text-color) !important;\n                }\n                \n                .dark .card .title,\n                .dark .card .subtitle,\n                .dark .card-header-title {\n                    color: var(--text-color) !important;\n                }\n                \n                .dark .card .content {\n                    color: var(--text-color) !important;\n                }\n                \n                .dark .card .content strong {\n                    color: var(--text-color) !important;\n                }\n                \n                /* Dark mode navbar styling */\n                .dark .navbar {\n                    background-color: var(--card-bg) !important;\n                    color: var(--text-color) !important;\n                }\n                \n                .dark .navbar-light {\n                    background-color: var(--card-bg) !important;\n                    color: var(--text-color) !important;\n                }\n                \n                .dark .bg-light {\n                    background-color: var(--card-bg) !important;\n                }\n                \n                .dark .navbar-brand {\n                    color: var(--text-color) !important;\n                }\n                \n                .dark .nav-link {\n                    color: var(--text-color) !important;\n                }\n                \n                .dark .nav-link:hover {\n                    color: var(--accent-color) !important;\n                }\n                \n                .dark .navbar-nav .nav-item.active .nav-link {\n                    color: var(--accent-color) !important;\n                }\n                \n                .dark .form-control {\n                    background-color: var(--card-bg) !important;\n                    color: var(--text-color) !important;\n                    border-color: var(--border-color) !important;\n                }\n                \n                .dark .btn {\n                    background-color: var(--card-bg) !important;\n                    color: var(--text-color) !important;\n                    border-color: var(--border-color) !important;\n                }\n                \n                .dark .btn:hover {\n                    background-color: var(--hover-bg) !important;\n                    color: var(--text-color) !important;\n                }\n            </style></head><body><div x-show=\"showDebug\">Show DEBUG ON</div><div class=\"global-header fixed-grid\"><nav class=\"navbar navbar-expand-lg navbar-light bg-light\"><a class=\"navbar-brand\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 104, "'; // or whatever templating you use\n                    if (this.configFile) {\n                        this.saveConfigFile(this.configFile);\n                    }\n                }\n            }\n        }\n        </script><script>\n                (function() {\n                    var darkMode = localStorage.getItem('darkMode');\n                    if (darkMode === null) {\n                        darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;\n                    } else {\n                        darkMode = darkMode === 'true';\n                    }\n                    if (darkMode) {\n                        document.documentElement.classList.add('dark');\n                    } else {\n                        document.documentElement.classList.remove('dark');\n                    }\n                })();\n            </script><script>\n                function copyDetailsContent() {\n                    const button = $el.querySelector('button');\n                    const codeBlock = $el.querySelector('pre code');\n                    const content = codeBlock.textContent;\n                    navigator.clipboard.writeText(content).then(() => {\n                        const originalText = button.textContent;\n                        button.textContent = 'Copied!';\n                        setTimeout(() => {\n                            button.textContent = originalText;\n                        }, 1000);\n                    });\n                }\n            </script><style>\n                :root {\n                    --bg-color: #ffffff;\n                    --text-color: #333333;\n                    --card-bg: #ffffff;\n                    --border-color: #eee;\n                    --accent-color: #0066cc;\n                    --hover-bg: #f5f5f5;\n                    --error-color: #b00020;\n                    --success-color: #007e33;\n                    \n                }\n\nhtml, body {\n    min-height: 100vh;\n}\n               \n                .dark {\n                    --bg-color: #1a1a1a;\n                    --text-color: #f5f5f5 !important;\n                    --card-bg: #2d2d2d;\n                    --border-color: #404040;\n                    --accent-color: #66aaff;\n                    --hover-bg: #23272e;\n                    --error-color: #ff6f6f;\n                    --success-color: #4caf50;\n                    color: var(--text-color) !important;\n                }\n\n                body {\n                    font-family: Arial, sans-serif;\n                    margin: 0;\n                    background-color: var(--bg-color);\n                    color: var(--text-color);\n                    padding: 3rem;\n                }\n                .container {\n                    max-width: 1200px;\n                    margin: 0 auto;\n                    padding: 20px;\n                    background-color: var(--bg-color);\n                    color: var(--text-color);\n                }\n                .global-header {\n                    position: sticky;\n                    top: 0;\n                    background-color: var(--bg-color);\n                    z-index: 1000;\n                    padding: 1rem;\n                    border-bottom: 1px solid var(--border-color);\n                    margin-bottom: 2rem;\n                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n                }\n                .global-header .container {\n                    display: flex;\n                    justify-content: space-between;\n                    align-items: center;\n                    padding: 0;\n                }\n                .search-box {\n                    flex: 1;\n                    max-width: 400px;\n                    margin: 0 1rem;\n                }\n                .table-container {\n                    margin: 20px 0;\n                    overflow-x: auto;\n                    position: relative;\n                }\n                .table {\n                    width: 100%;\n                    border-collapse: collapse;\n                    margin: 20px 0;\n                    background-color: var(--card-bg);\n                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);\n                }\n                .table thead {\n                    position: sticky;\n                    top: 0;\n                    z-index: 10;\n                }\n                .table th, .table td {\n                    padding: 12px;\n                    text-align: left;\n                    border-bottom: 1px solid #ddd;\n                    color: var(--text-color);\n                }\n                .table thead th, .table thead td {\n                    color: var(--text-color) !important;\n                }\n                h1 {\n                    color: var(--text-color);\n                    border-bottom: 2px solid var(--text-color);\n                    padding-bottom: 10px;\n                }\n                h2, h3 {\n                    color: var(--text-color);\n                }\n                .header {\n                    margin-bottom: 30px;\n                    position: sticky;\n                    top: 0;\n                    background-color: var(--bg-color);\n                    z-index: 100;\n                    padding: 1rem 0;\n                    border-bottom: 1px solid var(--border-color);\n                }\n                .header .level {\n                    margin-bottom: 0;\n                }\n                /*.params {\n                    display: grid;\n                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));\n                    gap: 10px;\n                    margin-top: 10px;\n                }\n                .param {\n                    background: var(--card-bg);\n                    padding: 10px;\n                    border-radius: 4px;\n                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);\n                    color: var(--text-color);\n                }*/\n\n                \n       \n                tr:hover {\n                    background-color: var(--hover-bg);\n                }\n                .error {\n                    color: var(--error-color);\n                }\n                .success {\n                    color: var(--success-color);\n                }\n                .camera-coords {\n                    background-color: var(--card-bg);\n                    padding: 10px;\n                    border-radius: 4px;\n                    margin: 5px 0;\n                    color: var(--text-color);\n                }\n                .camera-coords ul {\n                    margin: 5px 0;\n                    padding-left: 20px;\n                }\n                .camera-coords p {\n                    margin: 5px 0;\n                }\n                details {\n                    cursor: pointer;\n                }\n                details summary {\n                    color: var(--accent-color);\n                }\n                details summary:hover {\n                    text-decoration: underline;\n                }\n                .image-preview {\n                    max-width: 200px;\n                    max-height: 200px;\n                    border: 1px solid var(--border-color);\n                    border-radius: 4px;\n                    object-fit: contain;\n                }\n                .image-error {\n                    color: var(--text-color);\n                    font-style: italic;\n                    font-size: 0.9em;\n                }\n                .button {\n                    color: var(--text-color) !important;\n                    background-color: var(--card-bg) !important;\n                    border: 1px solid var(--border-color) !important;\n                }\n                pre, code {\n                    color: var(--text-color) !important;\n                    background-color: var(--card-bg) !important;\n                }\n                \n                /* Side Navigation Styles */\n                .menu-item {\n                    color: var(--text-color) !important;\n                    text-decoration: none;\n                    display: block;\n                    padding: 0.5rem;\n                    border-radius: 4px;\n                    transition: background-color 0.2s;\n                }\n                \n                .menu-item:hover {\n                    background-color: var(--hover-bg);\n                    color: var(--text-color) !important;\n                }\n                \n                .menu-item:active {\n                    background-color: var(--accent-color);\n                    color: white !important;\n                }\n                \n                .menu-list {\n                    list-style: none;\n                    padding: 0;\n                    margin: 0;\n                }\n                \n                .menu-list li {\n                    margin-bottom: 0.5rem;\n                }\n                \n                .media {\n                    display: flex;\n                    align-items: center;\n                }\n                \n                .media-left {\n                    margin-right: 0.75rem;\n                }\n                \n                .media-content {\n                    flex: 1;\n                }\n                \n                .p-4 {\n                    padding: 1rem;\n                }\n                \n                .mb-1 {\n                    margin-bottom: 0.25rem;\n                }\n                \n                .mb-4 {\n                    margin-bottom: 1rem;\n                }\n                \n                .mt-2 {\n                    margin-top: 0.5rem;\n                }\n                \n                .has-text-grey {\n                    color: #6b7280 !important;\n                }\n                \n                .is-rounded {\n                    border-radius: 50%;\n                }\n                \n                /* Dark mode card styling */\n                .dark .card {\n                    background-color: var(--card-bg) !important;\n                    color: var(--text-color) !important;\n                }\n                \n                .dark .card-content {\n                    background-color: var(--card-bg) !important;\n                    color: var(--text-color) !important;\n                }\n                \n                .dark .card .title,\n                .dark .card .subtitle,\n                .dark .card-header-title {\n                    color: var(--text-color) !important;\n                }\n                \n                .dark .card .content {\n                    color: var(--text-color) !important;\n                }\n                \n                .dark .card .content strong {\n                    color: var(--text-color) !important;\n                }\n                \n                /* Dark mode navbar styling */\n                .dark .navbar {\n                    background-color: var(--card-bg) !important;\n                    color: var(--text-color) !important;\n                }\n                \n                .dark .navbar-light {\n                    background-color: var(--card-bg) !important;\n                    color: var(--text-color) !important;\n                }\n                \n                .dark .bg-light {\n                    background-color: var(--card-bg) !important;\n                }\n                \n                .dark .navbar-brand {\n                    color: var(--text-color) !important;\n                }\n                \n                .dark .nav-link {\n                    color: var(--text-color) !important;\n                }\n                \n                .dark .nav-link:hover {\n                    color: var(--accent-color) !important;\n                }\n                \n                .dark .navbar-nav .nav-item.active .nav-link {\n                    color: var(--accent-color) !important;\n                }\n                \n                .dark .form-control {\n                    background-color: var(--card-bg) !important;\n                    color: var(--text-color) !important;\n                    border-color: var(--border-color) !important;\n                }\n                \n                .dark .btn {\n                    background-color: var(--card-bg) !important;\n                    color: var(--text-color) !important;\n                    border-color: var(--border-color) !important;\n                }\n                \n                .dark .btn:hover {\n                    background-color: var(--hover-bg) !important;\n                    color: var(--text-color) !important;\n                }\n            </style></head><body><div x-show=\"showDebug\">Show DEBUG ON</div><div class=\"global-header fixed-grid\"><nav class=\"navbar navbar-expand-lg navbar-light bg-light\"><a class=\"navbar-brand\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1302,117 +1308,100 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 104, "</a> <button class=\"navbar-toggler\" type=\"button\" data-toggle=\"collapse\" data-target=\"#navbarSupportedContent\" aria-controls=\"navbarSupportedContent\" aria-expanded=\"false\" aria-label=\"Toggle navigation\"><span class=\"navbar-toggler-icon\"></span></button> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 105, "</a> <button class=\"navbar-toggler\" type=\"button\" data-toggle=\"collapse\" data-target=\"#navbarSupportedContent\" aria-controls=\"navbarSupportedContent\" aria-expanded=\"false\" aria-label=\"Toggle navigation\"><span class=\"navbar-toggler-icon\"></span></button> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if isServerMode {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 105, "<a href=\"/\" class=\"button is-large\">Home</a>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 106, "<a href=\"/\" class=\"button is-large\">Home</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 106, "<div class=\"collapse navbar-collapse\" id=\"navbarSupportedContent\"><ul class=\"navbar-nav mr-auto\"><li class=\"nav-item\" :class=\"{ active: navSelected === 'instances' }\"><a class=\"nav-link\" @click=\"navSelected = 'instances'\">Instances ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 107, "<div class=\"collapse navbar-collapse\" id=\"navbarSupportedContent\"><ul class=\"navbar-nav mr-auto\"><li class=\"nav-item\" :class=\"{ active: navSelected === 'instances' }\"><a class=\"nav-link\" @click=\"navSelected = 'instances'\">Instances ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var65 string
-		templ_7745c5c3_Var65, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(instances)))
+		templ_7745c5c3_Var65, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("(%d)", len(instances)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 730, Col: 136}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 730, Col: 138}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var65))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 107, "</a></li>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 108, "</a></li>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if reportMode == "complete" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 108, "<li class=\"nav-item\" :class=\"{ active: navSelected === 'stlResults' }\"><a class=\"nav-link\" @click=\"navSelected = 'stlResults'\">STL Results ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 109, "<li class=\"nav-item\" :class=\"{ active: navSelected === 'stlResults' }\"><a class=\"nav-link\" @click=\"navSelected = 'stlResults'\">STLs ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var66 string
-			templ_7745c5c3_Var66, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(stlResults)))
+			templ_7745c5c3_Var66, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("(%d)", len(stlResults)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 734, Col: 144}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 734, Col: 139}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var66))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 109, "</a></li><li class=\"nav-item\" :class=\"{ active: navSelected === 'imageResults' }\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 110, "</a></li><li class=\"nav-item\" :class=\"{ active: navSelected === 'images' }\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if len(imageResults) > 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 110, "<a class=\"nav-link\" @click=\"navSelected = 'imageResults'\">Image Results ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 111, "<a class=\"nav-link\" @click=\"navSelected = 'images'\">Images ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var67 string
 				templ_7745c5c3_Var67, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("(%d)", len(imageResults)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 738, Col: 152}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 738, Col: 139}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var67))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 111, "</a>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 112, "</a>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 112, "</li><li class=\"nav-item\" :class=\"{ active: navSelected === 'images' }\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			if len(imageResults) > 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 113, "<a class=\"nav-link\" @click=\"navSelected = 'images'\">Images ")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var68 string
-				templ_7745c5c3_Var68, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("(%d)", len(imageResults)))
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 743, Col: 139}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var68))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 114, "</a>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 115, "</li>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 113, "</li>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 116, "<li class=\"nav-item\" :class=\"{ active: navSelected === 'json' }\"><a class=\"nav-link\" @click=\"navSelected = 'json'\">Config</a></li><a class=\"nav-link\" hx-get=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
+		if isServerMode {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 114, "<li class=\"nav-item\" :class=\"{ active: navSelected === 'json' }\"><a class=\"nav-link\" @click=\"navSelected = 'json'\">Config</a></li><a class=\"nav-link\" hx-get=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var68 string
+			templ_7745c5c3_Var68, templ_7745c5c3_Err = templ.JoinStringErrs(templ.SafeURL(fmt.Sprintf("/api/config?path=%s", config.ConfigFile)))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 746, Col: 133}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var68))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 115, "\">Config</a>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
-		var templ_7745c5c3_Var69 string
-		templ_7745c5c3_Var69, templ_7745c5c3_Err = templ.JoinStringErrs(templ.SafeURL(fmt.Sprintf("/api/config?path=%s", config.ConfigFile)))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 750, Col: 129}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var69))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 117, "\">Config</a></ul></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 116, "</ul></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if isServerMode {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 118, "<div><div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 117, "<div><div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1422,17 +1411,60 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 119, "<form hx-post=\"/\" hx-swap=\"outerHTML\"><input type=\"text\" name=\"path\" x-model=\"configFile\"> <input type=\"submit\" value=\"Enter\"></form>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 118, "<form hx-post=\"/\" hx-swap=\"outerHTML\"><input type=\"text\" name=\"path\" x-model=\"configFile\"> <input type=\"submit\" value=\"Enter\"></form>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 120, "</div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 119, "</div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 121, "<form class=\"form-inline my-2 my-lg-0\"><input class=\"form-control mr-sm-2\" type=\"search\" placeholder=\"Filter instances...\" x-model=\"searchQuery\" aria-label=\"Search\"> <button class=\"btn btn-outline-success my-2 my-sm-0\" type=\"button\" @click=\"searchQuery = ''\">Clear</button></form><div class=\"ml-2\"><button class=\"btn btn-outline-secondary\" @click=\"darkMode = !darkMode\"><span x-show=\"!darkMode\">🌙</span> <span x-show=\"darkMode\">☀️</span></button> <button class=\"btn btn-outline-secondary ml-1\" @click=\"showDebug = !showDebug\"><span x-show=\"!showDebug\">🐛</span> <span x-show=\"showDebug\">🐛</span> <span x-show=\"showDebug\" style=\"text-decoration: underline;\">Debug</span></button></div></nav></div><div class=\"container-fluid\"><!-- Main Content --><div class=\"container\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 120, "<form class=\"form-inline my-2 my-lg-0\"><input class=\"form-control mr-sm-2\" type=\"search\" placeholder=\"Filter instances...\" x-model=\"searchQuery\" aria-label=\"Search\"> <button class=\"btn btn-outline-success my-2 my-sm-0\" type=\"button\" @click=\"searchQuery = ''\">Clear</button></form><div class=\"ml-2\"><button class=\"btn btn-outline-secondary\" @click=\"darkMode = !darkMode\"><span x-show=\"!darkMode\">🌙</span> <span x-show=\"darkMode\">☀️</span></button> <button class=\"btn btn-outline-secondary ml-1\" @click=\"showDebug = !showDebug\"><span x-show=\"!showDebug\">🐛</span> <span x-show=\"showDebug\">🐛</span> <span x-show=\"showDebug\" style=\"text-decoration: underline;\">Debug</span></button></div></nav></div><div class=\"container-fluid\"><!-- Main Content --><div class=\"container\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Var69 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+			if !templ_7745c5c3_IsBuffer {
+				defer func() {
+					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err == nil {
+						templ_7745c5c3_Err = templ_7745c5c3_BufErr
+					}
+				}()
+			}
+			ctx = templ.InitializeContext(ctx)
+			if len(instances) > 0 {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 121, "<div class=\"columns is-multiline\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				for _, instance := range instances {
+					templ_7745c5c3_Err = InstanceCardV2(instance, outputPath, reportMode, allParamNames, isServerMode, serverModeConfigFile).Render(ctx, templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 122, "</div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 123, "<div class=\"is-danger\">No Instances Generated</div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 124, " <div class=\"my-2\"></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			return nil
+		})
+		templ_7745c5c3_Err = Collapsable(fmt.Sprintf("Instances (%d)", len(instances)), "instances", false, true).Render(templ.WithChildren(ctx, templ_7745c5c3_Var69), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1448,136 +1480,93 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			if len(instances) > 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 122, "<div class=\"columns is-multiline\">")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				for _, instance := range instances {
-					templ_7745c5c3_Err = InstanceCardV2(instance, outputPath, reportMode, allParamNames, isServerMode, serverModeConfigFile).Render(ctx, templ_7745c5c3_Buffer)
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 123, "</div>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 124, "<div class=\"is-danger\">No Instances Generated</div>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 125, " <div class=\"my-2\"></div>")
+			templ_7745c5c3_Err = JSONViewerWithStyle("STLs", stlResults).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			return nil
-		})
-		templ_7745c5c3_Err = Collapsable(fmt.Sprintf("Instances (%d)", len(instances)), "instances", false, true).Render(templ.WithChildren(ctx, templ_7745c5c3_Var70), templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Var71 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-			if !templ_7745c5c3_IsBuffer {
-				defer func() {
-					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-					if templ_7745c5c3_Err == nil {
-						templ_7745c5c3_Err = templ_7745c5c3_BufErr
-					}
-				}()
-			}
-			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = JSONViewerWithStyle("STL Results", stlResults).Render(ctx, templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 126, " ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 125, " ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if len(stlResults) > 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 127, "<div class=\"columns is-multiline\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 126, "<div class=\"columns is-multiline\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				for _, stlResult := range sortSTLResults(stlResults) {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 128, "<div class=\"column is-full\"><div class=\"card\"><div class=\"card-content\"><div class=\"media\"><div class=\"media-content\"><p class=\"title is-4\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 127, "<div class=\"column is-full\"><div class=\"card\"><div class=\"card-content\"><div class=\"media\"><div class=\"media-content\"><p class=\"title is-4\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					var templ_7745c5c3_Var72 string
-					templ_7745c5c3_Var72, templ_7745c5c3_Err = templ.JoinStringErrs(stlResult.InstanceConfig.AutoName)
+					var templ_7745c5c3_Var71 string
+					templ_7745c5c3_Var71, templ_7745c5c3_Err = templ.JoinStringErrs(stlResult.InstanceConfig.AutoName)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 819, Col: 109}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 816, Col: 109}
 					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var72))
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var71))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 129, "</p>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 128, "</p>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					if stlResult.Error != "" {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 130, "<p class=\"subtitle is-6 has-text-danger\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 129, "<p class=\"subtitle is-6 has-text-danger\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						var templ_7745c5c3_Var73 string
-						templ_7745c5c3_Var73, templ_7745c5c3_Err = templ.JoinStringErrs(stlResult.Error)
+						var templ_7745c5c3_Var72 string
+						templ_7745c5c3_Var72, templ_7745c5c3_Err = templ.JoinStringErrs(stlResult.Error)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 821, Col: 114}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 818, Col: 114}
 						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var73))
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var72))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 131, "</p>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 130, "</p>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					} else {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 132, "<p class=\"subtitle is-6\">Generated successfully</p>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 131, "<p class=\"subtitle is-6\">Generated successfully</p>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 133, "</div></div><div class=\"content\"><p><strong>Time Taken:</strong> ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 132, "</div></div><div class=\"content\"><p><strong>Time Taken:</strong> ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					var templ_7745c5c3_Var74 string
-					templ_7745c5c3_Var74, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%v", stlResult.TimeTaken))
+					var templ_7745c5c3_Var73 string
+					templ_7745c5c3_Var73, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%v", stlResult.TimeTaken))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 828, Col: 120}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 825, Col: 120}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var73))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 133, "</p><p><strong>Output:</strong> <a href=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var74 templ.SafeURL
+					templ_7745c5c3_Var74, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("file:/%s", stlResult.InstanceConfig.RunOutputPathV3)))
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 826, Col: 166}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var74))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 134, "</p><p><strong>Output:</strong> <a href=\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					var templ_7745c5c3_Var75 templ.SafeURL
-					templ_7745c5c3_Var75, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("file:/%s", stlResult.InstanceConfig.RunOutputPathV3)))
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 829, Col: 166}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var75))
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 135, "\" target=\"_blank\">Open STL</a></p>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 134, "\" target=\"_blank\">Open STL</a></p>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					if len(stlResult.AppliedParams) > 0 {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 136, "<p><strong>Applied Params:</strong></p>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 135, "<p><strong>Applied Params:</strong></p>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1586,7 +1575,7 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 							return templ_7745c5c3_Err
 						}
 					} else {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 137, "<p><strong>Instance Params:</strong></p>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 136, "<p><strong>Instance Params:</strong></p>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1595,7 +1584,7 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 138, "<div x-show=\"showDebug\"><details><summary>Debug Info</summary>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 137, "<div x-show=\"showDebug\"><details><summary>Debug Info</summary>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1603,59 +1592,59 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 139, "</details></div></div></div></div></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 138, "</details></div></div></div></div></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 140, "</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 139, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 141, "<details><summary>No STL Generation Results</summary><div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 140, "<details><summary>No STL Generation Results</summary><div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if config.RegexPattern != "" {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 142, "<div class=\"is-warning\">[ Some may be skipped based on provided regex pattern: ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 141, "<div class=\"is-warning\">[ Some may be skipped based on provided regex pattern: ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					var templ_7745c5c3_Var76 string
-					templ_7745c5c3_Var76, templ_7745c5c3_Err = templ.JoinStringErrs(config.RegexPattern)
+					var templ_7745c5c3_Var75 string
+					templ_7745c5c3_Var75, templ_7745c5c3_Err = templ.JoinStringErrs(config.RegexPattern)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 853, Col: 128}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 850, Col: 128}
 					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var76))
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var75))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 143, " ]</div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 142, " ]</div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
 				if config.MaxInstances > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 144, "<div>Max instances: ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 143, "<div>Max instances: ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					var templ_7745c5c3_Var77 string
-					templ_7745c5c3_Var77, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", config.MaxInstances))
+					var templ_7745c5c3_Var76 string
+					templ_7745c5c3_Var76, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", config.MaxInstances))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 857, Col: 88}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 854, Col: 88}
 					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var77))
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var76))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 145, " blocked all instances from being generated?</div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 144, " blocked all instances from being generated?</div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 146, "Add stl generation to the config file to generate stl files for each instance:")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 145, "Add stl generation to the config file to generate stl files for each instance:")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1666,19 +1655,19 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 147, "</div></details>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 146, "</div></details>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = Collapsable(fmt.Sprintf("STL Results (%d)", len(stlResults)), "stlResults", false, true).Render(templ.WithChildren(ctx, templ_7745c5c3_Var71), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Collapsable(fmt.Sprintf("STLs (%d)", len(stlResults)), "stlResults", false, true).Render(templ.WithChildren(ctx, templ_7745c5c3_Var70), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if len(imageResults) > 0 {
-			templ_7745c5c3_Var78 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_Var77 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 				if !templ_7745c5c3_IsBuffer {
@@ -1694,77 +1683,77 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 148, " <div class=\"columns is-multiline\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 147, " <div class=\"columns is-multiline\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				for _, imageResult := range imageResults {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 149, "<div class=\"column is-full\"><div class=\"card\"><div class=\"card-content\"><div class=\"media\"><div class=\"media-content\"><p class=\"title is-4\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 148, "<div class=\"column is-full\"><div class=\"card\"><div class=\"card-content\"><div class=\"media\"><div class=\"media-content\"><p class=\"title is-4\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var78 string
+					templ_7745c5c3_Var78, templ_7745c5c3_Err = templ.JoinStringErrs(imageResult.InstanceConfig.Name)
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 878, Col: 107}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var78))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 149, "</p><p class=\"subtitle is-6\">Camera: ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var79 string
-					templ_7745c5c3_Var79, templ_7745c5c3_Err = templ.JoinStringErrs(imageResult.InstanceConfig.Name)
+					templ_7745c5c3_Var79, templ_7745c5c3_Err = templ.JoinStringErrs(imageResult.CameraName)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 881, Col: 107}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 879, Col: 109}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var79))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 150, "</p><p class=\"subtitle is-6\">Camera: ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 150, "</p></div></div><div class=\"content\"><p><strong>Output Path:</strong> ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var80 string
-					templ_7745c5c3_Var80, templ_7745c5c3_Err = templ.JoinStringErrs(imageResult.CameraName)
+					templ_7745c5c3_Var80, templ_7745c5c3_Err = templ.JoinStringErrs(getRelativePath(imageResult.OutputPath, outputPath))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 882, Col: 109}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 883, Col: 134}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var80))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 151, "</p></div></div><div class=\"content\"><p><strong>Output Path:</strong> ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 151, "</p><p><strong>Time Taken:</strong> ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var81 string
-					templ_7745c5c3_Var81, templ_7745c5c3_Err = templ.JoinStringErrs(getRelativePath(imageResult.OutputPath, outputPath))
+					templ_7745c5c3_Var81, templ_7745c5c3_Err = templ.JoinStringErrs(formatDuration(imageResult.TimeTaken))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 886, Col: 134}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 884, Col: 119}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var81))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 152, "</p><p><strong>Time Taken:</strong> ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 152, "</p><details><summary>Camera Coordinates</summary><p>Coordinates: ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var82 string
-					templ_7745c5c3_Var82, templ_7745c5c3_Err = templ.JoinStringErrs(formatDuration(imageResult.TimeTaken))
+					templ_7745c5c3_Var82, templ_7745c5c3_Err = templ.JoinStringErrs(imageResult.CameraCoords)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 887, Col: 119}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 887, Col: 93}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var82))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 153, "</p><details><summary>Camera Coordinates</summary><p>Coordinates: ")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					var templ_7745c5c3_Var83 string
-					templ_7745c5c3_Var83, templ_7745c5c3_Err = templ.JoinStringErrs(imageResult.CameraCoords)
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 890, Col: 93}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var83))
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 154, "</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 153, "</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1772,74 +1761,74 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 155, "</details> ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 154, "</details> ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					if imageResult.Error == "" {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 156, "<img src=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 155, "<img src=\"")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var83 string
+						templ_7745c5c3_Var83, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)))
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 899, Col: 146}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var83))
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 156, "\" alt=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var84 string
-						templ_7745c5c3_Var84, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)))
+						templ_7745c5c3_Var84, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 902, Col: 146}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 900, Col: 155}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var84))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 157, "\" alt=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 157, "\" class=\"image-preview\" onerror=\"this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';\"><div class=\"image-error\" style=\"display: none;\">Image failed to load: ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var85 string
-						templ_7745c5c3_Var85, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName))
+						templ_7745c5c3_Var85, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 903, Col: 155}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 904, Col: 207}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var85))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 158, "\" class=\"image-preview\" onerror=\"this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';\"><div class=\"image-error\" style=\"display: none;\">Image failed to load: ")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 158, "</div>")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					} else {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 159, "<span class=\"tag is-danger\">Failed: ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var86 string
-						templ_7745c5c3_Var86, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)))
+						templ_7745c5c3_Var86, templ_7745c5c3_Err = templ.JoinStringErrs(imageResult.Error)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 907, Col: 207}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 906, Col: 107}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var86))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 159, "</div>")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-					} else {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 160, "<span class=\"tag is-danger\">Failed: ")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						var templ_7745c5c3_Var87 string
-						templ_7745c5c3_Var87, templ_7745c5c3_Err = templ.JoinStringErrs(imageResult.Error)
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 909, Col: 107}
-						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var87))
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 161, "</span> ")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 160, "</span> ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 162, "<details><summary>Command</summary>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 161, "<details><summary>Command</summary>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1847,23 +1836,23 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 163, "</details></div></div></div></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 162, "</details></div></div></div></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 164, "</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 163, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = Collapsable(fmt.Sprintf("Image Generation Results (%d)", len(imageResults)), "imageResults", false, true).Render(templ.WithChildren(ctx, templ_7745c5c3_Var78), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = Collapsable(fmt.Sprintf("Image Results (%d)", len(imageResults)), "images", false, true).Render(templ.WithChildren(ctx, templ_7745c5c3_Var77), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Var88 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_Var87 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 				if !templ_7745c5c3_IsBuffer {
@@ -1875,7 +1864,7 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 165, "<div>Add export images to the config file to generate images for each instance:")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 164, "<div>Add export images to the config file to generate images for each instance:")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1893,18 +1882,18 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 166, "</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 165, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = Collapsable("Images", "images", false, true).Render(templ.WithChildren(ctx, templ_7745c5c3_Var88), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = Collapsable("Images", "images", false, true).Render(templ.WithChildren(ctx, templ_7745c5c3_Var87), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 167, "<div></div></div><script>\n            // Enable htmx debug mode\n            window.htmx && (htmx.config.debug = true);\n\n            // Log all htmx events\n            document.body.addEventListener('htmx:afterRequest', function(evt) {\n                console.log('htmx:afterRequest', evt);\n            });\n            document.body.addEventListener('htmx:sendError', function(evt) {\n                console.error('htmx:sendError', evt);\n            });\n            document.body.addEventListener('htmx:responseError', function(evt) {\n                console.error('htmx:responseError', evt);\n            });\n            document.body.addEventListener('htmx:beforeRequest', function(evt) {\n                console.log('htmx:beforeRequest', evt);\n            });\n            document.body.addEventListener('htmx:beforeSend', function(evt) {\n                console.log('htmx:beforeSend', evt);\n            });\n            document.body.addEventListener('htmx:afterOnLoad', function(evt) {\n                console.log('htmx:afterOnLoad', evt);\n            });\n        </script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 166, "<div></div></div><script>\n            // Enable htmx debug mode\n            window.htmx && (htmx.config.debug = true);\n\n            // Log all htmx events\n            document.body.addEventListener('htmx:afterRequest', function(evt) {\n                console.log('htmx:afterRequest', evt);\n            });\n            document.body.addEventListener('htmx:sendError', function(evt) {\n                console.error('htmx:sendError', evt);\n            });\n            document.body.addEventListener('htmx:responseError', function(evt) {\n                console.error('htmx:responseError', evt);\n            });\n            document.body.addEventListener('htmx:beforeRequest', function(evt) {\n                console.log('htmx:beforeRequest', evt);\n            });\n            document.body.addEventListener('htmx:beforeSend', function(evt) {\n                console.log('htmx:beforeSend', evt);\n            });\n            document.body.addEventListener('htmx:afterOnLoad', function(evt) {\n                console.log('htmx:afterOnLoad', evt);\n            });\n        </script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1912,7 +1901,7 @@ func Report(reportMode string, config *models.Config, instances []models.Instanc
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 168, "</div></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 167, "</div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1936,12 +1925,12 @@ func CollapsableJson(title string, data interface{}, isOpen bool) templ.Componen
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var89 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var89 == nil {
-			templ_7745c5c3_Var89 = templ.NopComponent
+		templ_7745c5c3_Var88 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var88 == nil {
+			templ_7745c5c3_Var88 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Var90 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Var89 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 			if !templ_7745c5c3_IsBuffer {
@@ -1953,39 +1942,39 @@ func CollapsableJson(title string, data interface{}, isOpen bool) templ.Componen
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 169, "<div class=\"code-block\">CollapsableJson ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 168, "<div class=\"code-block\">CollapsableJson ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var90 string
+			templ_7745c5c3_Var90, templ_7745c5c3_Err = templ.JoinStringErrs(title)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 977, Col: 54}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var90))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 169, " <button class=\"button is-small is-info\" onclick=\"navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)\">Copy</button> <code style=\"white-space: pre;\"><pre>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var91 string
-			templ_7745c5c3_Var91, templ_7745c5c3_Err = templ.JoinStringErrs(title)
+			templ_7745c5c3_Var91, templ_7745c5c3_Err = templ.JoinStringErrs(formatJson(fmt.Sprintf("%+v", data)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 980, Col: 54}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 980, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var91))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 170, " <button class=\"button is-small is-info\" onclick=\"navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)\">Copy</button> <code style=\"white-space: pre;\"><pre>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var92 string
-			templ_7745c5c3_Var92, templ_7745c5c3_Err = templ.JoinStringErrs(formatJson(fmt.Sprintf("%+v", data)))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 983, Col: 59}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var92))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 171, "</pre></code></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 170, "</pre></code></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = Collapsable(title, "json", isOpen, true).Render(templ.WithChildren(ctx, templ_7745c5c3_Var90), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Collapsable(title, "json", isOpen, true).Render(templ.WithChildren(ctx, templ_7745c5c3_Var89), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -2010,92 +1999,92 @@ func AddSTLResult(stlResult models.GenerateSTLResult, outputPath string, resultI
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var93 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var93 == nil {
-			templ_7745c5c3_Var93 = templ.NopComponent
+		templ_7745c5c3_Var92 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var92 == nil {
+			templ_7745c5c3_Var92 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 172, "<tr id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 171, "<tr id=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var93 string
+		templ_7745c5c3_Var93, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("stl-result-%d", resultIndex))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 989, Col: 54}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var93))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 172, "\" hx-swap-oob=\"beforeend:#stl-results-table tbody\"><td>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var94 string
-		templ_7745c5c3_Var94, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("stl-result-%d", resultIndex))
+		templ_7745c5c3_Var94, templ_7745c5c3_Err = templ.JoinStringErrs(stlResult.InstanceConfig.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 992, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 990, Col: 43}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var94))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 173, "\" hx-swap-oob=\"beforeend:#stl-results-table tbody\"><td>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var95 string
-		templ_7745c5c3_Var95, templ_7745c5c3_Err = templ.JoinStringErrs(stlResult.InstanceConfig.Name)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 993, Col: 43}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var95))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 174, " ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 173, " ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if stlResult.Error != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 175, "<div class=\"is-danger\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 174, "<div class=\"is-danger\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var96 string
-			templ_7745c5c3_Var96, templ_7745c5c3_Err = templ.JoinStringErrs(stlResult.Error)
+			var templ_7745c5c3_Var95 string
+			templ_7745c5c3_Var95, templ_7745c5c3_Err = templ.JoinStringErrs(stlResult.Error)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 995, Col: 52}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 992, Col: 52}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var96))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var95))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 176, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 175, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 177, "</td><td><a href=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 176, "</td><td><a href=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var97 templ.SafeURL
-		templ_7745c5c3_Var97, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(getRelativePath(stlResult.OutputPath, outputPath)))
+		var templ_7745c5c3_Var96 templ.SafeURL
+		templ_7745c5c3_Var96, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(getRelativePath(stlResult.OutputPath, outputPath)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 998, Col: 86}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 995, Col: 86}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var96))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 177, "\" target=\"_blank\"></a></td><td>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var97 string
+		templ_7745c5c3_Var97, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%v", stlResult.TimeTaken))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 996, Col: 52}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var97))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 178, "\" target=\"_blank\"></a></td><td>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var98 string
-		templ_7745c5c3_Var98, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%v", stlResult.TimeTaken))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 999, Col: 52}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var98))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 179, "</td>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 178, "</td>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if len(stlResult.AppliedParams) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 180, "<td>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 179, "<td>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2103,12 +2092,12 @@ func AddSTLResult(stlResult models.GenerateSTLResult, outputPath string, resultI
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 181, "</td>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 180, "</td>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 182, "<td>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 181, "<td>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2116,12 +2105,12 @@ func AddSTLResult(stlResult models.GenerateSTLResult, outputPath string, resultI
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 183, "</td>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 182, "</td>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 184, "<td x-show=\"showDebug\"><details>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 183, "<td x-show=\"showDebug\"><details>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -2129,7 +2118,7 @@ func AddSTLResult(stlResult models.GenerateSTLResult, outputPath string, resultI
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 185, "</details></td></tr>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 184, "</details></td></tr>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -2154,32 +2143,45 @@ func AddImageResult(imageResult models.GenerateImageResult, outputPath string, r
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var99 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var99 == nil {
-			templ_7745c5c3_Var99 = templ.NopComponent
+		templ_7745c5c3_Var98 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var98 == nil {
+			templ_7745c5c3_Var98 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 186, "<tr id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 185, "<tr id=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var99 string
+		templ_7745c5c3_Var99, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("image-result-%d", resultIndex))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 1013, Col: 56}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var99))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 186, "\" hx-swap-oob=\"beforeend:#image-results-table tbody\"><td>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var100 string
-		templ_7745c5c3_Var100, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("image-result-%d", resultIndex))
+		templ_7745c5c3_Var100, templ_7745c5c3_Err = templ.JoinStringErrs(imageResult.InstanceConfig.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 1016, Col: 56}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 1014, Col: 45}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var100))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 187, "\" hx-swap-oob=\"beforeend:#image-results-table tbody\"><td>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 187, "</td><td>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var101 string
-		templ_7745c5c3_Var101, templ_7745c5c3_Err = templ.JoinStringErrs(imageResult.InstanceConfig.Name)
+		templ_7745c5c3_Var101, templ_7745c5c3_Err = templ.JoinStringErrs(imageResult.CameraName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 1017, Col: 45}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 1015, Col: 36}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var101))
 		if templ_7745c5c3_Err != nil {
@@ -2190,9 +2192,9 @@ func AddImageResult(imageResult models.GenerateImageResult, outputPath string, r
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var102 string
-		templ_7745c5c3_Var102, templ_7745c5c3_Err = templ.JoinStringErrs(imageResult.CameraName)
+		templ_7745c5c3_Var102, templ_7745c5c3_Err = templ.JoinStringErrs(getRelativePath(imageResult.OutputPath, outputPath))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 1018, Col: 36}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 1016, Col: 65}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var102))
 		if templ_7745c5c3_Err != nil {
@@ -2203,41 +2205,28 @@ func AddImageResult(imageResult models.GenerateImageResult, outputPath string, r
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var103 string
-		templ_7745c5c3_Var103, templ_7745c5c3_Err = templ.JoinStringErrs(getRelativePath(imageResult.OutputPath, outputPath))
+		templ_7745c5c3_Var103, templ_7745c5c3_Err = templ.JoinStringErrs(formatDuration(imageResult.TimeTaken))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 1019, Col: 65}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 1018, Col: 51}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var103))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 190, "</td><td>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 190, "</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var104 string
-		templ_7745c5c3_Var104, templ_7745c5c3_Err = templ.JoinStringErrs(formatDuration(imageResult.TimeTaken))
+		templ_7745c5c3_Var104, templ_7745c5c3_Err = templ.JoinStringErrs(imageResult.CameraCoords)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 1021, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 1022, Col: 57}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var104))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 191, "</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: ")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var105 string
-		templ_7745c5c3_Var105, templ_7745c5c3_Err = templ.JoinStringErrs(imageResult.CameraCoords)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 1025, Col: 57}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var105))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 192, "</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 191, "</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -2245,89 +2234,89 @@ func AddImageResult(imageResult models.GenerateImageResult, outputPath string, r
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 193, "</td><td>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 192, "</td><td>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if imageResult.Error == "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 194, "<img src=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 193, "<img src=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var105 string
+			templ_7745c5c3_Var105, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 1036, Col: 110}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var105))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 194, "\" alt=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var106 string
-			templ_7745c5c3_Var106, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)))
+			templ_7745c5c3_Var106, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 1039, Col: 110}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 1037, Col: 119}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var106))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 195, "\" alt=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 195, "\" class=\"image-preview\" onerror=\"this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';\"><div class=\"image-error\" style=\"display: none;\">Image failed to load: ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var107 string
-			templ_7745c5c3_Var107, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName))
+			templ_7745c5c3_Var107, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 1040, Col: 119}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 1041, Col: 171}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var107))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 196, "\" class=\"image-preview\" onerror=\"this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';\"><div class=\"image-error\" style=\"display: none;\">Image failed to load: ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 196, "</div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 197, "<span class=\"tag is-danger\">Failed</span>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 198, "</td>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if imageResult.Error != "" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 199, "<td class=\"is-danger\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var108 string
-			templ_7745c5c3_Var108, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)))
+			templ_7745c5c3_Var108, templ_7745c5c3_Err = templ.JoinStringErrs(imageResult.Error)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 1044, Col: 171}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 1047, Col: 53}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var108))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 197, "</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 200, "</td>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 198, "<span class=\"tag is-danger\">Failed</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 201, "<td></td>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 199, "</td>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		if imageResult.Error != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 200, "<td class=\"is-danger\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var109 string
-			templ_7745c5c3_Var109, templ_7745c5c3_Err = templ.JoinStringErrs(imageResult.Error)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/report.templ`, Line: 1050, Col: 53}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var109))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 201, "</td>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 202, "<td></td>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 203, "<td>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 202, "<td>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -2335,7 +2324,7 @@ func AddImageResult(imageResult models.GenerateImageResult, outputPath string, r
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 204, "</td></tr>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 203, "</td></tr>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

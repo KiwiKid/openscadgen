@@ -208,7 +208,7 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 		progressReporter := NewHTMLProgressReporter(updates, config, id)
 		result, err := pkg.Process(config, progressReporter, cancel, pkg.Operations{
 			GenerateReport: false,
-		})
+		}, true)
 		if err != nil {
 			updates <- "error: " + err.Error()
 		} else {
@@ -342,7 +342,7 @@ func StartProcessingJob(config *models.Config) string {
 		progressReporter := NewHTMLProgressReporter(updates, config, id)
 		result, err := pkg.Process(config, progressReporter, cancel, pkg.Operations{
 			GenerateReport: false,
-		})
+		}, true)
 		if err != nil {
 			log.Printf("Processing error: %v", err)
 		} else {

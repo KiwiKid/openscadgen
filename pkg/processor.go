@@ -145,7 +145,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.7.26"
+const VERSION = "v2.7.27"
 
 type Version struct {
 	OpenSCADGen string
@@ -228,7 +228,7 @@ type Operations struct {
 	GenerateReport bool
 }
 
-func Process(config *models.Config, progress ProgressReporter, cancel <-chan struct{}, operations Operations) (models.ProcessResult, error) {
+func Process(config *models.Config, progress ProgressReporter, cancel <-chan struct{}, operations Operations, isServerMode bool) (models.ProcessResult, error) {
 	start := time.Now()
 	if config.Debug {
 		logStage("=== Processing === ")
@@ -422,7 +422,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 	models.SortInstanceConfigsByAutoName(instances)
 
 	if operations.GenerateReport {
-		_, location, genReportErr := GenerateOutputReport(config, instances, stlResults, allImageResults, exportLoc, true, totalTime)
+		_, location, genReportErr := GenerateOutputReport(config, instances, stlResults, allImageResults, exportLoc, operations.GenerateReport, totalTime)
 		if genReportErr != nil {
 			if config.ContinueOnError {
 				log.Printf("Warning: failed to generate output report: %v", genReportErr)
@@ -1227,7 +1227,7 @@ func ProcessFolder(folder string, cmdFlags models.CmdFlags) ([]models.ProcessRes
 		}
 		processResult, err := Process(config, &NoopProgress{}, nil, Operations{
 			GenerateReport: true,
-		})
+		}, cmdFlags.Server)
 		if err != nil {
 			return []models.ProcessResult{}, fmt.Errorf("failed to process config: %w", err)
 		}

@@ -1361,7 +1361,7 @@ coord = "0,0,0,90,0,0,600"
 			// Process the config
 			result, err := Process(config, &NoopProgress{}, nil, Operations{
 				GenerateReport: true,
-			})
+			}, false)
 			if err != nil {
 				t.Fatalf("Failed to process config: %v", err)
 			}
@@ -1894,7 +1894,7 @@ name = "nice"
 
 	result, err := Process(config, &NoopProgress{}, nil, Operations{
 		GenerateReport: true,
-	})
+	}, false)
 	if err != nil {
 		t.Fatalf("Failed to process config: %v", err)
 	}
@@ -2081,14 +2081,15 @@ func TestHTMLProgressReport(t *testing.T) {
 
 	// Test 2: Verify STL results count in HTML
 	expectedSTLCount := len(stlResults)
-	if !strings.Contains(htmlContentStr, fmt.Sprintf("STL Results (%d)", expectedSTLCount)) {
+	if !strings.Contains(htmlContentStr, fmt.Sprintf("STLs (%d)", expectedSTLCount)) {
 		t.Errorf("HTML should contain STL results count %d", expectedSTLCount)
 	}
 
 	// Test 3: Verify image results count in HTML
 	expectedImageCount := len(imageResults)
-	if !strings.Contains(htmlContentStr, fmt.Sprintf("Image Generation Results (%d)", expectedImageCount)) {
-		t.Errorf("HTML should contain image results count %d", expectedImageCount)
+	expectedText := fmt.Sprintf("Images (%d)", expectedImageCount)
+	if !strings.Contains(htmlContentStr, expectedText) {
+		t.Errorf("HTML should contain image results count %d, looking for: %s", expectedImageCount, expectedText)
 	}
 
 	// Test 4: Verify STL file paths are present
@@ -2138,9 +2139,8 @@ func TestHTMLProgressReport(t *testing.T) {
 		"<html",
 		"<head>",
 		"<body>",
-		"<table",
-		"<thead>",
-		"<tbody>",
+		"<div class=\"card\"",
+		"<div class=\"card-content\"",
 		"</html>",
 	}
 	for _, element := range requiredElements {

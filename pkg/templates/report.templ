@@ -268,12 +268,12 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
                                 }
                             }
                         }
-                      //  if isServerMode {
+                       if isServerMode {
                             <form hx-put={ fmt.Sprintf("/?regex=%s", instance.AutoName) } hx-target={ fmt.Sprintf("#instance-%s", instance.AutoName) } hx-indicator="#loading-indicator">
                                 <input type="hidden" name="path" value={ serverModeConfigFile }>
                                 <button class="button is-large" id="process-btn" type="submit">Process { instance.AutoName }</button>
                             </form>
-                       // }
+                        }
                     </div>
 
                 } else if reportMode != "view" {
@@ -727,16 +727,11 @@ html, body {
                         <div class="collapse navbar-collapse" id="navbarSupportedContent">
                             <ul class="navbar-nav mr-auto">
                                 <li class="nav-item" :class="{ active: navSelected === 'instances' }">
-                                    <a class="nav-link" @click="navSelected = 'instances'">Instances { fmt.Sprintf("%d", len(instances)) }</a>
+                                    <a class="nav-link" @click="navSelected = 'instances'">Instances { fmt.Sprintf("(%d)", len(instances)) }</a>
                                 </li>
                                  if reportMode == "complete" {
                                     <li class="nav-item" :class="{ active: navSelected === 'stlResults' }">
-                                        <a class="nav-link" @click="navSelected = 'stlResults'">STL Results { fmt.Sprintf("%d", len(stlResults)) }</a>
-                                    </li>
-                                    <li class="nav-item" :class="{ active: navSelected === 'imageResults' }">
-                                    if len(imageResults) > 0 {
-                                        <a class="nav-link" @click="navSelected = 'imageResults'">Image Results { fmt.Sprintf("(%d)", len(imageResults)) }</a>
-                                    }
+                                        <a class="nav-link" @click="navSelected = 'stlResults'">STLs { fmt.Sprintf("(%d)", len(stlResults)) }</a>
                                     </li>
                                     <li class="nav-item" :class="{ active: navSelected === 'images' }">
                                     if len(imageResults) > 0 {
@@ -744,10 +739,12 @@ html, body {
                                     }
                                     </li>
                                  }
-                                <li class="nav-item" :class="{ active: navSelected === 'json' }">
-                                    <a class="nav-link" @click="navSelected = 'json'">Config</a>
-                                </li>
-                                <a class="nav-link" hx-get={ templ.SafeURL(fmt.Sprintf("/api/config?path=%s", config.ConfigFile)) }>Config</a>
+                                 if isServerMode {
+                                    <li class="nav-item" :class="{ active: navSelected === 'json' }">
+                                        <a class="nav-link" @click="navSelected = 'json'">Config</a>
+                                    </li>
+                                    <a class="nav-link" hx-get={ templ.SafeURL(fmt.Sprintf("/api/config?path=%s", config.ConfigFile)) }>Config</a>
+                                 }
                             </ul>
                             
                         </div>
@@ -806,8 +803,8 @@ html, body {
                 <div class="my-2"></div>
                 }
 
-               @Collapsable(fmt.Sprintf("STL Results (%d)",  len(stlResults)), "stlResults", false, true) {
-                @JSONViewerWithStyle("STL Results", stlResults)
+               @Collapsable(fmt.Sprintf("STLs (%d)",  len(stlResults)), "stlResults", false, true) {
+                @JSONViewerWithStyle("STLs", stlResults)
                 if len(stlResults) > 0 {
                         <div class="columns is-multiline">
                             for _, stlResult := range sortSTLResults(stlResults) {
@@ -869,7 +866,7 @@ html, body {
 
 
                 if len(imageResults) > 0 {
-                    @Collapsable(fmt.Sprintf("Image Generation Results (%d)", len(imageResults)), "imageResults", false, true) {
+                    @Collapsable(fmt.Sprintf("Image Results (%d)", len(imageResults)), "images", false, true) {
                         @JSONViewerWithStyle("Image Results", imageResults)
                         <div class="columns is-multiline">
                             for _, imageResult := range imageResults {

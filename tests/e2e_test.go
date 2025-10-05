@@ -194,7 +194,7 @@ func TestOpenSCADGenE2E(t *testing.T) {
 				if isCI {
 					return binaryPath + " -c " + defaultConfigPath + " -ow --oe"
 				}
-				return binaryPath + " -c " + defaultConfigPath + " -ow"
+				return binaryPath + " -c " + defaultConfigPath + " -ow --oe"
 			}(),
 			expectedFiles: func() []string {
 				if isCI {
@@ -226,7 +226,7 @@ func TestOpenSCADGenE2E(t *testing.T) {
 				if isCI {
 					return binaryPath + " -c " + defaultConfigPath + " -ow --oe"
 				}
-				return binaryPath + " -c " + defaultConfigPath + " -ow"
+				return binaryPath + " -c " + defaultConfigPath + " -ow --oe"
 			}(),
 			expectedFiles: func() []string {
 				if isCI {
@@ -296,7 +296,7 @@ path = "./default_design.scad"
 name = "instance-name"
 `,
 			scadContent: scadFileInputExamples[defaultDesign],
-			command:     binaryPath + " -c ./config.toml",
+			command:     binaryPath + " -c ./config.toml --oe",
 			expectedFiles: []string{
 				"default_design.scad",
 				"config.toml",
@@ -339,7 +339,7 @@ name = "bottom"
 				if isCI {
 					return binaryPath + " -c ./config.toml --oe"
 				}
-				return binaryPath + " -c ./config.toml"
+				return binaryPath + " -c ./config.toml --oe"
 			}(),
 			expectedFiles: func() []string {
 				if isCI {
@@ -396,7 +396,7 @@ name = "bottom"
 		name = "instance-name-2"
 		`,
 			scadContent: scadFileInputExamples[defaultDesign],
-			command:     binaryPath + " -c ./config.toml -r instance-name-2 ",
+			command:     binaryPath + " -c ./config.toml -r instance-name-2 --oe",
 			expectedFiles: []string{
 				"default_design.scad",
 				"config.toml",
@@ -430,7 +430,7 @@ name = "bottom"
 		`,
 			scadContent:  scadFileInputExamples[defaultDesign],
 			scadContent2: scadFileInputExamples[defaultDesign2],
-			command:      binaryPath + " -c ./config.toml -r default_design_2 ",
+			command:      binaryPath + " -c ./config.toml -r default_design_2 --oe",
 			expectedFiles: []string{
 				"default_design.scad",
 				"default_design_2.scad",
@@ -472,7 +472,7 @@ name = "bottom"
 		params = { size = "10,20,30" }
 		`,
 			scadContent: scadFileInputExamples[defaultDesign],
-			command:     binaryPath + " -c ./config.toml",
+			command:     binaryPath + " -c ./config.toml --oe",
 			expectedFiles: []string{
 				"default_design.scad",
 				"config.toml",
@@ -507,7 +507,7 @@ name = "bottom"
 				if isCI {
 					return binaryPath + " -c " + defaultConfigPath + " -ow -coe --oe"
 				}
-				return binaryPath + " -c " + defaultConfigPath + " -ow -coe"
+				return binaryPath + " -c " + defaultConfigPath + " -ow -coe --oe"
 			}(),
 			expectedFiles: func() []string {
 				if isCI {
@@ -546,7 +546,7 @@ name = "bottom"
 		size = "40,50"  # This is an invalid extra parameter
 		`,
 			scadContent: scadFileInputExamples[defaultDesign],
-			command:     binaryPath + " -c ./config.toml",
+			command:     binaryPath + " -c ./config.toml --oe",
 			shouldFail:  true,
 		},
 		{
