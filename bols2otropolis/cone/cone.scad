@@ -13,7 +13,7 @@ $fs = $preview ? 5 : 1;
 $fn = 200;
 
 module cone_demo(){
-	cone(h=cone_h, r1=cone_r1, r2=cone_r2, center=cone_center, anchor=cone_anchor, spin=cone_spin, orient=cone_orient);
+	cyl(h=cone_h, r1=cone_r1, r2=cone_r2, center=cone_center, anchor=cone_anchor, spin=cone_spin, orient=cone_orient);
 }
 
 cone_demo(); 

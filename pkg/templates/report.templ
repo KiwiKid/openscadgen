@@ -22,8 +22,9 @@ func formatDuration(d time.Duration) string {
 }
 
 templ Success(message string) {
-    <div class="notification is-success">
-        <strong>Success:</strong> { message }
+    <div class="notification is-success ">
+        <strong> { message }</strong>
+        <button class="delete"></button>
     </div>
 }
 
@@ -102,10 +103,13 @@ templ RenderParams(params map[string]interface{}) {
                     { fmt.Sprintf("%s = \"%v\";\n", name, v) }
                 }
             }
+
+            
         </pre></code>
             <p class="is-size-7">
                     (copy these into the openscad editor to tweak this instance)
             </p>
+            { children... }
         </details>
 
     </div>
@@ -119,6 +123,7 @@ func formatJson(code string) string {
     }
     return prettyJSON.String()
 }
+
 
 templ CodeBlock(code string, copyButton bool, formatted bool){
     <div class="code-block">    
@@ -142,6 +147,15 @@ func getInstanceClassName(instance models.InstanceConfig) string {
         return " has-background-grey-light			"
     }
     return ""
+}
+
+
+templ ProcessForm(serverModeConfigFile string) {
+    <form hx-put="/" hx-indicator="#loading-indicator">
+        <input type="hidden" name="path" value={ serverModeConfigFile }>
+        <button id="process-btn" class="button is-large" type="submit">Process</button>
+        <span id="loading-indicator" class="htmx-indicator" style="margin-left:8px;">Loading...</span>
+    </form>
 }
 
 
@@ -213,6 +227,70 @@ templ ReportSTLResult(stlResult models.GenerateSTLResult, outputPath string, res
     </tr>
 }
 
+templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMode string, allParamNames []string, isServerMode bool, serverModeConfigFile string) {
+    @JSONViewerWithStyle(fmt.Sprintf("Instance %s", instance.AutoName), instance)
+    <div class="column is-full" id={ fmt.Sprintf("instance-%s", instance.AutoName) } hx-swap-oob="true">
+        <div class="card">
+            <div class="card-content">
+                <div class="media">
+                    <div class="media-content">
+                        <p class="title is-4">{ instance.AutoName } </p>
+                        <p class="subtitle is-6">{ instance.Description }</p>
+                    </div>
+                </div>
+                if reportMode == "complete" {
+                    <div class="content">
+                        <p><strong>Output Path:</strong> { getRelativePath(instance.OutputPathV2, outputPath) }</p>
+
+                        @RenderParams(instance.Params) {
+                            if instance.SkippedReason != "" {
+                                <p class="has-text-warning"><strong>Skipped:</strong> { instance.SkippedReason }</p>
+                            }
+                            <div class="fixed-grid has-4-cols">
+                                <div class="grid is-multiline">
+                                        for _, paramName := range allParamNames {
+                                            if value, ok := instance.Params[paramName]; ok {
+                                                <div class="cell is-one-third"><strong>{ paramName }:</strong> { fmt.Sprintf("%v", value) }</div>
+                                            }
+                                        }
+                                </div>
+                            </div>
+                        }
+                        if instance.ConfigError != "" {
+                            <p class="has-text-danger"><strong>Error:</strong> { instance.ConfigError }</p>
+                        }
+                        if len(instance.ImageResults) > 0 {
+                            for _, images := range instance.ImageResults {
+                                if isServerMode {
+                                    <img src={ fmt.Sprintf("/images?path=/%s", getRelativeImagePath(images.OutputPath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview" />
+                                }else {
+                                    <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(images.OutputPath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview" />
+                                }
+                            }
+                        }
+                      //  if isServerMode {
+                            <form hx-put={ fmt.Sprintf("/?regex=%s", instance.AutoName) } hx-target={ fmt.Sprintf("#instance-%s", instance.AutoName) } hx-indicator="#loading-indicator">
+                                <input type="hidden" name="path" value={ serverModeConfigFile }>
+                                <button class="button is-large" id="process-btn" type="submit">Process { instance.AutoName }</button>
+                            </form>
+                       // }
+                    </div>
+
+                } else if reportMode != "view" {
+                    <div class="content">
+                        <p>Loading... { instance.AutoName }</p>
+                    </div>
+                } else {
+                    <div class="content">
+                        <p>{ instance.AutoName }</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+
 
 templ Report(reportMode string, config *models.Config, instances []models.InstanceConfig, outputPath string, stlResults []models.GenerateSTLResult, imageResults []models.GenerateImageResult, allParamNames []string, isServerMode bool, serverModeConfigFile string, totalTimeTaken time.Duration) {
     <!DOCTYPE html>
@@ -228,14 +306,17 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
                 OpenSCAD Generation Report
             }
             </title>
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>  
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
             <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
             <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
         function alpineReportData() {
             return {
                 darkMode: true,
                 showDebug: false,
+                navSelected: "instances",
                 searchQuery: '',
                 configHistory: JSON.parse(localStorage.getItem('configHistory') || '[]'),
                 configFile: '',
@@ -555,111 +636,169 @@ html, body {
                 .is-rounded {
                     border-radius: 50%;
                 }
+                
+                /* Dark mode card styling */
+                .dark .card {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .card-content {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .card .title,
+                .dark .card .subtitle,
+                .dark .card-header-title {
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .card .content {
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .card .content strong {
+                    color: var(--text-color) !important;
+                }
+                
+                /* Dark mode navbar styling */
+                .dark .navbar {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .navbar-light {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .bg-light {
+                    background-color: var(--card-bg) !important;
+                }
+                
+                .dark .navbar-brand {
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .nav-link {
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .nav-link:hover {
+                    color: var(--accent-color) !important;
+                }
+                
+                .dark .navbar-nav .nav-item.active .nav-link {
+                    color: var(--accent-color) !important;
+                }
+                
+                .dark .form-control {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                    border-color: var(--border-color) !important;
+                }
+                
+                .dark .btn {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                    border-color: var(--border-color) !important;
+                }
+                
+                .dark .btn:hover {
+                    background-color: var(--hover-bg) !important;
+                    color: var(--text-color) !important;
+                }
             </style>
         </head>
         <body>
         <div x-show="showDebug">Show DEBUG ON</div>
-            if isServerMode {
-                <div class="global-header">
-                    
-                    if serverModeConfigFile != "" {
-                        <form hx-put="/" hx-target="body" hx-indicator="#loading-indicator">
-                            <input type="hidden" name="path" value={ serverModeConfigFile }>
-                            <button id="process-btn" type="submit">Process</button>
-                            <span id="loading-indicator" class="htmx-indicator" style="margin-left:8px;">Loading...</span>
-                        </form>
-                    } else {
-                        <form hx-post="/">
-                            <input type="text" name="path" x-model="configFile">
-                            <input type="submit" value="Enter">
-                        </form>
-                    }
-                </div>
-            }
+        <div class="global-header fixed-grid">
             
-            <div class="columns is-gapless" style="min-height: 100vh;">
-                <!-- Side Navigation -->
-                <div class="column is-3" style="background-color: var(--card-bg); border-right: 1px solid var(--border-color);">
-                    <div class="p-4">
-                        <h2 class="title is-5 mb-4">Instances ({ len(instances) })</h2>
-                        <div class="menu">
-                            <ul class="menu-list">
-                                for i, instance := range instances {
-                                    @InstanceNavItem(instance, outputPath, i)
-                                }
+                     <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                        <a class="navbar-brand">{ config.Design.Name }</a>
+                        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        if isServerMode {
+                            <a href="/" class="button is-large">Home</a>
+                        }
+
+                        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                            <ul class="navbar-nav mr-auto">
+                                <li class="nav-item" :class="{ active: navSelected === 'instances' }">
+                                    <a class="nav-link" @click="navSelected = 'instances'">Instances { fmt.Sprintf("%d", len(instances)) }</a>
+                                </li>
+                                 if reportMode == "complete" {
+                                    <li class="nav-item" :class="{ active: navSelected === 'stlResults' }">
+                                        <a class="nav-link" @click="navSelected = 'stlResults'">STL Results { fmt.Sprintf("%d", len(stlResults)) }</a>
+                                    </li>
+                                    <li class="nav-item" :class="{ active: navSelected === 'imageResults' }">
+                                    if len(imageResults) > 0 {
+                                        <a class="nav-link" @click="navSelected = 'imageResults'">Image Results { fmt.Sprintf("(%d)", len(imageResults)) }</a>
+                                    }
+                                    </li>
+                                    <li class="nav-item" :class="{ active: navSelected === 'images' }">
+                                    if len(imageResults) > 0 {
+                                        <a class="nav-link" @click="navSelected = 'images'">Images { fmt.Sprintf("(%d)", len(imageResults)) }</a>
+                                    }
+                                    </li>
+                                 }
+                                <li class="nav-item" :class="{ active: navSelected === 'json' }">
+                                    <a class="nav-link" @click="navSelected = 'json'">Config</a>
+                                </li>
+                                <a class="nav-link" hx-get={ templ.SafeURL(fmt.Sprintf("/api/config?path=%s", config.ConfigFile)) }>Config</a>
                             </ul>
+                            
                         </div>
-                    </div>
-                </div>
-                
-                <!-- Main Content -->
-                <div class="column">
-                    <div class="global-header">
-                        <div>
-                            <h1 class="title is-4">{ config.Design.Name }</h1>
-                        <div class="search-box">
-                            <div>
-                                <div>
-                                    <input class="input" type="text" placeholder="Filter to specific instances etc..." x-model="searchQuery">
+                        if isServerMode {
+                            <div >
+                                <div >
+                                if serverModeConfigFile != "" {
+                                    @ProcessForm(serverModeConfigFile)
+                                } else {
+                                    <form hx-post="/" hx-swap="outerHTML">
+                                        <input type="text" name="path" x-model="configFile">
+                                        <input type="submit" value="Enter">
+                                    </form>
+                                }
                                 </div>
-                                <details><summary>History</summary>
-                                <template x-if="searchHistory.length > 0" >
-                                    <div class="mt-2">
-                                        <strong>Recent Searches:</strong>
-                                        <ul style="list-style: disc inside; padding-left: 1em;">
-                                            <template x-for="term in searchHistory" :key="term">
-                                                <li>
-                                                    <a href="#" @click.prevent="searchQuery = term" x-text="term"></a>
-                                                </li>
-                                            </template>
-                                        </ul>
-                                    </div>
-                                </template>
-                                </details>
                             </div>
-                        </div>
-                        <div>
-                            <button class="button" @click="darkMode = !darkMode">
+                        }
+                        <form class="form-inline my-2 my-lg-0">
+                            <input class="form-control mr-sm-2" type="search" placeholder="Filter instances..." x-model="searchQuery" aria-label="Search">
+                            <button class="btn btn-outline-success my-2 my-sm-0" type="button" @click="searchQuery = ''">Clear</button>
+                        </form>
+                        <div class="ml-2">
+                            <button class="btn btn-outline-secondary" @click="darkMode = !darkMode">
                                 <span x-show="!darkMode">🌙</span>
                                 <span x-show="darkMode">☀️</span>
                             </button>
-                            <button class="button" @click="showDebug = !showDebug" style="margin-left: 8px;">
+                            <button class="btn btn-outline-secondary ml-1" @click="showDebug = !showDebug">
                                 <span x-show="!showDebug">🐛</span>
                                 <span x-show="showDebug">🐛</span>
                                 <span x-show="showDebug" style="text-decoration: underline;">Debug</span>
                             </button>
                         </div>
-                    </div>
+                    </nav>
+                </div>
+            
+            
+            <div class="container-fluid">
+            
+                <!-- Main Content -->
+                   
+             
                     
                     <div class="container">
 
-            if reportMode == "complete" {
 
-                @Collapsable(fmt.Sprintf("Instances (%d)", len(instances)), false, true) {
+                @Collapsable(fmt.Sprintf("Instances (%d)",  len(instances)), "instances", false, true) {
                     if len(instances) > 0 {
-                        <div class="table-container">
-                            <table class="table is-fullwidth" id="instances-table">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Description</th>
-                                        <th>Output Path</th>
-                                        <th>Ignored Params</th>
-                                        <th>Images</th>
-                                        for _, paramName := range allParamNames {
-                                            <th>{ paramName }</th>
-                                        }
-                                    </tr>
-                                </thead>
-                                 for i, instance := range instances {
-                                        @JSONViewerWithStyle(fmt.Sprintf("Instance %d", i), instance)
-                                    }
-                                <tbody>
-                                    for i, instance := range instances {
-                                        @ReportInstance(instance, allParamNames, outputPath, i, false)
-                                    }
-                                </tbody>
-                            </table>
+                        <div class="columns is-multiline">
+                            for _, instance := range instances {
+                                @InstanceCardV2(instance, outputPath, reportMode, allParamNames, isServerMode, serverModeConfigFile)
+                            }
                         </div>
                     } else {
                         <div class="is-danger">No Instances Generated</div>
@@ -667,26 +806,45 @@ html, body {
                 <div class="my-2"></div>
                 }
 
-               @Collapsable(fmt.Sprintf("STL Results (%d)", len(stlResults)), false, true) {
+               @Collapsable(fmt.Sprintf("STL Results (%d)",  len(stlResults)), "stlResults", false, true) {
                 @JSONViewerWithStyle("STL Results", stlResults)
                 if len(stlResults) > 0 {
-                        <div class="table-container">
-                            <table class="table is-fullwidth" id="stl-results-table">
-                                <thead>
-                                    <tr>
-                                    <th style="width: 150px;">Instance</th>
-                                    <th style="width: 100px;">Time Taken</th>
-                                    <th style="width: 200px;">Params</th>
-                                    <th style="width: 150px;" x-show="showDebug">Debug</th>
-                                    <th style="width: 200px;">Command</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                for i, stlResult := range sortSTLResults(stlResults) {
-                                    @ReportSTLResult(stlResult, outputPath, i, false)
-                                }
-                            </tbody>
-                            </table>
+                        <div class="columns is-multiline">
+                            for _, stlResult := range sortSTLResults(stlResults) {
+                                <div class="column is-full">
+                                    <div class="card">
+                                        <div class="card-content">
+                                            <div class="media">
+                                                <div class="media-content">
+                                                    <p class="title is-4">{ stlResult.InstanceConfig.AutoName }</p>
+                                                    if stlResult.Error != "" {
+                                                        <p class="subtitle is-6 has-text-danger">{ stlResult.Error }</p>
+                                                    } else {
+                                                        <p class="subtitle is-6">Generated successfully</p>
+                                                    }
+                                                </div>
+                                            </div>
+                                            <div class="content">
+                                                <p><strong>Time Taken:</strong> { fmt.Sprintf("%v", stlResult.TimeTaken) }</p>
+                                                <p><strong>Output:</strong> <a href={ templ.SafeURL(fmt.Sprintf("file:/%s", stlResult.InstanceConfig.RunOutputPathV3)) } target="_blank">Open STL</a></p>
+                                                if len(stlResult.AppliedParams) > 0 {
+                                                    <p><strong>Applied Params:</strong></p>
+                                                    @RenderParams(stlResult.AppliedParams)
+                                                } else {
+                                                    <p><strong>Instance Params:</strong></p>
+                                                    @CodeBlock(fmt.Sprintf("%v", stlResult.InstanceConfig.Params), true, false)
+                                                }
+                                                <div x-show="showDebug">
+                                                    <details>
+                                                        <summary>Debug Info</summary>
+                                                        @CodeBlock(stlResult.Command, true, false)
+                                                    </details>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
                         </div>
                     } else {
                         <details><summary>No STL Generation Results</summary>
@@ -711,34 +869,58 @@ html, body {
 
 
                 if len(imageResults) > 0 {
-                    @Collapsable(fmt.Sprintf("Image Generation Results (%d)", len(imageResults)), false, true) {
-                        <div>Generated { fmt.Sprintf("%d",len(imageResults)) } images</div>
+                    @Collapsable(fmt.Sprintf("Image Generation Results (%d)", len(imageResults)), "imageResults", false, true) {
                         @JSONViewerWithStyle("Image Results", imageResults)
-                        <div class="table-container">
-                            <table class="table is-fullwidth" id="image-results-table">
-                            <thead>
-                                <tr>
-                                    <th>Instance</th>
-                                    <th>Camera</th>
-                                    <th>Output Path</th>
-                                    <th>Time Taken</th>
-                                    <th>Camera Coordinates</th>
-                                    <th>Preview</th>
-                                    <th>Error</th>
-                                    <th>Command</th>
-
-                                </tr>
-                            </thead>
-                            <tbody>
-                                for i, imageResult := range imageResults {
-                                    @ReportImageResult(imageResult, outputPath, i, false)
-                                }
-                            </tbody>
-                            </table>
+                        <div class="columns is-multiline">
+                            for _, imageResult := range imageResults {
+                                <div class="column is-full">
+                                    <div class="card">
+                                        <div class="card-content">
+                                            <div class="media">
+                                                <div class="media-content">
+                                                    <p class="title is-4">{ imageResult.InstanceConfig.Name }</p>
+                                                    <p class="subtitle is-6">Camera: { imageResult.CameraName }</p>
+                                                </div>
+                                            </div>
+                                            <div class="content">
+                                                <p><strong>Output Path:</strong> { getRelativePath(imageResult.OutputPath, outputPath) }</p>
+                                                <p><strong>Time Taken:</strong> { formatDuration(imageResult.TimeTaken) }</p>
+                                                <details>
+                                                    <summary>Camera Coordinates</summary>
+                                                    <p>Coordinates: {imageResult.CameraCoords}</p>
+                                                    <div>
+                                                        <p>Format: x,y,z,rotx,roty,rotz,distance</p>
+                                                        <ul>
+                                                            <li>x,y,z: Camera position in 3D space</li>
+                                                            <li>rotx,roty,rotz: Rotation angles in degrees</li>
+                                                            <li>distance: Distance from camera to target point</li>
+                                                        </ul>
+                                                    </div>
+                                                    @RenderParams(imageResult.AppliedParams)
+                                                </details>
+                                                if imageResult.Error == "" {
+                                                    <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)) } 
+                                                        alt={ fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName) } 
+                                                        class="image-preview"
+                                                        onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"
+                                                    />
+                                                    <div class="image-error" style="display: none;">Image failed to load: { fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)) }</div>
+                                                } else {
+                                                    <span class="tag is-danger">Failed: { imageResult.Error }</span>
+                                                }
+                                                <details>
+                                                    <summary>Command</summary>
+                                                    @CodeBlock(imageResult.Command, true, false)
+                                                </details>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
                         </div>
                     }
                 } else {
-                    @Collapsable("Images", false, true) {
+                    @Collapsable("Images", "images", false, true) {
                         <div>
                         Add export images to the config file to generate images for each instance:
                     @CodeBlock(`
@@ -758,7 +940,7 @@ html, body {
                 <div>
             </div>
 
-            }
+            
         </div>
 
 
@@ -789,14 +971,12 @@ html, body {
     
             @ConfigSummary(*config, outputPath, totalTimeTaken)
             </div>
-            </div>
-        </div>
     </body>
 </html>
 }
 
 templ CollapsableJson(title string, data interface{}, isOpen bool) {
-    @Collapsable(title, isOpen, true) {
+    @Collapsable(title, "json", isOpen, true) {
         <div class="code-block">CollapsableJson {title}
             <button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button>
             <code style="white-space: pre;">

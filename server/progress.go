@@ -52,7 +52,7 @@ func (h *HTMLProgressReporter) Update(msg string) {
 }
 
 func (h *HTMLProgressReporter) Done() {
-	h.updates <- "done"
+	h.updates <- "done 1"
 }
 
 func (h *HTMLProgressReporter) Error(err error) {
@@ -112,37 +112,46 @@ func (h *HTMLProgressReporter) Construct(instances []models.InstanceConfig, nonS
 	h.updates <- fmt.Sprintf("Constructed progress for %d instances", len(instances))
 }
 
-func (h *HTMLProgressReporter) StartInstance(instanceId string) {
+func (h *HTMLProgressReporter) StartInstance(instanceId string, name string) {
 	h.currentInstanceID = instanceId
 	log.Printf("HTMLProgressReporter: Starting instance: %s", instanceId)
-	h.updates <- fmt.Sprintf("Starting instance: %s", instanceId)
+	h.updates <- fmt.Sprintf("Starting instance: %s", name)
 }
 
 func (h *HTMLProgressReporter) FinishInstance() {
 	log.Printf("HTMLProgressReporter: FinishInstance called for instance: %s", h.currentInstanceID)
+
+	// Only process if we have a current instance ID (instance was actually started)
+	if h.currentInstanceID == "" {
+		log.Printf("HTMLProgressReporter: No current instance ID, skipping FinishInstance")
+		return
+	}
 
 	// Find the completed instance
 	var completedInstance *models.InstanceConfig
 	for i := range h.instances {
 		if h.instances[i].ID == h.currentInstanceID {
 			completedInstance = &h.instances[i]
+			log.Printf("HTMLProgressReporter: Found matching instance: %s (ID: %s)", completedInstance.AutoName, completedInstance.ID)
 			break
 		}
 	}
 
 	if completedInstance != nil {
-		log.Printf("HTMLProgressReporter: Found completed instance: %s", completedInstance.Name)
+		log.Printf("HTMLProgressReporter: Found completed instance: %s", completedInstance.AutoName)
 
 		// Send terminal-style update first
-		h.updates <- fmt.Sprintf("Instance complete: %s", completedInstance.Name)
+		//	h.updates <- fmt.Sprintf("Instance complete: %s", completedInstance.AutoName)
 
 		// Generate HTML card for this instance using templ component
 		var htmlCard strings.Builder
-		templates.InstanceCard(*completedInstance, h.outputPath).Render(context.Background(), &htmlCard)
+		// templates.InstanceCard(*completedInstance, h.outputPath).Render(context.Background(), &htmlCard)
+
+		templates.InstanceCardV2(*completedInstance, h.outputPath, "complete", h.allParamNames, true, "").Render(context.Background(), &htmlCard)
 
 		// Send HTML update
 		htmlUpdate := "html:" + htmlCard.String()
-		log.Printf("HTMLProgressReporter: Sending HTML update for instance: %s", completedInstance.Name)
+		log.Printf("HTMLProgressReporter: Sending HTML update for instance: %s", completedInstance.AutoName)
 		h.updates <- htmlUpdate
 
 		// Store the completed instance
@@ -157,11 +166,14 @@ func (h *HTMLProgressReporter) FinishInstance() {
 
 		// Add a small delay to make updates visible
 		time.Sleep(500 * time.Millisecond)
+
+		// Clear the current instance ID to prevent reuse
+		h.currentInstanceID = ""
 	} else {
 		log.Printf("HTMLProgressReporter: Could not find completed instance for ID: %s", h.currentInstanceID)
+		// Clear the current instance ID even if not found
+		h.currentInstanceID = ""
 	}
-
-	h.updates <- "Instance complete"
 }
 
 // StartHandler handles starting a new processing job
@@ -194,7 +206,9 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		progressReporter := NewHTMLProgressReporter(updates, config, id)
-		result, err := pkg.Process(config, progressReporter, cancel)
+		result, err := pkg.Process(config, progressReporter, cancel, pkg.Operations{
+			GenerateReport: false,
+		})
 		if err != nil {
 			updates <- "error: " + err.Error()
 		} else {
@@ -217,104 +231,83 @@ func ProgressHandler(w http.ResponseWriter, r *http.Request) {
 	updates, ok := progressMap[id]
 	mu.Unlock()
 	if !ok {
-		http.Error(w, "not found", 404)
+		success := templates.Success("Progress completed")
+		success.Render(context.Background(), w)
 		return
 	}
 	select {
 	case msg, ok := <-updates:
 		if !ok {
-			// Processing is done, return the complete report
+			// Processing is done, just return "done"
+			w.Header().Set("X-Progress-Status", "done")
+			done := templates.AllComplete()
+			done.Render(context.Background(), w)
+
+			// Clean up
 			mu.Lock()
-			result, hasResult := resultMap[id]
-			config, hasConfig := configMap[id]
+			delete(resultMap, id)
+			delete(configMap, id)
+			delete(progressMap, id)
+			delete(cancelMap, id)
+			delete(instanceResultsMap, id)
 			mu.Unlock()
-
-			if hasResult && hasConfig {
-				// Debug: Log the results
-				log.Printf("Server mode - STLResults count: %d", len(result.STLResults))
-				log.Printf("Server mode - ImageResults count: %d", len(result.ImageResults))
-				log.Printf("Server mode - Instances count: %d", len(result.Instances))
-
-				// Calculate allParamNames like in direct mode
-				var allParamNames []string
-				for _, instance := range result.Instances {
-					for paramName := range instance.Params {
-						found := false
-						for _, existingName := range allParamNames {
-							if existingName == paramName {
-								found = true
-								break
-							}
-						}
-						if !found {
-							allParamNames = append(allParamNames, paramName)
-						}
-					}
-				}
-
-				// Calculate the correct base path for relative image calculations
-				// This should match the logic in getOutputPaths function
-				configDir := filepath.Dir(config.ConfigFile)
-				versionPath := config.Design.Version
-
-				// designName is not needed for exportFolderPath calculation
-
-				exportNameFormat := config.Design.ExportNameFormat
-				hasExportPrefix := strings.HasPrefix(exportNameFormat, "export/") || strings.HasPrefix(exportNameFormat, "/export")
-
-				var baseDir string
-				if len(config.GetInputPaths()) > 0 {
-					inputPath := config.GetInputPaths()[0].Path
-					if filepath.IsAbs(inputPath) {
-						baseDir = filepath.Dir(inputPath)
-					} else {
-						baseDir = configDir
-					}
-				} else {
-					baseDir = configDir
-				}
-
-				var exportFolderPath string
-				if hasExportPrefix {
-					exportFolderPath = baseDir
-				} else {
-					exportFolderPath = filepath.Join(baseDir, "export", versionPath)
-				}
-
-				// Generate the complete report with correct base path
-				report := templates.Report("complete", config, result.Instances, exportFolderPath, result.STLResults, result.ImageResults, allParamNames, true, config.ConfigFile, result.TotalTimeTaken)
-				w.Header().Set("Content-Type", "text/html")
-				w.Header().Set("X-Progress-Status", "complete")
-				report.Render(context.Background(), w)
-
-				// Clean up
-				mu.Lock()
-				delete(resultMap, id)
-				delete(configMap, id)
-				delete(progressMap, id)
-				delete(cancelMap, id)
-				delete(instanceResultsMap, id)
-				mu.Unlock()
-			} else {
-				w.Header().Set("X-Progress-Status", "done")
-				w.Write([]byte("done"))
-			}
 			return
 		}
 
 		// Check if this is an HTML update
 		if strings.HasPrefix(msg, "html:") {
-			w.Header().Set("Content-Type", "text/html")
-			w.Header().Set("X-Progress-Status", "html")
-			w.Write([]byte(strings.TrimPrefix(msg, "html:")))
+			// For HTML updates (instance completions), return HTMX OOB update
+			htmlContent := strings.TrimPrefix(msg, "html:")
+
+			// Get the current progress message (non-blocking)
+			var progressMsg string
+			select {
+			case progressUpdate := <-updates:
+				if strings.HasPrefix(progressUpdate, "html:") {
+					// Another HTML update, combine them
+					htmlContent += strings.TrimPrefix(progressUpdate, "html:")
+					progressMsg = "Instance completed"
+				} else {
+					progressMsg = progressUpdate
+				}
+			default:
+				progressMsg = "Instance completed"
+			}
+
+			// Check if processing is complete by checking if we have a result
+			mu.Lock()
+			result, hasResult := resultMap[id]
+			mu.Unlock()
+
+			if hasResult {
+				allCompleteHTML := templates.AllComplete()
+				w.Header().Set("Content-Type", "text/html")
+				w.Header().Set("X-Progress-Status", "complete")
+				allCompleteHTML.Render(context.Background(), w)
+				templates.ProcessForm(result.ConfigFile).Render(context.Background(), w)
+			} else {
+				// Return progress div with HTMX attributes and HTML content as OOB update
+				combinedHTML := fmt.Sprintf(`<div id="progress" hx-get="/progress?id=%s" hx-trigger="every 1s" hx-swap="outerHTML" class="notification is-info">%s</div> %s
+`, id, progressMsg, htmlContent)
+				w.Header().Set("Content-Type", "text/html")
+				w.Header().Set("X-Progress-Status", "html")
+				w.Write([]byte(combinedHTML))
+			}
 		} else {
+			// Return HTMX-compatible progress update with hx-get for next poll
+			progressHTML := fmt.Sprintf(`<div id="progress" hx-get="/progress?id=%s" hx-trigger="every 1s" hx-swap="outerHTML" class="notification is-info">%s</div>`, id, msg)
+			w.Header().Set("Content-Type", "text/html")
 			w.Header().Set("X-Progress-Status", "progress")
-			w.Write([]byte(msg))
+			w.Write([]byte(progressHTML))
 		}
-	case <-time.After(2 * time.Second):
-		w.Header().Set("X-Progress-Status", "waiting")
-		w.Write([]byte("waiting"))
 	}
+	/*case <-time.After(120 * time.Second):
+		// Return HTMX-compatible waiting update with hx-get for next poll
+		waitingHTML := fmt.Sprintf(`<div id="progress" hx-get="/progress?id=%s" hx-trigger="every 1s" hx-swap="outerHTML" class="notification is-warning">waiting</div>`, id)
+		w.Header().Set("Content-Type", "text/html")
+		w.Header().Set("X-Progress-Status", fmt.Sprintf("(hmm, its been over 2 minutes, still waiting for %s..)", msg))
+		w.Write([]byte(waitingHTML))
+	}*/
 }
 
 // CancelHandler handles cancellation of a job
@@ -347,7 +340,9 @@ func StartProcessingJob(config *models.Config) string {
 
 	go func() {
 		progressReporter := NewHTMLProgressReporter(updates, config, id)
-		result, err := pkg.Process(config, progressReporter, cancel)
+		result, err := pkg.Process(config, progressReporter, cancel, pkg.Operations{
+			GenerateReport: false,
+		})
 		if err != nil {
 			log.Printf("Processing error: %v", err)
 		} else {
@@ -365,12 +360,8 @@ func StartProcessingJob(config *models.Config) string {
 // GetProgressHTML returns HTML for progress tracking
 func GetProgressHTML(id string) string {
 	return fmt.Sprintf(`
-		<div id="progress" class="notification is-info"></div>
-		<div id="instances-container">
-			<div class="columns is-multiline" id="instances-grid">
-				<!-- Instances will be added here via HTMX -->
-			</div>
-		</div>
+		<div id="progress" class="notification is-info"></div>[[GetProgressHTML]]
+
 		<button class="button is-danger" onclick="fetch('/cancel?id=%s')">Cancel</button>
 		<script>
 		function poll() {

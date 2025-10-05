@@ -16,12 +16,13 @@
 	renderType = "obj";
 
 plugRadius = 14;
+plugRadiusBottom = 12;
 rimRadius = 22;
 rimGapRadius = 3;
 
 
-rimHeight = 30;
-plugHeight = 150;
+rimHeight = 24;
+plugHeight = 70;
 rimGapHeight = 30;
 
 rounding=3;
@@ -43,8 +44,8 @@ tex = let(n=16,m=0.25) [
      ]
 ];
 
-	module round_lid(plugRadius=plugRadius, plugHeight=plugHeight, rimRadius=rimRadius, rimHeight=rimHeight, rimGapHeight=rimGapHeight, rimGapRadius=rimGapRadius, rounding=rounding){
-		cyl(h=plugHeight, r=plugRadius, rounding1=rounding);
+	module round_lid(plugRadius=plugRadius, plugRadiusBottom=plugRadiusBottom, plugHeight=plugHeight, rimRadius=rimRadius, rimHeight=rimHeight, rimGapHeight=rimGapHeight, rimGapRadius=rimGapRadius, rounding=rounding){
+		cyl(h=plugHeight, r2=plugRadius, r1=plugRadiusBottom, rounding1=rounding);
         up(plugHeight/2-rimHeight/2+0.01)
         difference(){
             cyl(h=rimHeight, r=rimRadius+rimGapRadius, rounding=rounding, texture=tex);
@@ -56,7 +57,7 @@ tex = let(n=16,m=0.25) [
 
 
     sliced(renderType=renderType) {
-        round_lid( plugRadius=plugRadius, plugHeight=plugHeight, rimRadius=rimRadius, rimHeight=rimHeight, rimGapHeight=rimGapHeight, rimGapRadius=rimGapRadius);
+        round_lid( plugRadius=plugRadius, plugRadiusBottom=plugRadiusBottom, plugHeight=plugHeight, rimRadius=rimRadius, rimHeight=rimHeight, rimGapHeight=rimGapHeight, rimGapRadius=rimGapRadius);
     }
        
 

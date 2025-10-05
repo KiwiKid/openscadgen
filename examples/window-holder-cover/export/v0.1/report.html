@@ -1,11 +1,67 @@
-<!doctype html><html lang="en" x-data="{ darkMode: true, searchQuery: &#39;&#39; }" x-init="
-        darkMode = localStorage.getItem(&#39;darkMode&#39;) === &#39;true&#39; || 
-                  (!localStorage.getItem(&#39;darkMode&#39;) &amp;&amp; window.matchMedia(&#39;(prefers-color-scheme: dark)&#39;).matches);
-        $watch(&#39;darkMode&#39;, value =&gt; {
-            localStorage.setItem(&#39;darkMode&#39;, value);
-            document.documentElement.classList.toggle(&#39;dark&#39;, value);
-        });
-    "><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>window-holder-cover - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><script>
+<!doctype html><html lang="en" x-data="alpineReportData()" x-init="init()"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>window-holder-cover - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"><script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script><script>
+        function alpineReportData() {
+            return {
+                darkMode: true,
+                showDebug: false,
+                navSelected: "instances",
+                searchQuery: '',
+                configHistory: JSON.parse(localStorage.getItem('configHistory') || '[]'),
+                configFile: '',
+                savedConfigFile: localStorage.getItem('savedConfigFile') || '',
+                searchHistory: JSON.parse(localStorage.getItem('searchHistory') || '[]'),
+                saveConfigFile(path) {
+                    if (path && !this.configHistory.includes(path)) {
+                        this.configHistory.unshift(path);
+                        localStorage.setItem('configHistory', JSON.stringify(this.configHistory));
+                    }
+                    this.savedConfigFile = path;
+                    localStorage.setItem('savedConfigFile', path);
+                },
+                init() {
+                    // Watchers
+                    this.$watch('darkMode', value => {
+                        localStorage.setItem('darkMode', value);
+                        document.documentElement.classList.toggle('dark', value);
+                    });
+                    this.$watch('showDebug', value => {
+                        localStorage.setItem('showDebug', value);
+                    });
+                    this.$watch('searchQuery', value => {
+                        if (value && !this.searchHistory.includes(value)) {
+                            this.searchHistory.unshift(value);
+                            this.searchHistory = this.searchHistory.slice(0, 20);
+                            localStorage.setItem('searchHistory', JSON.stringify(this.searchHistory));
+                        }
+                    });
+
+                    // Initial dark mode setup
+                    this.darkMode = localStorage.getItem('darkMode') === 'true' ||
+                        (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+                    this.showDebug = localStorage.getItem('showDebug') === 'true';
+                    // Initial config file setup
+                    this.configFile = '\/Users\/gregc\/mine\/making\/3d-printing\/openSCAD\/openscadgen\/examples\/window-holder-cover\/config.toml'; // or whatever templating you use
+                    if (this.configFile) {
+                        this.saveConfigFile(this.configFile);
+                    }
+                }
+            }
+        }
+        </script><script>
+                (function() {
+                    var darkMode = localStorage.getItem('darkMode');
+                    if (darkMode === null) {
+                        darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    } else {
+                        darkMode = darkMode === 'true';
+                    }
+                    if (darkMode) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                })();
+            </script><script>
                 function copyDetailsContent() {
                     const button = $el.querySelector('button');
                     const codeBlock = $el.querySelector('pre code');
@@ -24,14 +80,27 @@
                     --text-color: #333333;
                     --card-bg: #ffffff;
                     --border-color: #eee;
+                    --accent-color: #0066cc;
+                    --hover-bg: #f5f5f5;
+                    --error-color: #b00020;
+                    --success-color: #007e33;
+                    
                 }
 
+html, body {
+    min-height: 100vh;
+}
+               
                 .dark {
                     --bg-color: #1a1a1a;
                     --text-color: #f5f5f5 !important;
                     --card-bg: #2d2d2d;
                     --border-color: #404040;
-                    color: #f5f5f5 !important;
+                    --accent-color: #66aaff;
+                    --hover-bg: #23272e;
+                    --error-color: #ff6f6f;
+                    --success-color: #4caf50;
+                    color: var(--text-color) !important;
                 }
 
                 body {
@@ -39,11 +108,14 @@
                     margin: 0;
                     background-color: var(--bg-color);
                     color: var(--text-color);
+                    padding: 3rem;
                 }
                 .container {
                     max-width: 1200px;
                     margin: 0 auto;
                     padding: 20px;
+                    background-color: var(--bg-color);
+                    color: var(--text-color);
                 }
                 .global-header {
                     position: sticky;
@@ -83,16 +155,18 @@
                     top: 0;
                     z-index: 10;
                 }
-                .table th {
-                    background-color: var(--card-bg);
-                    font-weight: bold;
+                .table th, .table td {
                     padding: 12px;
                     text-align: left;
-                    border-bottom: 2px solid var(--border-color);
+                    border-bottom: 1px solid #ddd;
+                    color: var(--text-color);
+                }
+                .table thead th, .table thead td {
+                    color: var(--text-color) !important;
                 }
                 h1 {
-                    color: #333;
-                    border-bottom: 2px solid #333;
+                    color: var(--text-color);
+                    border-bottom: 2px solid var(--text-color);
                     padding-bottom: 10px;
                 }
                 h2, h3 {
@@ -110,7 +184,7 @@
                 .header .level {
                     margin-bottom: 0;
                 }
-                .params {
+                /*.params {
                     display: grid;
                     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
                     gap: 10px;
@@ -121,33 +195,26 @@
                     padding: 10px;
                     border-radius: 4px;
                     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                }
-                .footer {
-                    margin-top: 30px;
-                    padding-top: 20px;
-                    border-top: 1px solid var(--border-color);
-                    font-size: 0.9em;
                     color: var(--text-color);
-                }
-                th, td {
-                    padding: 12px;
-                    text-align: left;
-                    border-bottom: 1px solid #ddd;
-                }
+                }*/
+
+                
+       
                 tr:hover {
-                    background-color: #f5f5f5;
+                    background-color: var(--hover-bg);
                 }
                 .error {
-                    color: red;
+                    color: var(--error-color);
                 }
                 .success {
-                    color: green;
+                    color: var(--success-color);
                 }
                 .camera-coords {
-                    background-color: #f8f9fa;
+                    background-color: var(--card-bg);
                     padding: 10px;
                     border-radius: 4px;
                     margin: 5px 0;
+                    color: var(--text-color);
                 }
                 .camera-coords ul {
                     margin: 5px 0;
@@ -160,7 +227,7 @@
                     cursor: pointer;
                 }
                 details summary {
-                    color: #0066cc;
+                    color: var(--accent-color);
                 }
                 details summary:hover {
                     text-decoration: underline;
@@ -177,122 +244,601 @@
                     font-style: italic;
                     font-size: 0.9em;
                 }
-            </style></head><body><div class="global-header"><div class="container"><h1 class="title is-4">window-holder-cover</h1><div class="search-box"><div class="field"><div class="control"><input class="input" type="text" placeholder="Search..." x-model="searchQuery"></div></div></div><button class="button" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button></div></div><div class="container"><div class="header"><p></p></div><div>No Global Parameters [global_params]</div><h2 class="is-size-4">Input Paths</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Path</th><!--NEXT-VERSION: <th>OpenSCAD Code</th> --></tr></thead> <tbody><tr><td>./window-holder-cover.scad</td><!-- NEXT-VERSION: <td><details><summary>OpenSCAD Code</summary>
-                                    { inputPath.RawOpenSCADFile }</details></td> --></tr></tbody></table></div><div x-data="{ isOpen: true }"><button class="button" @click="isOpen = !isOpen"><span x-show="!isOpen">+</span> <span x-show="isOpen">-</span> STL Generation Results</button><div x-show="isOpen"><div class="table-container"><table class="table is-fullwidth"><thead><tr><th style="width: 150px;">Instance</th><th style="width: 200px;">Output Path</th><th style="width: 200px;">Command</th><th style="width: 100px;">Time Taken</th><th style="width: 200px;">Params</th><th style="width: 150px;">Error</th></tr></thead> <tbody><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/window-holder-cover/export/v0.1/window-holder-cover-all.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/window-holder-cover/export/v0.1/window-holder-cover-all.stl</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/window-holder-cover/export/v0.1/window-holder-cover-all.stl --render --backend=manifold -D &#39;param1=&#34;a-custom-value&#34;&#39; -D &#39;renderType=&#34;all&#34;&#39; -D &#39;designFileName=&#34;window-holder-cover&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/window-holder-cover.scad</details></td><td>181.829375ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>designFileName = &#34;window-holder-cover&#34;;
+                .button {
+                    color: var(--text-color) !important;
+                    background-color: var(--card-bg) !important;
+                    border: 1px solid var(--border-color) !important;
+                }
+                pre, code {
+                    color: var(--text-color) !important;
+                    background-color: var(--card-bg) !important;
+                }
+                
+                /* Side Navigation Styles */
+                .menu-item {
+                    color: var(--text-color) !important;
+                    text-decoration: none;
+                    display: block;
+                    padding: 0.5rem;
+                    border-radius: 4px;
+                    transition: background-color 0.2s;
+                }
+                
+                .menu-item:hover {
+                    background-color: var(--hover-bg);
+                    color: var(--text-color) !important;
+                }
+                
+                .menu-item:active {
+                    background-color: var(--accent-color);
+                    color: white !important;
+                }
+                
+                .menu-list {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                }
+                
+                .menu-list li {
+                    margin-bottom: 0.5rem;
+                }
+                
+                .media {
+                    display: flex;
+                    align-items: center;
+                }
+                
+                .media-left {
+                    margin-right: 0.75rem;
+                }
+                
+                .media-content {
+                    flex: 1;
+                }
+                
+                .p-4 {
+                    padding: 1rem;
+                }
+                
+                .mb-1 {
+                    margin-bottom: 0.25rem;
+                }
+                
+                .mb-4 {
+                    margin-bottom: 1rem;
+                }
+                
+                .mt-2 {
+                    margin-top: 0.5rem;
+                }
+                
+                .has-text-grey {
+                    color: #6b7280 !important;
+                }
+                
+                .is-rounded {
+                    border-radius: 50%;
+                }
+                
+                /* Dark mode card styling */
+                .dark .card {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .card-content {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .card .title,
+                .dark .card .subtitle {
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .card .content {
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .card .content strong {
+                    color: var(--text-color) !important;
+                }
+                
+                /* Dark mode navbar styling */
+                .dark .navbar {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .navbar-light {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .bg-light {
+                    background-color: var(--card-bg) !important;
+                }
+                
+                .dark .navbar-brand {
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .nav-link {
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .nav-link:hover {
+                    color: var(--accent-color) !important;
+                }
+                
+                .dark .navbar-nav .nav-item.active .nav-link {
+                    color: var(--accent-color) !important;
+                }
+                
+                .dark .form-control {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                    border-color: var(--border-color) !important;
+                }
+                
+                .dark .btn {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                    border-color: var(--border-color) !important;
+                }
+                
+                .dark .btn:hover {
+                    background-color: var(--hover-bg) !important;
+                    color: var(--text-color) !important;
+                }
+            </style></head><body><div x-show="showDebug">Show DEBUG ON</div><div class="container-fluid"><!-- Main Content --> <nav class="navbar navbar-expand-lg navbar-light bg-light"><a class="navbar-brand">window-holder-cover</a> <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button><div class="collapse navbar-collapse" id="navbarSupportedContent"><ul class="navbar-nav mr-auto"><li class="nav-item" :class="{ active: navSelected === 'instances' }"><a class="nav-link" @click="navSelected = 'instances'">Instances 3</a></li><li class="nav-item" :class="{ active: navSelected === 'stlResults' }"><a class="nav-link" @click="navSelected = 'stlResults'">STL Results 3</a></li><li class="nav-item" :class="{ active: navSelected === 'imageResults' }"></li><li class="nav-item" :class="{ active: navSelected === 'images' }"></li><li class="nav-item" :class="{ active: navSelected === 'json' }"><a class="nav-link" @click="navSelected = 'json'">Config</a></li></ul><form class="form-inline my-2 my-lg-0"><input class="form-control mr-sm-2" type="search" placeholder="Filter instances..." x-model="searchQuery" aria-label="Search"> <button class="btn btn-outline-success my-2 my-sm-0" type="button" @click="searchQuery = ''">Clear</button></form><div class="ml-2"><button class="btn btn-outline-secondary" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button> <button class="btn btn-outline-secondary ml-1" @click="showDebug = !showDebug"><span x-show="!showDebug">🐛</span> <span x-show="showDebug">🐛</span> <span x-show="showDebug" style="text-decoration: underline;">Debug</span></button></div></div></nav><div class="container"><div><div x-show="navSelected === &#39;instances&#39;"><div class="columns is-multiline"><style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">Instance 0</summary><div class="json-viewer-content"><pre class="json-pretty">{
+  &#34;ID&#34;: &#34;&#34;,
+  &#34;Name&#34;: &#34;&#34;,
+  &#34;AutoName&#34;: &#34;window-holder-cover-all&#34;,
+  &#34;Description&#34;: &#34;&#34;,
+  &#34;ExportNameFormat&#34;: &#34;&#34;,
+  &#34;InputPath&#34;: {
+    &#34;Path&#34;: &#34;./window-holder-cover.scad&#34;,
+    &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+    &#34;RawOpenSCADFileName&#34;: &#34;window-holder-cover&#34;,
+    &#34;ExportNameFormat&#34;: &#34;&#34;,
+    &#34;ParamSets&#34;: &#34;&#34;,
+    &#34;Params&#34;: null,
+    &#34;SkipImages&#34;: false,
+    &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+  },
+  &#34;Params&#34;: {
+    &#34;designFileName&#34;: &#34;window-holder-cover&#34;,
+    &#34;param1&#34;: &#34;a-custom-value&#34;,
+    &#34;renderType&#34;: &#34;all&#34;,
+    &#34;version&#34;: &#34;v0.1&#34;
+  },
+  &#34;PartIDLetter&#34;: &#34;C&#34;,
+  &#34;UniqueID&#34;: &#34;&#34;,
+  &#34;ConfigError&#34;: &#34;&#34;,
+  &#34;OutputPathV2&#34;: &#34;&#34;,
+  &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/export/v0.1/window-holder-cover-all.stl&#34;,
+  &#34;IgnoredParams&#34;: null,
+  &#34;ImageResults&#34;: null,
+  &#34;ExportImages&#34;: [],
+  &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/export/v0.1/window-holder-cover-all&#34;,
+  &#34;SkipImages&#34;: false,
+  &#34;SkippedReason&#34;: &#34;&#34;,
+  &#34;SkippedImageReason&#34;: &#34;&#34;
+}</pre></div></details> <div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">window-holder-cover-all ()</p><p class="subtitle is-6"></p></div></div><div class="content"><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;window-holder-cover&#34;;
 param1 = &#34;a-custom-value&#34;;
 renderType = &#34;all&#34;;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/window-holder-cover/export/v0.1/window-holder-cover-horzSlice.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/window-holder-cover/export/v0.1/window-holder-cover-horzSlice.stl</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/window-holder-cover/export/v0.1/window-holder-cover-horzSlice.stl --render --backend=manifold -D &#39;designFileName=&#34;window-holder-cover&#34;&#39; -D &#39;param1=&#34;a-custom-value&#34;&#39; -D &#39;renderType=&#34;horzSlice&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/window-holder-cover.scad</details></td><td>191.420541ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>designFileName = &#34;window-holder-cover&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><p><strong>Output Path:</strong> </p><p><strong>Ignored Params:</strong> []</p><div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>param1:</strong> a-custom-value</div><div class="cell is-one-third"><strong>renderType:</strong> all</div><div class="cell is-one-third"><strong>designFileName:</strong> window-holder-cover</div></div></div></div></div></div></div><style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">Instance 1</summary><div class="json-viewer-content"><pre class="json-pretty">{
+  &#34;ID&#34;: &#34;&#34;,
+  &#34;Name&#34;: &#34;&#34;,
+  &#34;AutoName&#34;: &#34;window-holder-cover-horzSlice&#34;,
+  &#34;Description&#34;: &#34;&#34;,
+  &#34;ExportNameFormat&#34;: &#34;&#34;,
+  &#34;InputPath&#34;: {
+    &#34;Path&#34;: &#34;./window-holder-cover.scad&#34;,
+    &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+    &#34;RawOpenSCADFileName&#34;: &#34;window-holder-cover&#34;,
+    &#34;ExportNameFormat&#34;: &#34;&#34;,
+    &#34;ParamSets&#34;: &#34;&#34;,
+    &#34;Params&#34;: null,
+    &#34;SkipImages&#34;: false,
+    &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+  },
+  &#34;Params&#34;: {
+    &#34;designFileName&#34;: &#34;window-holder-cover&#34;,
+    &#34;param1&#34;: &#34;a-custom-value&#34;,
+    &#34;renderType&#34;: &#34;horzSlice&#34;,
+    &#34;version&#34;: &#34;v0.1&#34;
+  },
+  &#34;PartIDLetter&#34;: &#34;A&#34;,
+  &#34;UniqueID&#34;: &#34;&#34;,
+  &#34;ConfigError&#34;: &#34;&#34;,
+  &#34;OutputPathV2&#34;: &#34;&#34;,
+  &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/export/v0.1/window-holder-cover-horzSlice.stl&#34;,
+  &#34;IgnoredParams&#34;: null,
+  &#34;ImageResults&#34;: null,
+  &#34;ExportImages&#34;: [],
+  &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/export/v0.1/window-holder-cover-horzSlice&#34;,
+  &#34;SkipImages&#34;: false,
+  &#34;SkippedReason&#34;: &#34;&#34;,
+  &#34;SkippedImageReason&#34;: &#34;&#34;
+}</pre></div></details> <div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">window-holder-cover-horzSlice ()</p><p class="subtitle is-6"></p></div></div><div class="content"><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;window-holder-cover&#34;;
 param1 = &#34;a-custom-value&#34;;
 renderType = &#34;horzSlice&#34;;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/window-holder-cover/export/v0.1/window-holder-cover-vertSlice.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>examples/window-holder-cover/export/v0.1/window-holder-cover-vertSlice.stl</td><td><details><summary>/opt/homebrew/b...</summary> /opt/homebrew/bin/openscad -o examples/window-holder-cover/export/v0.1/window-holder-cover-vertSlice.stl --render --backend=manifold -D &#39;param1=&#34;a-custom-value&#34;&#39; -D &#39;renderType=&#34;vertSlice&#34;&#39; -D &#39;designFileName=&#34;window-holder-cover&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/window-holder-cover.scad</details></td><td>186.453458ms</td><td><details><summary>Params </summary><!-- NEXT-VERSION: <button class="button is-small is-info" @click="copyDetailsContent()">Copy</button> --><pre><code>designFileName = &#34;window-holder-cover&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><p><strong>Output Path:</strong> </p><p><strong>Ignored Params:</strong> []</p><div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>param1:</strong> a-custom-value</div><div class="cell is-one-third"><strong>renderType:</strong> horzSlice</div><div class="cell is-one-third"><strong>designFileName:</strong> window-holder-cover</div></div></div></div></div></div></div><style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">Instance 2</summary><div class="json-viewer-content"><pre class="json-pretty">{
+  &#34;ID&#34;: &#34;&#34;,
+  &#34;Name&#34;: &#34;&#34;,
+  &#34;AutoName&#34;: &#34;window-holder-cover-vertSlice&#34;,
+  &#34;Description&#34;: &#34;&#34;,
+  &#34;ExportNameFormat&#34;: &#34;&#34;,
+  &#34;InputPath&#34;: {
+    &#34;Path&#34;: &#34;./window-holder-cover.scad&#34;,
+    &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+    &#34;RawOpenSCADFileName&#34;: &#34;window-holder-cover&#34;,
+    &#34;ExportNameFormat&#34;: &#34;&#34;,
+    &#34;ParamSets&#34;: &#34;&#34;,
+    &#34;Params&#34;: null,
+    &#34;SkipImages&#34;: false,
+    &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+  },
+  &#34;Params&#34;: {
+    &#34;designFileName&#34;: &#34;window-holder-cover&#34;,
+    &#34;param1&#34;: &#34;a-custom-value&#34;,
+    &#34;renderType&#34;: &#34;vertSlice&#34;,
+    &#34;version&#34;: &#34;v0.1&#34;
+  },
+  &#34;PartIDLetter&#34;: &#34;B&#34;,
+  &#34;UniqueID&#34;: &#34;&#34;,
+  &#34;ConfigError&#34;: &#34;&#34;,
+  &#34;OutputPathV2&#34;: &#34;&#34;,
+  &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/export/v0.1/window-holder-cover-vertSlice.stl&#34;,
+  &#34;IgnoredParams&#34;: null,
+  &#34;ImageResults&#34;: null,
+  &#34;ExportImages&#34;: [],
+  &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/export/v0.1/window-holder-cover-vertSlice&#34;,
+  &#34;SkipImages&#34;: false,
+  &#34;SkippedReason&#34;: &#34;&#34;,
+  &#34;SkippedImageReason&#34;: &#34;&#34;
+}</pre></div></details> <div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">window-holder-cover-vertSlice ()</p><p class="subtitle is-6"></p></div></div><div class="content"><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;window-holder-cover&#34;;
 param1 = &#34;a-custom-value&#34;;
 renderType = &#34;vertSlice&#34;;
-v = &#34;v0.1&#34;;
-</code></pre>(copy these into the openscad editor to tweak this instance)</details></td><td><details><summary>OpenSCAD Code</summary><pre><code>N/A (yet)</code></pre></details></td></tr></tbody></table></div></div></div><details><summary>No Image Generation Results</summary><div>Add export images to the config file to generate images for each instance:<pre><code>[[openscadgen.export_images]] name = "front" coord = "0,0,0,0,0,0,100"</code></pre></div></details><div x-data="{ isOpen: true }"><button class="button" @click="isOpen = !isOpen"><span x-show="!isOpen">+</span> <span x-show="isOpen">-</span> Generated Instances</button><div x-show="isOpen"><div><h2 class="is-size-4">Generated Instances</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Name</th><th>Description</th><th>Output Path</th><th>Ignored Params</th><th>Skipped Reason</th><th>Images</th><th>param1</th><th>renderType</th><th>designFileName</th><th>v</th></tr></thead> <tbody><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/window-holder-cover/export/v0.1/window-holder-cover-horzSlice.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/window-holder-cover/export/v0.1/window-holder-cover-horzSlice.stl</td><td>[]</td><td></td><td>no images generated</td><td>a-custom-value</td><td>horzSlice</td><td>window-holder-cover</td><td>v0.1</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/window-holder-cover/export/v0.1/window-holder-cover-vertSlice.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/window-holder-cover/export/v0.1/window-holder-cover-vertSlice.stl</td><td>[]</td><td></td><td>no images generated</td><td>a-custom-value</td><td>vertSlice</td><td>window-holder-cover</td><td>v0.1</td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; examples/window-holder-cover/export/v0.1/window-holder-cover-all.stl&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td></td><td>examples/window-holder-cover/export/v0.1/window-holder-cover-all.stl</td><td>[]</td><td></td><td>no images generated</td><td>a-custom-value</td><td>all</td><td>window-holder-cover</td><td>v0.1</td></tr></tbody></table></div></div></div></div><h2 class="is-size-4">Configuration Details</h2><div class="instance"><div class="params"><div class="param"><strong>Version:</strong> v0.1</div><div class="param"><strong>Output Path:</strong> </div><div class="param"><strong>OpenSCAD Version:</strong> </div><div class="param"><strong>OpenSCADGen Version:</strong> </div><div class="param"><strong>Auto Overwrite Existing</strong></div><div class="param"><strong>Build Info Set In File Attributes</strong></div></div></div><div x-data="{ isOpen: true }"><button class="button" @click="isOpen = !isOpen"><span x-show="!isOpen">+</span> <span x-show="isOpen">-</span> Config Reference</button><div x-show="isOpen"><h2 class="is-size-4">Config Reference</h2><details><summary>Example Config File</summary><pre><code>
-[[openscadgen]]
-name = &#34;My Design&#34;
-description = &#34;A simple example design&#34;
-input_path = &#34;./my_design.scad&#34;
-version = &#34;v1.0&#34;
-output_path = &#34;./export&#34;
-export_name_format = &#34;{designFileName}-{version}-{instanceName}&#34;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><p><strong>Output Path:</strong> </p><p><strong>Ignored Params:</strong> []</p><div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>param1:</strong> a-custom-value</div><div class="cell is-one-third"><strong>renderType:</strong> vertSlice</div><div class="cell is-one-third"><strong>designFileName:</strong> window-holder-cover</div></div></div></div></div></div></div></div> <div class="my-2"></div></div></div> <div><div x-show="navSelected === &#39;stlResults&#39;"><style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">STL Results</summary><div class="json-viewer-content"><pre class="json-pretty">[
+  {
+    &#34;InstanceConfig&#34;: {
+      &#34;ID&#34;: &#34;&#34;,
+      &#34;Name&#34;: &#34;&#34;,
+      &#34;AutoName&#34;: &#34;window-holder-cover-horzSlice&#34;,
+      &#34;Description&#34;: &#34;&#34;,
+      &#34;ExportNameFormat&#34;: &#34;&#34;,
+      &#34;InputPath&#34;: {
+        &#34;Path&#34;: &#34;./window-holder-cover.scad&#34;,
+        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+        &#34;RawOpenSCADFileName&#34;: &#34;window-holder-cover&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;ParamSets&#34;: &#34;&#34;,
+        &#34;Params&#34;: null,
+        &#34;SkipImages&#34;: false,
+        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+      },
+      &#34;Params&#34;: {
+        &#34;designFileName&#34;: &#34;window-holder-cover&#34;,
+        &#34;param1&#34;: &#34;a-custom-value&#34;,
+        &#34;renderType&#34;: &#34;horzSlice&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;PartIDLetter&#34;: &#34;A&#34;,
+      &#34;UniqueID&#34;: &#34;&#34;,
+      &#34;ConfigError&#34;: &#34;&#34;,
+      &#34;OutputPathV2&#34;: &#34;&#34;,
+      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/export/v0.1/window-holder-cover-horzSlice.stl&#34;,
+      &#34;IgnoredParams&#34;: null,
+      &#34;ImageResults&#34;: [],
+      &#34;ExportImages&#34;: [],
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/export/v0.1/window-holder-cover-horzSlice&#34;,
+      &#34;SkipImages&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;SkippedImageReason&#34;: &#34;&#34;
+    },
+    &#34;OutputPath&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/export/v0.1/window-holder-cover-horzSlice.stl&#39; --render --backend=manifold -D &#39;param1=\&#34;a-custom-value\&#34;&#39; -D &#39;renderType=\&#34;horzSlice\&#34;&#39; -D &#39;designFileName=\&#34;window-holder-cover\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/window-holder-cover.scad&#34;,
+    &#34;Error&#34;: &#34;&#34;,
+    &#34;AppliedParams&#34;: {
+      &#34;designFileName&#34;: &#34;window-holder-cover&#34;,
+      &#34;param1&#34;: &#34;a-custom-value&#34;,
+      &#34;renderType&#34;: &#34;horzSlice&#34;,
+      &#34;version&#34;: &#34;v0.1&#34;
+    },
+    &#34;TimeTaken&#34;: 228515208,
+    &#34;Skipped&#34;: false,
+    &#34;LowQuality&#34;: false,
+    &#34;SkippedReason&#34;: &#34;&#34;,
+    &#34;GenerateImageResult&#34;: null
+  },
+  {
+    &#34;InstanceConfig&#34;: {
+      &#34;ID&#34;: &#34;&#34;,
+      &#34;Name&#34;: &#34;&#34;,
+      &#34;AutoName&#34;: &#34;window-holder-cover-vertSlice&#34;,
+      &#34;Description&#34;: &#34;&#34;,
+      &#34;ExportNameFormat&#34;: &#34;&#34;,
+      &#34;InputPath&#34;: {
+        &#34;Path&#34;: &#34;./window-holder-cover.scad&#34;,
+        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+        &#34;RawOpenSCADFileName&#34;: &#34;window-holder-cover&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;ParamSets&#34;: &#34;&#34;,
+        &#34;Params&#34;: null,
+        &#34;SkipImages&#34;: false,
+        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+      },
+      &#34;Params&#34;: {
+        &#34;designFileName&#34;: &#34;window-holder-cover&#34;,
+        &#34;param1&#34;: &#34;a-custom-value&#34;,
+        &#34;renderType&#34;: &#34;vertSlice&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;PartIDLetter&#34;: &#34;B&#34;,
+      &#34;UniqueID&#34;: &#34;&#34;,
+      &#34;ConfigError&#34;: &#34;&#34;,
+      &#34;OutputPathV2&#34;: &#34;&#34;,
+      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/export/v0.1/window-holder-cover-vertSlice.stl&#34;,
+      &#34;IgnoredParams&#34;: null,
+      &#34;ImageResults&#34;: [],
+      &#34;ExportImages&#34;: [],
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/export/v0.1/window-holder-cover-vertSlice&#34;,
+      &#34;SkipImages&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;SkippedImageReason&#34;: &#34;&#34;
+    },
+    &#34;OutputPath&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/export/v0.1/window-holder-cover-vertSlice.stl&#39; --render --backend=manifold -D &#39;param1=\&#34;a-custom-value\&#34;&#39; -D &#39;renderType=\&#34;vertSlice\&#34;&#39; -D &#39;designFileName=\&#34;window-holder-cover\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/window-holder-cover.scad&#34;,
+    &#34;Error&#34;: &#34;&#34;,
+    &#34;AppliedParams&#34;: {
+      &#34;designFileName&#34;: &#34;window-holder-cover&#34;,
+      &#34;param1&#34;: &#34;a-custom-value&#34;,
+      &#34;renderType&#34;: &#34;vertSlice&#34;,
+      &#34;version&#34;: &#34;v0.1&#34;
+    },
+    &#34;TimeTaken&#34;: 233251916,
+    &#34;Skipped&#34;: false,
+    &#34;LowQuality&#34;: false,
+    &#34;SkippedReason&#34;: &#34;&#34;,
+    &#34;GenerateImageResult&#34;: null
+  },
+  {
+    &#34;InstanceConfig&#34;: {
+      &#34;ID&#34;: &#34;&#34;,
+      &#34;Name&#34;: &#34;&#34;,
+      &#34;AutoName&#34;: &#34;window-holder-cover-all&#34;,
+      &#34;Description&#34;: &#34;&#34;,
+      &#34;ExportNameFormat&#34;: &#34;&#34;,
+      &#34;InputPath&#34;: {
+        &#34;Path&#34;: &#34;./window-holder-cover.scad&#34;,
+        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+        &#34;RawOpenSCADFileName&#34;: &#34;window-holder-cover&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;ParamSets&#34;: &#34;&#34;,
+        &#34;Params&#34;: null,
+        &#34;SkipImages&#34;: false,
+        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+      },
+      &#34;Params&#34;: {
+        &#34;designFileName&#34;: &#34;window-holder-cover&#34;,
+        &#34;param1&#34;: &#34;a-custom-value&#34;,
+        &#34;renderType&#34;: &#34;all&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;PartIDLetter&#34;: &#34;C&#34;,
+      &#34;UniqueID&#34;: &#34;&#34;,
+      &#34;ConfigError&#34;: &#34;&#34;,
+      &#34;OutputPathV2&#34;: &#34;&#34;,
+      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/export/v0.1/window-holder-cover-all.stl&#34;,
+      &#34;IgnoredParams&#34;: null,
+      &#34;ImageResults&#34;: [],
+      &#34;ExportImages&#34;: [],
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/export/v0.1/window-holder-cover-all&#34;,
+      &#34;SkipImages&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;SkippedImageReason&#34;: &#34;&#34;
+    },
+    &#34;OutputPath&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/export/v0.1/window-holder-cover-all.stl&#39; --render --backend=manifold -D &#39;param1=\&#34;a-custom-value\&#34;&#39; -D &#39;renderType=\&#34;all\&#34;&#39; -D &#39;designFileName=\&#34;window-holder-cover\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/window-holder-cover.scad&#34;,
+    &#34;Error&#34;: &#34;&#34;,
+    &#34;AppliedParams&#34;: {
+      &#34;designFileName&#34;: &#34;window-holder-cover&#34;,
+      &#34;param1&#34;: &#34;a-custom-value&#34;,
+      &#34;renderType&#34;: &#34;all&#34;,
+      &#34;version&#34;: &#34;v0.1&#34;
+    },
+    &#34;TimeTaken&#34;: 189500292,
+    &#34;Skipped&#34;: false,
+    &#34;LowQuality&#34;: false,
+    &#34;SkippedReason&#34;: &#34;&#34;,
+    &#34;GenerateImageResult&#34;: null
+  }
+]</pre></div></details> <div class="columns is-multiline"><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4"></p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 228.515208ms</p><p><strong>Output:</strong> <a href="" target="_blank">Download STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;window-holder-cover&#34;;
+param1 = &#34;a-custom-value&#34;;
+renderType = &#34;horzSlice&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/export/v0.1/window-holder-cover-horzSlice.stl&#39; --render --backend=manifold -D &#39;param1=&#34;a-custom-value&#34;&#39; -D &#39;renderType=&#34;horzSlice&#34;&#39; -D &#39;designFileName=&#34;window-holder-cover&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/window-holder-cover.scad</pre></code></div></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4"></p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 233.251916ms</p><p><strong>Output:</strong> <a href="" target="_blank">Download STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;window-holder-cover&#34;;
+param1 = &#34;a-custom-value&#34;;
+renderType = &#34;vertSlice&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/export/v0.1/window-holder-cover-vertSlice.stl&#39; --render --backend=manifold -D &#39;param1=&#34;a-custom-value&#34;&#39; -D &#39;renderType=&#34;vertSlice&#34;&#39; -D &#39;designFileName=&#34;window-holder-cover&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/window-holder-cover.scad</pre></code></div></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4"></p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 189.500292ms</p><p><strong>Output:</strong> <a href="" target="_blank">Download STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;window-holder-cover&#34;;
+param1 = &#34;a-custom-value&#34;;
+renderType = &#34;all&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/export/v0.1/window-holder-cover-all.stl&#39; --render --backend=manifold -D &#39;param1=&#34;a-custom-value&#34;&#39; -D &#39;renderType=&#34;all&#34;&#39; -D &#39;designFileName=&#34;window-holder-cover&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/window-holder-cover.scad</pre></code></div></details></div></div></div></div></div></div></div></div> <div><div x-show="navSelected === &#39;images&#39;"><div>Add export images to the config file to generate images for each instance:<div class="code-block"><code style="white-space: pre;"><pre>
+                        [[openscadgen.images]]
+                        name = &#34;nice&#34;
 
-# Global parameters that apply to all instances
-[openscadgen.global_params]
-material = &#34;PLA&#34;
-color = &#34;white&#34;
+                        [[openscadgen.images]]
+                        name = &#34;front&#34;
 
-# Define parameter sets that can be reused
-[[openscadgen.param_sets]]
-name = &#34;small&#34;
-params = { width %3D 10, height %3D 20 }
+                        [[openscadgen.images]]
+                        name = &#34;custom&#34;
+                        coord = &#34;0,0,0,90,0,0,600&#34;
+                        </pre></code></div></div></div></div> <div></div></div><script>
+            // Enable htmx debug mode
+            window.htmx && (htmx.config.debug = true);
 
-[[openscadgen.param_sets]]
-name = &#34;large&#34;
-params = { width %3D 20, height %3D 40 }
-
-# Define instances to generate
-[[openscadgen.instances]]
-name = &#34;default&#34;
-param_sets = &#34;small&#34;
-
-[[openscadgen.instances]]
-name = &#34;large&#34;
-param_sets = &#34;large&#34;
-
-# Define camera positions for image generation
-[[openscadgen.export_images]]
-name = &#34;front&#34;
-coord = &#34;0,0,0,0,0,0,100&#34;
-image_size = &#34;1920,1080&#34;</code></pre></details> <details><summary>Complete Design Config Reference</summary><pre><code>
-[[openscadgen]]
-# Required: Name of the design
-name = &#34;string&#34;                    # Required, minimum length 1
-
-# Optional: Description of the design
-description = &#34;string&#34;             # Optional description
-
-# Optional: Single input path (deprecated, use input_paths instead)
-input_path = &#34;string&#34;             # Path to the OpenSCAD file
-
-# Optional: Multiple input paths
-[[openscadgen.input_paths]]
-path = &#34;string&#34;                    # Required, path to OpenSCAD file
-export_name_format = &#34;string&#34;      # Optional, format for exported files
-param_sets = &#34;string&#34;             # Optional, comma-separated list of param sets
-params = {}                        # Optional, map of parameters
-skip_images = false               # Optional, whether to skip image generation
-ignore_param_when_processing = &#34;string&#34;  # Optional, params to ignore when processing
-
-# Optional: Output path for generated files
-output_path = &#34;string&#34;            # Path where files will be exported
-
-# Optional: Version string
-version = &#34;string&#34;                # Version of the design
-
-# Optional: Whether to include part ID letter in filenames
-no_part_id_letter = false         # If true, excludes part ID letter
-
-# Optional: Format for exported filenames
-export_name_format = &#34;string&#34;     # Format string with {param} placeholders
-
-# Optional: Global parameters applied to all instances
-[openscadgen.global_params]
-param1 = &#34;value1&#34;
-param2 = 42
-
-# Optional: Reusable parameter sets
-[[openscadgen.param_sets]]
-name = &#34;string&#34;                   # Name of the parameter set
-params = {}                       # Map of parameters
-
-# Optional: Custom OpenSCAD output format
-custom_openscad_output_format = &#34;string&#34;  # e.g., &#34;stl&#34;, &#34;3mf&#34;
-
-# Optional: Custom OpenSCAD arguments
-custom_openscad_args = &#34;string&#34;   # Additional OpenSCAD command line arguments
-
-# Optional: Image export quality
-export_image_quality = &#34;string&#34;   # Quality setting for exported images
-
-# Optional: Camera positions for image generation
-[[openscadgen.export_images]]
-name = &#34;string&#34;                   # Name of the camera position
-coord = &#34;string&#34;                  # Camera coordinates (x,y,z,rotx,roty,rotz,distance)
-image_size = &#34;string&#34;             # Optional, image dimensions (width,height)
-param_filter = {}                 # Optional, filter parameters for this camera
-
-# Optional: Instance configurations
-[[openscadgen.instances]]
-name = &#34;string&#34;                   # Name of the instance
-description = &#34;string&#34;            # Optional description
-params = {}                       # Optional, map of parameters
-param_sets = &#34;string&#34;             # Optional, comma-separated list of param sets
-param_numberation_keys = &#34;string&#34; # Optional, comma-separated list of keys to number
-skip_images = false              # Optional, whether to skip image generation
-
-# Optional: Whether to use manifold operations
-dont_use_manifold = false         # If true, disables manifold operations
-</code></pre></details></div></div><h2 class="is-size-4">Output Paths</h2><div class="instance"><div class="param"><strong>OutputPath:</strong> examples/window-holder-cover/export/v0.1/window-holder-cover/export/v0.1</div><div class="param"><strong>ExportFolderPath:</strong> examples/window-holder-cover/export/v0.1</div><div class="param"><strong>ReadmePath:</strong> examples/window-holder-cover/export/v0.1/window-holder-cover/README.md</div><div class="param"><strong>LogOutputPath:</strong> examples/window-holder-cover/export/v0.1/window-holder-cover/export_log.log</div></div><div class="footer"><p>Generated by openscadgen  at 2025-05-10 19:53:50</p></div></div></body></html>
+            // Log all htmx events
+            document.body.addEventListener('htmx:afterRequest', function(evt) {
+                console.log('htmx:afterRequest', evt);
+            });
+            document.body.addEventListener('htmx:sendError', function(evt) {
+                console.error('htmx:sendError', evt);
+            });
+            document.body.addEventListener('htmx:responseError', function(evt) {
+                console.error('htmx:responseError', evt);
+            });
+            document.body.addEventListener('htmx:beforeRequest', function(evt) {
+                console.log('htmx:beforeRequest', evt);
+            });
+            document.body.addEventListener('htmx:beforeSend', function(evt) {
+                console.log('htmx:beforeSend', evt);
+            });
+            document.body.addEventListener('htmx:afterOnLoad', function(evt) {
+                console.log('htmx:afterOnLoad', evt);
+            });
+        </script><div><h1>Config Summary</h1><p>Output Path: /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/export/v0.1/report.html</p><p>Total Time: 2.15s</p><p>No global parameters</p><h2>Output Paths</h2><p><strong>OutputPath:</strong> /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/window-holder-cover/export/v0.1/report.html</p><p class="is-size-6 is-italic is-text-grey is-centered">Generated by openscadgen OpenSCAD version 2025.07.21 v2.7.25 at 2025-10-02 09:44:09</p><p class="is-size-6 is-italic is-text-grey is-centered">Total processing time: 2.15s</p></div></div></body></html>

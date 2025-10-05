@@ -11,7 +11,7 @@ $fs = $preview ? 5 : 1;
 $fn = 200;
 
 module cube_demo(){
-	cube(size=cube_size, center=cube_center, anchor=cube_anchor, spin=cube_spin, orient=cube_orient);
+	cube(size=cube_size, center=cube_center, anchor=cube_anchor, spin=cube_spin, orient=cube_orient, rounding=round);
 }
 
 cube_demo(); 

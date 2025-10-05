@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # Development service with live reloading
+  openscadgen-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "6767:6767"  # openscadgen server port
+    volumes:
+      - .:/app
+      - /app/pkg/templates  # Exclude generated templates from volume mount
+    environment:
+      - GO_ENV=development
+    command: ["just", "dev"]
+    stdin_open: true
+    tty: true
+
+  # Production service
+  openscadgen:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "6767:6767"
+    volumes:
+      - ./examples:/app/examples:ro  # Mount examples as read-only
+      - ./output:/app/output        # Mount output directory
+    environment:
+      - GO_ENV=production
+    command: ["openscadgen", "-sf", "/app/examples", "-p", "6767"]
+    restart: unless-stopped
+
+  # Standalone OpenSCAD service (if needed)
+  openscad:
+    image: alpine:latest
+    command: ["sh", "-c", "apk add --no-cache openscad && openscad --version"]
+    volumes:
+      - ./examples:/app/examples:ro
+    profiles:
+      - openscad-only

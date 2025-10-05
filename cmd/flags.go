@@ -74,7 +74,10 @@ func ParseFlags() models.CmdFlags {
 
 	flag.BoolVar(&cmdFlags.Server, "s", false, "Start in server mode")
 
-	flag.StringVar(&cmdFlags.ServerFolder, "sf", "", "Start in server mode, optionally specify a folder to scan for config files")
+	flag.StringVar(&cmdFlags.ServerFolder, "sf", "", "Start in server mode, optionally specify a folder to scan for config files (use -p to set the port)")
+	flag.IntVar(&cmdFlags.ServerPort, "p", 8080, "Set the port for the server")
+
+	flag.StringVar(&cmdFlags.ProcessFolder, "cf", "", "Process a folder of config files. Will search for config.toml files and process them all")
 
 	flag.BoolVar(&cmdFlags.EnableFileWatcher, "enable-file-watcher", false, "Enable file watchers to automatically regenerate on changes (default false)")
 	flag.BoolVar(&cmdFlags.EnableFileWatcher, "efw", false, "Alias for -enable-file-watcher")

@@ -1,0 +1,61 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+NIX.md
+*.md
+docs/
+
+# Build artifacts
+dist/
+___dist/
+openscadgen
+*.log
+*.stl
+*.3mf
+**/*.stl
+result
+
+# Nix
+flake.nix
+flake.lock
+.envrc
+.direnv
+
+# Development files
+.air.toml
+.air-go.toml
+justfile
+
+# Test files
+tests/
+*.test
+*.html
+test_*.html
+test_*.js
+test_*.stl
+test_*.log
+
+# Export directories
+**/export/
+**/output/
+
+# Library files (large, not needed in container)
+library/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+tmp/
+temp/

@@ -2,11 +2,11 @@
 name = "football_cards"
 description = ""
 
-version = "v0.1"
+version = "v0.2"
 
-export_name_format = "{designFileName}_{initals}"
+export_name_format = "{designFileName}/{type}/{initals}"
 
-global_params = { initals = "GC,ML,JC," }
+global_params = { initals = "GC,ML,JC,NM,CC,NH,TW,JG", type = "insert,normal" }
 
 [[openscadgen.images]]
 name = "nice"
@@ -16,4 +16,5 @@ name = "top"
 
 [[openscadgen.input_paths]]
 path = "./football_cards.scad"
+
 

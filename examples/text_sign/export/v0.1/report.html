@@ -1,0 +1,1123 @@
+<!doctype html><html lang="en" x-data="alpineReportData()" x-init="init()"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>text_sign_with_supports - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"><script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script><script>
+        function alpineReportData() {
+            return {
+                darkMode: true,
+                showDebug: false,
+                navSelected: "instances",
+                searchQuery: '',
+                configHistory: JSON.parse(localStorage.getItem('configHistory') || '[]'),
+                configFile: '',
+                savedConfigFile: localStorage.getItem('savedConfigFile') || '',
+                searchHistory: JSON.parse(localStorage.getItem('searchHistory') || '[]'),
+                saveConfigFile(path) {
+                    if (path && !this.configHistory.includes(path)) {
+                        this.configHistory.unshift(path);
+                        localStorage.setItem('configHistory', JSON.stringify(this.configHistory));
+                    }
+                    this.savedConfigFile = path;
+                    localStorage.setItem('savedConfigFile', path);
+                },
+                init() {
+                    // Watchers
+                    this.$watch('darkMode', value => {
+                        localStorage.setItem('darkMode', value);
+                        document.documentElement.classList.toggle('dark', value);
+                    });
+                    this.$watch('showDebug', value => {
+                        localStorage.setItem('showDebug', value);
+                    });
+                    this.$watch('searchQuery', value => {
+                        if (value && !this.searchHistory.includes(value)) {
+                            this.searchHistory.unshift(value);
+                            this.searchHistory = this.searchHistory.slice(0, 20);
+                            localStorage.setItem('searchHistory', JSON.stringify(this.searchHistory));
+                        }
+                    });
+
+                    // Initial dark mode setup
+                    this.darkMode = localStorage.getItem('darkMode') === 'true' ||
+                        (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+                    this.showDebug = localStorage.getItem('showDebug') === 'true';
+                    // Initial config file setup
+                    this.configFile = '\/Users\/gregc\/mine\/making\/3d-printing\/openSCAD\/openscadgen\/examples\/text_sign\/config.toml'; // or whatever templating you use
+                    if (this.configFile) {
+                        this.saveConfigFile(this.configFile);
+                    }
+                }
+            }
+        }
+        </script><script>
+                (function() {
+                    var darkMode = localStorage.getItem('darkMode');
+                    if (darkMode === null) {
+                        darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    } else {
+                        darkMode = darkMode === 'true';
+                    }
+                    if (darkMode) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                })();
+            </script><script>
+                function copyDetailsContent() {
+                    const button = $el.querySelector('button');
+                    const codeBlock = $el.querySelector('pre code');
+                    const content = codeBlock.textContent;
+                    navigator.clipboard.writeText(content).then(() => {
+                        const originalText = button.textContent;
+                        button.textContent = 'Copied!';
+                        setTimeout(() => {
+                            button.textContent = originalText;
+                        }, 1000);
+                    });
+                }
+            </script><style>
+                :root {
+                    --bg-color: #ffffff;
+                    --text-color: #333333;
+                    --card-bg: #ffffff;
+                    --border-color: #eee;
+                    --accent-color: #0066cc;
+                    --hover-bg: #f5f5f5;
+                    --error-color: #b00020;
+                    --success-color: #007e33;
+                    
+                }
+
+html, body {
+    min-height: 100vh;
+}
+               
+                .dark {
+                    --bg-color: #1a1a1a;
+                    --text-color: #f5f5f5 !important;
+                    --card-bg: #2d2d2d;
+                    --border-color: #404040;
+                    --accent-color: #66aaff;
+                    --hover-bg: #23272e;
+                    --error-color: #ff6f6f;
+                    --success-color: #4caf50;
+                    color: var(--text-color) !important;
+                }
+
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    background-color: var(--bg-color);
+                    color: var(--text-color);
+                    padding: 3rem;
+                }
+                .container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 20px;
+                    background-color: var(--bg-color);
+                    color: var(--text-color);
+                }
+                .global-header {
+                    position: sticky;
+                    top: 0;
+                    background-color: var(--bg-color);
+                    z-index: 1000;
+                    padding: 1rem;
+                    border-bottom: 1px solid var(--border-color);
+                    margin-bottom: 2rem;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+                .global-header .container {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 0;
+                }
+                .search-box {
+                    flex: 1;
+                    max-width: 400px;
+                    margin: 0 1rem;
+                }
+                .table-container {
+                    margin: 20px 0;
+                    overflow-x: auto;
+                    position: relative;
+                }
+                .table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 20px 0;
+                    background-color: var(--card-bg);
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+                }
+                .table thead {
+                    position: sticky;
+                    top: 0;
+                    z-index: 10;
+                }
+                .table th, .table td {
+                    padding: 12px;
+                    text-align: left;
+                    border-bottom: 1px solid #ddd;
+                    color: var(--text-color);
+                }
+                .table thead th, .table thead td {
+                    color: var(--text-color) !important;
+                }
+                h1 {
+                    color: var(--text-color);
+                    border-bottom: 2px solid var(--text-color);
+                    padding-bottom: 10px;
+                }
+                h2, h3 {
+                    color: var(--text-color);
+                }
+                .header {
+                    margin-bottom: 30px;
+                    position: sticky;
+                    top: 0;
+                    background-color: var(--bg-color);
+                    z-index: 100;
+                    padding: 1rem 0;
+                    border-bottom: 1px solid var(--border-color);
+                }
+                .header .level {
+                    margin-bottom: 0;
+                }
+                /*.params {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                    gap: 10px;
+                    margin-top: 10px;
+                }
+                .param {
+                    background: var(--card-bg);
+                    padding: 10px;
+                    border-radius: 4px;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                    color: var(--text-color);
+                }*/
+
+                
+       
+                tr:hover {
+                    background-color: var(--hover-bg);
+                }
+                .error {
+                    color: var(--error-color);
+                }
+                .success {
+                    color: var(--success-color);
+                }
+                .camera-coords {
+                    background-color: var(--card-bg);
+                    padding: 10px;
+                    border-radius: 4px;
+                    margin: 5px 0;
+                    color: var(--text-color);
+                }
+                .camera-coords ul {
+                    margin: 5px 0;
+                    padding-left: 20px;
+                }
+                .camera-coords p {
+                    margin: 5px 0;
+                }
+                details {
+                    cursor: pointer;
+                }
+                details summary {
+                    color: var(--accent-color);
+                }
+                details summary:hover {
+                    text-decoration: underline;
+                }
+                .image-preview {
+                    max-width: 200px;
+                    max-height: 200px;
+                    border: 1px solid var(--border-color);
+                    border-radius: 4px;
+                    object-fit: contain;
+                }
+                .image-error {
+                    color: var(--text-color);
+                    font-style: italic;
+                    font-size: 0.9em;
+                }
+                .button {
+                    color: var(--text-color) !important;
+                    background-color: var(--card-bg) !important;
+                    border: 1px solid var(--border-color) !important;
+                }
+                pre, code {
+                    color: var(--text-color) !important;
+                    background-color: var(--card-bg) !important;
+                }
+                
+                /* Side Navigation Styles */
+                .menu-item {
+                    color: var(--text-color) !important;
+                    text-decoration: none;
+                    display: block;
+                    padding: 0.5rem;
+                    border-radius: 4px;
+                    transition: background-color 0.2s;
+                }
+                
+                .menu-item:hover {
+                    background-color: var(--hover-bg);
+                    color: var(--text-color) !important;
+                }
+                
+                .menu-item:active {
+                    background-color: var(--accent-color);
+                    color: white !important;
+                }
+                
+                .menu-list {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                }
+                
+                .menu-list li {
+                    margin-bottom: 0.5rem;
+                }
+                
+                .media {
+                    display: flex;
+                    align-items: center;
+                }
+                
+                .media-left {
+                    margin-right: 0.75rem;
+                }
+                
+                .media-content {
+                    flex: 1;
+                }
+                
+                .p-4 {
+                    padding: 1rem;
+                }
+                
+                .mb-1 {
+                    margin-bottom: 0.25rem;
+                }
+                
+                .mb-4 {
+                    margin-bottom: 1rem;
+                }
+                
+                .mt-2 {
+                    margin-top: 0.5rem;
+                }
+                
+                .has-text-grey {
+                    color: #6b7280 !important;
+                }
+                
+                .is-rounded {
+                    border-radius: 50%;
+                }
+                
+                /* Dark mode card styling */
+                .dark .card {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .card-content {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .card .title,
+                .dark .card .subtitle {
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .card .content {
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .card .content strong {
+                    color: var(--text-color) !important;
+                }
+                
+                /* Dark mode navbar styling */
+                .dark .navbar {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .navbar-light {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .bg-light {
+                    background-color: var(--card-bg) !important;
+                }
+                
+                .dark .navbar-brand {
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .nav-link {
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .nav-link:hover {
+                    color: var(--accent-color) !important;
+                }
+                
+                .dark .navbar-nav .nav-item.active .nav-link {
+                    color: var(--accent-color) !important;
+                }
+                
+                .dark .form-control {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                    border-color: var(--border-color) !important;
+                }
+                
+                .dark .btn {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                    border-color: var(--border-color) !important;
+                }
+                
+                .dark .btn:hover {
+                    background-color: var(--hover-bg) !important;
+                    color: var(--text-color) !important;
+                }
+            </style></head><body><div x-show="showDebug">Show DEBUG ON</div><div class="container-fluid"><!-- Main Content --> <nav class="navbar navbar-expand-lg navbar-light bg-light"><a class="navbar-brand">text_sign_with_supports</a> <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button><div class="collapse navbar-collapse" id="navbarSupportedContent"><ul class="navbar-nav mr-auto"><li class="nav-item" :class="{ active: navSelected === 'instances' }"><a class="nav-link" @click="navSelected = 'instances'">Instances 5</a></li><li class="nav-item" :class="{ active: navSelected === 'stlResults' }"><a class="nav-link" @click="navSelected = 'stlResults'">STL Results 5</a></li><li class="nav-item" :class="{ active: navSelected === 'imageResults' }"></li><li class="nav-item" :class="{ active: navSelected === 'images' }"></li><li class="nav-item" :class="{ active: navSelected === 'json' }"><a class="nav-link" @click="navSelected = 'json'">Config</a></li></ul><form class="form-inline my-2 my-lg-0"><input class="form-control mr-sm-2" type="search" placeholder="Filter instances..." x-model="searchQuery" aria-label="Search"> <button class="btn btn-outline-success my-2 my-sm-0" type="button" @click="searchQuery = ''">Clear</button></form><div class="ml-2"><button class="btn btn-outline-secondary" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button> <button class="btn btn-outline-secondary ml-1" @click="showDebug = !showDebug"><span x-show="!showDebug">🐛</span> <span x-show="showDebug">🐛</span> <span x-show="showDebug" style="text-decoration: underline;">Debug</span></button></div></div></nav><div class="container"><div><div x-show="navSelected === &#39;instances&#39;"><div class="columns is-multiline"><style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">Instance 0</summary><div class="json-viewer-content"><pre class="json-pretty">{
+  &#34;ID&#34;: &#34;&#34;,
+  &#34;Name&#34;: &#34;&#34;,
+  &#34;AutoName&#34;: &#34;text_sign_(NOTPHIL)&#34;,
+  &#34;Description&#34;: &#34;&#34;,
+  &#34;ExportNameFormat&#34;: &#34;&#34;,
+  &#34;InputPath&#34;: {
+    &#34;Path&#34;: &#34;./text_sign.scad&#34;,
+    &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+    &#34;RawOpenSCADFileName&#34;: &#34;text_sign&#34;,
+    &#34;ExportNameFormat&#34;: &#34;&#34;,
+    &#34;ParamSets&#34;: &#34;&#34;,
+    &#34;Params&#34;: null,
+    &#34;SkipImages&#34;: false,
+    &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+  },
+  &#34;Params&#34;: {
+    &#34;designFileName&#34;: &#34;text_sign&#34;,
+    &#34;textLineOne&#34;: &#34;VOTE&#34;,
+    &#34;textLineThree&#34;: &#34;(NOT PHIL)&#34;,
+    &#34;textLineTwo&#34;: &#34;NOW&#34;,
+    &#34;version&#34;: &#34;v0.1&#34;
+  },
+  &#34;PartIDLetter&#34;: &#34;E&#34;,
+  &#34;UniqueID&#34;: &#34;&#34;,
+  &#34;ConfigError&#34;: &#34;&#34;,
+  &#34;OutputPathV2&#34;: &#34;&#34;,
+  &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_(NOTPHIL).stl&#34;,
+  &#34;IgnoredParams&#34;: null,
+  &#34;ImageResults&#34;: null,
+  &#34;ExportImages&#34;: [],
+  &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_(NOTPHIL)&#34;,
+  &#34;SkipImages&#34;: false,
+  &#34;SkippedReason&#34;: &#34;&#34;,
+  &#34;SkippedImageReason&#34;: &#34;&#34;
+}</pre></div></details> <div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">text_sign_(NOTPHIL) ()</p><p class="subtitle is-6"></p></div></div><div class="content"><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;text_sign&#34;;
+textLineOne = &#34;VOTE&#34;;
+textLineThree = &#34;(NOT PHIL)&#34;;
+textLineTwo = &#34;NOW&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><p><strong>Output Path:</strong> </p><p><strong>Ignored Params:</strong> []</p><div class="grid is-multiline"><div class="cell is-one-third"><strong>textLineThree:</strong> (NOT PHIL)</div><div class="cell is-one-third"><strong>textLineOne:</strong> VOTE</div><div class="cell is-one-third"><strong>textLineTwo:</strong> NOW</div><div class="cell is-one-third"><strong>designFileName:</strong> text_sign</div><div class="cell is-one-third"><strong>version:</strong> v0.1</div></div></div></div></div></div><style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">Instance 1</summary><div class="json-viewer-content"><pre class="json-pretty">{
+  &#34;ID&#34;: &#34;&#34;,
+  &#34;Name&#34;: &#34;&#34;,
+  &#34;AutoName&#34;: &#34;text_sign_DOCTORS&#34;,
+  &#34;Description&#34;: &#34;&#34;,
+  &#34;ExportNameFormat&#34;: &#34;&#34;,
+  &#34;InputPath&#34;: {
+    &#34;Path&#34;: &#34;./text_sign.scad&#34;,
+    &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+    &#34;RawOpenSCADFileName&#34;: &#34;text_sign&#34;,
+    &#34;ExportNameFormat&#34;: &#34;&#34;,
+    &#34;ParamSets&#34;: &#34;&#34;,
+    &#34;Params&#34;: null,
+    &#34;SkipImages&#34;: false,
+    &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+  },
+  &#34;Params&#34;: {
+    &#34;designFileName&#34;: &#34;text_sign&#34;,
+    &#34;textLineOne&#34;: &#34;WE STAND&#34;,
+    &#34;textLineThree&#34;: &#34;DOCTORS&#34;,
+    &#34;textLineTwo&#34;: &#34;WITH OUR&#34;,
+    &#34;version&#34;: &#34;v0.1&#34;
+  },
+  &#34;PartIDLetter&#34;: &#34;C&#34;,
+  &#34;UniqueID&#34;: &#34;&#34;,
+  &#34;ConfigError&#34;: &#34;&#34;,
+  &#34;OutputPathV2&#34;: &#34;&#34;,
+  &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_DOCTORS.stl&#34;,
+  &#34;IgnoredParams&#34;: null,
+  &#34;ImageResults&#34;: null,
+  &#34;ExportImages&#34;: [],
+  &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_DOCTORS&#34;,
+  &#34;SkipImages&#34;: false,
+  &#34;SkippedReason&#34;: &#34;&#34;,
+  &#34;SkippedImageReason&#34;: &#34;&#34;
+}</pre></div></details> <div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">text_sign_DOCTORS ()</p><p class="subtitle is-6"></p></div></div><div class="content"><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;text_sign&#34;;
+textLineOne = &#34;WE STAND&#34;;
+textLineThree = &#34;DOCTORS&#34;;
+textLineTwo = &#34;WITH OUR&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><p><strong>Output Path:</strong> </p><p><strong>Ignored Params:</strong> []</p><div class="grid is-multiline"><div class="cell is-one-third"><strong>textLineThree:</strong> DOCTORS</div><div class="cell is-one-third"><strong>textLineOne:</strong> WE STAND</div><div class="cell is-one-third"><strong>textLineTwo:</strong> WITH OUR</div><div class="cell is-one-third"><strong>designFileName:</strong> text_sign</div><div class="cell is-one-third"><strong>version:</strong> v0.1</div></div></div></div></div></div><style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">Instance 2</summary><div class="json-viewer-content"><pre class="json-pretty">{
+  &#34;ID&#34;: &#34;&#34;,
+  &#34;Name&#34;: &#34;&#34;,
+  &#34;AutoName&#34;: &#34;text_sign_HEROES&#34;,
+  &#34;Description&#34;: &#34;&#34;,
+  &#34;ExportNameFormat&#34;: &#34;&#34;,
+  &#34;InputPath&#34;: {
+    &#34;Path&#34;: &#34;./text_sign.scad&#34;,
+    &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+    &#34;RawOpenSCADFileName&#34;: &#34;text_sign&#34;,
+    &#34;ExportNameFormat&#34;: &#34;&#34;,
+    &#34;ParamSets&#34;: &#34;&#34;,
+    &#34;Params&#34;: null,
+    &#34;SkipImages&#34;: false,
+    &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+  },
+  &#34;Params&#34;: {
+    &#34;designFileName&#34;: &#34;text_sign&#34;,
+    &#34;textLineOne&#34;: &#34;THANK YOU&#34;,
+    &#34;textLineThree&#34;: &#34;HEROES&#34;,
+    &#34;textLineTwo&#34;: &#34;HEALTHCARE&#34;,
+    &#34;version&#34;: &#34;v0.1&#34;
+  },
+  &#34;PartIDLetter&#34;: &#34;D&#34;,
+  &#34;UniqueID&#34;: &#34;&#34;,
+  &#34;ConfigError&#34;: &#34;&#34;,
+  &#34;OutputPathV2&#34;: &#34;&#34;,
+  &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_HEROES.stl&#34;,
+  &#34;IgnoredParams&#34;: null,
+  &#34;ImageResults&#34;: null,
+  &#34;ExportImages&#34;: [],
+  &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_HEROES&#34;,
+  &#34;SkipImages&#34;: false,
+  &#34;SkippedReason&#34;: &#34;&#34;,
+  &#34;SkippedImageReason&#34;: &#34;&#34;
+}</pre></div></details> <div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">text_sign_HEROES ()</p><p class="subtitle is-6"></p></div></div><div class="content"><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;text_sign&#34;;
+textLineOne = &#34;THANK YOU&#34;;
+textLineThree = &#34;HEROES&#34;;
+textLineTwo = &#34;HEALTHCARE&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><p><strong>Output Path:</strong> </p><p><strong>Ignored Params:</strong> []</p><div class="grid is-multiline"><div class="cell is-one-third"><strong>textLineThree:</strong> HEROES</div><div class="cell is-one-third"><strong>textLineOne:</strong> THANK YOU</div><div class="cell is-one-third"><strong>textLineTwo:</strong> HEALTHCARE</div><div class="cell is-one-third"><strong>designFileName:</strong> text_sign</div><div class="cell is-one-third"><strong>version:</strong> v0.1</div></div></div></div></div></div><style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">Instance 3</summary><div class="json-viewer-content"><pre class="json-pretty">{
+  &#34;ID&#34;: &#34;&#34;,
+  &#34;Name&#34;: &#34;&#34;,
+  &#34;AutoName&#34;: &#34;text_sign_NURSES&#34;,
+  &#34;Description&#34;: &#34;&#34;,
+  &#34;ExportNameFormat&#34;: &#34;&#34;,
+  &#34;InputPath&#34;: {
+    &#34;Path&#34;: &#34;./text_sign.scad&#34;,
+    &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+    &#34;RawOpenSCADFileName&#34;: &#34;text_sign&#34;,
+    &#34;ExportNameFormat&#34;: &#34;&#34;,
+    &#34;ParamSets&#34;: &#34;&#34;,
+    &#34;Params&#34;: null,
+    &#34;SkipImages&#34;: false,
+    &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+  },
+  &#34;Params&#34;: {
+    &#34;designFileName&#34;: &#34;text_sign&#34;,
+    &#34;textLineOne&#34;: &#34;WE STAND&#34;,
+    &#34;textLineThree&#34;: &#34;NURSES&#34;,
+    &#34;textLineTwo&#34;: &#34;WITH OUR&#34;,
+    &#34;version&#34;: &#34;v0.1&#34;
+  },
+  &#34;PartIDLetter&#34;: &#34;B&#34;,
+  &#34;UniqueID&#34;: &#34;&#34;,
+  &#34;ConfigError&#34;: &#34;&#34;,
+  &#34;OutputPathV2&#34;: &#34;&#34;,
+  &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_NURSES.stl&#34;,
+  &#34;IgnoredParams&#34;: null,
+  &#34;ImageResults&#34;: null,
+  &#34;ExportImages&#34;: [],
+  &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_NURSES&#34;,
+  &#34;SkipImages&#34;: false,
+  &#34;SkippedReason&#34;: &#34;&#34;,
+  &#34;SkippedImageReason&#34;: &#34;&#34;
+}</pre></div></details> <div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">text_sign_NURSES ()</p><p class="subtitle is-6"></p></div></div><div class="content"><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;text_sign&#34;;
+textLineOne = &#34;WE STAND&#34;;
+textLineThree = &#34;NURSES&#34;;
+textLineTwo = &#34;WITH OUR&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><p><strong>Output Path:</strong> </p><p><strong>Ignored Params:</strong> []</p><div class="grid is-multiline"><div class="cell is-one-third"><strong>textLineThree:</strong> NURSES</div><div class="cell is-one-third"><strong>textLineOne:</strong> WE STAND</div><div class="cell is-one-third"><strong>textLineTwo:</strong> WITH OUR</div><div class="cell is-one-third"><strong>designFileName:</strong> text_sign</div><div class="cell is-one-third"><strong>version:</strong> v0.1</div></div></div></div></div></div><style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">Instance 4</summary><div class="json-viewer-content"><pre class="json-pretty">{
+  &#34;ID&#34;: &#34;&#34;,
+  &#34;Name&#34;: &#34;&#34;,
+  &#34;AutoName&#34;: &#34;text_sign_TEACHERS&#34;,
+  &#34;Description&#34;: &#34;&#34;,
+  &#34;ExportNameFormat&#34;: &#34;&#34;,
+  &#34;InputPath&#34;: {
+    &#34;Path&#34;: &#34;./text_sign.scad&#34;,
+    &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+    &#34;RawOpenSCADFileName&#34;: &#34;text_sign&#34;,
+    &#34;ExportNameFormat&#34;: &#34;&#34;,
+    &#34;ParamSets&#34;: &#34;&#34;,
+    &#34;Params&#34;: null,
+    &#34;SkipImages&#34;: false,
+    &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+  },
+  &#34;Params&#34;: {
+    &#34;designFileName&#34;: &#34;text_sign&#34;,
+    &#34;textLineOne&#34;: &#34;WE STAND&#34;,
+    &#34;textLineThree&#34;: &#34;TEACHERS&#34;,
+    &#34;textLineTwo&#34;: &#34;WITH OUR&#34;,
+    &#34;version&#34;: &#34;v0.1&#34;
+  },
+  &#34;PartIDLetter&#34;: &#34;A&#34;,
+  &#34;UniqueID&#34;: &#34;&#34;,
+  &#34;ConfigError&#34;: &#34;&#34;,
+  &#34;OutputPathV2&#34;: &#34;&#34;,
+  &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_TEACHERS.stl&#34;,
+  &#34;IgnoredParams&#34;: null,
+  &#34;ImageResults&#34;: null,
+  &#34;ExportImages&#34;: [],
+  &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_TEACHERS&#34;,
+  &#34;SkipImages&#34;: false,
+  &#34;SkippedReason&#34;: &#34;&#34;,
+  &#34;SkippedImageReason&#34;: &#34;&#34;
+}</pre></div></details> <div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">text_sign_TEACHERS ()</p><p class="subtitle is-6"></p></div></div><div class="content"><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;text_sign&#34;;
+textLineOne = &#34;WE STAND&#34;;
+textLineThree = &#34;TEACHERS&#34;;
+textLineTwo = &#34;WITH OUR&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><p><strong>Output Path:</strong> </p><p><strong>Ignored Params:</strong> []</p><div class="grid is-multiline"><div class="cell is-one-third"><strong>textLineThree:</strong> TEACHERS</div><div class="cell is-one-third"><strong>textLineOne:</strong> WE STAND</div><div class="cell is-one-third"><strong>textLineTwo:</strong> WITH OUR</div><div class="cell is-one-third"><strong>designFileName:</strong> text_sign</div><div class="cell is-one-third"><strong>version:</strong> v0.1</div></div></div></div></div></div></div> <div class="my-2"></div></div></div> <div><div x-show="navSelected === &#39;stlResults&#39;"><style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">STL Results</summary><div class="json-viewer-content"><pre class="json-pretty">[
+  {
+    &#34;InstanceConfig&#34;: {
+      &#34;ID&#34;: &#34;&#34;,
+      &#34;Name&#34;: &#34;&#34;,
+      &#34;AutoName&#34;: &#34;text_sign_TEACHERS&#34;,
+      &#34;Description&#34;: &#34;&#34;,
+      &#34;ExportNameFormat&#34;: &#34;&#34;,
+      &#34;InputPath&#34;: {
+        &#34;Path&#34;: &#34;./text_sign.scad&#34;,
+        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+        &#34;RawOpenSCADFileName&#34;: &#34;text_sign&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;ParamSets&#34;: &#34;&#34;,
+        &#34;Params&#34;: null,
+        &#34;SkipImages&#34;: false,
+        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+      },
+      &#34;Params&#34;: {
+        &#34;designFileName&#34;: &#34;text_sign&#34;,
+        &#34;textLineOne&#34;: &#34;WE STAND&#34;,
+        &#34;textLineThree&#34;: &#34;TEACHERS&#34;,
+        &#34;textLineTwo&#34;: &#34;WITH OUR&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;PartIDLetter&#34;: &#34;A&#34;,
+      &#34;UniqueID&#34;: &#34;&#34;,
+      &#34;ConfigError&#34;: &#34;&#34;,
+      &#34;OutputPathV2&#34;: &#34;&#34;,
+      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_TEACHERS.stl&#34;,
+      &#34;IgnoredParams&#34;: null,
+      &#34;ImageResults&#34;: [],
+      &#34;ExportImages&#34;: [],
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_TEACHERS&#34;,
+      &#34;SkipImages&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;SkippedImageReason&#34;: &#34;&#34;
+    },
+    &#34;OutputPath&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_TEACHERS.stl&#39; --render --backend=manifold -D &#39;textLineThree=\&#34;TEACHERS\&#34;&#39; -D &#39;textLineOne=\&#34;WE STAND\&#34;&#39; -D &#39;designFileName=\&#34;text_sign\&#34;&#39; -D &#39;textLineTwo=\&#34;WITH OUR\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/text_sign.scad&#34;,
+    &#34;Error&#34;: &#34;&#34;,
+    &#34;AppliedParams&#34;: {
+      &#34;designFileName&#34;: &#34;text_sign&#34;,
+      &#34;textLineOne&#34;: &#34;WE STAND&#34;,
+      &#34;textLineThree&#34;: &#34;TEACHERS&#34;,
+      &#34;textLineTwo&#34;: &#34;WITH OUR&#34;,
+      &#34;version&#34;: &#34;v0.1&#34;
+    },
+    &#34;TimeTaken&#34;: 628016250,
+    &#34;Skipped&#34;: false,
+    &#34;LowQuality&#34;: false,
+    &#34;SkippedReason&#34;: &#34;&#34;,
+    &#34;GenerateImageResult&#34;: null
+  },
+  {
+    &#34;InstanceConfig&#34;: {
+      &#34;ID&#34;: &#34;&#34;,
+      &#34;Name&#34;: &#34;&#34;,
+      &#34;AutoName&#34;: &#34;text_sign_NURSES&#34;,
+      &#34;Description&#34;: &#34;&#34;,
+      &#34;ExportNameFormat&#34;: &#34;&#34;,
+      &#34;InputPath&#34;: {
+        &#34;Path&#34;: &#34;./text_sign.scad&#34;,
+        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+        &#34;RawOpenSCADFileName&#34;: &#34;text_sign&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;ParamSets&#34;: &#34;&#34;,
+        &#34;Params&#34;: null,
+        &#34;SkipImages&#34;: false,
+        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+      },
+      &#34;Params&#34;: {
+        &#34;designFileName&#34;: &#34;text_sign&#34;,
+        &#34;textLineOne&#34;: &#34;WE STAND&#34;,
+        &#34;textLineThree&#34;: &#34;NURSES&#34;,
+        &#34;textLineTwo&#34;: &#34;WITH OUR&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;PartIDLetter&#34;: &#34;B&#34;,
+      &#34;UniqueID&#34;: &#34;&#34;,
+      &#34;ConfigError&#34;: &#34;&#34;,
+      &#34;OutputPathV2&#34;: &#34;&#34;,
+      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_NURSES.stl&#34;,
+      &#34;IgnoredParams&#34;: null,
+      &#34;ImageResults&#34;: [],
+      &#34;ExportImages&#34;: [],
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_NURSES&#34;,
+      &#34;SkipImages&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;SkippedImageReason&#34;: &#34;&#34;
+    },
+    &#34;OutputPath&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_NURSES.stl&#39; --render --backend=manifold -D &#39;designFileName=\&#34;text_sign\&#34;&#39; -D &#39;textLineThree=\&#34;NURSES\&#34;&#39; -D &#39;textLineOne=\&#34;WE STAND\&#34;&#39; -D &#39;textLineTwo=\&#34;WITH OUR\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/text_sign.scad&#34;,
+    &#34;Error&#34;: &#34;&#34;,
+    &#34;AppliedParams&#34;: {
+      &#34;designFileName&#34;: &#34;text_sign&#34;,
+      &#34;textLineOne&#34;: &#34;WE STAND&#34;,
+      &#34;textLineThree&#34;: &#34;NURSES&#34;,
+      &#34;textLineTwo&#34;: &#34;WITH OUR&#34;,
+      &#34;version&#34;: &#34;v0.1&#34;
+    },
+    &#34;TimeTaken&#34;: 436616083,
+    &#34;Skipped&#34;: false,
+    &#34;LowQuality&#34;: false,
+    &#34;SkippedReason&#34;: &#34;&#34;,
+    &#34;GenerateImageResult&#34;: null
+  },
+  {
+    &#34;InstanceConfig&#34;: {
+      &#34;ID&#34;: &#34;&#34;,
+      &#34;Name&#34;: &#34;&#34;,
+      &#34;AutoName&#34;: &#34;text_sign_DOCTORS&#34;,
+      &#34;Description&#34;: &#34;&#34;,
+      &#34;ExportNameFormat&#34;: &#34;&#34;,
+      &#34;InputPath&#34;: {
+        &#34;Path&#34;: &#34;./text_sign.scad&#34;,
+        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+        &#34;RawOpenSCADFileName&#34;: &#34;text_sign&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;ParamSets&#34;: &#34;&#34;,
+        &#34;Params&#34;: null,
+        &#34;SkipImages&#34;: false,
+        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+      },
+      &#34;Params&#34;: {
+        &#34;designFileName&#34;: &#34;text_sign&#34;,
+        &#34;textLineOne&#34;: &#34;WE STAND&#34;,
+        &#34;textLineThree&#34;: &#34;DOCTORS&#34;,
+        &#34;textLineTwo&#34;: &#34;WITH OUR&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;PartIDLetter&#34;: &#34;C&#34;,
+      &#34;UniqueID&#34;: &#34;&#34;,
+      &#34;ConfigError&#34;: &#34;&#34;,
+      &#34;OutputPathV2&#34;: &#34;&#34;,
+      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_DOCTORS.stl&#34;,
+      &#34;IgnoredParams&#34;: null,
+      &#34;ImageResults&#34;: [],
+      &#34;ExportImages&#34;: [],
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_DOCTORS&#34;,
+      &#34;SkipImages&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;SkippedImageReason&#34;: &#34;&#34;
+    },
+    &#34;OutputPath&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_DOCTORS.stl&#39; --render --backend=manifold -D &#39;designFileName=\&#34;text_sign\&#34;&#39; -D &#39;textLineOne=\&#34;WE STAND\&#34;&#39; -D &#39;textLineTwo=\&#34;WITH OUR\&#34;&#39; -D &#39;textLineThree=\&#34;DOCTORS\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/text_sign.scad&#34;,
+    &#34;Error&#34;: &#34;&#34;,
+    &#34;AppliedParams&#34;: {
+      &#34;designFileName&#34;: &#34;text_sign&#34;,
+      &#34;textLineOne&#34;: &#34;WE STAND&#34;,
+      &#34;textLineThree&#34;: &#34;DOCTORS&#34;,
+      &#34;textLineTwo&#34;: &#34;WITH OUR&#34;,
+      &#34;version&#34;: &#34;v0.1&#34;
+    },
+    &#34;TimeTaken&#34;: 499238250,
+    &#34;Skipped&#34;: false,
+    &#34;LowQuality&#34;: false,
+    &#34;SkippedReason&#34;: &#34;&#34;,
+    &#34;GenerateImageResult&#34;: null
+  },
+  {
+    &#34;InstanceConfig&#34;: {
+      &#34;ID&#34;: &#34;&#34;,
+      &#34;Name&#34;: &#34;&#34;,
+      &#34;AutoName&#34;: &#34;text_sign_HEROES&#34;,
+      &#34;Description&#34;: &#34;&#34;,
+      &#34;ExportNameFormat&#34;: &#34;&#34;,
+      &#34;InputPath&#34;: {
+        &#34;Path&#34;: &#34;./text_sign.scad&#34;,
+        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+        &#34;RawOpenSCADFileName&#34;: &#34;text_sign&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;ParamSets&#34;: &#34;&#34;,
+        &#34;Params&#34;: null,
+        &#34;SkipImages&#34;: false,
+        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+      },
+      &#34;Params&#34;: {
+        &#34;designFileName&#34;: &#34;text_sign&#34;,
+        &#34;textLineOne&#34;: &#34;THANK YOU&#34;,
+        &#34;textLineThree&#34;: &#34;HEROES&#34;,
+        &#34;textLineTwo&#34;: &#34;HEALTHCARE&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;PartIDLetter&#34;: &#34;D&#34;,
+      &#34;UniqueID&#34;: &#34;&#34;,
+      &#34;ConfigError&#34;: &#34;&#34;,
+      &#34;OutputPathV2&#34;: &#34;&#34;,
+      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_HEROES.stl&#34;,
+      &#34;IgnoredParams&#34;: null,
+      &#34;ImageResults&#34;: [],
+      &#34;ExportImages&#34;: [],
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_HEROES&#34;,
+      &#34;SkipImages&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;SkippedImageReason&#34;: &#34;&#34;
+    },
+    &#34;OutputPath&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_HEROES.stl&#39; --render --backend=manifold -D &#39;textLineOne=\&#34;THANK YOU\&#34;&#39; -D &#39;textLineTwo=\&#34;HEALTHCARE\&#34;&#39; -D &#39;textLineThree=\&#34;HEROES\&#34;&#39; -D &#39;designFileName=\&#34;text_sign\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/text_sign.scad&#34;,
+    &#34;Error&#34;: &#34;&#34;,
+    &#34;AppliedParams&#34;: {
+      &#34;designFileName&#34;: &#34;text_sign&#34;,
+      &#34;textLineOne&#34;: &#34;THANK YOU&#34;,
+      &#34;textLineThree&#34;: &#34;HEROES&#34;,
+      &#34;textLineTwo&#34;: &#34;HEALTHCARE&#34;,
+      &#34;version&#34;: &#34;v0.1&#34;
+    },
+    &#34;TimeTaken&#34;: 350596708,
+    &#34;Skipped&#34;: false,
+    &#34;LowQuality&#34;: false,
+    &#34;SkippedReason&#34;: &#34;&#34;,
+    &#34;GenerateImageResult&#34;: null
+  },
+  {
+    &#34;InstanceConfig&#34;: {
+      &#34;ID&#34;: &#34;&#34;,
+      &#34;Name&#34;: &#34;&#34;,
+      &#34;AutoName&#34;: &#34;text_sign_(NOTPHIL)&#34;,
+      &#34;Description&#34;: &#34;&#34;,
+      &#34;ExportNameFormat&#34;: &#34;&#34;,
+      &#34;InputPath&#34;: {
+        &#34;Path&#34;: &#34;./text_sign.scad&#34;,
+        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+        &#34;RawOpenSCADFileName&#34;: &#34;text_sign&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;ParamSets&#34;: &#34;&#34;,
+        &#34;Params&#34;: null,
+        &#34;SkipImages&#34;: false,
+        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+      },
+      &#34;Params&#34;: {
+        &#34;designFileName&#34;: &#34;text_sign&#34;,
+        &#34;textLineOne&#34;: &#34;VOTE&#34;,
+        &#34;textLineThree&#34;: &#34;(NOT PHIL)&#34;,
+        &#34;textLineTwo&#34;: &#34;NOW&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;PartIDLetter&#34;: &#34;E&#34;,
+      &#34;UniqueID&#34;: &#34;&#34;,
+      &#34;ConfigError&#34;: &#34;&#34;,
+      &#34;OutputPathV2&#34;: &#34;&#34;,
+      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_(NOTPHIL).stl&#34;,
+      &#34;IgnoredParams&#34;: null,
+      &#34;ImageResults&#34;: [],
+      &#34;ExportImages&#34;: [],
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_(NOTPHIL)&#34;,
+      &#34;SkipImages&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;SkippedImageReason&#34;: &#34;&#34;
+    },
+    &#34;OutputPath&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_(NOTPHIL).stl&#39; --render --backend=manifold -D &#39;textLineTwo=\&#34;NOW\&#34;&#39; -D &#39;designFileName=\&#34;text_sign\&#34;&#39; -D &#39;textLineThree=\&#34;(NOT PHIL)\&#34;&#39; -D &#39;textLineOne=\&#34;VOTE\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/text_sign.scad&#34;,
+    &#34;Error&#34;: &#34;&#34;,
+    &#34;AppliedParams&#34;: {
+      &#34;designFileName&#34;: &#34;text_sign&#34;,
+      &#34;textLineOne&#34;: &#34;VOTE&#34;,
+      &#34;textLineThree&#34;: &#34;(NOT PHIL)&#34;,
+      &#34;textLineTwo&#34;: &#34;NOW&#34;,
+      &#34;version&#34;: &#34;v0.1&#34;
+    },
+    &#34;TimeTaken&#34;: 429295750,
+    &#34;Skipped&#34;: false,
+    &#34;LowQuality&#34;: false,
+    &#34;SkippedReason&#34;: &#34;&#34;,
+    &#34;GenerateImageResult&#34;: null
+  }
+]</pre></div></details> <div class="columns is-multiline"><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4"></p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 628.01625ms</p><p><strong>Output:</strong> <a href="" target="_blank">Download STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;text_sign&#34;;
+textLineOne = &#34;WE STAND&#34;;
+textLineThree = &#34;TEACHERS&#34;;
+textLineTwo = &#34;WITH OUR&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_TEACHERS.stl&#39; --render --backend=manifold -D &#39;textLineThree=&#34;TEACHERS&#34;&#39; -D &#39;textLineOne=&#34;WE STAND&#34;&#39; -D &#39;designFileName=&#34;text_sign&#34;&#39; -D &#39;textLineTwo=&#34;WITH OUR&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/text_sign.scad</pre></code></div></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4"></p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 436.616083ms</p><p><strong>Output:</strong> <a href="" target="_blank">Download STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;text_sign&#34;;
+textLineOne = &#34;WE STAND&#34;;
+textLineThree = &#34;NURSES&#34;;
+textLineTwo = &#34;WITH OUR&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_NURSES.stl&#39; --render --backend=manifold -D &#39;designFileName=&#34;text_sign&#34;&#39; -D &#39;textLineThree=&#34;NURSES&#34;&#39; -D &#39;textLineOne=&#34;WE STAND&#34;&#39; -D &#39;textLineTwo=&#34;WITH OUR&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/text_sign.scad</pre></code></div></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4"></p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 499.23825ms</p><p><strong>Output:</strong> <a href="" target="_blank">Download STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;text_sign&#34;;
+textLineOne = &#34;WE STAND&#34;;
+textLineThree = &#34;DOCTORS&#34;;
+textLineTwo = &#34;WITH OUR&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_DOCTORS.stl&#39; --render --backend=manifold -D &#39;designFileName=&#34;text_sign&#34;&#39; -D &#39;textLineOne=&#34;WE STAND&#34;&#39; -D &#39;textLineTwo=&#34;WITH OUR&#34;&#39; -D &#39;textLineThree=&#34;DOCTORS&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/text_sign.scad</pre></code></div></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4"></p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 350.596708ms</p><p><strong>Output:</strong> <a href="" target="_blank">Download STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;text_sign&#34;;
+textLineOne = &#34;THANK YOU&#34;;
+textLineThree = &#34;HEROES&#34;;
+textLineTwo = &#34;HEALTHCARE&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_HEROES.stl&#39; --render --backend=manifold -D &#39;textLineOne=&#34;THANK YOU&#34;&#39; -D &#39;textLineTwo=&#34;HEALTHCARE&#34;&#39; -D &#39;textLineThree=&#34;HEROES&#34;&#39; -D &#39;designFileName=&#34;text_sign&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/text_sign.scad</pre></code></div></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4"></p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 429.29575ms</p><p><strong>Output:</strong> <a href="" target="_blank">Download STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;text_sign&#34;;
+textLineOne = &#34;VOTE&#34;;
+textLineThree = &#34;(NOT PHIL)&#34;;
+textLineTwo = &#34;NOW&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/text_sign_(NOTPHIL).stl&#39; --render --backend=manifold -D &#39;textLineTwo=&#34;NOW&#34;&#39; -D &#39;designFileName=&#34;text_sign&#34;&#39; -D &#39;textLineThree=&#34;(NOT PHIL)&#34;&#39; -D &#39;textLineOne=&#34;VOTE&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/text_sign.scad</pre></code></div></details></div></div></div></div></div></div></div></div> <div><div x-show="navSelected === &#39;images&#39;"><div>Add export images to the config file to generate images for each instance:<div class="code-block"><code style="white-space: pre;"><pre>
+                        [[openscadgen.images]]
+                        name = &#34;nice&#34;
+
+                        [[openscadgen.images]]
+                        name = &#34;front&#34;
+
+                        [[openscadgen.images]]
+                        name = &#34;custom&#34;
+                        coord = &#34;0,0,0,90,0,0,600&#34;
+                        </pre></code></div></div></div></div> <div></div></div><script>
+            // Enable htmx debug mode
+            window.htmx && (htmx.config.debug = true);
+
+            // Log all htmx events
+            document.body.addEventListener('htmx:afterRequest', function(evt) {
+                console.log('htmx:afterRequest', evt);
+            });
+            document.body.addEventListener('htmx:sendError', function(evt) {
+                console.error('htmx:sendError', evt);
+            });
+            document.body.addEventListener('htmx:responseError', function(evt) {
+                console.error('htmx:responseError', evt);
+            });
+            document.body.addEventListener('htmx:beforeRequest', function(evt) {
+                console.log('htmx:beforeRequest', evt);
+            });
+            document.body.addEventListener('htmx:beforeSend', function(evt) {
+                console.log('htmx:beforeSend', evt);
+            });
+            document.body.addEventListener('htmx:afterOnLoad', function(evt) {
+                console.log('htmx:afterOnLoad', evt);
+            });
+        </script><div><h1>Config Summary</h1><p>Output Path: /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/report.html</p><p>Total Time: 3.98s</p><p>No global parameters</p><h2>Output Paths</h2><p><strong>OutputPath:</strong> /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/text_sign/export/v0.1/report.html</p><p class="is-size-6 is-italic is-text-grey is-centered">Generated by openscadgen OpenSCAD version 2025.07.21 v2.7.25 at 2025-10-02 09:24:26</p><p class="is-size-6 is-italic is-text-grey is-centered">Total processing time: 3.98s</p></div></div></body></html>

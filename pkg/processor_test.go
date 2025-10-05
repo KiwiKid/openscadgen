@@ -1132,7 +1132,7 @@ func TestGenerateParamCombinations(t *testing.T) {
 		paramCombos := map[string]interface{}{
 			"color": "red,blue,green",
 		}
-		result, err := convertToParamCombinations(paramCombos, map[string]bool{})
+		result, err := convertToParamCombinations(paramCombos, map[string]bool{}, []string{})
 		if err != nil {
 			t.Errorf("Error converting parameters: %v", err)
 		}
@@ -1170,7 +1170,7 @@ func TestGenerateParamCombinations(t *testing.T) {
 			"size":  "small,large",
 			"shape": "circle,square",
 		}
-		result, err := convertToParamCombinations(paramCombos, map[string]bool{})
+		result, err := convertToParamCombinations(paramCombos, map[string]bool{}, []string{})
 		if err != nil {
 			t.Errorf("Error converting parameters: %v", err)
 		}
@@ -1359,7 +1359,9 @@ coord = "0,0,0,90,0,0,600"
 				}*/
 
 			// Process the config
-			result, err := Process(config, &NoopProgress{}, nil)
+			result, err := Process(config, &NoopProgress{}, nil, Operations{
+				GenerateReport: true,
+			})
 			if err != nil {
 				t.Fatalf("Failed to process config: %v", err)
 			}
@@ -1804,13 +1806,49 @@ func TestScanFolderForConfigFiles(t *testing.T) {
 	binPath := filepath.Join(tmpDir, "bin.toml")
 	os.WriteFile(binPath, []byte{0x00, 0x01, 0x02, 0x03}, 0644)
 
+	// Create export folder and add config files there (should be excluded)
+	exportDir := filepath.Join(tmpDir, "export")
+	os.MkdirAll(exportDir, 0755)
+	exportConfigPath := filepath.Join(exportDir, "export_config.toml")
+	os.WriteFile(exportConfigPath, []byte("[openscadgen]\nname = 'export_config'\n"), 0644)
+
+	// Create nested export folder
+	nestedExportDir := filepath.Join(tmpDir, "project", "export", "v1.0")
+	os.MkdirAll(nestedExportDir, 0755)
+	nestedExportConfigPath := filepath.Join(nestedExportDir, "nested_export_config.toml")
+	os.WriteFile(nestedExportConfigPath, []byte("[openscadgen]\nname = 'nested_export_config'\n"), 0644)
+
+	// Create another valid config file outside export
+	anotherValidPath := filepath.Join(tmpDir, "another_valid.toml")
+	os.WriteFile(anotherValidPath, []byte("[openscadgen]\nname = 'another_valid'\n"), 0644)
+
 	files, err := ScanFolderForConfigFiles(tmpDir)
 	if err != nil {
 		t.Fatalf("ScanFolderForConfigFiles error: %v", err)
 	}
 
-	if len(files) != 1 || files[0].Path != validPath {
-		t.Errorf("Expected only valid.toml, got: %v", files)
+	// Should only find the two valid config files outside export folders
+	expectedPaths := []string{"/valid.toml", "/another_valid.toml"}
+	if len(files) != 2 {
+		t.Errorf("Expected 2 files, got %d: %v", len(files), files)
+	}
+
+	// Check that export folder files are excluded
+	for _, file := range files {
+		if strings.Contains(file.Path, "export") {
+			t.Errorf("Found file in export folder (should be excluded): %s", file.Path)
+		}
+	}
+
+	// Verify we have the expected files
+	foundPaths := make(map[string]bool)
+	for _, file := range files {
+		foundPaths[file.Path] = true
+	}
+	for _, expectedPath := range expectedPaths {
+		if !foundPaths[expectedPath] {
+			t.Errorf("Expected file not found: %s", expectedPath)
+		}
 	}
 }
 
@@ -1854,7 +1892,9 @@ name = "nice"
 		t.Fatalf("Failed to load config: %v", err)
 	}
 
-	result, err := Process(config, &NoopProgress{}, nil)
+	result, err := Process(config, &NoopProgress{}, nil, Operations{
+		GenerateReport: true,
+	})
 	if err != nil {
 		t.Fatalf("Failed to process config: %v", err)
 	}
@@ -2111,4 +2151,384 @@ func TestHTMLProgressReport(t *testing.T) {
 
 	t.Logf("HTML report generated successfully at: %s", outputFile)
 	t.Logf("HTML content length: %d characters", len(htmlContentStr))
+}
+
+// TestDirectArrayParams tests the new direct array parameters functionality
+func TestDirectArrayParams(t *testing.T) {
+	testCases := []TestCase{
+		{
+			name: "basic direct array parameter with string format",
+			input: Input{
+				dynamicInstance: models.ConfiguredInstanceConfig{
+					Name:              "inst1",
+					Params:            map[string]interface{}{"supports": "[[20,80], [110,80]]"},
+					DirectArrayParams: []string{"supports"},
+				},
+				globalParams: map[string]interface{}{},
+				paramSets:    []models.ParamSet{},
+				inputPath:    models.InputPath{},
+			},
+			output: Output{
+				params: map[string]interface{}{
+					"supports": []interface{}{
+						[]interface{}{20.0, 80.0},
+						[]interface{}{110.0, 80.0},
+					},
+				},
+				globalParamsMap: map[string][]interface{}{},
+				ignoredKeys:     nil,
+			},
+		},
+		{
+			name: "direct array parameter with TOML array format",
+			input: Input{
+				dynamicInstance: models.ConfiguredInstanceConfig{
+					Name:              "inst1",
+					Params:            map[string]interface{}{"supports": []interface{}{[]interface{}{20.0, 80.0}, []interface{}{110.0, 80.0}}},
+					DirectArrayParams: []string{"supports"},
+				},
+				globalParams: map[string]interface{}{},
+				paramSets:    []models.ParamSet{},
+				inputPath:    models.InputPath{},
+			},
+			output: Output{
+				params: map[string]interface{}{
+					"supports": []interface{}{
+						[]interface{}{20.0, 80.0},
+						[]interface{}{110.0, 80.0},
+					},
+				},
+				globalParamsMap: map[string][]interface{}{},
+				ignoredKeys:     nil,
+			},
+		},
+		{
+			name: "complex nested array with multiple support points",
+			input: Input{
+				dynamicInstance: models.ConfiguredInstanceConfig{
+					Name:              "inst1",
+					Params:            map[string]interface{}{"supports": "[[[20,80], [110,80]], [[10,10], [110,10]], [[40,-60], [110,-60]]]"},
+					DirectArrayParams: []string{"supports"},
+				},
+				globalParams: map[string]interface{}{},
+				paramSets:    []models.ParamSet{},
+				inputPath:    models.InputPath{},
+			},
+			output: Output{
+				params: map[string]interface{}{
+					"supports": []interface{}{
+						[]interface{}{[]interface{}{20.0, 80.0}, []interface{}{110.0, 80.0}},
+						[]interface{}{[]interface{}{10.0, 10.0}, []interface{}{110.0, 10.0}},
+						[]interface{}{[]interface{}{40.0, -60.0}, []interface{}{110.0, -60.0}},
+					},
+				},
+				globalParamsMap: map[string][]interface{}{},
+				ignoredKeys:     nil,
+			},
+		},
+		{
+			name: "direct array parameter mixed with regular parameters",
+			input: Input{
+				dynamicInstance: models.ConfiguredInstanceConfig{
+					Name:              "inst1",
+					Params:            map[string]interface{}{"supports": "[[20,80], [110,80]]", "color": "red", "size": "large"},
+					DirectArrayParams: []string{"supports"},
+				},
+				globalParams: map[string]interface{}{},
+				paramSets:    []models.ParamSet{},
+				inputPath:    models.InputPath{},
+			},
+			output: Output{
+				params: map[string]interface{}{
+					"supports": []interface{}{
+						[]interface{}{20.0, 80.0},
+						[]interface{}{110.0, 80.0},
+					},
+					"color": "red",
+					"size":  "large",
+				},
+				globalParamsMap: map[string][]interface{}{},
+				ignoredKeys:     nil,
+			},
+		},
+		{
+			name: "direct array parameter with comma splitting disabled",
+			input: Input{
+				dynamicInstance: models.ConfiguredInstanceConfig{
+					Name:                "inst1",
+					Params:              map[string]interface{}{"supports": "[[20,80], [110,80]]", "colors": "red,blue,green"},
+					DirectArrayParams:   []string{"supports"},
+					IgnoreCommaInParams: []string{"colors"},
+				},
+				globalParams: map[string]interface{}{},
+				paramSets:    []models.ParamSet{},
+				inputPath:    models.InputPath{},
+			},
+			output: Output{
+				params: map[string]interface{}{
+					"supports": []interface{}{
+						[]interface{}{20.0, 80.0},
+						[]interface{}{110.0, 80.0},
+					},
+					"colors": "red,blue,green", // Should not be split due to ignore_comma_in_params
+				},
+				globalParamsMap: map[string][]interface{}{},
+				ignoredKeys:     nil,
+			},
+		},
+		{
+			name: "direct array parameter with invalid format falls back to regular processing",
+			input: Input{
+				dynamicInstance: models.ConfiguredInstanceConfig{
+					Name:              "inst1",
+					Params:            map[string]interface{}{"supports": "invalid_array_format"},
+					DirectArrayParams: []string{"supports"},
+				},
+				globalParams: map[string]interface{}{},
+				paramSets:    []models.ParamSet{},
+				inputPath:    models.InputPath{},
+			},
+			output: Output{
+				params: map[string]interface{}{
+					"supports": "invalid_array_format", // Should fall back to original value
+				},
+				globalParamsMap: map[string][]interface{}{},
+				ignoredKeys:     nil,
+			},
+		},
+		{
+			name: "empty direct array parameter",
+			input: Input{
+				dynamicInstance: models.ConfiguredInstanceConfig{
+					Name:              "inst1",
+					Params:            map[string]interface{}{"supports": "[]"},
+					DirectArrayParams: []string{"supports"},
+				},
+				globalParams: map[string]interface{}{},
+				paramSets:    []models.ParamSet{},
+				inputPath:    models.InputPath{},
+			},
+			output: Output{
+				params: map[string]interface{}{
+					"supports": []interface{}{}, // Empty array
+				},
+				globalParamsMap: map[string][]interface{}{},
+				ignoredKeys:     nil,
+			},
+		},
+		{
+			name: "direct array parameter with mixed data types",
+			input: Input{
+				dynamicInstance: models.ConfiguredInstanceConfig{
+					Name:              "inst1",
+					Params:            map[string]interface{}{"data": "[[20, 80], [\"text\", true], [1.5, false]]"},
+					DirectArrayParams: []string{"data"},
+				},
+				globalParams: map[string]interface{}{},
+				paramSets:    []models.ParamSet{},
+				inputPath:    models.InputPath{},
+			},
+			output: Output{
+				params: map[string]interface{}{
+					"data": []interface{}{
+						[]interface{}{20.0, 80.0},
+						[]interface{}{"text", true},
+						[]interface{}{1.5, false},
+					},
+				},
+				globalParamsMap: map[string][]interface{}{},
+				ignoredKeys:     nil,
+			},
+		},
+	}
+
+	// Run all test cases
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			params, globalParamsMap, ignoredKeys := getAllParams(
+				tc.input.dynamicInstance,
+				tc.input.globalParams,
+				tc.input.paramSets,
+				tc.input.inputPath,
+			)
+
+			// Check params
+			if !reflect.DeepEqual(params, tc.output.params) {
+				t.Errorf("Params mismatch.\nExpected: %v\nGot: %v", tc.output.params, params)
+			}
+
+			// Check globalParamsMap
+			if !reflect.DeepEqual(globalParamsMap, tc.output.globalParamsMap) {
+				t.Errorf("GlobalParamsMap mismatch.\nExpected: %v\nGot: %v", tc.output.globalParamsMap, globalParamsMap)
+			}
+
+			// Check ignoredKeys
+			if !reflect.DeepEqual(ignoredKeys, tc.output.ignoredKeys) {
+				t.Errorf("IgnoredKeys mismatch.\nExpected: %v\nGot: %v", tc.output.ignoredKeys, ignoredKeys)
+			}
+		})
+	}
+}
+
+// TestParseDirectArrayParam tests the parseDirectArrayParam helper function
+func TestParseDirectArrayParam(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    interface{}
+		expected []interface{}
+		hasError bool
+	}{
+		{
+			name:     "string array format",
+			input:    "[[20,80], [110,80]]",
+			expected: []interface{}{[]interface{}{20.0, 80.0}, []interface{}{110.0, 80.0}},
+			hasError: false,
+		},
+		{
+			name:     "already parsed array",
+			input:    []interface{}{[]interface{}{20.0, 80.0}, []interface{}{110.0, 80.0}},
+			expected: []interface{}{[]interface{}{20.0, 80.0}, []interface{}{110.0, 80.0}},
+			hasError: false,
+		},
+		{
+			name:     "empty array string",
+			input:    "[]",
+			expected: []interface{}{},
+			hasError: false,
+		},
+		{
+			name:     "single element array",
+			input:    "[[20,80]]",
+			expected: []interface{}{[]interface{}{20.0, 80.0}},
+			hasError: false,
+		},
+		{
+			name:     "mixed data types",
+			input:    "[[20, 80], [\"text\", true], [1.5, false]]",
+			expected: []interface{}{[]interface{}{20.0, 80.0}, []interface{}{"text", true}, []interface{}{1.5, false}},
+			hasError: false,
+		},
+		{
+			name:     "invalid format",
+			input:    "invalid_format",
+			expected: nil,
+			hasError: true,
+		},
+		{
+			name:     "non-array value",
+			input:    42,
+			expected: []interface{}{42},
+			hasError: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := parseDirectArrayParam(tc.input)
+
+			if tc.hasError {
+				if err == nil {
+					t.Errorf("Expected error but got none")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Unexpected error: %v", err)
+				return
+			}
+
+			if !reflect.DeepEqual(result, tc.expected) {
+				t.Errorf("Result mismatch.\nExpected: %v\nGot: %v", tc.expected, result)
+			}
+		})
+	}
+}
+
+func TestGetNiceName(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "standard config path",
+			input:    "example/name-in-here/config.toml",
+			expected: "name-in-here",
+		},
+		{
+			name:     "nested path",
+			input:    "examples/small-tray/config.toml",
+			expected: "small-tray",
+		},
+		{
+			name:     "single level path",
+			input:    "my-project/config.toml",
+			expected: "my-project",
+		},
+		{
+			name:     "deeply nested path",
+			input:    "projects/3d-printing/openscad/my-design/config.toml",
+			expected: "my-design",
+		},
+		{
+			name:     "path with underscores",
+			input:    "examples/carovan-cupboard-hook/config.toml",
+			expected: "carovan-cupboard-hook",
+		},
+		{
+			name:     "path with numbers",
+			input:    "examples/football_cards/config.toml",
+			expected: "football_cards",
+		},
+		{
+			name:     "just config.toml",
+			input:    "config.toml",
+			expected: ".",
+		},
+		{
+			name:     "empty path",
+			input:    "",
+			expected: ".",
+		},
+		{
+			name:     "path ending with slash",
+			input:    "example/name-in-here/",
+			expected: "name-in-here",
+		},
+		{
+			name:     "absolute path",
+			input:    "/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/config.toml",
+			expected: "small-tray",
+		},
+		{
+			name:     "path with spaces",
+			input:    "examples/my cool project/config.toml",
+			expected: "my cool project",
+		},
+		{
+			name:     "path with special characters",
+			input:    "examples/project-v2.1/config.toml",
+			expected: "project-v2.1",
+		},
+		{
+			name:     "path without config.toml",
+			input:    "example/name-in-here/some-other-file.toml",
+			expected: "name-in-here",
+		},
+		{
+			name:     "path with multiple config.toml",
+			input:    "example/name-in-here/config.toml/extra/config.toml",
+			expected: "extra",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := GetNiceName(tc.input)
+			if result != tc.expected {
+				t.Errorf("GetNiceName(%q) = %q; want %q", tc.input, result, tc.expected)
+			}
+		})
+	}
 }

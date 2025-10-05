@@ -1,4 +1,3 @@
-# These lines configure, where the config file is, how openscad will be run and where the output will be saved
 [openscadgen]
 name = "coffee-cup-holder"
 description = """\
@@ -12,6 +11,7 @@ description = """\
 The coaster is designed to be printed on a flat surface, with the text on the outside edge of the coaster.
 
 """
+
 
 export_name_format = "/{designFileName}_extrude_{renderType}_{clip_cutout_width}"
 

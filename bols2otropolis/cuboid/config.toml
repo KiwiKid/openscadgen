@@ -13,11 +13,11 @@ path = "./cuboid.scad"
 name = "nice"
 
 [[openscadgen.instances]]
-params = { cuboid_size = [100,100,100], cuboid_chamfer = 0, cuboid_rounding = 0 }
+params = { cuboid_size = 100, cuboid_chamfer = 0, cuboid_rounding = 0 }
 
 [[openscadgen.instances]]
-params = { cuboid_size = [80,120,60], cuboid_chamfer = 10, cuboid_rounding = 0 }
+params = { cuboid_size = 250, cuboid_chamfer = 10, cuboid_rounding = 0 }
 
 [[openscadgen.instances]]
-params = { cuboid_size = [60,60,60], cuboid_chamfer = 0, cuboid_rounding = 15, cuboid_trimcorners = false }
+params = { cuboid_size = 10, cuboid_chamfer = 0, cuboid_rounding = 15, cuboid_trimcorners = false }
 

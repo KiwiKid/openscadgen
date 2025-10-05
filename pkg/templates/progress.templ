@@ -1,0 +1,75 @@
+package templates
+
+import "fmt"
+
+
+templ CancelButton(id string) {
+    <button id="cancel-button" class="button is-danger" hx-get={ fmt.Sprintf("/cancel?id=%s", id) }>Cancel</button>
+}
+
+templ GetProgressHTML(id string) {
+    <div id="progress" hx-get={ fmt.Sprintf("/progress?id=%s", id) } hx-trigger="every 1s" hx-swap="outerHTML" class="notification is-info">Starting...
+       
+    </div>
+    <div>
+        @CancelButton(id)
+    </div>
+    <script>
+        // Handle completion by stopping polling
+        document.body.addEventListener('htmx:afterRequest', function(evt) {
+            const status = evt.detail.xhr.getResponseHeader('X-Progress-Status');
+            if (status === 'complete') {
+                // Processing is complete, stop polling by removing HTMX attributes
+                const progressDiv = document.querySelector('#progress');
+                if (progressDiv) {
+                    progressDiv.removeAttribute('hx-get');
+                    progressDiv.removeAttribute('hx-trigger');
+                    progressDiv.removeAttribute('hx-swap');
+                }
+            }
+        });
+    </script>
+}
+
+
+templ AllComplete() {
+    <div id="progress" class="notification is-success">
+        <span class="icon">
+            <i class="fas fa-check-circle"></i>
+        </span>
+        <span>All instances completed!</span>
+    </div>
+    <div id="cancel-button" hx-swap-oob="true"></div>
+}
+
+templ InstanceUpdate(id string) {
+		<div id="progress" class="notification is-info"></div>
+		<script>
+            function poll() {
+                fetch('/progress?id=%s').then(r => {
+                    const status = r.headers.get('X-Progress-Status');
+                    return r.text().then(msg => ({ status, msg }));
+                }).then(({ status, msg }) => {
+                    if(status === 'complete') {
+                        // Complete report received, replace the entire page content
+                        document.documentElement.innerHTML = msg;
+                    } else if(status === 'html') {
+                   /*     // HTML update received, append to instances grid
+                        const grid = document.querySelector('#instances-grid');
+                        grid.insertAdjacentHTML('beforeend', msg);
+                        // Continue polling
+                        setTimeout(poll, 1000);*/
+                    } else {
+                        document.getElementById('progress').innerText = msg;
+                        if(status !== 'done' && status !== 'cancelled' && !msg.startsWith('error:')) {
+                            setTimeout(poll, 1000);
+                        }
+                    }
+                }).catch(err => {
+                    console.error('Progress polling error:', err);
+                    setTimeout(poll, 1000);
+                });
+            }
+            poll();
+		</script>
+}

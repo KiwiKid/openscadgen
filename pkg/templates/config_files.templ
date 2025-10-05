@@ -233,11 +233,11 @@ html, body {
                 <hr/>
                 
                 <h2>Config Files</h2>
-                <ul>
+                <div class="fixed-grid has-4-cols">
                     for _, configFile := range configFiles {
-                        <li><a href={ templ.SafeURL(fmt.Sprintf("/?config=%s", configFile.Path)) }>{configFile.Path}</a></li>
+                        <div class="cell" title={ configFile.Path }><a class="button" href={ templ.SafeURL(fmt.Sprintf("/?config=%s", configFile.Path)) }>{ configFile.NiceName }</a></div>
                     }
-                </ul>
+                </div>
                 <hr/>
                 
                 <form action="/" method="post">

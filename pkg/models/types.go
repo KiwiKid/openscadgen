@@ -63,6 +63,7 @@ type ConfiguredInstanceConfig struct {
 	ParamSets           string                    `toml:"param_sets"`      // comma separated list of param sets to use
 	ParamsNumberated    map[string]interface{}    `toml:"params_numbered"` // comma separated list of keys to number
 	IgnoreCommaInParams []string                  `toml:"ignore_comma_in_params"`
+	DirectArrayParams   []string                  `toml:"direct_array_params"` // parameters that should be treated as direct arrays
 	ExportImages        []ExportCameraCoordinates `toml:"images"`
 	SkipImages          bool                      `toml:"skip_images"`
 }
@@ -81,6 +82,8 @@ type CmdFlags struct {
 	ShowMan                      bool   `json:"show_man"`
 	Server                       bool   `json:"server"`
 	ServerFolder                 string `json:"server_folder"`
+	ServerPort                   int    `json:"server_port"`
+	ProcessFolder                string `json:"process_folder"`
 	InitProjectName              string `json:"init_project_name"`
 	InitProjectNameExtended      string `json:"init_project_name_extended"`
 	ConfigFile                   string `json:"config_file"`
@@ -271,10 +274,12 @@ func (instance *InstanceConfig) GetInstancePaths(config *Config) *InstancePaths 
 }
 
 type ConfigFile struct {
-	Path string
+	Path     string
+	NiceName string
 }
 
 type ProcessResult struct {
+	ConfigFile     string
 	Instances      []InstanceConfig
 	STLResults     []GenerateSTLResult
 	ImageResults   []GenerateImageResult

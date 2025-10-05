@@ -1,0 +1,48 @@
+# Development Dockerfile for openscadgen
+# Includes all development tools and live reloading
+
+FROM golang:1.23-alpine
+
+# Install development dependencies
+RUN apk add --no-cache \
+    git \
+    openscad \
+    bash \
+    curl \
+    ca-certificates \
+    tzdata \
+    make \
+    just
+
+# Install air for live reloading
+RUN go install github.com/cosmtrek/air@latest
+
+# Install templ for template generation
+RUN go install github.com/a-h/templ/cmd/templ@latest
+
+# Install gopls for Go language server
+RUN go install golang.org/x/tools/gopls@latest
+
+# Install golangci-lint
+RUN go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+# Set working directory
+WORKDIR /app
+
+# Copy go mod files first for better caching
+COPY go.mod go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Generate templ files
+RUN templ generate
+
+# Expose port for server mode
+EXPOSE 6767
+
+# Default command for development
+CMD ["just", "dev"]

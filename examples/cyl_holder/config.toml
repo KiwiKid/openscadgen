@@ -1,0 +1,14 @@
+[openscadgen]
+name = "cyl_holder"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}"
+
+
+[[openscadgen.input_paths]]
+path = "./cyl_holder.scad"
+
+[[openscadgen.images]]
+name = "nice"

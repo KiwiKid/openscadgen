@@ -145,7 +145,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.7.25"
+const VERSION = "v2.7.26"
 
 type Version struct {
 	OpenSCADGen string
@@ -179,7 +179,56 @@ func GetVersion() Version {
 	}
 }
 
-func Process(config *models.Config, progress ProgressReporter, cancel <-chan struct{}) (models.ProcessResult, error) {
+func GenerateInstanceConfigs(config *models.Config) ([]models.InstanceConfig, error) {
+	if len(config.Design.ConfiguredInstanceConfig) == 0 {
+		config.Design.ConfiguredInstanceConfig = []models.ConfiguredInstanceConfig{
+			{
+				Name:   "default",
+				Params: map[string]interface{}{},
+			},
+		}
+	}
+	var instances []models.InstanceConfig
+	for _, dynamicInstance := range config.Design.ConfiguredInstanceConfig {
+		for _, inputPath := range config.GetInputPaths() {
+			var err error
+			var newInstances []models.InstanceConfig
+			newInstances, _, err = GenerateInstances(config, dynamicInstance, inputPath)
+			if err != nil {
+				if config.ContinueOnError {
+					logError(fmt.Sprintf("Warning: failed to generate instances: %v", err))
+					continue
+				}
+				return newInstances, fmt.Errorf("failed to generate instances: %w", err)
+			}
+
+			newInstancesWithImages, err := populateExportImages(config, newInstances)
+			if err != nil {
+				if config.ContinueOnError {
+					log.Printf("Warning: failed to generate export images: %v", err)
+					continue
+				}
+				return newInstances, fmt.Errorf("failed to generate export images: %w", err)
+			}
+
+			if config.Debug {
+				log.Printf("[DEBUG] Generated %d instances for inputPath %s", len(newInstances), inputPath.Path)
+				for i, inst := range newInstances {
+					log.Printf("[DEBUG] Instance %d: OutputPathV2=%s, SkippedReason=%s", i, inst.OutputPathV2, inst.SkippedReason)
+				}
+			}
+			instances = append(instances, newInstancesWithImages...)
+		}
+	}
+
+	return instances, nil
+}
+
+type Operations struct {
+	GenerateReport bool
+}
+
+func Process(config *models.Config, progress ProgressReporter, cancel <-chan struct{}, operations Operations) (models.ProcessResult, error) {
 	start := time.Now()
 	if config.Debug {
 		logStage("=== Processing === ")
@@ -204,48 +253,45 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 		log.Printf("[DEBUG] Generating instances for %d configured instances and %d input paths", len(config.Design.ConfiguredInstanceConfig), len(config.GetInputPaths()))
 	}
 
-	if len(config.Design.ConfiguredInstanceConfig) == 0 {
-		config.Design.ConfiguredInstanceConfig = []models.ConfiguredInstanceConfig{
-			{
-				Name:   "default",
-				Params: map[string]interface{}{},
-			},
-		}
-	}
-
-	for _, dynamicInstance := range config.Design.ConfiguredInstanceConfig {
-		for _, inputPath := range config.GetInputPaths() {
-			if config.Debug {
-				logStage(fmt.Sprintf("Generating instance %s", dynamicInstance.Name))
-			}
-			var err error
-			var newInstances []models.InstanceConfig
-			newInstances, _, err = GenerateInstances(config, dynamicInstance, inputPath)
-			if err != nil {
-				if config.ContinueOnError {
-					logError(fmt.Sprintf("Warning: failed to generate instances: %v", err))
-					continue
+	/*
+		for _, dynamicInstance := range config.Design.ConfiguredInstanceConfig {
+			for _, inputPath := range config.GetInputPaths() {
+				if config.Debug {
+					logStage(fmt.Sprintf("Generating instance %s", dynamicInstance.Name))
 				}
-				return models.ProcessResult{}, fmt.Errorf("failed to generate instances: %w", err)
-			}
-
-			newInstancesWithImages, err := populateExportImages(config, newInstances)
-			if err != nil {
-				if config.ContinueOnError {
-					log.Printf("Warning: failed to generate export images: %v", err)
-					continue
+				var err error
+				var newInstances []models.InstanceConfig
+				newInstances, _, err = GenerateInstances(config, dynamicInstance, inputPath)
+				if err != nil {
+					if config.ContinueOnError {
+						logError(fmt.Sprintf("Warning: failed to generate instances: %v", err))
+						continue
+					}
+					return models.ProcessResult{}, fmt.Errorf("failed to generate instances: %w", err)
 				}
-				return models.ProcessResult{}, fmt.Errorf("failed to generate export images: %w", err)
-			}
 
-			if config.Debug {
-				log.Printf("[DEBUG] Generated %d instances for inputPath %s", len(newInstances), inputPath.Path)
-				for i, inst := range newInstances {
-					log.Printf("[DEBUG] Instance %d: OutputPathV2=%s, SkippedReason=%s", i, inst.OutputPathV2, inst.SkippedReason)
+				newInstancesWithImages, err := populateExportImages(config, newInstances)
+				if err != nil {
+					if config.ContinueOnError {
+						log.Printf("Warning: failed to generate export images: %v", err)
+						continue
+					}
+					return models.ProcessResult{}, fmt.Errorf("failed to generate export images: %w", err)
 				}
+
+				if config.Debug {
+					log.Printf("[DEBUG] Generated %d instances for inputPath %s", len(newInstances), inputPath.Path)
+					for i, inst := range newInstances {
+						log.Printf("[DEBUG] Instance %d: OutputPathV2=%s, SkippedReason=%s", i, inst.OutputPathV2, inst.SkippedReason)
+					}
+				}
+				instances = append(instances, newInstancesWithImages...)
 			}
-			instances = append(instances, newInstancesWithImages...)
-		}
+		}*/
+
+	instances, err := GenerateInstanceConfigs(config)
+	if err != nil {
+		return models.ProcessResult{}, fmt.Errorf("failed to generate instances: %w", err)
 	}
 
 	if config.Debug {
@@ -293,7 +339,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 
 		if instances[i].SkippedReason == "" {
 			// Start processing this instance
-			progress.StartInstance(instances[i].ID)
+			progress.StartInstance(instances[i].ID, instances[i].AutoName)
 
 			if config.Debug {
 				logCreation(fmt.Sprintf("Generated instance %s", instances[i].AutoName))
@@ -375,7 +421,21 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 
 	models.SortInstanceConfigsByAutoName(instances)
 
+	if operations.GenerateReport {
+		_, location, genReportErr := GenerateOutputReport(config, instances, stlResults, allImageResults, exportLoc, true, totalTime)
+		if genReportErr != nil {
+			if config.ContinueOnError {
+				log.Printf("Warning: failed to generate output report: %v", genReportErr)
+			} else {
+				log.Fatalf("failed to generate output report: %v", genReportErr)
+			}
+		} else if config.Debug {
+			LogKeyValuePair("Output report generated at", location)
+		}
+	}
+
 	return models.ProcessResult{
+		ConfigFile:     config.ConfigFile,
 		ExportLocation: exportLoc,
 		Instances:      instances,
 		STLResults:     stlResults,
@@ -411,9 +471,10 @@ func validateInstances(instances []models.InstanceConfig, config *models.Config)
 
 			errors = append(errors, RunError{
 				ErrorCode: RunErrorCode_DuplicateExportPath,
-				Message:   fmt.Sprintf("Duplicate export path: \n\n\t%s. \n\n Ensure the export_name_format includes all parameters (in {curlyBrackets}) that are different between instances. Another common cause is including commas in parameters by mistake", instance.RunOutputPathV3),
+				Message:   fmt.Sprintf("Run Stopped as the export_name_format in the config file will result in duplicate export path: \n\n\t%s. \n\n Ensure the export_name_format includes all parameters (in {curlyBrackets}) that are different between instances. \n\nAnother common cause is including commas in parameters by mistake. \n\n If you param value has commas you would like to ignore, add `ignore_comma_in_params = [\"content\"]` to this [[openscadgen.instances]] tag ", instance.RunOutputPathV3),
 				KVPs: map[string]string{
 					"DuplicatePath":    instance.RunOutputPathV3,
+					"ConfigFile":       config.ConfigFile,
 					"InstanceCount":    fmt.Sprintf("%d", len(instances)),
 					"exportNameFormat": config.Design.ExportNameFormat,
 					"prams":            paramStr,
@@ -486,6 +547,13 @@ func clearExportFolder(config *models.Config, outputPaths models.OutputPaths) {
 	}
 }
 
+func GetNiceName(path string) string {
+	// Get the directory name from the path
+	dir := filepath.Dir(path)
+	// Get the base name of the directory (the parent folder name)
+	return filepath.Base(dir)
+}
+
 func ScanFolderForConfigFiles(folder string) ([]models.ConfigFile, error) {
 	var configFiles []models.ConfigFile
 	maxSize := int64(2 * 1024 * 1024) // 2MB
@@ -504,6 +572,11 @@ func ScanFolderForConfigFiles(folder string) ([]models.ConfigFile, error) {
 			return nil
 		}
 
+		// Skip files in export folders
+		if strings.Contains(path, "/export/") || strings.Contains(path, "\\export\\") {
+			return nil
+		}
+
 		f, err := os.Open(path)
 		if err != nil {
 			return nil // skip unreadable files
@@ -519,7 +592,10 @@ func ScanFolderForConfigFiles(folder string) ([]models.ConfigFile, error) {
 		if !strings.Contains(content, "[openscadgen]") {
 			return nil
 		}
-		configFiles = append(configFiles, models.ConfigFile{Path: path})
+
+		subPath := strings.TrimPrefix(path, folder)
+
+		configFiles = append(configFiles, models.ConfigFile{Path: subPath, NiceName: GetNiceName(subPath)})
 		return nil
 	})
 	if err != nil {
@@ -925,11 +1001,16 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 		}
 		configPath = absPath
 	}
+	if flags.Debug {
+		log.Printf("ReadFile config for %s", configPath)
+	}
 
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		log.Printf(colorRed+"Failed to read config file at path '%s'\n\n Error: %v", configPath, err)
 		return nil, err
+	} else if flags.Debug {
+		log.Printf("ReadFile config for %s", configPath)
 	}
 
 	// First decode into a map to check for unmapped fields
@@ -1131,6 +1212,31 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 	return &conf, nil
 }
 
+func ProcessFolder(folder string, cmdFlags models.CmdFlags) ([]models.ProcessResult, error) {
+	configs, err := ScanFolderForConfigFiles(folder)
+	if err != nil {
+		return []models.ProcessResult{}, fmt.Errorf("failed to scan folder for config files: %w", err)
+	}
+
+	processResults := []models.ProcessResult{}
+	for _, config := range configs {
+		cmdFlags.ConfigFile = config.Path
+		config, err := LoadConfig(cmdFlags)
+		if err != nil {
+			return []models.ProcessResult{}, fmt.Errorf("failed to load config: %w", err)
+		}
+		processResult, err := Process(config, &NoopProgress{}, nil, Operations{
+			GenerateReport: true,
+		})
+		if err != nil {
+			return []models.ProcessResult{}, fmt.Errorf("failed to process config: %w", err)
+		}
+		processResults = append(processResults, processResult)
+	}
+
+	return processResults, nil
+}
+
 func validateExportNameFormat(config *models.Config) error {
 	// Get all parameters that have multiple values
 	multiValueParams := make(map[string]bool)
@@ -1325,12 +1431,131 @@ func parseParamValue(value interface{}) ([]interface{}, error) {
 	return parsedValues, nil
 }
 
+// Helper function to parse direct array parameters
+func parseDirectArrayParam(value interface{}) ([]interface{}, error) {
+	switch v := value.(type) {
+	case []interface{}:
+		// Already parsed as array from TOML
+		return v, nil
+	case string:
+		// Parse string representation of array (JSON-like format)
+		// Remove outer brackets and split by array elements
+		trimmed := strings.TrimSpace(v)
+		if !strings.HasPrefix(trimmed, "[") || !strings.HasSuffix(trimmed, "]") {
+			return nil, fmt.Errorf("invalid array format: %s", v)
+		}
+
+		// Remove outer brackets
+		inner := strings.TrimSpace(trimmed[1 : len(trimmed)-1])
+		if inner == "" {
+			return []interface{}{}, nil
+		}
+
+		// Parse nested arrays by finding matching brackets
+		var result []interface{}
+		var current strings.Builder
+		var bracketCount int
+		var inString bool
+		var escapeNext bool
+
+		for _, char := range inner {
+			if escapeNext {
+				current.WriteRune(char)
+				escapeNext = false
+				continue
+			}
+
+			if char == '\\' {
+				escapeNext = true
+				current.WriteRune(char)
+				continue
+			}
+
+			if char == '"' && !escapeNext {
+				inString = !inString
+			}
+
+			if !inString {
+				if char == '[' {
+					bracketCount++
+				} else if char == ']' {
+					bracketCount--
+				} else if char == ',' && bracketCount == 0 {
+					// Found array element boundary
+					elementStr := strings.TrimSpace(current.String())
+					if elementStr != "" {
+						parsed, err := parseArrayElement(elementStr)
+						if err != nil {
+							return nil, fmt.Errorf("error parsing array element '%s': %w", elementStr, err)
+						}
+						result = append(result, parsed)
+					}
+					current.Reset()
+					continue
+				}
+			}
+
+			current.WriteRune(char)
+		}
+
+		// Handle the last element
+		elementStr := strings.TrimSpace(current.String())
+		if elementStr != "" {
+			parsed, err := parseArrayElement(elementStr)
+			if err != nil {
+				return nil, fmt.Errorf("error parsing array element '%s': %w", elementStr, err)
+			}
+			result = append(result, parsed)
+		}
+
+		return result, nil
+	default:
+		// For other types, wrap in array
+		return []interface{}{v}, nil
+	}
+}
+
+// Helper function to parse individual array elements
+func parseArrayElement(elementStr string) (interface{}, error) {
+	elementStr = strings.TrimSpace(elementStr)
+
+	// Check if it's a nested array
+	if strings.HasPrefix(elementStr, "[") && strings.HasSuffix(elementStr, "]") {
+		// Recursively parse nested array
+		return parseDirectArrayParam(elementStr)
+	}
+
+	// Try to parse as number
+	if num, err := strconv.ParseFloat(elementStr, 64); err == nil {
+		return num, nil
+	}
+
+	// Try to parse as boolean
+	if elementStr == "true" {
+		return true, nil
+	}
+	if elementStr == "false" {
+		return false, nil
+	}
+
+	// Return as string (remove quotes if present)
+	if strings.HasPrefix(elementStr, "\"") && strings.HasSuffix(elementStr, "\"") && len(elementStr) >= 2 {
+		return elementStr[1 : len(elementStr)-1], nil
+	}
+
+	return elementStr, nil
+}
+
 // Helper function to convert a map of parameters to a map of parameter combinations
-func convertToParamCombinations(params map[string]interface{}, ignoredParams map[string]bool) (map[string][]interface{}, error) {
+func convertToParamCombinations(params map[string]interface{}, ignoredParams map[string]bool, directArrayParams []string) (map[string][]interface{}, error) {
 	result := make(map[string][]interface{})
 	for k, v := range params {
 		// Skip ignored parameters
 		if ignoredParams[k] {
+			continue
+		}
+		// Skip direct array parameters - they should not be processed as combinations
+		if slices.Contains(directArrayParams, k) {
 			continue
 		}
 		parsedValues, err := parseParamValue(v)
@@ -1489,21 +1714,39 @@ func getAllParams(dynamicInstance models.ConfiguredInstanceConfig, globalParams 
 			continue
 		}
 
-		shouldNotSplitOnComma := false
-		if slices.Contains(dynamicInstance.IgnoreCommaInParams, k) {
-			shouldNotSplitOnComma = true
+		// Check if this parameter should be treated as a direct array
+		shouldUseDirectArray := false
+		if slices.Contains(dynamicInstance.DirectArrayParams, k) {
+			shouldUseDirectArray = true
 		}
 
-		if strValue, ok := v.(string); ok && strings.Contains(strValue, ",") && !shouldNotSplitOnComma {
-			values := strings.Split(strValue, ",")
-			var parsedValues []interface{}
-			for _, val := range values {
-				val = strings.TrimSpace(val)
-				parsedValues = append(parsedValues, val)
+		if shouldUseDirectArray {
+			// Parse as direct array without comma splitting
+			parsedArray, err := parseDirectArrayParam(v)
+			if err != nil {
+				// If parsing fails, fall back to treating as regular parameter
+				params[k] = v
+			} else {
+				params[k] = parsedArray
 			}
-			params[k] = parsedValues
 		} else {
-			params[k] = v
+			// Use existing comma splitting logic
+			shouldNotSplitOnComma := false
+			if slices.Contains(dynamicInstance.IgnoreCommaInParams, k) {
+				shouldNotSplitOnComma = true
+			}
+
+			if strValue, ok := v.(string); ok && strings.Contains(strValue, ",") && !shouldNotSplitOnComma {
+				values := strings.Split(strValue, ",")
+				var parsedValues []interface{}
+				for _, val := range values {
+					val = strings.TrimSpace(val)
+					parsedValues = append(parsedValues, val)
+				}
+				params[k] = parsedValues
+			} else {
+				params[k] = v
+			}
 		}
 	}
 
@@ -1710,7 +1953,7 @@ func GenerateInstances(config *models.Config, configuredInstanceConfig models.Co
 	}
 
 	// Convert parameters to combinations
-	paramCombos, err := convertToParamCombinations(filteredParams, make(map[string]bool))
+	paramCombos, err := convertToParamCombinations(filteredParams, make(map[string]bool), configuredInstanceConfig.DirectArrayParams)
 	if err != nil {
 		return nil, "", fmt.Errorf("error converting parameters: %v", err)
 	}
@@ -1854,6 +2097,8 @@ func GenerateInstances(config *models.Config, configuredInstanceConfig models.Co
 
 			// Generate unique AutoName based on the export path
 			instance.AutoName = generateUniqueAutoName(outputPathReplace, configuredInstanceConfig.Name, inputPath.Path)
+			// Use AutoName as the ID
+			instance.ID = instance.AutoName
 
 			//	instance.OutputPathV2 = outputPath
 			instance.RunOutputPathV3 = filepath.ToSlash(outputPathReplace + ".stl")
@@ -2140,6 +2385,21 @@ version = "v0.1"
 
 export_name_format = "{designFileName}"
 
+[[openscadgen.input_paths]]
+path = "./{{projectName}}.scad"
+
+[[openscadgen.images]]
+name = "nice"
+`
+
+var configTemplateExtended = `[openscadgen]
+name = "{{projectName}}"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{renderType}"
+
 global_params = { renderType = "obj,vertSlice,horzSlice,all" }
 
 [[openscadgen.input_paths]]
@@ -2288,6 +2548,13 @@ func InitConfig(projectPathRaw string, extended bool) error {
 	projectNameUnderLined := strings.NewReplacer(
 		" ", "_",
 	).Replace(projectName)
+
+	var configTemplate string
+	if extended {
+		configTemplate = configTemplateExtended
+	} else {
+		configTemplate = configTemplate
+	}
 
 	configTemplate = strings.ReplaceAll(configTemplate, "{{projectName}}", projectNameUnderLined)
 
@@ -2870,7 +3137,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 		if config.Debug {
 			log.Printf("[DEBUG] Output file created successfully (size: %d bytes): %s", fileInfo.Size(), instance.RunOutputPathV3)
 		}
-		logCreation(fmt.Sprintf("\n📦 STL\t\t%s\t\t%s", result.InstanceConfig.AutoName, result.TimeTaken))
+		logCreation(fmt.Sprintf("\n📦 STL\t\t%s\t\t%s", result.InstanceConfig.AutoName, result.TimeTaken.String()))
 		if config.Debug {
 			LogKeyValuePair("STL File", instance.RunOutputPathV3)
 		}
@@ -3152,6 +3419,8 @@ func generateImage(instance *models.InstanceConfig, config *models.Config, camer
 	if config.Design.CustomOpenSCADArgs != "" {
 		args = append(args, strings.Split(config.Design.CustomOpenSCADArgs, " ")...)
 	}
+
+	args = append(args, "-D", "genType=\"image\"")
 
 	for name, value := range stlResult.AppliedParams {
 		if reflect.TypeOf(value).Kind() == reflect.String && value != "true" && value != "false" {

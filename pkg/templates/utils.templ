@@ -73,20 +73,10 @@ templ JSONViewerWithStyle(title string, data interface{}) {
         </div>
     </details>
 }
-templ Collapsable(title string, isOpen bool, fullWidth bool) {
-    <div x-data={ fmt.Sprintf(`{ isOpen: %v }`, isOpen) } >
-        <button @click="isOpen = !isOpen"
-            if fullWidth {
-                class="button is-large is-fullwidth"
-            } else {
-                class="button is-large"
-            }
-        >
-            <span x-show="!isOpen">▼</span>
-            <span x-show="isOpen">▲</span>
-            { title }
-        </button>
-        <div x-show="isOpen">
+templ Collapsable(title string, key string, isOpen bool, fullWidth bool) {
+    <div>
+        
+        <div x-show={ fmt.Sprintf("navSelected === '%s'", key) }>
            { children... }
         </div>
     </div>

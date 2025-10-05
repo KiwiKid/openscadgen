@@ -1,0 +1,185 @@
+package templates
+
+import (
+	"strings"
+	"fmt"
+)
+
+templ TOMLEditForm(filePath string, content string, errorMsg templ.Component) {
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Edit TOML File</title>
+		<link rel="stylesheet" href="/static/js/edit_area.css" type="text/css" media="screen" />
+		<style>
+			body {
+				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+				margin: 0;
+				padding: 0;
+				background-color: #f5f5f5;
+				height: 100vh;
+			}
+			.container {
+				background: white;
+				border-radius: 8px;
+				padding: 20px;
+				box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+				height: calc(100vh - 40px);
+				margin: 20px;
+				display: flex;
+				flex-direction: column;
+			}
+			h1 {
+				color: #333;
+				margin-bottom: 20px;
+				font-size: 24px;
+			}
+			.file-path {
+				color: #666;
+				font-size: 14px;
+				margin-bottom: 20px;
+				background: #f8f9fa;
+				padding: 8px 12px;
+				border-radius: 4px;
+				font-family: monospace;
+			}
+			.error {
+				background: #fee;
+				color: #c33;
+				padding: 12px;
+				border-radius: 4px;
+				margin-bottom: 20px;
+				border-left: 4px solid #c33;
+			}
+			form {
+				display: flex;
+				flex-direction: column;
+				gap: 20px;
+				flex: 1;
+				height: 100%;
+			}
+			#editarea {
+				width: 100%;
+				height: calc(100vh - 200px);
+				font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+				font-size: 14px;
+				line-height: 1.4;
+				border: 1px solid #ddd;
+				border-radius: 4px;
+				background: #fafafa;
+				flex: 1;
+				min-height: 400px;
+			}
+            .frame_editarea {
+                width: 100% !important;
+                height: 100% !important;
+            }
+			.editarea_editor {
+				border-radius: 4px !important;
+				width: 100% !important;
+			}
+			.editarea_editor iframe {
+				width: 100% !important;
+			}
+			.editarea_editor .editarea_toolbar {
+				width: 100% !important;
+			}
+			.buttons {
+				display: flex;
+				gap: 10px;
+				justify-content: flex-end;
+			}
+			button {
+				padding: 10px 20px;
+				border: none;
+				border-radius: 4px;
+				cursor: pointer;
+				font-size: 14px;
+				font-weight: 500;
+			}
+			button[type="submit"] {
+				background: #007bff;
+				color: white;
+			}
+			button[type="submit"]:hover {
+				background: #0056b3;
+			}
+			.cancel-btn {
+				background: #6c757d;
+				color: white;
+				text-decoration: none;
+				display: inline-block;
+				text-align: center;
+				line-height: 1.5;
+			}
+			.cancel-btn:hover {
+				background: #545b62;
+				color: white;
+			}
+			.help-text {
+				color: #666;
+				font-size: 12px;
+				margin-top: 5px;
+			}
+		</style>
+	</head>
+	<body>[[TOMLEditForm]]
+		<div class="container">
+			<h1>Edit TOML File</h1>
+			<a class="button is-danger" href={ templ.SafeURL(fmt.Sprintf("/?config=%s", filePath)) }>Cancel</a>
+			<div class="file-path">{ strings.TrimPrefix(filePath, "/") }</div>
+			
+			if errorMsg != nil {
+				@errorMsg
+			}
+			
+			<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/api/edit?path=%s", filePath)) }>
+				<input type="hidden" id="content" name="content" value="" />
+				<div class="help-text">
+					This editor provides syntax highlighting for TOML files. Invalid TOML will show an error message.
+				</div>
+				<div class="buttons">
+					<a href={ templ.SafeURL(fmt.Sprintf("/?config=%s", filePath)) } class="button is-alert">Cancel</a>
+					<button type="submit" class="button is-success">Save Changes</button>
+				</div>
+				<textarea id="editarea" name="content"  style="height: 350px; width: 100%;">{ content }</textarea>
+			</form>
+		</div>
+		
+		<script type="text/javascript" src="/static/js/edit_area_full.js"></script>
+		<script type="text/javascript">
+			// Initialize EditArea
+			editAreaLoader.init({
+				id: "editarea",
+				start_highlight: true,
+				allow_resize: "both",
+				allow_toggle: true,
+				word_wrap: true,
+				highlight: true,
+				syntax: "ini", // maybe need ini
+				language: "en",
+				toolbar: "search, go_to_line, |, undo, redo, |, select_font, |, syntax_selection, |, change_smooth_selection, highlight, reset_highlight, |, help",
+				syntax_selection_allow: "css,html,js,php,python,vb,xml,c,cpp,java,ini,perl,text",
+				show_line_colors: true,
+				replace_tab_by_spaces: 4,
+				save_callback: "saveContent",
+                frame_editarea: "width: 100% !important; height: 100% !important;"
+			});
+			
+			// Function to save content before form submission
+			function saveContent() {
+				var content = editAreaLoader.getValue("editarea");
+				document.getElementById("content").value = content;
+				return true;
+			}
+			
+			// Handle form submission
+			document.querySelector('form').addEventListener('submit', function(e) {
+				saveContent();
+			});
+		</script>
+	</body>
+	</html>
+}

@@ -3,6 +3,7 @@
             return {
                 darkMode: true,
                 showDebug: false,
+                navSelected: "instances",
                 searchQuery: '',
                 configHistory: JSON.parse(localStorage.getItem('configHistory') || '[]'),
                 configFile: '',
@@ -319,7 +320,7 @@ html, body {
                 .is-rounded {
                     border-radius: 50%;
                 }
-            </style></head><body><div x-show="showDebug">Show DEBUG ON</div><div class="columns is-gapless" style="min-height: 100vh;"><!-- Side Navigation --><div class="column is-3" style="background-color: var(--card-bg); border-right: 1px solid var(--border-color);"><div class="p-4"><h2 class="title is-5 mb-4">Instances (8)</h2><div class="menu"><ul class="menu-list"><li><a href="#" @click.prevent="searchQuery = instance.Name" class="menu-item"><div class="media"><div class="media-left"><figure class="image is-48x48"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big-nice.png" alt="Preview of " class="is-rounded" style="object-fit: cover; width: 48px; height: 48px;" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none; width: 48px; height: 48px; background-color: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.8em; color: var(--text-color);">No Image</div></figure></div><div class="media-content"><p class="title is-6 mb-1"></p></div></div></a></li><li><a href="#" @click.prevent="searchQuery = instance.Name" class="menu-item"><div class="media"><div class="media-left"><figure class="image is-48x48"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small-nice.png" alt="Preview of " class="is-rounded" style="object-fit: cover; width: 48px; height: 48px;" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none; width: 48px; height: 48px; background-color: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.8em; color: var(--text-color);">No Image</div></figure></div><div class="media-content"><p class="title is-6 mb-1"></p></div></div></a></li><li><a href="#" @click.prevent="searchQuery = instance.Name" class="menu-item"><div class="media"><div class="media-left"><figure class="image is-48x48"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-nice.png" alt="Preview of " class="is-rounded" style="object-fit: cover; width: 48px; height: 48px;" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none; width: 48px; height: 48px; background-color: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.8em; color: var(--text-color);">No Image</div></figure></div><div class="media-content"><p class="title is-6 mb-1"></p></div></div></a></li><li><a href="#" @click.prevent="searchQuery = instance.Name" class="menu-item"><div class="media"><div class="media-left"><figure class="image is-48x48"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide-nice.png" alt="Preview of " class="is-rounded" style="object-fit: cover; width: 48px; height: 48px;" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none; width: 48px; height: 48px; background-color: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.8em; color: var(--text-color);">No Image</div></figure></div><div class="media-content"><p class="title is-6 mb-1"></p></div></div></a></li><li><a href="#" @click.prevent="searchQuery = instance.Name" class="menu-item"><div class="media"><div class="media-left"><figure class="image is-48x48"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big-nice.png" alt="Preview of " class="is-rounded" style="object-fit: cover; width: 48px; height: 48px;" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none; width: 48px; height: 48px; background-color: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.8em; color: var(--text-color);">No Image</div></figure></div><div class="media-content"><p class="title is-6 mb-1"></p></div></div></a></li><li><a href="#" @click.prevent="searchQuery = instance.Name" class="menu-item"><div class="media"><div class="media-left"><figure class="image is-48x48"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small-nice.png" alt="Preview of " class="is-rounded" style="object-fit: cover; width: 48px; height: 48px;" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none; width: 48px; height: 48px; background-color: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.8em; color: var(--text-color);">No Image</div></figure></div><div class="media-content"><p class="title is-6 mb-1"></p></div></div></a></li><li><a href="#" @click.prevent="searchQuery = instance.Name" class="menu-item"><div class="media"><div class="media-left"><figure class="image is-48x48"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-nice.png" alt="Preview of " class="is-rounded" style="object-fit: cover; width: 48px; height: 48px;" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none; width: 48px; height: 48px; background-color: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.8em; color: var(--text-color);">No Image</div></figure></div><div class="media-content"><p class="title is-6 mb-1"></p></div></div></a></li><li><a href="#" @click.prevent="searchQuery = instance.Name" class="menu-item"><div class="media"><div class="media-left"><figure class="image is-48x48"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-wide-nice.png" alt="Preview of " class="is-rounded" style="object-fit: cover; width: 48px; height: 48px;" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none; width: 48px; height: 48px; background-color: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.8em; color: var(--text-color);">No Image</div></figure></div><div class="media-content"><p class="title is-6 mb-1"></p></div></div></a></li></ul></div></div></div><!-- Main Content --><div class="column"><div class="global-header"><div><h1 class="title is-4">round_lid</h1><div class="search-box"><div><div><input class="input" type="text" placeholder="Filter to specific instances etc..." x-model="searchQuery"></div><details><summary>History</summary><template x-if="searchHistory.length > 0"><div class="mt-2"><strong>Recent Searches:</strong><ul style="list-style: disc inside; padding-left: 1em;"><template x-for="term in searchHistory" :key="term"><li><a href="#" @click.prevent="searchQuery = term" x-text="term"></a></li></template></ul></div></template></details></div></div><div><button class="button" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button> <button class="button" @click="showDebug = !showDebug" style="margin-left: 8px;"><span x-show="!showDebug">🐛</span> <span x-show="showDebug">🐛</span> <span x-show="showDebug" style="text-decoration: underline;">Debug</span></button></div></div><div class="container"><div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Instances (8)</button><div x-show="isOpen"><div class="table-container"><table class="table is-fullwidth" id="instances-table"><thead><tr><th>Name</th><th>Description</th><th>Output Path</th><th>Ignored Params</th><th>Images</th><th>renderType</th><th>designFileName</th><th>version</th><th>rimRadius</th><th>name</th><th>plugRadius</th><th>plugHeight</th></tr></thead> <style>
+            </style></head><body><div x-show="showDebug">Show DEBUG ON</div><div class="columns is-gapless" style="min-height: 100vh;"><!-- Side Navigation --><div class="column is-3" style="background-color: var(--card-bg); border-right: 1px solid var(--border-color);"><div class="p-4"><h2 class="title is-5 mb-4">Instances (8)</h2><div class="menu"><ul class="menu-list"><li><a href="#" @click.prevent="searchQuery = instance.Name" class="menu-item"><div class="media"><div class="media-left"><figure class="image is-48x48"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big-nice.png" alt="Preview of " class="is-rounded" style="object-fit: cover; width: 48px; height: 48px;" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none; width: 48px; height: 48px; background-color: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.8em; color: var(--text-color);">No Image</div></figure></div><div class="media-content"><p class="title is-6 mb-1"></p></div></div></a></li><li><a href="#" @click.prevent="searchQuery = instance.Name" class="menu-item"><div class="media"><div class="media-left"><figure class="image is-48x48"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small-nice.png" alt="Preview of " class="is-rounded" style="object-fit: cover; width: 48px; height: 48px;" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none; width: 48px; height: 48px; background-color: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.8em; color: var(--text-color);">No Image</div></figure></div><div class="media-content"><p class="title is-6 mb-1"></p></div></div></a></li><li><a href="#" @click.prevent="searchQuery = instance.Name" class="menu-item"><div class="media"><div class="media-left"><figure class="image is-48x48"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-nice.png" alt="Preview of " class="is-rounded" style="object-fit: cover; width: 48px; height: 48px;" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none; width: 48px; height: 48px; background-color: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.8em; color: var(--text-color);">No Image</div></figure></div><div class="media-content"><p class="title is-6 mb-1"></p></div></div></a></li><li><a href="#" @click.prevent="searchQuery = instance.Name" class="menu-item"><div class="media"><div class="media-left"><figure class="image is-48x48"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide-nice.png" alt="Preview of " class="is-rounded" style="object-fit: cover; width: 48px; height: 48px;" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none; width: 48px; height: 48px; background-color: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.8em; color: var(--text-color);">No Image</div></figure></div><div class="media-content"><p class="title is-6 mb-1"></p></div></div></a></li><li><a href="#" @click.prevent="searchQuery = instance.Name" class="menu-item"><div class="media"><div class="media-left"><figure class="image is-48x48"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big-nice.png" alt="Preview of " class="is-rounded" style="object-fit: cover; width: 48px; height: 48px;" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none; width: 48px; height: 48px; background-color: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.8em; color: var(--text-color);">No Image</div></figure></div><div class="media-content"><p class="title is-6 mb-1"></p></div></div></a></li><li><a href="#" @click.prevent="searchQuery = instance.Name" class="menu-item"><div class="media"><div class="media-left"><figure class="image is-48x48"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small-nice.png" alt="Preview of " class="is-rounded" style="object-fit: cover; width: 48px; height: 48px;" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none; width: 48px; height: 48px; background-color: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.8em; color: var(--text-color);">No Image</div></figure></div><div class="media-content"><p class="title is-6 mb-1"></p></div></div></a></li><li><a href="#" @click.prevent="searchQuery = instance.Name" class="menu-item"><div class="media"><div class="media-left"><figure class="image is-48x48"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-nice.png" alt="Preview of " class="is-rounded" style="object-fit: cover; width: 48px; height: 48px;" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none; width: 48px; height: 48px; background-color: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.8em; color: var(--text-color);">No Image</div></figure></div><div class="media-content"><p class="title is-6 mb-1"></p></div></div></a></li><li><a href="#" @click.prevent="searchQuery = instance.Name" class="menu-item"><div class="media"><div class="media-left"><figure class="image is-48x48"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-wide-nice.png" alt="Preview of " class="is-rounded" style="object-fit: cover; width: 48px; height: 48px;" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none; width: 48px; height: 48px; background-color: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.8em; color: var(--text-color);">No Image</div></figure></div><div class="media-content"><p class="title is-6 mb-1"></p></div></div></a></li></ul></div></div></div><!-- Main Content --><div class="column"><div class="global-header"><div><h1 class="title is-4">round_lid</h1><div class="search-box"><div><div><input class="input" type="text" placeholder="Filter to specific instances etc..." x-model="searchQuery"></div><details><summary>History</summary><template x-if="searchHistory.length > 0"><div class="mt-2"><strong>Recent Searches:</strong><ul style="list-style: disc inside; padding-left: 1em;"><template x-for="term in searchHistory" :key="term"><li><a href="#" @click.prevent="searchQuery = term" x-text="term"></a></li></template></ul></div></template></details></div></div><div><button class="button" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button> <button class="button" @click="showDebug = !showDebug" style="margin-left: 8px;"><span x-show="!showDebug">🐛</span> <span x-show="showDebug">🐛</span> <span x-show="showDebug" style="text-decoration: underline;">Debug</span></button></div></div><div class="container"><div><button @click="navSelected = '{key}'" class="button is-large is-fullwidth"><span x-show="navSelected === '{key}'">▼</span> <span x-show="navSelected === '{key}'">▲</span> Instances (8)</button><div x-show="navSelected === '{key}'"><div class="table-container"><table class="table is-fullwidth" id="instances-table"><thead><tr><th>Name</th><th>Description</th><th>Output Path</th><th>Ignored Params</th><th>Images</th><th>name</th><th>renderType</th><th>designFileName</th><th>version</th><th>plugRadius</th><th>plugRadiusBottom</th><th>rimRadius</th><th>plugHeight</th></tr></thead> <style>
         .json-viewer {
             margin: 10px 0;
             border: 1px solid #ddd;
@@ -373,6 +374,7 @@ html, body {
     &#34;designFileName&#34;: &#34;round_lid&#34;,
     &#34;name&#34;: &#34;big&#34;,
     &#34;plugRadius&#34;: 16,
+    &#34;plugRadiusBottom&#34;: 16,
     &#34;renderType&#34;: &#34;obj&#34;,
     &#34;rimRadius&#34;: 31,
     &#34;version&#34;: &#34;v0.1&#34;
@@ -405,6 +407,7 @@ html, body {
           &#34;designFileName&#34;: &#34;round_lid&#34;,
           &#34;name&#34;: &#34;big&#34;,
           &#34;plugRadius&#34;: 16,
+          &#34;plugRadiusBottom&#34;: 16,
           &#34;renderType&#34;: &#34;obj&#34;,
           &#34;rimRadius&#34;: 31,
           &#34;version&#34;: &#34;v0.1&#34;
@@ -442,11 +445,12 @@ html, body {
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;big&#34;,
         &#34;plugRadius&#34;: 16,
+        &#34;plugRadiusBottom&#34;: 16,
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;rimRadius&#34;: 31,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 2911706708,
+      &#34;TimeTaken&#34;: 2418864125,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;nice&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -472,6 +476,7 @@ html, body {
           &#34;designFileName&#34;: &#34;round_lid&#34;,
           &#34;name&#34;: &#34;big&#34;,
           &#34;plugRadius&#34;: 16,
+          &#34;plugRadiusBottom&#34;: 16,
           &#34;renderType&#34;: &#34;obj&#34;,
           &#34;rimRadius&#34;: 31,
           &#34;version&#34;: &#34;v0.1&#34;
@@ -509,11 +514,12 @@ html, body {
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;big&#34;,
         &#34;plugRadius&#34;: 16,
+        &#34;plugRadiusBottom&#34;: 16,
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;rimRadius&#34;: 31,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 2731877000,
+      &#34;TimeTaken&#34;: 2462142166,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;top&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,300&#34;
@@ -592,6 +598,7 @@ html, body {
     &#34;name&#34;: &#34;small&#34;,
     &#34;plugHeight&#34;: 70,
     &#34;plugRadius&#34;: 15,
+    &#34;plugRadiusBottom&#34;: 15,
     &#34;renderType&#34;: &#34;obj&#34;,
     &#34;rimRadius&#34;: 24,
     &#34;version&#34;: &#34;v0.1&#34;
@@ -625,6 +632,7 @@ html, body {
           &#34;name&#34;: &#34;small&#34;,
           &#34;plugHeight&#34;: 70,
           &#34;plugRadius&#34;: 15,
+          &#34;plugRadiusBottom&#34;: 15,
           &#34;renderType&#34;: &#34;obj&#34;,
           &#34;rimRadius&#34;: 24,
           &#34;version&#34;: &#34;v0.1&#34;
@@ -663,11 +671,12 @@ html, body {
         &#34;name&#34;: &#34;small&#34;,
         &#34;plugHeight&#34;: 70,
         &#34;plugRadius&#34;: 15,
+        &#34;plugRadiusBottom&#34;: 15,
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;rimRadius&#34;: 24,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 2510613584,
+      &#34;TimeTaken&#34;: 2547180333,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;nice&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -694,6 +703,7 @@ html, body {
           &#34;name&#34;: &#34;small&#34;,
           &#34;plugHeight&#34;: 70,
           &#34;plugRadius&#34;: 15,
+          &#34;plugRadiusBottom&#34;: 15,
           &#34;renderType&#34;: &#34;obj&#34;,
           &#34;rimRadius&#34;: 24,
           &#34;version&#34;: &#34;v0.1&#34;
@@ -732,11 +742,12 @@ html, body {
         &#34;name&#34;: &#34;small&#34;,
         &#34;plugHeight&#34;: 70,
         &#34;plugRadius&#34;: 15,
+        &#34;plugRadiusBottom&#34;: 15,
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;rimRadius&#34;: 24,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 2713819584,
+      &#34;TimeTaken&#34;: 2216361000,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;top&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,300&#34;
@@ -814,7 +825,8 @@ html, body {
     &#34;designFileName&#34;: &#34;round_lid&#34;,
     &#34;name&#34;: &#34;tiny&#34;,
     &#34;plugHeight&#34;: 50,
-    &#34;plugRadius&#34;: 6.5,
+    &#34;plugRadius&#34;: 8.5,
+    &#34;plugRadiusBottom&#34;: 7.5,
     &#34;renderType&#34;: &#34;obj&#34;,
     &#34;rimRadius&#34;: 13,
     &#34;version&#34;: &#34;v0.1&#34;
@@ -847,7 +859,8 @@ html, body {
           &#34;designFileName&#34;: &#34;round_lid&#34;,
           &#34;name&#34;: &#34;tiny&#34;,
           &#34;plugHeight&#34;: 50,
-          &#34;plugRadius&#34;: 6.5,
+          &#34;plugRadius&#34;: 8.5,
+          &#34;plugRadiusBottom&#34;: 7.5,
           &#34;renderType&#34;: &#34;obj&#34;,
           &#34;rimRadius&#34;: 13,
           &#34;version&#34;: &#34;v0.1&#34;
@@ -885,12 +898,13 @@ html, body {
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;tiny&#34;,
         &#34;plugHeight&#34;: 50,
-        &#34;plugRadius&#34;: 6.5,
+        &#34;plugRadius&#34;: 8.5,
+        &#34;plugRadiusBottom&#34;: 7.5,
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;rimRadius&#34;: 13,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 2116724375,
+      &#34;TimeTaken&#34;: 2593355208,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;nice&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -916,7 +930,8 @@ html, body {
           &#34;designFileName&#34;: &#34;round_lid&#34;,
           &#34;name&#34;: &#34;tiny&#34;,
           &#34;plugHeight&#34;: 50,
-          &#34;plugRadius&#34;: 6.5,
+          &#34;plugRadius&#34;: 8.5,
+          &#34;plugRadiusBottom&#34;: 7.5,
           &#34;renderType&#34;: &#34;obj&#34;,
           &#34;rimRadius&#34;: 13,
           &#34;version&#34;: &#34;v0.1&#34;
@@ -954,12 +969,13 @@ html, body {
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;tiny&#34;,
         &#34;plugHeight&#34;: 50,
-        &#34;plugRadius&#34;: 6.5,
+        &#34;plugRadius&#34;: 8.5,
+        &#34;plugRadiusBottom&#34;: 7.5,
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;rimRadius&#34;: 13,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 2050302000,
+      &#34;TimeTaken&#34;: 1906888208,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;top&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,300&#34;
@@ -1037,7 +1053,8 @@ html, body {
     &#34;designFileName&#34;: &#34;round_lid&#34;,
     &#34;name&#34;: &#34;tiny-wide&#34;,
     &#34;plugHeight&#34;: 50,
-    &#34;plugRadius&#34;: 6.5,
+    &#34;plugRadius&#34;: 8.5,
+    &#34;plugRadiusBottom&#34;: 7.5,
     &#34;renderType&#34;: &#34;obj&#34;,
     &#34;rimRadius&#34;: 18,
     &#34;version&#34;: &#34;v0.1&#34;
@@ -1070,7 +1087,8 @@ html, body {
           &#34;designFileName&#34;: &#34;round_lid&#34;,
           &#34;name&#34;: &#34;tiny-wide&#34;,
           &#34;plugHeight&#34;: 50,
-          &#34;plugRadius&#34;: 6.5,
+          &#34;plugRadius&#34;: 8.5,
+          &#34;plugRadiusBottom&#34;: 7.5,
           &#34;renderType&#34;: &#34;obj&#34;,
           &#34;rimRadius&#34;: 18,
           &#34;version&#34;: &#34;v0.1&#34;
@@ -1108,12 +1126,13 @@ html, body {
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;tiny-wide&#34;,
         &#34;plugHeight&#34;: 50,
-        &#34;plugRadius&#34;: 6.5,
+        &#34;plugRadius&#34;: 8.5,
+        &#34;plugRadiusBottom&#34;: 7.5,
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;rimRadius&#34;: 18,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 2322441917,
+      &#34;TimeTaken&#34;: 9021622458,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;nice&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -1139,7 +1158,8 @@ html, body {
           &#34;designFileName&#34;: &#34;round_lid&#34;,
           &#34;name&#34;: &#34;tiny-wide&#34;,
           &#34;plugHeight&#34;: 50,
-          &#34;plugRadius&#34;: 6.5,
+          &#34;plugRadius&#34;: 8.5,
+          &#34;plugRadiusBottom&#34;: 7.5,
           &#34;renderType&#34;: &#34;obj&#34;,
           &#34;rimRadius&#34;: 18,
           &#34;version&#34;: &#34;v0.1&#34;
@@ -1177,12 +1197,13 @@ html, body {
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;tiny-wide&#34;,
         &#34;plugHeight&#34;: 50,
-        &#34;plugRadius&#34;: 6.5,
+        &#34;plugRadius&#34;: 8.5,
+        &#34;plugRadiusBottom&#34;: 7.5,
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;rimRadius&#34;: 18,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 2266666500,
+      &#34;TimeTaken&#34;: 2672000625,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;top&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,300&#34;
@@ -1260,6 +1281,7 @@ html, body {
     &#34;designFileName&#34;: &#34;round_lid&#34;,
     &#34;name&#34;: &#34;big&#34;,
     &#34;plugRadius&#34;: 16,
+    &#34;plugRadiusBottom&#34;: 16,
     &#34;renderType&#34;: &#34;vertSlice&#34;,
     &#34;rimRadius&#34;: 31,
     &#34;version&#34;: &#34;v0.1&#34;
@@ -1292,6 +1314,7 @@ html, body {
           &#34;designFileName&#34;: &#34;round_lid&#34;,
           &#34;name&#34;: &#34;big&#34;,
           &#34;plugRadius&#34;: 16,
+          &#34;plugRadiusBottom&#34;: 16,
           &#34;renderType&#34;: &#34;vertSlice&#34;,
           &#34;rimRadius&#34;: 31,
           &#34;version&#34;: &#34;v0.1&#34;
@@ -1329,11 +1352,12 @@ html, body {
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;big&#34;,
         &#34;plugRadius&#34;: 16,
+        &#34;plugRadiusBottom&#34;: 16,
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;rimRadius&#34;: 31,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 2901747292,
+      &#34;TimeTaken&#34;: 2397701125,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;nice&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -1359,6 +1383,7 @@ html, body {
           &#34;designFileName&#34;: &#34;round_lid&#34;,
           &#34;name&#34;: &#34;big&#34;,
           &#34;plugRadius&#34;: 16,
+          &#34;plugRadiusBottom&#34;: 16,
           &#34;renderType&#34;: &#34;vertSlice&#34;,
           &#34;rimRadius&#34;: 31,
           &#34;version&#34;: &#34;v0.1&#34;
@@ -1396,11 +1421,12 @@ html, body {
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;big&#34;,
         &#34;plugRadius&#34;: 16,
+        &#34;plugRadiusBottom&#34;: 16,
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;rimRadius&#34;: 31,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 2744019458,
+      &#34;TimeTaken&#34;: 2418136333,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;top&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,300&#34;
@@ -1479,6 +1505,7 @@ html, body {
     &#34;name&#34;: &#34;small&#34;,
     &#34;plugHeight&#34;: 70,
     &#34;plugRadius&#34;: 15,
+    &#34;plugRadiusBottom&#34;: 15,
     &#34;renderType&#34;: &#34;vertSlice&#34;,
     &#34;rimRadius&#34;: 24,
     &#34;version&#34;: &#34;v0.1&#34;
@@ -1512,6 +1539,7 @@ html, body {
           &#34;name&#34;: &#34;small&#34;,
           &#34;plugHeight&#34;: 70,
           &#34;plugRadius&#34;: 15,
+          &#34;plugRadiusBottom&#34;: 15,
           &#34;renderType&#34;: &#34;vertSlice&#34;,
           &#34;rimRadius&#34;: 24,
           &#34;version&#34;: &#34;v0.1&#34;
@@ -1550,11 +1578,12 @@ html, body {
         &#34;name&#34;: &#34;small&#34;,
         &#34;plugHeight&#34;: 70,
         &#34;plugRadius&#34;: 15,
+        &#34;plugRadiusBottom&#34;: 15,
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;rimRadius&#34;: 24,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 2471161583,
+      &#34;TimeTaken&#34;: 2583260083,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;nice&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -1581,6 +1610,7 @@ html, body {
           &#34;name&#34;: &#34;small&#34;,
           &#34;plugHeight&#34;: 70,
           &#34;plugRadius&#34;: 15,
+          &#34;plugRadiusBottom&#34;: 15,
           &#34;renderType&#34;: &#34;vertSlice&#34;,
           &#34;rimRadius&#34;: 24,
           &#34;version&#34;: &#34;v0.1&#34;
@@ -1619,11 +1649,12 @@ html, body {
         &#34;name&#34;: &#34;small&#34;,
         &#34;plugHeight&#34;: 70,
         &#34;plugRadius&#34;: 15,
+        &#34;plugRadiusBottom&#34;: 15,
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;rimRadius&#34;: 24,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 2504137750,
+      &#34;TimeTaken&#34;: 2267123583,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;top&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,300&#34;
@@ -1701,7 +1732,8 @@ html, body {
     &#34;designFileName&#34;: &#34;round_lid&#34;,
     &#34;name&#34;: &#34;tiny&#34;,
     &#34;plugHeight&#34;: 50,
-    &#34;plugRadius&#34;: 6.5,
+    &#34;plugRadius&#34;: 8.5,
+    &#34;plugRadiusBottom&#34;: 7.5,
     &#34;renderType&#34;: &#34;vertSlice&#34;,
     &#34;rimRadius&#34;: 13,
     &#34;version&#34;: &#34;v0.1&#34;
@@ -1734,7 +1766,8 @@ html, body {
           &#34;designFileName&#34;: &#34;round_lid&#34;,
           &#34;name&#34;: &#34;tiny&#34;,
           &#34;plugHeight&#34;: 50,
-          &#34;plugRadius&#34;: 6.5,
+          &#34;plugRadius&#34;: 8.5,
+          &#34;plugRadiusBottom&#34;: 7.5,
           &#34;renderType&#34;: &#34;vertSlice&#34;,
           &#34;rimRadius&#34;: 13,
           &#34;version&#34;: &#34;v0.1&#34;
@@ -1772,12 +1805,13 @@ html, body {
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;tiny&#34;,
         &#34;plugHeight&#34;: 50,
-        &#34;plugRadius&#34;: 6.5,
+        &#34;plugRadius&#34;: 8.5,
+        &#34;plugRadiusBottom&#34;: 7.5,
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;rimRadius&#34;: 13,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 2069789791,
+      &#34;TimeTaken&#34;: 1915786792,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;nice&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -1803,7 +1837,8 @@ html, body {
           &#34;designFileName&#34;: &#34;round_lid&#34;,
           &#34;name&#34;: &#34;tiny&#34;,
           &#34;plugHeight&#34;: 50,
-          &#34;plugRadius&#34;: 6.5,
+          &#34;plugRadius&#34;: 8.5,
+          &#34;plugRadiusBottom&#34;: 7.5,
           &#34;renderType&#34;: &#34;vertSlice&#34;,
           &#34;rimRadius&#34;: 13,
           &#34;version&#34;: &#34;v0.1&#34;
@@ -1841,12 +1876,13 @@ html, body {
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;tiny&#34;,
         &#34;plugHeight&#34;: 50,
-        &#34;plugRadius&#34;: 6.5,
+        &#34;plugRadius&#34;: 8.5,
+        &#34;plugRadiusBottom&#34;: 7.5,
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;rimRadius&#34;: 13,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 2055687791,
+      &#34;TimeTaken&#34;: 1907658667,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;top&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,300&#34;
@@ -1924,7 +1960,8 @@ html, body {
     &#34;designFileName&#34;: &#34;round_lid&#34;,
     &#34;name&#34;: &#34;tiny-wide&#34;,
     &#34;plugHeight&#34;: 50,
-    &#34;plugRadius&#34;: 6.5,
+    &#34;plugRadius&#34;: 8.5,
+    &#34;plugRadiusBottom&#34;: 7.5,
     &#34;renderType&#34;: &#34;vertSlice&#34;,
     &#34;rimRadius&#34;: 18,
     &#34;version&#34;: &#34;v0.1&#34;
@@ -1957,7 +1994,8 @@ html, body {
           &#34;designFileName&#34;: &#34;round_lid&#34;,
           &#34;name&#34;: &#34;tiny-wide&#34;,
           &#34;plugHeight&#34;: 50,
-          &#34;plugRadius&#34;: 6.5,
+          &#34;plugRadius&#34;: 8.5,
+          &#34;plugRadiusBottom&#34;: 7.5,
           &#34;renderType&#34;: &#34;vertSlice&#34;,
           &#34;rimRadius&#34;: 18,
           &#34;version&#34;: &#34;v0.1&#34;
@@ -1995,12 +2033,13 @@ html, body {
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;tiny-wide&#34;,
         &#34;plugHeight&#34;: 50,
-        &#34;plugRadius&#34;: 6.5,
+        &#34;plugRadius&#34;: 8.5,
+        &#34;plugRadiusBottom&#34;: 7.5,
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;rimRadius&#34;: 18,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 2406734041,
+      &#34;TimeTaken&#34;: 2235702542,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;nice&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -2026,7 +2065,8 @@ html, body {
           &#34;designFileName&#34;: &#34;round_lid&#34;,
           &#34;name&#34;: &#34;tiny-wide&#34;,
           &#34;plugHeight&#34;: 50,
-          &#34;plugRadius&#34;: 6.5,
+          &#34;plugRadius&#34;: 8.5,
+          &#34;plugRadiusBottom&#34;: 7.5,
           &#34;renderType&#34;: &#34;vertSlice&#34;,
           &#34;rimRadius&#34;: 18,
           &#34;version&#34;: &#34;v0.1&#34;
@@ -2064,12 +2104,13 @@ html, body {
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;tiny-wide&#34;,
         &#34;plugHeight&#34;: 50,
-        &#34;plugRadius&#34;: 6.5,
+        &#34;plugRadius&#34;: 8.5,
+        &#34;plugRadiusBottom&#34;: 7.5,
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;rimRadius&#34;: 18,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 2295333292,
+      &#34;TimeTaken&#34;: 2363677875,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;top&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,300&#34;
@@ -2096,58 +2137,66 @@ html, body {
 }</pre></div></details><tbody><tr id="instance-0" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>round_lid_obj_big ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;big&#34;;
 plugRadius = 16;
+plugRadiusBottom = 16;
 renderType = &#34;obj&#34;;
 rimRadius = 31;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>obj</td><td>round_lid</td><td>v0.1</td><td>31</td><td>big</td><td>16</td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr id="instance-images-0"><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"></td></tr><tr id="instance-1" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>round_lid_obj_small ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>big</td><td>obj</td><td>round_lid</td><td>v0.1</td><td>16</td><td>16</td><td>31</td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr id="instance-images-0"><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"></td></tr><tr id="instance-1" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>round_lid_obj_small ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;small&#34;;
 plugHeight = 70;
 plugRadius = 15;
+plugRadiusBottom = 15;
 renderType = &#34;obj&#34;;
 rimRadius = 24;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>obj</td><td>round_lid</td><td>v0.1</td><td>24</td><td>small</td><td>15</td><td>70</td></tr><tr id="instance-images-1"><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"></td></tr><tr id="instance-2" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>round_lid_obj_tiny ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>small</td><td>obj</td><td>round_lid</td><td>v0.1</td><td>15</td><td>15</td><td>24</td><td>70</td></tr><tr id="instance-images-1"><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"></td></tr><tr id="instance-2" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>round_lid_obj_tiny ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;tiny&#34;;
 plugHeight = 50;
-plugRadius = 6.5;
+plugRadius = 8.5;
+plugRadiusBottom = 7.5;
 renderType = &#34;obj&#34;;
 rimRadius = 13;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>obj</td><td>round_lid</td><td>v0.1</td><td>13</td><td>tiny</td><td>6.5</td><td>50</td></tr><tr id="instance-images-2"><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"></td></tr><tr id="instance-3" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>round_lid_obj_tiny-wide ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>tiny</td><td>obj</td><td>round_lid</td><td>v0.1</td><td>8.5</td><td>7.5</td><td>13</td><td>50</td></tr><tr id="instance-images-2"><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"></td></tr><tr id="instance-3" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>round_lid_obj_tiny-wide ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;tiny-wide&#34;;
 plugHeight = 50;
-plugRadius = 6.5;
+plugRadius = 8.5;
+plugRadiusBottom = 7.5;
 renderType = &#34;obj&#34;;
 rimRadius = 18;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>obj</td><td>round_lid</td><td>v0.1</td><td>18</td><td>tiny-wide</td><td>6.5</td><td>50</td></tr><tr id="instance-images-3"><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"></td></tr><tr id="instance-4" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>round_lid_vertSlice_big ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>tiny-wide</td><td>obj</td><td>round_lid</td><td>v0.1</td><td>8.5</td><td>7.5</td><td>18</td><td>50</td></tr><tr id="instance-images-3"><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"></td></tr><tr id="instance-4" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>round_lid_vertSlice_big ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;big&#34;;
 plugRadius = 16;
+plugRadiusBottom = 16;
 renderType = &#34;vertSlice&#34;;
 rimRadius = 31;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>vertSlice</td><td>round_lid</td><td>v0.1</td><td>31</td><td>big</td><td>16</td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr id="instance-images-4"><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"></td></tr><tr id="instance-5" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>round_lid_vertSlice_small ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>big</td><td>vertSlice</td><td>round_lid</td><td>v0.1</td><td>16</td><td>16</td><td>31</td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr><tr id="instance-images-4"><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"></td></tr><tr id="instance-5" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>round_lid_vertSlice_small ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;small&#34;;
 plugHeight = 70;
 plugRadius = 15;
+plugRadiusBottom = 15;
 renderType = &#34;vertSlice&#34;;
 rimRadius = 24;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>vertSlice</td><td>round_lid</td><td>v0.1</td><td>24</td><td>small</td><td>15</td><td>70</td></tr><tr id="instance-images-5"><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"></td></tr><tr id="instance-6" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>round_lid_vertSlice_tiny ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>small</td><td>vertSlice</td><td>round_lid</td><td>v0.1</td><td>15</td><td>15</td><td>24</td><td>70</td></tr><tr id="instance-images-5"><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"></td></tr><tr id="instance-6" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>round_lid_vertSlice_tiny ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;tiny&#34;;
 plugHeight = 50;
-plugRadius = 6.5;
+plugRadius = 8.5;
+plugRadiusBottom = 7.5;
 renderType = &#34;vertSlice&#34;;
 rimRadius = 13;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>vertSlice</td><td>round_lid</td><td>v0.1</td><td>13</td><td>tiny</td><td>6.5</td><td>50</td></tr><tr id="instance-images-6"><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"></td></tr><tr id="instance-7" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>round_lid_vertSlice_tiny-wide ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>tiny</td><td>vertSlice</td><td>round_lid</td><td>v0.1</td><td>8.5</td><td>7.5</td><td>13</td><td>50</td></tr><tr id="instance-images-6"><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"></td></tr><tr id="instance-7" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>round_lid_vertSlice_tiny-wide ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;tiny-wide&#34;;
 plugHeight = 50;
-plugRadius = 6.5;
+plugRadius = 8.5;
+plugRadiusBottom = 7.5;
 renderType = &#34;vertSlice&#34;;
 rimRadius = 18;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>vertSlice</td><td>round_lid</td><td>v0.1</td><td>18</td><td>tiny-wide</td><td>6.5</td><td>50</td></tr><tr id="instance-images-7"><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-wide-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-wide-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"></td></tr></tbody></table></div> <div class="my-2"></div></div></div> <div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> STL Results (8)</button><div x-show="isOpen"><style>
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>tiny-wide</td><td>vertSlice</td><td>round_lid</td><td>v0.1</td><td>8.5</td><td>7.5</td><td>18</td><td>50</td></tr><tr id="instance-images-7"><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-wide-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-wide-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"></td></tr></tbody></table></div> <div class="my-2"></div></div></div> <div><button @click="navSelected = '{key}'" class="button is-large is-fullwidth"><span x-show="navSelected === '{key}'">▼</span> <span x-show="navSelected === '{key}'">▲</span> STL Results (8)</button><div x-show="navSelected === '{key}'"><style>
         .json-viewer {
             margin: 10px 0;
             border: 1px solid #ddd;
@@ -2203,6 +2252,7 @@ version = &#34;v0.1&#34;;
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;big&#34;,
         &#34;plugRadius&#34;: 16,
+        &#34;plugRadiusBottom&#34;: 16,
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;rimRadius&#34;: 31,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -2234,17 +2284,18 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big.stl&#39; --render --backend=manifold -D &#39;plugRadius=16&#39; -D &#39;renderType=\&#34;obj\&#34;&#39; -D &#39;designFileName=\&#34;round_lid\&#34;&#39; -D &#39;rimRadius=31&#39; -D &#39;name=\&#34;big\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big.stl&#39; --render --backend=manifold -D &#39;plugRadius=16&#39; -D &#39;plugRadiusBottom=16&#39; -D &#39;rimRadius=31&#39; -D &#39;name=\&#34;big\&#34;&#39; -D &#39;renderType=\&#34;obj\&#34;&#39; -D &#39;designFileName=\&#34;round_lid\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;round_lid&#34;,
       &#34;name&#34;: &#34;big&#34;,
       &#34;plugRadius&#34;: 16,
+      &#34;plugRadiusBottom&#34;: 16,
       &#34;renderType&#34;: &#34;obj&#34;,
       &#34;rimRadius&#34;: 31,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 3027595167,
+    &#34;TimeTaken&#34;: 2891969334,
     &#34;Skipped&#34;: false,
     &#34;LowQuality&#34;: false,
     &#34;SkippedReason&#34;: &#34;&#34;,
@@ -2271,6 +2322,7 @@ version = &#34;v0.1&#34;;
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;big&#34;,
         &#34;plugRadius&#34;: 16,
+        &#34;plugRadiusBottom&#34;: 16,
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;rimRadius&#34;: 31,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -2302,17 +2354,18 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big.stl&#39; --render --backend=manifold -D &#39;plugRadius=16&#39; -D &#39;renderType=\&#34;vertSlice\&#34;&#39; -D &#39;designFileName=\&#34;round_lid\&#34;&#39; -D &#39;rimRadius=31&#39; -D &#39;name=\&#34;big\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big.stl&#39; --render --backend=manifold -D &#39;plugRadius=16&#39; -D &#39;plugRadiusBottom=16&#39; -D &#39;rimRadius=31&#39; -D &#39;name=\&#34;big\&#34;&#39; -D &#39;renderType=\&#34;vertSlice\&#34;&#39; -D &#39;designFileName=\&#34;round_lid\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;round_lid&#34;,
       &#34;name&#34;: &#34;big&#34;,
       &#34;plugRadius&#34;: 16,
+      &#34;plugRadiusBottom&#34;: 16,
       &#34;renderType&#34;: &#34;vertSlice&#34;,
       &#34;rimRadius&#34;: 31,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2928950292,
+    &#34;TimeTaken&#34;: 2576242083,
     &#34;Skipped&#34;: false,
     &#34;LowQuality&#34;: false,
     &#34;SkippedReason&#34;: &#34;&#34;,
@@ -2340,6 +2393,7 @@ version = &#34;v0.1&#34;;
         &#34;name&#34;: &#34;small&#34;,
         &#34;plugHeight&#34;: 70,
         &#34;plugRadius&#34;: 15,
+        &#34;plugRadiusBottom&#34;: 15,
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;rimRadius&#34;: 24,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -2371,18 +2425,19 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small.stl&#39; --render --backend=manifold -D &#39;plugHeight=70&#39; -D &#39;name=\&#34;small\&#34;&#39; -D &#39;plugRadius=15&#39; -D &#39;rimRadius=24&#39; -D &#39;renderType=\&#34;obj\&#34;&#39; -D &#39;designFileName=\&#34;round_lid\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small.stl&#39; --render --backend=manifold -D &#39;rimRadius=24&#39; -D &#39;renderType=\&#34;obj\&#34;&#39; -D &#39;designFileName=\&#34;round_lid\&#34;&#39; -D &#39;plugHeight=70&#39; -D &#39;name=\&#34;small\&#34;&#39; -D &#39;plugRadius=15&#39; -D &#39;plugRadiusBottom=15&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;round_lid&#34;,
       &#34;name&#34;: &#34;small&#34;,
       &#34;plugHeight&#34;: 70,
       &#34;plugRadius&#34;: 15,
+      &#34;plugRadiusBottom&#34;: 15,
       &#34;renderType&#34;: &#34;obj&#34;,
       &#34;rimRadius&#34;: 24,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2666484875,
+    &#34;TimeTaken&#34;: 2459688375,
     &#34;Skipped&#34;: false,
     &#34;LowQuality&#34;: false,
     &#34;SkippedReason&#34;: &#34;&#34;,
@@ -2410,6 +2465,7 @@ version = &#34;v0.1&#34;;
         &#34;name&#34;: &#34;small&#34;,
         &#34;plugHeight&#34;: 70,
         &#34;plugRadius&#34;: 15,
+        &#34;plugRadiusBottom&#34;: 15,
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;rimRadius&#34;: 24,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -2441,18 +2497,19 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small.stl&#39; --render --backend=manifold -D &#39;designFileName=\&#34;round_lid\&#34;&#39; -D &#39;plugHeight=70&#39; -D &#39;name=\&#34;small\&#34;&#39; -D &#39;plugRadius=15&#39; -D &#39;rimRadius=24&#39; -D &#39;renderType=\&#34;vertSlice\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small.stl&#39; --render --backend=manifold -D &#39;name=\&#34;small\&#34;&#39; -D &#39;plugRadius=15&#39; -D &#39;renderType=\&#34;vertSlice\&#34;&#39; -D &#39;designFileName=\&#34;round_lid\&#34;&#39; -D &#39;plugRadiusBottom=15&#39; -D &#39;rimRadius=24&#39; -D &#39;plugHeight=70&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;round_lid&#34;,
       &#34;name&#34;: &#34;small&#34;,
       &#34;plugHeight&#34;: 70,
       &#34;plugRadius&#34;: 15,
+      &#34;plugRadiusBottom&#34;: 15,
       &#34;renderType&#34;: &#34;vertSlice&#34;,
       &#34;rimRadius&#34;: 24,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2479560541,
+    &#34;TimeTaken&#34;: 2240560500,
     &#34;Skipped&#34;: false,
     &#34;LowQuality&#34;: false,
     &#34;SkippedReason&#34;: &#34;&#34;,
@@ -2479,7 +2536,8 @@ version = &#34;v0.1&#34;;
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;tiny&#34;,
         &#34;plugHeight&#34;: 50,
-        &#34;plugRadius&#34;: 6.5,
+        &#34;plugRadius&#34;: 8.5,
+        &#34;plugRadiusBottom&#34;: 7.5,
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;rimRadius&#34;: 13,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -2511,18 +2569,19 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny.stl&#39; --render --backend=manifold -D &#39;plugRadius=6.5&#39; -D &#39;rimRadius=13&#39; -D &#39;plugHeight=50&#39; -D &#39;name=\&#34;tiny\&#34;&#39; -D &#39;renderType=\&#34;obj\&#34;&#39; -D &#39;designFileName=\&#34;round_lid\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny.stl&#39; --render --backend=manifold -D &#39;designFileName=\&#34;round_lid\&#34;&#39; -D &#39;rimRadius=13&#39; -D &#39;plugHeight=50&#39; -D &#39;name=\&#34;tiny\&#34;&#39; -D &#39;plugRadius=8.5&#39; -D &#39;plugRadiusBottom=7.5&#39; -D &#39;renderType=\&#34;obj\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;round_lid&#34;,
       &#34;name&#34;: &#34;tiny&#34;,
       &#34;plugHeight&#34;: 50,
-      &#34;plugRadius&#34;: 6.5,
+      &#34;plugRadius&#34;: 8.5,
+      &#34;plugRadiusBottom&#34;: 7.5,
       &#34;renderType&#34;: &#34;obj&#34;,
       &#34;rimRadius&#34;: 13,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2199827250,
+    &#34;TimeTaken&#34;: 2016709875,
     &#34;Skipped&#34;: false,
     &#34;LowQuality&#34;: false,
     &#34;SkippedReason&#34;: &#34;&#34;,
@@ -2549,7 +2608,8 @@ version = &#34;v0.1&#34;;
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;tiny&#34;,
         &#34;plugHeight&#34;: 50,
-        &#34;plugRadius&#34;: 6.5,
+        &#34;plugRadius&#34;: 8.5,
+        &#34;plugRadiusBottom&#34;: 7.5,
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;rimRadius&#34;: 13,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -2581,18 +2641,19 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny.stl&#39; --render --backend=manifold -D &#39;plugHeight=50&#39; -D &#39;name=\&#34;tiny\&#34;&#39; -D &#39;renderType=\&#34;vertSlice\&#34;&#39; -D &#39;designFileName=\&#34;round_lid\&#34;&#39; -D &#39;plugRadius=6.5&#39; -D &#39;rimRadius=13&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny.stl&#39; --render --backend=manifold -D &#39;designFileName=\&#34;round_lid\&#34;&#39; -D &#39;plugRadius=8.5&#39; -D &#39;plugRadiusBottom=7.5&#39; -D &#39;rimRadius=13&#39; -D &#39;plugHeight=50&#39; -D &#39;name=\&#34;tiny\&#34;&#39; -D &#39;renderType=\&#34;vertSlice\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;round_lid&#34;,
       &#34;name&#34;: &#34;tiny&#34;,
       &#34;plugHeight&#34;: 50,
-      &#34;plugRadius&#34;: 6.5,
+      &#34;plugRadius&#34;: 8.5,
+      &#34;plugRadiusBottom&#34;: 7.5,
       &#34;renderType&#34;: &#34;vertSlice&#34;,
       &#34;rimRadius&#34;: 13,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2032388500,
+    &#34;TimeTaken&#34;: 2577919334,
     &#34;Skipped&#34;: false,
     &#34;LowQuality&#34;: false,
     &#34;SkippedReason&#34;: &#34;&#34;,
@@ -2619,7 +2680,8 @@ version = &#34;v0.1&#34;;
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;tiny-wide&#34;,
         &#34;plugHeight&#34;: 50,
-        &#34;plugRadius&#34;: 6.5,
+        &#34;plugRadius&#34;: 8.5,
+        &#34;plugRadiusBottom&#34;: 7.5,
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;rimRadius&#34;: 18,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -2651,18 +2713,19 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide.stl&#39; --render --backend=manifold -D &#39;designFileName=\&#34;round_lid\&#34;&#39; -D &#39;name=\&#34;tiny-wide\&#34;&#39; -D &#39;plugRadius=6.5&#39; -D &#39;rimRadius=18&#39; -D &#39;plugHeight=50&#39; -D &#39;renderType=\&#34;obj\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide.stl&#39; --render --backend=manifold -D &#39;designFileName=\&#34;round_lid\&#34;&#39; -D &#39;plugRadiusBottom=7.5&#39; -D &#39;rimRadius=18&#39; -D &#39;plugHeight=50&#39; -D &#39;name=\&#34;tiny-wide\&#34;&#39; -D &#39;plugRadius=8.5&#39; -D &#39;renderType=\&#34;obj\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;round_lid&#34;,
       &#34;name&#34;: &#34;tiny-wide&#34;,
       &#34;plugHeight&#34;: 50,
-      &#34;plugRadius&#34;: 6.5,
+      &#34;plugRadius&#34;: 8.5,
+      &#34;plugRadiusBottom&#34;: 7.5,
       &#34;renderType&#34;: &#34;obj&#34;,
       &#34;rimRadius&#34;: 18,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2371148416,
+    &#34;TimeTaken&#34;: 2321869958,
     &#34;Skipped&#34;: false,
     &#34;LowQuality&#34;: false,
     &#34;SkippedReason&#34;: &#34;&#34;,
@@ -2689,7 +2752,8 @@ version = &#34;v0.1&#34;;
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;tiny-wide&#34;,
         &#34;plugHeight&#34;: 50,
-        &#34;plugRadius&#34;: 6.5,
+        &#34;plugRadius&#34;: 8.5,
+        &#34;plugRadiusBottom&#34;: 7.5,
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;rimRadius&#34;: 18,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -2721,26 +2785,28 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-wide.stl&#39; --render --backend=manifold -D &#39;rimRadius=18&#39; -D &#39;plugHeight=50&#39; -D &#39;renderType=\&#34;vertSlice\&#34;&#39; -D &#39;designFileName=\&#34;round_lid\&#34;&#39; -D &#39;name=\&#34;tiny-wide\&#34;&#39; -D &#39;plugRadius=6.5&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-wide.stl&#39; --render --backend=manifold -D &#39;renderType=\&#34;vertSlice\&#34;&#39; -D &#39;designFileName=\&#34;round_lid\&#34;&#39; -D &#39;name=\&#34;tiny-wide\&#34;&#39; -D &#39;plugRadius=8.5&#39; -D &#39;plugRadiusBottom=7.5&#39; -D &#39;rimRadius=18&#39; -D &#39;plugHeight=50&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;round_lid&#34;,
       &#34;name&#34;: &#34;tiny-wide&#34;,
       &#34;plugHeight&#34;: 50,
-      &#34;plugRadius&#34;: 6.5,
+      &#34;plugRadius&#34;: 8.5,
+      &#34;plugRadiusBottom&#34;: 7.5,
       &#34;renderType&#34;: &#34;vertSlice&#34;,
       &#34;rimRadius&#34;: 18,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2238390792,
+    &#34;TimeTaken&#34;: 2227440916,
     &#34;Skipped&#34;: false,
     &#34;LowQuality&#34;: false,
     &#34;SkippedReason&#34;: &#34;&#34;,
     &#34;GenerateImageResult&#34;: null
   }
-]</pre></div></details> <div class="table-container"><table class="table is-fullwidth" id="stl-results-table"><thead><tr><th style="width: 150px;">Instance</th><th style="width: 100px;">Time Taken</th><th style="width: 200px;">Params</th><th style="width: 150px;" x-show="showDebug">Debug</th><th style="width: 200px;">Command</th></tr></thead> <tbody><tr id="stl-result-0" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>3.027595167s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+]</pre></div></details> <div class="table-container"><table class="table is-fullwidth" id="stl-results-table"><thead><tr><th style="width: 150px;">Instance</th><th style="width: 100px;">Time Taken</th><th style="width: 200px;">Params</th><th style="width: 150px;" x-show="showDebug">Debug</th><th style="width: 200px;">Command</th></tr></thead> <tbody><tr id="stl-result-0" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.891969334s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;big&#34;;
 plugRadius = 16;
+plugRadiusBottom = 16;
 renderType = &#34;obj&#34;;
 rimRadius = 31;
 version = &#34;v0.1&#34;;
@@ -2749,9 +2815,10 @@ version = &#34;v0.1&#34;;
                 <summary>OpenSCAD Code</summary>
                 @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
             </details>
-        </td> --><td x-show="showDebug"><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big.stl&#39; --render --backend=manifold -D &#39;plugRadius=16&#39; -D &#39;renderType=&#34;obj&#34;&#39; -D &#39;designFileName=&#34;round_lid&#34;&#39; -D &#39;rimRadius=31&#39; -D &#39;name=&#34;big&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad</pre></code></div></details></td></tr><tr id="stl-result-1" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.928950292s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+        </td> --><td x-show="showDebug"><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big.stl&#39; --render --backend=manifold -D &#39;plugRadius=16&#39; -D &#39;plugRadiusBottom=16&#39; -D &#39;rimRadius=31&#39; -D &#39;name=&#34;big&#34;&#39; -D &#39;renderType=&#34;obj&#34;&#39; -D &#39;designFileName=&#34;round_lid&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad</pre></code></div></details></td></tr><tr id="stl-result-1" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.576242083s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;big&#34;;
 plugRadius = 16;
+plugRadiusBottom = 16;
 renderType = &#34;vertSlice&#34;;
 rimRadius = 31;
 version = &#34;v0.1&#34;;
@@ -2760,10 +2827,11 @@ version = &#34;v0.1&#34;;
                 <summary>OpenSCAD Code</summary>
                 @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
             </details>
-        </td> --><td x-show="showDebug"><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big.stl&#39; --render --backend=manifold -D &#39;plugRadius=16&#39; -D &#39;renderType=&#34;vertSlice&#34;&#39; -D &#39;designFileName=&#34;round_lid&#34;&#39; -D &#39;rimRadius=31&#39; -D &#39;name=&#34;big&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad</pre></code></div></details></td></tr><tr id="stl-result-2" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.666484875s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+        </td> --><td x-show="showDebug"><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big.stl&#39; --render --backend=manifold -D &#39;plugRadius=16&#39; -D &#39;plugRadiusBottom=16&#39; -D &#39;rimRadius=31&#39; -D &#39;name=&#34;big&#34;&#39; -D &#39;renderType=&#34;vertSlice&#34;&#39; -D &#39;designFileName=&#34;round_lid&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad</pre></code></div></details></td></tr><tr id="stl-result-2" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.459688375s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;small&#34;;
 plugHeight = 70;
 plugRadius = 15;
+plugRadiusBottom = 15;
 renderType = &#34;obj&#34;;
 rimRadius = 24;
 version = &#34;v0.1&#34;;
@@ -2772,10 +2840,11 @@ version = &#34;v0.1&#34;;
                 <summary>OpenSCAD Code</summary>
                 @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
             </details>
-        </td> --><td x-show="showDebug"><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small.stl&#39; --render --backend=manifold -D &#39;plugHeight=70&#39; -D &#39;name=&#34;small&#34;&#39; -D &#39;plugRadius=15&#39; -D &#39;rimRadius=24&#39; -D &#39;renderType=&#34;obj&#34;&#39; -D &#39;designFileName=&#34;round_lid&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad</pre></code></div></details></td></tr><tr id="stl-result-3" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.479560541s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+        </td> --><td x-show="showDebug"><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small.stl&#39; --render --backend=manifold -D &#39;rimRadius=24&#39; -D &#39;renderType=&#34;obj&#34;&#39; -D &#39;designFileName=&#34;round_lid&#34;&#39; -D &#39;plugHeight=70&#39; -D &#39;name=&#34;small&#34;&#39; -D &#39;plugRadius=15&#39; -D &#39;plugRadiusBottom=15&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad</pre></code></div></details></td></tr><tr id="stl-result-3" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.2405605s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;small&#34;;
 plugHeight = 70;
 plugRadius = 15;
+plugRadiusBottom = 15;
 renderType = &#34;vertSlice&#34;;
 rimRadius = 24;
 version = &#34;v0.1&#34;;
@@ -2784,10 +2853,11 @@ version = &#34;v0.1&#34;;
                 <summary>OpenSCAD Code</summary>
                 @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
             </details>
-        </td> --><td x-show="showDebug"><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small.stl&#39; --render --backend=manifold -D &#39;designFileName=&#34;round_lid&#34;&#39; -D &#39;plugHeight=70&#39; -D &#39;name=&#34;small&#34;&#39; -D &#39;plugRadius=15&#39; -D &#39;rimRadius=24&#39; -D &#39;renderType=&#34;vertSlice&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad</pre></code></div></details></td></tr><tr id="stl-result-4" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.19982725s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+        </td> --><td x-show="showDebug"><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small.stl&#39; --render --backend=manifold -D &#39;name=&#34;small&#34;&#39; -D &#39;plugRadius=15&#39; -D &#39;renderType=&#34;vertSlice&#34;&#39; -D &#39;designFileName=&#34;round_lid&#34;&#39; -D &#39;plugRadiusBottom=15&#39; -D &#39;rimRadius=24&#39; -D &#39;plugHeight=70&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad</pre></code></div></details></td></tr><tr id="stl-result-4" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.016709875s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;tiny&#34;;
 plugHeight = 50;
-plugRadius = 6.5;
+plugRadius = 8.5;
+plugRadiusBottom = 7.5;
 renderType = &#34;obj&#34;;
 rimRadius = 13;
 version = &#34;v0.1&#34;;
@@ -2796,10 +2866,11 @@ version = &#34;v0.1&#34;;
                 <summary>OpenSCAD Code</summary>
                 @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
             </details>
-        </td> --><td x-show="showDebug"><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny.stl&#39; --render --backend=manifold -D &#39;plugRadius=6.5&#39; -D &#39;rimRadius=13&#39; -D &#39;plugHeight=50&#39; -D &#39;name=&#34;tiny&#34;&#39; -D &#39;renderType=&#34;obj&#34;&#39; -D &#39;designFileName=&#34;round_lid&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad</pre></code></div></details></td></tr><tr id="stl-result-5" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.0323885s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+        </td> --><td x-show="showDebug"><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny.stl&#39; --render --backend=manifold -D &#39;designFileName=&#34;round_lid&#34;&#39; -D &#39;rimRadius=13&#39; -D &#39;plugHeight=50&#39; -D &#39;name=&#34;tiny&#34;&#39; -D &#39;plugRadius=8.5&#39; -D &#39;plugRadiusBottom=7.5&#39; -D &#39;renderType=&#34;obj&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad</pre></code></div></details></td></tr><tr id="stl-result-5" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.577919334s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;tiny&#34;;
 plugHeight = 50;
-plugRadius = 6.5;
+plugRadius = 8.5;
+plugRadiusBottom = 7.5;
 renderType = &#34;vertSlice&#34;;
 rimRadius = 13;
 version = &#34;v0.1&#34;;
@@ -2808,10 +2879,11 @@ version = &#34;v0.1&#34;;
                 <summary>OpenSCAD Code</summary>
                 @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
             </details>
-        </td> --><td x-show="showDebug"><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny.stl&#39; --render --backend=manifold -D &#39;plugHeight=50&#39; -D &#39;name=&#34;tiny&#34;&#39; -D &#39;renderType=&#34;vertSlice&#34;&#39; -D &#39;designFileName=&#34;round_lid&#34;&#39; -D &#39;plugRadius=6.5&#39; -D &#39;rimRadius=13&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad</pre></code></div></details></td></tr><tr id="stl-result-6" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.371148416s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+        </td> --><td x-show="showDebug"><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny.stl&#39; --render --backend=manifold -D &#39;designFileName=&#34;round_lid&#34;&#39; -D &#39;plugRadius=8.5&#39; -D &#39;plugRadiusBottom=7.5&#39; -D &#39;rimRadius=13&#39; -D &#39;plugHeight=50&#39; -D &#39;name=&#34;tiny&#34;&#39; -D &#39;renderType=&#34;vertSlice&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad</pre></code></div></details></td></tr><tr id="stl-result-6" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.321869958s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;tiny-wide&#34;;
 plugHeight = 50;
-plugRadius = 6.5;
+plugRadius = 8.5;
+plugRadiusBottom = 7.5;
 renderType = &#34;obj&#34;;
 rimRadius = 18;
 version = &#34;v0.1&#34;;
@@ -2820,10 +2892,11 @@ version = &#34;v0.1&#34;;
                 <summary>OpenSCAD Code</summary>
                 @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
             </details>
-        </td> --><td x-show="showDebug"><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide.stl&#39; --render --backend=manifold -D &#39;designFileName=&#34;round_lid&#34;&#39; -D &#39;name=&#34;tiny-wide&#34;&#39; -D &#39;plugRadius=6.5&#39; -D &#39;rimRadius=18&#39; -D &#39;plugHeight=50&#39; -D &#39;renderType=&#34;obj&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad</pre></code></div></details></td></tr><tr id="stl-result-7" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.238390792s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+        </td> --><td x-show="showDebug"><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide.stl&#39; --render --backend=manifold -D &#39;designFileName=&#34;round_lid&#34;&#39; -D &#39;plugRadiusBottom=7.5&#39; -D &#39;rimRadius=18&#39; -D &#39;plugHeight=50&#39; -D &#39;name=&#34;tiny-wide&#34;&#39; -D &#39;plugRadius=8.5&#39; -D &#39;renderType=&#34;obj&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad</pre></code></div></details></td></tr><tr id="stl-result-7" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>2.227440916s</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;tiny-wide&#34;;
 plugHeight = 50;
-plugRadius = 6.5;
+plugRadius = 8.5;
+plugRadiusBottom = 7.5;
 renderType = &#34;vertSlice&#34;;
 rimRadius = 18;
 version = &#34;v0.1&#34;;
@@ -2832,7 +2905,7 @@ version = &#34;v0.1&#34;;
                 <summary>OpenSCAD Code</summary>
                 @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
             </details>
-        </td> --><td x-show="showDebug"><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-wide.stl&#39; --render --backend=manifold -D &#39;rimRadius=18&#39; -D &#39;plugHeight=50&#39; -D &#39;renderType=&#34;vertSlice&#34;&#39; -D &#39;designFileName=&#34;round_lid&#34;&#39; -D &#39;name=&#34;tiny-wide&#34;&#39; -D &#39;plugRadius=6.5&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad</pre></code></div></details></td></tr></tbody></table></div></div></div> <div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Image Generation Results (16)</button><div x-show="isOpen"><div>Generated 16 images</div><style>
+        </td> --><td x-show="showDebug"><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-wide.stl&#39; --render --backend=manifold -D &#39;renderType=&#34;vertSlice&#34;&#39; -D &#39;designFileName=&#34;round_lid&#34;&#39; -D &#39;name=&#34;tiny-wide&#34;&#39; -D &#39;plugRadius=8.5&#39; -D &#39;plugRadiusBottom=7.5&#39; -D &#39;rimRadius=18&#39; -D &#39;plugHeight=50&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/round_lid.scad</pre></code></div></details></td></tr></tbody></table></div></div></div> <div><button @click="navSelected = '{key}'" class="button is-large is-fullwidth"><span x-show="navSelected === '{key}'">▼</span> <span x-show="navSelected === '{key}'">▲</span> Image Generation Results (16)</button><div x-show="navSelected === '{key}'"><div>Generated 16 images</div><style>
         .json-viewer {
             margin: 10px 0;
             border: 1px solid #ddd;
@@ -2888,6 +2961,7 @@ version = &#34;v0.1&#34;;
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;big&#34;,
         &#34;plugRadius&#34;: 16,
+        &#34;plugRadiusBottom&#34;: 16,
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;rimRadius&#34;: 31,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -2925,11 +2999,12 @@ version = &#34;v0.1&#34;;
       &#34;designFileName&#34;: &#34;round_lid&#34;,
       &#34;name&#34;: &#34;big&#34;,
       &#34;plugRadius&#34;: 16,
+      &#34;plugRadiusBottom&#34;: 16,
       &#34;renderType&#34;: &#34;obj&#34;,
       &#34;rimRadius&#34;: 31,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2911706708,
+    &#34;TimeTaken&#34;: 2418864125,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;nice&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -2955,6 +3030,7 @@ version = &#34;v0.1&#34;;
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;big&#34;,
         &#34;plugRadius&#34;: 16,
+        &#34;plugRadiusBottom&#34;: 16,
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;rimRadius&#34;: 31,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -2992,11 +3068,12 @@ version = &#34;v0.1&#34;;
       &#34;designFileName&#34;: &#34;round_lid&#34;,
       &#34;name&#34;: &#34;big&#34;,
       &#34;plugRadius&#34;: 16,
+      &#34;plugRadiusBottom&#34;: 16,
       &#34;renderType&#34;: &#34;obj&#34;,
       &#34;rimRadius&#34;: 31,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2731877000,
+    &#34;TimeTaken&#34;: 2462142166,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;top&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,300&#34;
@@ -3022,6 +3099,7 @@ version = &#34;v0.1&#34;;
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;big&#34;,
         &#34;plugRadius&#34;: 16,
+        &#34;plugRadiusBottom&#34;: 16,
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;rimRadius&#34;: 31,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -3059,11 +3137,12 @@ version = &#34;v0.1&#34;;
       &#34;designFileName&#34;: &#34;round_lid&#34;,
       &#34;name&#34;: &#34;big&#34;,
       &#34;plugRadius&#34;: 16,
+      &#34;plugRadiusBottom&#34;: 16,
       &#34;renderType&#34;: &#34;vertSlice&#34;,
       &#34;rimRadius&#34;: 31,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2901747292,
+    &#34;TimeTaken&#34;: 2397701125,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;nice&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -3089,6 +3168,7 @@ version = &#34;v0.1&#34;;
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;big&#34;,
         &#34;plugRadius&#34;: 16,
+        &#34;plugRadiusBottom&#34;: 16,
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;rimRadius&#34;: 31,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -3126,11 +3206,12 @@ version = &#34;v0.1&#34;;
       &#34;designFileName&#34;: &#34;round_lid&#34;,
       &#34;name&#34;: &#34;big&#34;,
       &#34;plugRadius&#34;: 16,
+      &#34;plugRadiusBottom&#34;: 16,
       &#34;renderType&#34;: &#34;vertSlice&#34;,
       &#34;rimRadius&#34;: 31,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2744019458,
+    &#34;TimeTaken&#34;: 2418136333,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;top&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,300&#34;
@@ -3157,6 +3238,7 @@ version = &#34;v0.1&#34;;
         &#34;name&#34;: &#34;small&#34;,
         &#34;plugHeight&#34;: 70,
         &#34;plugRadius&#34;: 15,
+        &#34;plugRadiusBottom&#34;: 15,
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;rimRadius&#34;: 24,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -3195,11 +3277,12 @@ version = &#34;v0.1&#34;;
       &#34;name&#34;: &#34;small&#34;,
       &#34;plugHeight&#34;: 70,
       &#34;plugRadius&#34;: 15,
+      &#34;plugRadiusBottom&#34;: 15,
       &#34;renderType&#34;: &#34;obj&#34;,
       &#34;rimRadius&#34;: 24,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2510613584,
+    &#34;TimeTaken&#34;: 2547180333,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;nice&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -3226,6 +3309,7 @@ version = &#34;v0.1&#34;;
         &#34;name&#34;: &#34;small&#34;,
         &#34;plugHeight&#34;: 70,
         &#34;plugRadius&#34;: 15,
+        &#34;plugRadiusBottom&#34;: 15,
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;rimRadius&#34;: 24,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -3264,11 +3348,12 @@ version = &#34;v0.1&#34;;
       &#34;name&#34;: &#34;small&#34;,
       &#34;plugHeight&#34;: 70,
       &#34;plugRadius&#34;: 15,
+      &#34;plugRadiusBottom&#34;: 15,
       &#34;renderType&#34;: &#34;obj&#34;,
       &#34;rimRadius&#34;: 24,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2713819584,
+    &#34;TimeTaken&#34;: 2216361000,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;top&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,300&#34;
@@ -3295,6 +3380,7 @@ version = &#34;v0.1&#34;;
         &#34;name&#34;: &#34;small&#34;,
         &#34;plugHeight&#34;: 70,
         &#34;plugRadius&#34;: 15,
+        &#34;plugRadiusBottom&#34;: 15,
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;rimRadius&#34;: 24,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -3333,11 +3419,12 @@ version = &#34;v0.1&#34;;
       &#34;name&#34;: &#34;small&#34;,
       &#34;plugHeight&#34;: 70,
       &#34;plugRadius&#34;: 15,
+      &#34;plugRadiusBottom&#34;: 15,
       &#34;renderType&#34;: &#34;vertSlice&#34;,
       &#34;rimRadius&#34;: 24,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2471161583,
+    &#34;TimeTaken&#34;: 2583260083,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;nice&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -3364,6 +3451,7 @@ version = &#34;v0.1&#34;;
         &#34;name&#34;: &#34;small&#34;,
         &#34;plugHeight&#34;: 70,
         &#34;plugRadius&#34;: 15,
+        &#34;plugRadiusBottom&#34;: 15,
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;rimRadius&#34;: 24,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -3402,11 +3490,12 @@ version = &#34;v0.1&#34;;
       &#34;name&#34;: &#34;small&#34;,
       &#34;plugHeight&#34;: 70,
       &#34;plugRadius&#34;: 15,
+      &#34;plugRadiusBottom&#34;: 15,
       &#34;renderType&#34;: &#34;vertSlice&#34;,
       &#34;rimRadius&#34;: 24,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2504137750,
+    &#34;TimeTaken&#34;: 2267123583,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;top&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,300&#34;
@@ -3432,7 +3521,8 @@ version = &#34;v0.1&#34;;
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;tiny&#34;,
         &#34;plugHeight&#34;: 50,
-        &#34;plugRadius&#34;: 6.5,
+        &#34;plugRadius&#34;: 8.5,
+        &#34;plugRadiusBottom&#34;: 7.5,
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;rimRadius&#34;: 13,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -3470,12 +3560,13 @@ version = &#34;v0.1&#34;;
       &#34;designFileName&#34;: &#34;round_lid&#34;,
       &#34;name&#34;: &#34;tiny&#34;,
       &#34;plugHeight&#34;: 50,
-      &#34;plugRadius&#34;: 6.5,
+      &#34;plugRadius&#34;: 8.5,
+      &#34;plugRadiusBottom&#34;: 7.5,
       &#34;renderType&#34;: &#34;obj&#34;,
       &#34;rimRadius&#34;: 13,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2116724375,
+    &#34;TimeTaken&#34;: 2593355208,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;nice&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -3501,7 +3592,8 @@ version = &#34;v0.1&#34;;
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;tiny&#34;,
         &#34;plugHeight&#34;: 50,
-        &#34;plugRadius&#34;: 6.5,
+        &#34;plugRadius&#34;: 8.5,
+        &#34;plugRadiusBottom&#34;: 7.5,
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;rimRadius&#34;: 13,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -3539,12 +3631,13 @@ version = &#34;v0.1&#34;;
       &#34;designFileName&#34;: &#34;round_lid&#34;,
       &#34;name&#34;: &#34;tiny&#34;,
       &#34;plugHeight&#34;: 50,
-      &#34;plugRadius&#34;: 6.5,
+      &#34;plugRadius&#34;: 8.5,
+      &#34;plugRadiusBottom&#34;: 7.5,
       &#34;renderType&#34;: &#34;obj&#34;,
       &#34;rimRadius&#34;: 13,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2050302000,
+    &#34;TimeTaken&#34;: 1906888208,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;top&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,300&#34;
@@ -3570,7 +3663,8 @@ version = &#34;v0.1&#34;;
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;tiny&#34;,
         &#34;plugHeight&#34;: 50,
-        &#34;plugRadius&#34;: 6.5,
+        &#34;plugRadius&#34;: 8.5,
+        &#34;plugRadiusBottom&#34;: 7.5,
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;rimRadius&#34;: 13,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -3608,12 +3702,13 @@ version = &#34;v0.1&#34;;
       &#34;designFileName&#34;: &#34;round_lid&#34;,
       &#34;name&#34;: &#34;tiny&#34;,
       &#34;plugHeight&#34;: 50,
-      &#34;plugRadius&#34;: 6.5,
+      &#34;plugRadius&#34;: 8.5,
+      &#34;plugRadiusBottom&#34;: 7.5,
       &#34;renderType&#34;: &#34;vertSlice&#34;,
       &#34;rimRadius&#34;: 13,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2069789791,
+    &#34;TimeTaken&#34;: 1915786792,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;nice&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -3639,7 +3734,8 @@ version = &#34;v0.1&#34;;
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;tiny&#34;,
         &#34;plugHeight&#34;: 50,
-        &#34;plugRadius&#34;: 6.5,
+        &#34;plugRadius&#34;: 8.5,
+        &#34;plugRadiusBottom&#34;: 7.5,
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;rimRadius&#34;: 13,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -3677,12 +3773,13 @@ version = &#34;v0.1&#34;;
       &#34;designFileName&#34;: &#34;round_lid&#34;,
       &#34;name&#34;: &#34;tiny&#34;,
       &#34;plugHeight&#34;: 50,
-      &#34;plugRadius&#34;: 6.5,
+      &#34;plugRadius&#34;: 8.5,
+      &#34;plugRadiusBottom&#34;: 7.5,
       &#34;renderType&#34;: &#34;vertSlice&#34;,
       &#34;rimRadius&#34;: 13,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2055687791,
+    &#34;TimeTaken&#34;: 1907658667,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;top&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,300&#34;
@@ -3708,7 +3805,8 @@ version = &#34;v0.1&#34;;
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;tiny-wide&#34;,
         &#34;plugHeight&#34;: 50,
-        &#34;plugRadius&#34;: 6.5,
+        &#34;plugRadius&#34;: 8.5,
+        &#34;plugRadiusBottom&#34;: 7.5,
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;rimRadius&#34;: 18,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -3746,12 +3844,13 @@ version = &#34;v0.1&#34;;
       &#34;designFileName&#34;: &#34;round_lid&#34;,
       &#34;name&#34;: &#34;tiny-wide&#34;,
       &#34;plugHeight&#34;: 50,
-      &#34;plugRadius&#34;: 6.5,
+      &#34;plugRadius&#34;: 8.5,
+      &#34;plugRadiusBottom&#34;: 7.5,
       &#34;renderType&#34;: &#34;obj&#34;,
       &#34;rimRadius&#34;: 18,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2322441917,
+    &#34;TimeTaken&#34;: 9021622458,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;nice&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -3777,7 +3876,8 @@ version = &#34;v0.1&#34;;
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;tiny-wide&#34;,
         &#34;plugHeight&#34;: 50,
-        &#34;plugRadius&#34;: 6.5,
+        &#34;plugRadius&#34;: 8.5,
+        &#34;plugRadiusBottom&#34;: 7.5,
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;rimRadius&#34;: 18,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -3815,12 +3915,13 @@ version = &#34;v0.1&#34;;
       &#34;designFileName&#34;: &#34;round_lid&#34;,
       &#34;name&#34;: &#34;tiny-wide&#34;,
       &#34;plugHeight&#34;: 50,
-      &#34;plugRadius&#34;: 6.5,
+      &#34;plugRadius&#34;: 8.5,
+      &#34;plugRadiusBottom&#34;: 7.5,
       &#34;renderType&#34;: &#34;obj&#34;,
       &#34;rimRadius&#34;: 18,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2266666500,
+    &#34;TimeTaken&#34;: 2672000625,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;top&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,300&#34;
@@ -3846,7 +3947,8 @@ version = &#34;v0.1&#34;;
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;tiny-wide&#34;,
         &#34;plugHeight&#34;: 50,
-        &#34;plugRadius&#34;: 6.5,
+        &#34;plugRadius&#34;: 8.5,
+        &#34;plugRadiusBottom&#34;: 7.5,
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;rimRadius&#34;: 18,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -3884,12 +3986,13 @@ version = &#34;v0.1&#34;;
       &#34;designFileName&#34;: &#34;round_lid&#34;,
       &#34;name&#34;: &#34;tiny-wide&#34;,
       &#34;plugHeight&#34;: 50,
-      &#34;plugRadius&#34;: 6.5,
+      &#34;plugRadius&#34;: 8.5,
+      &#34;plugRadiusBottom&#34;: 7.5,
       &#34;renderType&#34;: &#34;vertSlice&#34;,
       &#34;rimRadius&#34;: 18,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2406734041,
+    &#34;TimeTaken&#34;: 2235702542,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;nice&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -3915,7 +4018,8 @@ version = &#34;v0.1&#34;;
         &#34;designFileName&#34;: &#34;round_lid&#34;,
         &#34;name&#34;: &#34;tiny-wide&#34;,
         &#34;plugHeight&#34;: 50,
-        &#34;plugRadius&#34;: 6.5,
+        &#34;plugRadius&#34;: 8.5,
+        &#34;plugRadiusBottom&#34;: 7.5,
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;rimRadius&#34;: 18,
         &#34;version&#34;: &#34;v0.1&#34;
@@ -3953,121 +4057,138 @@ version = &#34;v0.1&#34;;
       &#34;designFileName&#34;: &#34;round_lid&#34;,
       &#34;name&#34;: &#34;tiny-wide&#34;,
       &#34;plugHeight&#34;: 50,
-      &#34;plugRadius&#34;: 6.5,
+      &#34;plugRadius&#34;: 8.5,
+      &#34;plugRadiusBottom&#34;: 7.5,
       &#34;renderType&#34;: &#34;vertSlice&#34;,
       &#34;rimRadius&#34;: 18,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2295333292,
+    &#34;TimeTaken&#34;: 2363677875,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;top&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,300&#34;
   }
-]</pre></div></details> <div class="table-container"><table class="table is-fullwidth" id="image-results-table"><thead><tr><th>Instance</th><th>Camera</th><th>Output Path</th><th>Time Taken</th><th>Camera Coordinates</th><th>Preview</th><th>Error</th><th>Command</th></tr></thead> <tbody><tr id="image-result-0" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>../round_lid_obj_big-nice.png</td><td>2.91s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+]</pre></div></details> <div class="table-container"><table class="table is-fullwidth" id="image-results-table"><thead><tr><th>Instance</th><th>Camera</th><th>Output Path</th><th>Time Taken</th><th>Camera Coordinates</th><th>Preview</th><th>Error</th><th>Command</th></tr></thead> <tbody><tr id="image-result-0" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>../round_lid_obj_big-nice.png</td><td>2.42s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;big&#34;;
 plugRadius = 16;
+plugRadiusBottom = 16;
 renderType = &#34;obj&#34;;
 rimRadius = 31;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-1" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>../round_lid_obj_big-top.png</td><td>2.73s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,300</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-1" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>../round_lid_obj_big-top.png</td><td>2.46s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,300</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;big&#34;;
 plugRadius = 16;
+plugRadiusBottom = 16;
 renderType = &#34;obj&#34;;
 rimRadius = 31;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big-top.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-2" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>../round_lid_vertSlice_big-nice.png</td><td>2.90s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_big-top.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-2" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>../round_lid_vertSlice_big-nice.png</td><td>2.40s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;big&#34;;
 plugRadius = 16;
+plugRadiusBottom = 16;
 renderType = &#34;vertSlice&#34;;
 rimRadius = 31;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-3" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>../round_lid_vertSlice_big-top.png</td><td>2.74s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,300</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-3" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>../round_lid_vertSlice_big-top.png</td><td>2.42s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,300</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;big&#34;;
 plugRadius = 16;
+plugRadiusBottom = 16;
 renderType = &#34;vertSlice&#34;;
 rimRadius = 31;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big-top.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-4" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>../round_lid_obj_small-nice.png</td><td>2.51s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_big-top.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-4" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>../round_lid_obj_small-nice.png</td><td>2.55s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;small&#34;;
 plugHeight = 70;
 plugRadius = 15;
+plugRadiusBottom = 15;
 renderType = &#34;obj&#34;;
 rimRadius = 24;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-5" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>../round_lid_obj_small-top.png</td><td>2.71s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,300</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-5" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>../round_lid_obj_small-top.png</td><td>2.22s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,300</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;small&#34;;
 plugHeight = 70;
 plugRadius = 15;
+plugRadiusBottom = 15;
 renderType = &#34;obj&#34;;
 rimRadius = 24;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small-top.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-6" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>../round_lid_vertSlice_small-nice.png</td><td>2.47s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_small-top.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-6" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>../round_lid_vertSlice_small-nice.png</td><td>2.58s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;small&#34;;
 plugHeight = 70;
 plugRadius = 15;
+plugRadiusBottom = 15;
 renderType = &#34;vertSlice&#34;;
 rimRadius = 24;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-7" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>../round_lid_vertSlice_small-top.png</td><td>2.50s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,300</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-7" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>../round_lid_vertSlice_small-top.png</td><td>2.27s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,300</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;small&#34;;
 plugHeight = 70;
 plugRadius = 15;
+plugRadiusBottom = 15;
 renderType = &#34;vertSlice&#34;;
 rimRadius = 24;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small-top.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-8" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>../round_lid_obj_tiny-nice.png</td><td>2.12s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_small-top.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-8" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>../round_lid_obj_tiny-nice.png</td><td>2.59s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;tiny&#34;;
 plugHeight = 50;
-plugRadius = 6.5;
+plugRadius = 8.5;
+plugRadiusBottom = 7.5;
 renderType = &#34;obj&#34;;
 rimRadius = 13;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-9" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>../round_lid_obj_tiny-top.png</td><td>2.05s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,300</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-9" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>../round_lid_obj_tiny-top.png</td><td>1.91s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,300</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;tiny&#34;;
 plugHeight = 50;
-plugRadius = 6.5;
+plugRadius = 8.5;
+plugRadiusBottom = 7.5;
 renderType = &#34;obj&#34;;
 rimRadius = 13;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-top.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-10" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>../round_lid_vertSlice_tiny-nice.png</td><td>2.07s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-top.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-10" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>../round_lid_vertSlice_tiny-nice.png</td><td>1.92s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;tiny&#34;;
 plugHeight = 50;
-plugRadius = 6.5;
+plugRadius = 8.5;
+plugRadiusBottom = 7.5;
 renderType = &#34;vertSlice&#34;;
 rimRadius = 13;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-11" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>../round_lid_vertSlice_tiny-top.png</td><td>2.06s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,300</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-11" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>../round_lid_vertSlice_tiny-top.png</td><td>1.91s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,300</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;tiny&#34;;
 plugHeight = 50;
-plugRadius = 6.5;
+plugRadius = 8.5;
+plugRadiusBottom = 7.5;
 renderType = &#34;vertSlice&#34;;
 rimRadius = 13;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-top.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-12" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>../round_lid_obj_tiny-wide-nice.png</td><td>2.32s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-top.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-12" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>../round_lid_obj_tiny-wide-nice.png</td><td>9.02s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;tiny-wide&#34;;
 plugHeight = 50;
-plugRadius = 6.5;
+plugRadius = 8.5;
+plugRadiusBottom = 7.5;
 renderType = &#34;obj&#34;;
 rimRadius = 18;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-13" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>../round_lid_obj_tiny-wide-top.png</td><td>2.27s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,300</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-13" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>../round_lid_obj_tiny-wide-top.png</td><td>2.67s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,300</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;tiny-wide&#34;;
 plugHeight = 50;
-plugRadius = 6.5;
+plugRadius = 8.5;
+plugRadiusBottom = 7.5;
 renderType = &#34;obj&#34;;
 rimRadius = 18;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide-top.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-14" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-wide-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>../round_lid_vertSlice_tiny-wide-nice.png</td><td>2.41s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide-top.png" alt="Preview of  from top" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_obj_tiny-wide-top.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-14" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-wide-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>../round_lid_vertSlice_tiny-wide-nice.png</td><td>2.24s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;tiny-wide&#34;;
 plugHeight = 50;
-plugRadius = 6.5;
+plugRadius = 8.5;
+plugRadiusBottom = 7.5;
 renderType = &#34;vertSlice&#34;;
 rimRadius = 18;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-wide-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-wide-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-15" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-wide-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>../round_lid_vertSlice_tiny-wide-top.png</td><td>2.30s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,300</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-wide-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-wide-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-15" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/round_lid_vertSlice_tiny-wide-top.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>top</td><td>../round_lid_vertSlice_tiny-wide-top.png</td><td>2.36s</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,300</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;round_lid&#34;;
 name = &#34;tiny-wide&#34;;
 plugHeight = 50;
-plugRadius = 6.5;
+plugRadius = 8.5;
+plugRadiusBottom = 7.5;
 renderType = &#34;vertSlice&#34;;
 rimRadius = 18;
 version = &#34;v0.1&#34;;
@@ -4094,4 +4215,4 @@ version = &#34;v0.1&#34;;
             document.body.addEventListener('htmx:afterOnLoad', function(evt) {
                 console.log('htmx:afterOnLoad', evt);
             });
-        </script><div><h1>Config Summary</h1><p>Output Path: /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/report.html</p><p>Total Time: 60.58s</p><h2>Global Parameters</h2><p><strong>renderType:</strong> obj,vertSlice</p><h2>Output Paths</h2><p><strong>OutputPath:</strong> /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/report.html</p><p class="is-size-6 is-italic is-text-grey is-centered">Generated by openscadgen OpenSCAD version 2025.07.21 v2.7.24 at 2025-09-22 08:54:06</p><p class="is-size-6 is-italic is-text-grey is-centered">Total processing time: 60.58s</p></div></div></div></div></body></html>
+        </script><div><h1>Config Summary</h1><p>Output Path: /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/report.html</p><p>Total Time: 64.20s</p><h2>Global Parameters</h2><p><strong>renderType:</strong> obj,vertSlice</p><h2>Output Paths</h2><p><strong>OutputPath:</strong> /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/round_lid/export/v0.1/report.html</p><p class="is-size-6 is-italic is-text-grey is-centered">Generated by openscadgen OpenSCAD version 2025.07.21 v2.7.25 at 2025-09-22 14:20:10</p><p class="is-size-6 is-italic is-text-grey is-centered">Total processing time: 64.20s</p></div></div></div></div></body></html>

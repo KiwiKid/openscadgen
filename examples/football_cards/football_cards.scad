@@ -10,31 +10,39 @@ designFileName = "football_cards";
 initals = "GC";
 name = "default";
 version = "v0.1";
+type = "insert";
 
 
-module football_cards(initals=""){
+module football_cards(initals="", type="insert"){
 
 
-module initals(inital=initals){
-        left((height/2)*0.85)
-        fwd((width/2)*0.7)
+module initals(inital=initals, textDepth=textDepth){
+        left((height/2)*0.80)
+        fwd((width/2)*0.60)
         rotate([0,0,270])
-		text3d(initals,h=depth,size=7, font = "Helvetica:style=Bold", center=true);
+		text3d(initals,h=textDepth,size=12, font = "Helvetica:style=Bold", center=true, anchor=BOTTOM);
 }
 	height = 100;
 	width = 75;
-    depth=0.5;
+    depth=0.7;
+   // textDepth=0.3;
 
+    if(type == "insert"){
+        textDepth=0.4;
+    
         difference(){
-            union(){
+            cuboid([height,width,depth], rounding=5, edges="Z", anchor=BOTTOM);
+            up(depth+0.001)
+            down(textDepth)
+            #initals(inital=initals, textDepth=textDepth);
+        }
+    }else {
+    
+        //textDepth=0.3;
             cuboid([height,width,depth], rounding=5, edges="Z");
-            up(0.2)
-            initals(initals);
-        }
-         down(0.2)
-                initals(initals);
-        }
-		
+            up(textDepth)
+            initals(inital=initals, textDepth=textDepth);
+		}
 	//}
 }
 

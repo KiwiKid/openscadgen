@@ -15,7 +15,7 @@ type ProgressReporter interface {
 	Error(err error)
 	// Simplified progress bar methods
 	Construct(instances []models.InstanceConfig, nonSkippedInstances int)
-	StartInstance(instanceId string)
+	StartInstance(instanceId string, name string)
 	//ProgressInstance(instanceId string, progress int)
 	FinishInstance()
 }
@@ -26,32 +26,35 @@ func (n *NoopProgress) Update(msg string)                                       
 func (n *NoopProgress) Done()                                                                {}
 func (n *NoopProgress) Error(err error)                                                      {}
 func (n *NoopProgress) Construct(instances []models.InstanceConfig, nonSkippedInstances int) {}
-func (n *NoopProgress) StartInstance(instanceId string)                                      {}
+func (n *NoopProgress) StartInstance(instanceId string, name string)                         {}
 func (n *NoopProgress) ProgressInstance(instanceId string, progress int)                     {}
 func (n *NoopProgress) FinishInstance()                                                      {}
 
 type ChanProgress struct {
-	Updates   chan<- string
-	instances map[string]models.InstanceConfig
+	Updates         chan<- string
+	instances       map[string]models.InstanceConfig
+	currentInstance string
 }
 
 func (c *ChanProgress) Update(msg string) { c.Updates <- msg }
-func (c *ChanProgress) Done()             { c.Updates <- "done" }
+func (c *ChanProgress) Done()             { c.Updates <- "done 2" }
 func (c *ChanProgress) Error(err error)   { c.Updates <- "error: " + err.Error() }
 func (c *ChanProgress) Construct(instances []models.InstanceConfig) {
 	c.instances = make(map[string]models.InstanceConfig)
 	for _, instance := range instances {
 		c.instances[instance.AutoName] = instance
 	}
+	c.currentInstance = instances[0].AutoName
 	c.Updates <- fmt.Sprintf("Constructed progress for %d instances", len(instances))
 }
 
-func (c *ChanProgress) StartInstance(instanceId string) {
+func (c *ChanProgress) StartInstance(instanceId string, name string) {
 	instance, exists := c.instances[instanceId]
 	if !exists {
 		//	c.Updates <- fmt.Sprintf("Starting: %s", instanceId)
 		return
 	}
+	c.currentInstance = instance.AutoName
 
 	// Check if instance has camera configurations
 	if len(instance.ExportImages) > 0 {
@@ -80,7 +83,7 @@ func (c *ChanProgress) StartInstance(instanceId string) {
 	}
 */
 func (c *ChanProgress) FinishInstance() {
-	c.Updates <- "Instance complete"
+	c.Updates <- "Instance complete" + c.currentInstance
 }
 
 // TerminalProgressReporter provides simplified terminal progress reporting
@@ -113,7 +116,7 @@ func NewTerminalProgressReporter(config *models.Config) *TerminalProgressReporte
 			WithShowCount(true).
 			WithBarStyle(pterm.NewStyle(pterm.FgGreen)).
 			WithTitleStyle(pterm.NewStyle(pterm.FgCyan, pterm.Bold)).
-			Start("Total Progress")
+			Start("Total Progress\n")
 
 		// Create current instance progress bar
 		/*reporter.currentProgress, _ = pterm.DefaultProgressbar.WithTotal(100).
@@ -149,7 +152,7 @@ func (t *TerminalProgressReporter) Construct(instances []models.InstanceConfig, 
 	}
 }
 
-func (t *TerminalProgressReporter) StartInstance(instanceId string) {
+func (t *TerminalProgressReporter) StartInstance(instanceId string, name string) {
 	t.currentInstance = instanceId
 
 	// Get instance details if available

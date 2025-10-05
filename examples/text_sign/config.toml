@@ -1,0 +1,34 @@
+[openscadgen]
+name = "text_sign_with_supports"
+description = "Text sign example demonstrating direct_array_params functionality"
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{textLineThree}"
+
+[[openscadgen.input_paths]]
+path = "./text_sign.scad"
+
+#[[openscadgen.images]]
+#name = "nice"
+
+# Example 1: TEACHERS with supports defined as direct array
+[[openscadgen.instances]]
+params = { textLineOne = "WE STAND", textLineTwo = "WITH OUR", textLineThree = "TEACHERS" }
+
+[[openscadgen.instances]]
+params = { textLineOne = "WE STAND", textLineTwo = "WITH OUR", textLineThree = "NURSES"  }
+
+# Example 3: DOCTORS with supports defined as direct array
+[[openscadgen.instances]]
+params = { textLineOne = "WE STAND", textLineTwo = "WITH OUR", textLineThree = "DOCTORS"  }
+
+[[openscadgen.instances]]
+# Example 4: Custom supports for a different text
+params = { textLineOne = "THANK YOU", textLineTwo = "HEALTHCARE", textLineThree = "HEROES" }
+
+[[openscadgen.instances]]
+params = { textLineOne = "VOTE", textLineTwo = "NOW", textLineThree = "(NOT PHIL)" }
+
+[[openscadgen.instances]]
+params = { textLineOne = "VOTE FOR", textLineTwo = "MORE BIKE", textLineThree = "LANES"  }

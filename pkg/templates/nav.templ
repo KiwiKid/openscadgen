@@ -94,7 +94,7 @@ templ UpdateInstanceStatus(instance models.InstanceConfig, allParamNames []strin
 
 templ InstanceNavItem(instance models.InstanceConfig, outputPath string, instanceIndex int) {
     <li>
-        <a href="#" @click.prevent="searchQuery = instance.Name" class="menu-item">
+        <a @click.prevent="searchQuery = instance.Name" class="menu-item">
             <div class="media">
                 <div class="media-left">
                     if len(instance.ImageResults) > 0 {

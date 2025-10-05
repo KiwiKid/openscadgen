@@ -1,15 +1,47 @@
 openscadgen is a simple tool for generating a specific a set of .stl files (or other openscad export formats) from one (or many!) openscad files and a simple human-readable toml config file.
-The config file allows for parameter combinations, multiple input files, image generation, and organized output management.
+
+The config file allows for parameter combinations, multiple input files, image generation, and generated a report detailing all the generations and the parameters used in each.
 
 The goal of the tool is to ease the development, management, production and distribution of large numbers designs or design options based on single openscad file.
 
-A simpler alterative to programmatic wrappers like Makefiles, AnchorSCAD, LuaCAD, PythonSCAD - designed provides a more accessible/structured approach
+A simpler alterative to programmatic wrappers like Makefiles, PythonSCAD, AnchorSCAD, LuaCAD, etc - designed provides a more accessible/structured approach.
 
 https://github.com/user-attachments/assets/61d605fa-3b5a-43c0-98d2-71357f96fc32
 
 
-> [!WARNING]
-> Early days and still in active development, please let me know if you encounter any issues or have ideas for improvements.
+openscadgen includes two main modes of operation:
+- Direct Running:
+(run the generation for this config.toml file)
+```
+./openscadgen -c ./examples/football_cards/config.toml
+```
+
+- Server Mode:
+(start a server and serve the projects in the folder "./examples/" at http://localhost:6767)
+```
+./openscadgen -sf ./examples/ -p 6767
+```
+
+## Development
+
+For development with live reloading:
+
+```bash
+# Install air for live reloading
+go install 
+
+# Live reload both templ and go files
+just air
+
+# Live reload only templ files
+just air-templ
+
+# Live reload only go files (after templ is generated)
+just air-go
+
+# Clean and start fresh
+just dev-clean
+```
 
 ## Prerequisites
 
@@ -22,16 +54,9 @@ Before using openscadgen, you need:
 ## Quick Start
 
 1. **Install openscadgen** from the [releases page](https://github.com/kiwikid/openscadgen/releases)
-2. **Create a simple config**:
-   ```toml
-   [openscadgen]
-   name = "my-design"
-   input_path = "./my-design.scad"
-   export_name_format = "design-{width}mm"
-   version = "v1.0"
-   
-   [[openscadgen.instances]]
-   params = { width = "10,20,30" }
+2. **Initialize a new project:
+   ```bash
+   ./openscadgen -i ./examples/my-first-project
    ```
 3. **Run the tool**:
    ```bash
@@ -143,8 +168,10 @@ params = { style = "minimal", edge_radius = "2" }
 name = "decorative"
 params = { style = "decorative", edge_radius = "5", pattern = "diamond" }
 
+
 [[openscadgen.instances]]
 name = "small-minimal"
+# All the parameters from the param_sets listed here will be applied during generation
 param_sets = "small,minimal"
 
 [[openscadgen.instances]]
@@ -297,7 +324,6 @@ Ensure you have allowed openscadgen to run (in Privacy & Security settings)
 
 
 ```toml
-# These lines configure, where the config file is, how openscad will be run and where the output will be saved
 [openscadgen]
 # name of the design, will be used in the name of output files
 name = "screw-mounted-clip"
@@ -395,6 +421,7 @@ git push && git push --tags
 
 ## TODO/Project Ideas
 - [ ] Better validation/messaging around config issues
+- [ ] Add openscad parameter JSON file export
 - [ ] Allow for concurrent openscad runs
 - [ ] Directory generation (i.e. dynamically find and generate all the instance configs in a directory)
 - [ ] (maybe) Add ability to generate instances via annotations in the scad file (i.e. remove need for config file). Something like:

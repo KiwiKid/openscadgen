@@ -1,0 +1,16 @@
+package templates
+
+import "github.com/kiwikid/openscadgen/pkg/models"
+
+templ EditConfig(config models.Config, msg templ.Component) {
+    <div>
+    if msg != nil {
+        @msg
+    }
+        <h1>Edit Config</h1>
+        <form hx-post="/api/config" >
+            <textarea name="config">{ JSONString(config) }</textarea>
+            <button type="submit">Save</button>
+        </form>
+    </div>
+}

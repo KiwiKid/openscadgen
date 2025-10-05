@@ -42,18 +42,18 @@ func getStatusText(skippedReason string) string {
 }
 
 templ InstanceCard(instance models.InstanceConfig, outputPath string) {
-    <div class="column is-4">
-        <div class="card">
+    <div class="column is-4" id={ fmt.Sprintf("instance-%s", instance.AutoName) } hx-swap-oob="true">
+        <div class="card">[[InstanceCard]]
             <header class="card-header">
                 <p class="card-header-title">
                     {instance.AutoName} ({instance.Name})
                 </p>
-                <span class="tag {getStatusClass(instance.SkippedReason)}">{getStatusText(instance.SkippedReason)}</span>
+                <span class={ fmt.Sprintf("tag %s", getStatusClass(instance.SkippedReason))} >{getStatusText(instance.SkippedReason)}</span>
             </header>
             <div class="card-content">
                 <div class="content">
                     <p><strong>Description:</strong> {instance.Description}</p>
-                    <p><strong>Output Path:</strong> {getInstanceCardRelativePath(instance.OutputPathV2, outputPath)}</p>
+                    <p><strong>Output Path:</strong> { getInstanceCardRelativePath(instance.RunOutputPathV3, outputPath) }</p>
                     <div><strong>Parameters:</strong></div>
                     <div class="ml-3" unsafe={formatParamsHTML(instance.Params)}></div>
                     if instance.SkippedReason != "" {

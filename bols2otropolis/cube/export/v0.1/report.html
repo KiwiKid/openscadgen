@@ -1,4 +1,53 @@
-<!doctype html><html lang="en" x-data="alpineReportData()" x-init="init()"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>cube - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script><script>
+<!doctype html><html lang="en" x-data="alpineReportData()" x-init="init()"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>cube - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"><script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script><script>
+        function alpineReportData() {
+            return {
+                darkMode: true,
+                showDebug: false,
+                navSelected: "instances",
+                searchQuery: '',
+                configHistory: JSON.parse(localStorage.getItem('configHistory') || '[]'),
+                configFile: '',
+                savedConfigFile: localStorage.getItem('savedConfigFile') || '',
+                searchHistory: JSON.parse(localStorage.getItem('searchHistory') || '[]'),
+                saveConfigFile(path) {
+                    if (path && !this.configHistory.includes(path)) {
+                        this.configHistory.unshift(path);
+                        localStorage.setItem('configHistory', JSON.stringify(this.configHistory));
+                    }
+                    this.savedConfigFile = path;
+                    localStorage.setItem('savedConfigFile', path);
+                },
+                init() {
+                    // Watchers
+                    this.$watch('darkMode', value => {
+                        localStorage.setItem('darkMode', value);
+                        document.documentElement.classList.toggle('dark', value);
+                    });
+                    this.$watch('showDebug', value => {
+                        localStorage.setItem('showDebug', value);
+                    });
+                    this.$watch('searchQuery', value => {
+                        if (value && !this.searchHistory.includes(value)) {
+                            this.searchHistory.unshift(value);
+                            this.searchHistory = this.searchHistory.slice(0, 20);
+                            localStorage.setItem('searchHistory', JSON.stringify(this.searchHistory));
+                        }
+                    });
+
+                    // Initial dark mode setup
+                    this.darkMode = localStorage.getItem('darkMode') === 'true' ||
+                        (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+                    this.showDebug = localStorage.getItem('showDebug') === 'true';
+                    // Initial config file setup
+                    this.configFile = '\/Users\/gregc\/mine\/making\/3d-printing\/openSCAD\/openscadgen\/bols2otropolis\/cube\/config.toml'; // or whatever templating you use
+                    if (this.configFile) {
+                        this.saveConfigFile(this.configFile);
+                    }
+                }
+            }
+        }
+        </script><script>
                 (function() {
                     var darkMode = localStorage.getItem('darkMode');
                     if (darkMode === null) {
@@ -12,7 +61,7 @@
                         document.documentElement.classList.remove('dark');
                     }
                 })();
-            </script><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><script>
+            </script><script>
                 function copyDetailsContent() {
                     const button = $el.querySelector('button');
                     const codeBlock = $el.querySelector('pre code');
@@ -204,222 +253,979 @@ html, body {
                     color: var(--text-color) !important;
                     background-color: var(--card-bg) !important;
                 }
-            </style></head><body><div class="global-header"><div><h1 class="title is-4">cube</h1><div class="search-box"><div><div><input class="input" type="text" placeholder="Filter to specific instances etc..." x-model="searchQuery"></div><details><summary>History</summary><template x-if="searchHistory.length &gt; 0"><div class="mt-2"><strong>Recent Searches:</strong><ul style="list-style: disc inside; padding-left: 1em;"><template x-for="term in searchHistory" :key="term"><li><a href="#" @click.prevent="searchQuery = term" x-text="term"></a></li></template></ul></div></template></details></div></div><button class="button" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button></div></div><div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Instances</button><div x-show="isOpen"><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Name</th><th>Description</th><th>Output Path</th><th>Ignored Params</th><th>Images</th><th>instance</th><th>cube_size</th><th>designFileName</th><th>version</th><th>cube_center</th><th>chamfer</th></tr></thead> <tbody><tr class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
-cube_size = 50;
-designFileName = &#34;cube&#34;;
-instance = &#34;small&#34;;
-version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>small</td><td>50</td><td>cube</td><td>v0.1</td><td>true</td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr>  <tr><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"></td></tr>3<tr class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = false;
-cube_size = 50;
-designFileName = &#34;cube&#34;;
-instance = &#34;medium&#34;;
-version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>medium</td><td>50</td><td>cube</td><td>v0.1</td><td>false</td><td class="is-italic" title="No Param for { paramName }">N/A</td></tr>  <tr><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"></td></tr>3<tr class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>chamfer = 3;
-cube_center = true;
-cube_size = 50;
-designFileName = &#34;cube&#34;;
-instance = &#34;chamfer&#34;;
-version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>chamfer</td><td>50</td><td>cube</td><td>v0.1</td><td>true</td><td>3</td></tr>  <tr><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"></td></tr>3</tbody></table></div> <div class="my-2"></div></div></div><div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> STL Results (3)</button><div x-show="isOpen"><div class="table-container"><table class="table is-fullwidth"><thead><tr><th style="width: 150px;">Instance</th><th style="width: 100px;">Time Taken</th><th style="width: 200px;">Params</th><th style="width: 150px;">Debug</th><th style="width: 200px;">Command</th></tr></thead> <tbody><tr x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>308.958542ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
-cube_size = 50;
-designFileName = &#34;cube&#34;;
-instance = &#34;small&#34;;
-version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/usr/local/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50.stl&#39; --render -D &#39;cube_center=true&#39; -D &#39;instance=&#34;small&#34;&#39; -D &#39;cube_size=50&#39; -D &#39;designFileName=&#34;cube&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/cube.scad</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>164.804ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = false;
-cube_size = 50;
-designFileName = &#34;cube&#34;;
-instance = &#34;medium&#34;;
-version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/usr/local/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50.stl&#39; --render -D &#39;instance=&#34;medium&#34;&#39; -D &#39;cube_size=50&#39; -D &#39;cube_center=false&#39; -D &#39;designFileName=&#34;cube&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/cube.scad</pre></code></div></details></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>161.5785ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>chamfer = 3;
-cube_center = true;
-cube_size = 50;
-designFileName = &#34;cube&#34;;
-instance = &#34;chamfer&#34;;
-version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
-                                            <details>
-                                                <summary>OpenSCAD Code</summary>
-                                                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
-                                            </details>
-                                        </td> --><td><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>/usr/local/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50.stl&#39; --render -D &#39;cube_center=true&#39; -D &#39;designFileName=&#34;cube&#34;&#39; -D &#39;instance=&#34;chamfer&#34;&#39; -D &#39;chamfer=3&#39; -D &#39;cube_size=50&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/cube.scad</pre></code></div></details></td></tr></tbody></table></div></div></div><div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Image Generation Results</button><div x-show="isOpen"><div>Generated 3 images</div><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Instance</th><th>Camera</th><th>Output Path</th><th>Time Taken</th><th>Camera Coordinates</th><th>Preview</th><th>Error</th><th>Command</th></tr></thead> <tbody><tr x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50-nice.png</td><td>412.57ms</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
-cube_size = 50;
-designFileName = &#34;cube&#34;;
-instance = &#34;small&#34;;
-version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50-nice.png</td><td>333.17ms</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = false;
-cube_size = 50;
-designFileName = &#34;cube&#34;;
-instance = &#34;medium&#34;;
-version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50-nice.png</td><td>329.15ms</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>chamfer = 3;
-cube_center = true;
-cube_size = 50;
-designFileName = &#34;cube&#34;;
-instance = &#34;chamfer&#34;;
-version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display=&#39;none&#39;; this.nextElementSibling.style.display=&#39;block&#39;;"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr></tbody></table></div></div></div><div><div x-data="{ isOpen: false }"><button @click="isOpen = !isOpen" class="button is-large is-fullwidth"><span x-show="!isOpen">▼</span> <span x-show="isOpen">▲</span> Config</button><div x-show="isOpen"><details><summary>No [global_params]</summary><p>Add global params via a heading at the top level of the config file:</p><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector(&#39;pre&#39;).textContent)">Copy</button> <code style="white-space: pre;"><pre>
-                            [openscadgen.global_params]
-                            params = { text=&#34;First,Second,Third&#34;, height=100 }
-                        </pre></code></div></details> <div class="instance"><div class="params"><div class="param"><strong>Version:</strong> v0.1</div><div class="param"><strong>Output Path:</strong> </div><div class="param"><strong>OpenSCAD Version:</strong> OpenSCAD version 2025.06.06</div><div class="param"><strong>OpenSCADGen Version:</strong> v2.6.6__2025.07.02-BETA</div><div class="param"><strong>Build Info Set In File Attributes</strong></div></div></div><h2 class="is-size-4">Input Paths</h2><div class="table-container"><table class="table is-fullwidth"><thead><tr><th>Path</th><!--NEXT-VERSION: <th>OpenSCAD Code</th> --></tr></thead> <tbody><tr><td>./cube.scad</td><!-- NEXT-VERSION: <td><details><summary>OpenSCAD Code</summary>
-                                    { inputPath.RawOpenSCADFile }</details></td> --></tr></tbody></table></div> <h2 class="is-size-4">Config Reference</h2><details><summary>Example Config File</summary><pre><code>
-[[openscadgen]]
-name = &#34;My Design&#34;
-description = &#34;A simple example design&#34;
-input_path = &#34;./my_design.scad&#34;
-version = &#34;v1.0&#34;
-output_path = &#34;./export&#34;
-export_name_format = &#34;/{designFileName}-{version}-{instanceName}&#34;
-
-# Global parameters that apply to all instances
-[openscadgen.global_params]
-material = &#34;PLA&#34;
-color = &#34;white&#34;
-
-# Define parameter sets that can be reused
-[[openscadgen.param_sets]]
-name = &#34;small&#34;
-params = { width %3D 10, height %3D 20 }
-
-[[openscadgen.param_sets]]
-name = &#34;large&#34;
-params = { width %3D 20, height %3D 40 }
-
-# Define instances to generate
-[[openscadgen.instances]]
-name = &#34;default&#34;
-param_sets = &#34;small&#34;
-
-[[openscadgen.instances]]
-name = &#34;large&#34;
-param_sets = &#34;large&#34;
-
-# Define camera positions for image generation
-[[openscadgen.export_images]]
-name = &#34;front&#34;
-coord = &#34;0,0,0,0,0,0,100&#34;
-image_size = &#34;1920,1080&#34;</code></pre></details> <details><summary>Complete Design Config Reference</summary><pre><code>
-[[openscadgen]]
-# Required: Name of the design
-name = &#34;string&#34;                    # Required, minimum length 1
-
-# Optional: Description of the design
-description = &#34;string&#34;             # Optional description
-
-# Optional: Single input path (deprecated, use input_paths instead)
-input_path = &#34;string&#34;             # Path to the OpenSCAD file
-
-# Optional: Multiple input paths
-[[openscadgen.input_paths]]
-path = &#34;string&#34;                    # Required, path to OpenSCAD file
-export_name_format = &#34;string&#34;      # Optional, format for exported files
-param_sets = &#34;string&#34;             # Optional, comma-separated list of param sets
-params = {}                        # Optional, map of parameters
-skip_images = false               # Optional, whether to skip image generation
-ignore_param_when_processing = &#34;string&#34;  # Optional, params to ignore when processing
-
-# Optional: Output path for generated files
-output_path = &#34;string&#34;            # Path where files will be exported
-
-# Optional: Version string
-version = &#34;string&#34;                # Version of the design
-
-# Optional: Whether to include part ID letter in filenames
-no_part_id_letter = false         # If true, excludes part ID letter
-
-# Optional: Format for exported filenames
-export_name_format = &#34;string&#34;     # Format string with {param} placeholders
-
-# Optional: Global parameters applied to all instances
-[openscadgen.global_params]
-param1 = &#34;value1&#34;
-param2 = 42
-
-# Optional: Reusable parameter sets
-[[openscadgen.param_sets]]
-name = &#34;string&#34;                   # Name of the parameter set
-params = {}                       # Map of parameters
-
-# Optional: Custom OpenSCAD output format
-custom_openscad_output_format = &#34;string&#34;  # e.g., &#34;stl&#34;, &#34;3mf&#34;
-
-# Optional: Custom OpenSCAD arguments
-custom_openscad_args = &#34;string&#34;   # Additional OpenSCAD command line arguments
-
-# Optional: Image export quality
-export_image_quality = &#34;string&#34;   # Quality setting for exported images
-
-# Optional: Camera positions for image generation
-[[openscadgen.export_images]]
-name = &#34;string&#34;                   # Name of the camera position
-coord = &#34;string&#34;                  # Camera coordinates (x,y,z,rotx,roty,rotz,distance)
-image_size = &#34;string&#34;             # Optional, image dimensions (width,height)
-param_filter = {}                 # Optional, filter parameters for this camera
-
-# Optional: Instance configurations
-[[openscadgen.instances]]
-name = &#34;string&#34;                   # Name of the instance
-description = &#34;string&#34;            # Optional description
-params = {}                       # Optional, map of parameters
-param_sets = &#34;string&#34;             # Optional, comma-separated list of param sets
-param_numberation_keys = &#34;string&#34; # Optional, comma-separated list of keys to number
-skip_images = false              # Optional, whether to skip image generation
-
-# Optional: Whether to use manifold operations
-dont_use_manifold = false         # If true, disables manifold operations
-</code></pre></details><h2 class="is-size-4">Output Paths</h2><div class="instance"><div class="param"><strong>OutputPath:</strong> /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/report.html</div>=</div></div></div><p>Generated by openscadgen OpenSCAD version 2025.06.06 v2.6.6__2025.07.02-BETA at 2025-07-09 22:33:51</p></div><script>
-        function alpineReportData() {
-            return {
-                darkMode: true,
-                searchQuery: '',
-                configHistory: JSON.parse(localStorage.getItem('configHistory') || '[]'),
-                configFile: '',
-                savedConfigFile: localStorage.getItem('savedConfigFile') || '',
-                searchHistory: JSON.parse(localStorage.getItem('searchHistory') || '[]'),
-                saveConfigFile(path) {
-                    if (path && !this.configHistory.includes(path)) {
-                        this.configHistory.unshift(path);
-                        localStorage.setItem('configHistory', JSON.stringify(this.configHistory));
-                    }
-                    this.savedConfigFile = path;
-                    localStorage.setItem('savedConfigFile', path);
-                },
-                init() {
-                    // Watchers
-                    this.$watch('darkMode', value => {
-                        localStorage.setItem('darkMode', value);
-                        document.documentElement.classList.toggle('dark', value);
-                    });
-                    this.$watch('searchQuery', value => {
-                        if (value && !this.searchHistory.includes(value)) {
-                            this.searchHistory.unshift(value);
-                            this.searchHistory = this.searchHistory.slice(0, 20);
-                            localStorage.setItem('searchHistory', JSON.stringify(this.searchHistory));
-                        }
-                    });
-
-                    // Initial dark mode setup
-                    this.darkMode = localStorage.getItem('darkMode') === 'true' ||
-                        (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-                    // Initial config file setup
-                    this.configFile = '\/Users\/gregc\/mine\/making\/3d-printing\/openSCAD\/openscadgen\/bols2otropolis\/cube\/config.toml'; // or whatever templating you use
-                    if (this.configFile) {
-                        this.saveConfigFile(this.configFile);
-                    }
+                
+                /* Side Navigation Styles */
+                .menu-item {
+                    color: var(--text-color) !important;
+                    text-decoration: none;
+                    display: block;
+                    padding: 0.5rem;
+                    border-radius: 4px;
+                    transition: background-color 0.2s;
                 }
-            }
+                
+                .menu-item:hover {
+                    background-color: var(--hover-bg);
+                    color: var(--text-color) !important;
+                }
+                
+                .menu-item:active {
+                    background-color: var(--accent-color);
+                    color: white !important;
+                }
+                
+                .menu-list {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                }
+                
+                .menu-list li {
+                    margin-bottom: 0.5rem;
+                }
+                
+                .media {
+                    display: flex;
+                    align-items: center;
+                }
+                
+                .media-left {
+                    margin-right: 0.75rem;
+                }
+                
+                .media-content {
+                    flex: 1;
+                }
+                
+                .p-4 {
+                    padding: 1rem;
+                }
+                
+                .mb-1 {
+                    margin-bottom: 0.25rem;
+                }
+                
+                .mb-4 {
+                    margin-bottom: 1rem;
+                }
+                
+                .mt-2 {
+                    margin-top: 0.5rem;
+                }
+                
+                .has-text-grey {
+                    color: #6b7280 !important;
+                }
+                
+                .is-rounded {
+                    border-radius: 50%;
+                }
+            </style></head><body><div x-show="showDebug">Show DEBUG ON</div><div class="container-fluid"><!-- Main Content --><nav class="navbar navbar-expand-lg navbar-light bg-light"><a class="navbar-brand" href="#">cube</a> <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button><div class="collapse navbar-collapse" id="navbarSupportedContent"><ul class="navbar-nav mr-auto"><li class="nav-item" :class="{ active: navSelected === 'instances' }"><a class="nav-link" href="#" @click="navSelected = 'instances'">Instances</a></li><li class="nav-item" :class="{ active: navSelected === 'stlResults' }"><a class="nav-link" href="#" @click="navSelected = 'stlResults'">STL Results</a></li><li class="nav-item" :class="{ active: navSelected === 'imageResults' }"><a class="nav-link" href="#" @click="navSelected = 'imageResults'">Image Results</a></li><li class="nav-item" :class="{ active: navSelected === 'images' }"><a class="nav-link" href="#" @click="navSelected = 'images'">Images</a></li><li class="nav-item" :class="{ active: navSelected === 'json' }"><a class="nav-link" href="#" @click="navSelected = 'json'">JSON</a></li></ul><form class="form-inline my-2 my-lg-0"><input class="form-control mr-sm-2" type="search" placeholder="Filter instances..." x-model="searchQuery" aria-label="Search"> <button class="btn btn-outline-success my-2 my-sm-0" type="button" @click="searchQuery = ''">Clear</button></form><div class="ml-2"><button class="btn btn-outline-secondary" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button> <button class="btn btn-outline-secondary ml-1" @click="showDebug = !showDebug"><span x-show="!showDebug">🐛</span> <span x-show="showDebug">🐛</span> <span x-show="showDebug" style="text-decoration: underline;">Debug</span></button></div></div></nav><div class="container"><div><div x-show="navSelected === &#39;instances&#39;"><div class="table-container"><table class="table is-fullwidth" id="instances-table"><thead><tr><th>Name</th><th>Description</th><th>Output Path</th><th>Ignored Params</th><th>Images</th><th>cube_center</th><th>instance</th><th>designFileName</th><th>version</th><th>chamfer</th><th>cube_size</th></tr></thead> <style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
         }
-        </script><script>
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">Instance 0</summary><div class="json-viewer-content"><pre class="json-pretty">{
+  &#34;ID&#34;: &#34;&#34;,
+  &#34;Name&#34;: &#34;&#34;,
+  &#34;AutoName&#34;: &#34;v0.1_cube-chamfer-true-50&#34;,
+  &#34;Description&#34;: &#34;&#34;,
+  &#34;ExportNameFormat&#34;: &#34;&#34;,
+  &#34;InputPath&#34;: {
+    &#34;Path&#34;: &#34;./cube.scad&#34;,
+    &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+    &#34;RawOpenSCADFileName&#34;: &#34;cube&#34;,
+    &#34;ExportNameFormat&#34;: &#34;&#34;,
+    &#34;ParamSets&#34;: &#34;&#34;,
+    &#34;Params&#34;: null,
+    &#34;SkipImages&#34;: false,
+    &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+  },
+  &#34;Params&#34;: {
+    &#34;chamfer&#34;: 3,
+    &#34;cube_center&#34;: true,
+    &#34;cube_size&#34;: 50,
+    &#34;designFileName&#34;: &#34;cube&#34;,
+    &#34;instance&#34;: &#34;chamfer&#34;,
+    &#34;version&#34;: &#34;v0.1&#34;
+  },
+  &#34;PartIDLetter&#34;: &#34;C&#34;,
+  &#34;UniqueID&#34;: &#34;&#34;,
+  &#34;ConfigError&#34;: &#34;&#34;,
+  &#34;OutputPathV2&#34;: &#34;&#34;,
+  &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50.stl&#34;,
+  &#34;IgnoredParams&#34;: null,
+  &#34;ImageResults&#34;: [
+    {
+      &#34;InstanceConfig&#34;: {
+        &#34;ID&#34;: &#34;&#34;,
+        &#34;Name&#34;: &#34;&#34;,
+        &#34;AutoName&#34;: &#34;v0.1_cube-chamfer-true-50&#34;,
+        &#34;Description&#34;: &#34;&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;InputPath&#34;: {
+          &#34;Path&#34;: &#34;./cube.scad&#34;,
+          &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+          &#34;RawOpenSCADFileName&#34;: &#34;cube&#34;,
+          &#34;ExportNameFormat&#34;: &#34;&#34;,
+          &#34;ParamSets&#34;: &#34;&#34;,
+          &#34;Params&#34;: null,
+          &#34;SkipImages&#34;: false,
+          &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+        },
+        &#34;Params&#34;: {
+          &#34;chamfer&#34;: 3,
+          &#34;cube_center&#34;: true,
+          &#34;cube_size&#34;: 50,
+          &#34;designFileName&#34;: &#34;cube&#34;,
+          &#34;instance&#34;: &#34;chamfer&#34;,
+          &#34;version&#34;: &#34;v0.1&#34;
+        },
+        &#34;PartIDLetter&#34;: &#34;C&#34;,
+        &#34;UniqueID&#34;: &#34;&#34;,
+        &#34;ConfigError&#34;: &#34;&#34;,
+        &#34;OutputPathV2&#34;: &#34;&#34;,
+        &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50.stl&#34;,
+        &#34;IgnoredParams&#34;: null,
+        &#34;ImageResults&#34;: [],
+        &#34;ExportImages&#34;: [
+          {
+            &#34;CameraName&#34;: &#34;nice&#34;,
+            &#34;CameraCoordinates&#34;: &#34;0,0,0,45,0,45,350&#34;,
+            &#34;ImageSize&#34;: &#34;&#34;,
+            &#34;ParamFilter&#34;: null
+          }
+        ],
+        &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50&#34;,
+        &#34;SkipImages&#34;: false,
+        &#34;SkippedReason&#34;: &#34;&#34;,
+        &#34;SkippedImageReason&#34;: &#34;&#34;
+      },
+      &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50-nice.png&#34;,
+      &#34;Command&#34;: &#34;&#34;,
+      &#34;Error&#34;: &#34;&#34;,
+      &#34;AppliedParams&#34;: {
+        &#34;chamfer&#34;: 3,
+        &#34;cube_center&#34;: true,
+        &#34;cube_size&#34;: 50,
+        &#34;designFileName&#34;: &#34;cube&#34;,
+        &#34;instance&#34;: &#34;chamfer&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;TimeTaken&#34;: 343915834,
+      &#34;Skipped&#34;: false,
+      &#34;CameraName&#34;: &#34;nice&#34;,
+      &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
+    }
+  ],
+  &#34;ExportImages&#34;: [
+    {
+      &#34;CameraName&#34;: &#34;nice&#34;,
+      &#34;CameraCoordinates&#34;: &#34;0,0,0,45,0,45,350&#34;,
+      &#34;ImageSize&#34;: &#34;&#34;,
+      &#34;ParamFilter&#34;: null
+    }
+  ],
+  &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50&#34;,
+  &#34;SkipImages&#34;: false,
+  &#34;SkippedReason&#34;: &#34;&#34;,
+  &#34;SkippedImageReason&#34;: &#34;&#34;
+}</pre></div></details><style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">Instance 1</summary><div class="json-viewer-content"><pre class="json-pretty">{
+  &#34;ID&#34;: &#34;&#34;,
+  &#34;Name&#34;: &#34;&#34;,
+  &#34;AutoName&#34;: &#34;v0.1_cube-medium-false-50&#34;,
+  &#34;Description&#34;: &#34;&#34;,
+  &#34;ExportNameFormat&#34;: &#34;&#34;,
+  &#34;InputPath&#34;: {
+    &#34;Path&#34;: &#34;./cube.scad&#34;,
+    &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+    &#34;RawOpenSCADFileName&#34;: &#34;cube&#34;,
+    &#34;ExportNameFormat&#34;: &#34;&#34;,
+    &#34;ParamSets&#34;: &#34;&#34;,
+    &#34;Params&#34;: null,
+    &#34;SkipImages&#34;: false,
+    &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+  },
+  &#34;Params&#34;: {
+    &#34;cube_center&#34;: false,
+    &#34;cube_size&#34;: 50,
+    &#34;designFileName&#34;: &#34;cube&#34;,
+    &#34;instance&#34;: &#34;medium&#34;,
+    &#34;version&#34;: &#34;v0.1&#34;
+  },
+  &#34;PartIDLetter&#34;: &#34;B&#34;,
+  &#34;UniqueID&#34;: &#34;&#34;,
+  &#34;ConfigError&#34;: &#34;&#34;,
+  &#34;OutputPathV2&#34;: &#34;&#34;,
+  &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50.stl&#34;,
+  &#34;IgnoredParams&#34;: null,
+  &#34;ImageResults&#34;: [
+    {
+      &#34;InstanceConfig&#34;: {
+        &#34;ID&#34;: &#34;&#34;,
+        &#34;Name&#34;: &#34;&#34;,
+        &#34;AutoName&#34;: &#34;v0.1_cube-medium-false-50&#34;,
+        &#34;Description&#34;: &#34;&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;InputPath&#34;: {
+          &#34;Path&#34;: &#34;./cube.scad&#34;,
+          &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+          &#34;RawOpenSCADFileName&#34;: &#34;cube&#34;,
+          &#34;ExportNameFormat&#34;: &#34;&#34;,
+          &#34;ParamSets&#34;: &#34;&#34;,
+          &#34;Params&#34;: null,
+          &#34;SkipImages&#34;: false,
+          &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+        },
+        &#34;Params&#34;: {
+          &#34;cube_center&#34;: false,
+          &#34;cube_size&#34;: 50,
+          &#34;designFileName&#34;: &#34;cube&#34;,
+          &#34;instance&#34;: &#34;medium&#34;,
+          &#34;version&#34;: &#34;v0.1&#34;
+        },
+        &#34;PartIDLetter&#34;: &#34;B&#34;,
+        &#34;UniqueID&#34;: &#34;&#34;,
+        &#34;ConfigError&#34;: &#34;&#34;,
+        &#34;OutputPathV2&#34;: &#34;&#34;,
+        &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50.stl&#34;,
+        &#34;IgnoredParams&#34;: null,
+        &#34;ImageResults&#34;: [],
+        &#34;ExportImages&#34;: [
+          {
+            &#34;CameraName&#34;: &#34;nice&#34;,
+            &#34;CameraCoordinates&#34;: &#34;0,0,0,45,0,45,350&#34;,
+            &#34;ImageSize&#34;: &#34;&#34;,
+            &#34;ParamFilter&#34;: null
+          }
+        ],
+        &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50&#34;,
+        &#34;SkipImages&#34;: false,
+        &#34;SkippedReason&#34;: &#34;&#34;,
+        &#34;SkippedImageReason&#34;: &#34;&#34;
+      },
+      &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50-nice.png&#34;,
+      &#34;Command&#34;: &#34;&#34;,
+      &#34;Error&#34;: &#34;&#34;,
+      &#34;AppliedParams&#34;: {
+        &#34;cube_center&#34;: false,
+        &#34;cube_size&#34;: 50,
+        &#34;designFileName&#34;: &#34;cube&#34;,
+        &#34;instance&#34;: &#34;medium&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;TimeTaken&#34;: 357569292,
+      &#34;Skipped&#34;: false,
+      &#34;CameraName&#34;: &#34;nice&#34;,
+      &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
+    }
+  ],
+  &#34;ExportImages&#34;: [
+    {
+      &#34;CameraName&#34;: &#34;nice&#34;,
+      &#34;CameraCoordinates&#34;: &#34;0,0,0,45,0,45,350&#34;,
+      &#34;ImageSize&#34;: &#34;&#34;,
+      &#34;ParamFilter&#34;: null
+    }
+  ],
+  &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50&#34;,
+  &#34;SkipImages&#34;: false,
+  &#34;SkippedReason&#34;: &#34;&#34;,
+  &#34;SkippedImageReason&#34;: &#34;&#34;
+}</pre></div></details><style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">Instance 2</summary><div class="json-viewer-content"><pre class="json-pretty">{
+  &#34;ID&#34;: &#34;&#34;,
+  &#34;Name&#34;: &#34;&#34;,
+  &#34;AutoName&#34;: &#34;v0.1_cube-small-true-50&#34;,
+  &#34;Description&#34;: &#34;&#34;,
+  &#34;ExportNameFormat&#34;: &#34;&#34;,
+  &#34;InputPath&#34;: {
+    &#34;Path&#34;: &#34;./cube.scad&#34;,
+    &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+    &#34;RawOpenSCADFileName&#34;: &#34;cube&#34;,
+    &#34;ExportNameFormat&#34;: &#34;&#34;,
+    &#34;ParamSets&#34;: &#34;&#34;,
+    &#34;Params&#34;: null,
+    &#34;SkipImages&#34;: false,
+    &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+  },
+  &#34;Params&#34;: {
+    &#34;cube_center&#34;: true,
+    &#34;cube_size&#34;: 50,
+    &#34;designFileName&#34;: &#34;cube&#34;,
+    &#34;instance&#34;: &#34;small&#34;,
+    &#34;version&#34;: &#34;v0.1&#34;
+  },
+  &#34;PartIDLetter&#34;: &#34;A&#34;,
+  &#34;UniqueID&#34;: &#34;&#34;,
+  &#34;ConfigError&#34;: &#34;&#34;,
+  &#34;OutputPathV2&#34;: &#34;&#34;,
+  &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50.stl&#34;,
+  &#34;IgnoredParams&#34;: null,
+  &#34;ImageResults&#34;: [
+    {
+      &#34;InstanceConfig&#34;: {
+        &#34;ID&#34;: &#34;&#34;,
+        &#34;Name&#34;: &#34;&#34;,
+        &#34;AutoName&#34;: &#34;v0.1_cube-small-true-50&#34;,
+        &#34;Description&#34;: &#34;&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;InputPath&#34;: {
+          &#34;Path&#34;: &#34;./cube.scad&#34;,
+          &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+          &#34;RawOpenSCADFileName&#34;: &#34;cube&#34;,
+          &#34;ExportNameFormat&#34;: &#34;&#34;,
+          &#34;ParamSets&#34;: &#34;&#34;,
+          &#34;Params&#34;: null,
+          &#34;SkipImages&#34;: false,
+          &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+        },
+        &#34;Params&#34;: {
+          &#34;cube_center&#34;: true,
+          &#34;cube_size&#34;: 50,
+          &#34;designFileName&#34;: &#34;cube&#34;,
+          &#34;instance&#34;: &#34;small&#34;,
+          &#34;version&#34;: &#34;v0.1&#34;
+        },
+        &#34;PartIDLetter&#34;: &#34;A&#34;,
+        &#34;UniqueID&#34;: &#34;&#34;,
+        &#34;ConfigError&#34;: &#34;&#34;,
+        &#34;OutputPathV2&#34;: &#34;&#34;,
+        &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50.stl&#34;,
+        &#34;IgnoredParams&#34;: null,
+        &#34;ImageResults&#34;: [],
+        &#34;ExportImages&#34;: [
+          {
+            &#34;CameraName&#34;: &#34;nice&#34;,
+            &#34;CameraCoordinates&#34;: &#34;0,0,0,45,0,45,350&#34;,
+            &#34;ImageSize&#34;: &#34;&#34;,
+            &#34;ParamFilter&#34;: null
+          }
+        ],
+        &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50&#34;,
+        &#34;SkipImages&#34;: false,
+        &#34;SkippedReason&#34;: &#34;&#34;,
+        &#34;SkippedImageReason&#34;: &#34;&#34;
+      },
+      &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50-nice.png&#34;,
+      &#34;Command&#34;: &#34;&#34;,
+      &#34;Error&#34;: &#34;&#34;,
+      &#34;AppliedParams&#34;: {
+        &#34;cube_center&#34;: true,
+        &#34;cube_size&#34;: 50,
+        &#34;designFileName&#34;: &#34;cube&#34;,
+        &#34;instance&#34;: &#34;small&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;TimeTaken&#34;: 376333125,
+      &#34;Skipped&#34;: false,
+      &#34;CameraName&#34;: &#34;nice&#34;,
+      &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
+    }
+  ],
+  &#34;ExportImages&#34;: [
+    {
+      &#34;CameraName&#34;: &#34;nice&#34;,
+      &#34;CameraCoordinates&#34;: &#34;0,0,0,45,0,45,350&#34;,
+      &#34;ImageSize&#34;: &#34;&#34;,
+      &#34;ParamFilter&#34;: null
+    }
+  ],
+  &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50&#34;,
+  &#34;SkipImages&#34;: false,
+  &#34;SkippedReason&#34;: &#34;&#34;,
+  &#34;SkippedImageReason&#34;: &#34;&#34;
+}</pre></div></details><tbody><tr id="instance-0" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>v0.1_cube-chamfer-true-50 ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>chamfer = 3;
+cube_center = true;
+cube_size = 50;
+designFileName = &#34;cube&#34;;
+instance = &#34;chamfer&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>true</td><td>chamfer</td><td>cube</td><td>v0.1</td><td>3</td><td>50</td></tr><tr id="instance-images-0"><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"></td></tr><tr id="instance-1" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>v0.1_cube-medium-false-50 ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = false;
+cube_size = 50;
+designFileName = &#34;cube&#34;;
+instance = &#34;medium&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>false</td><td>medium</td><td>cube</td><td>v0.1</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td>50</td></tr><tr id="instance-images-1"><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"></td></tr><tr id="instance-2" class="" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td>v0.1_cube-small-true-50 ()</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
+cube_size = 50;
+designFileName = &#34;cube&#34;;
+instance = &#34;small&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td></td><td>[]</td><td></td><td>true</td><td>small</td><td>cube</td><td>v0.1</td><td class="is-italic" title="No Param for { paramName }">N/A</td><td>50</td></tr><tr id="instance-images-2"><td colspan="100%"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"></td></tr></tbody></table></div> <div class="my-2"></div></div></div> <div><div x-show="navSelected === &#39;stlResults&#39;"><style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">STL Results</summary><div class="json-viewer-content"><pre class="json-pretty">[
+  {
+    &#34;InstanceConfig&#34;: {
+      &#34;ID&#34;: &#34;&#34;,
+      &#34;Name&#34;: &#34;&#34;,
+      &#34;AutoName&#34;: &#34;v0.1_cube-small-true-50&#34;,
+      &#34;Description&#34;: &#34;&#34;,
+      &#34;ExportNameFormat&#34;: &#34;&#34;,
+      &#34;InputPath&#34;: {
+        &#34;Path&#34;: &#34;./cube.scad&#34;,
+        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+        &#34;RawOpenSCADFileName&#34;: &#34;cube&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;ParamSets&#34;: &#34;&#34;,
+        &#34;Params&#34;: null,
+        &#34;SkipImages&#34;: false,
+        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+      },
+      &#34;Params&#34;: {
+        &#34;cube_center&#34;: true,
+        &#34;cube_size&#34;: 50,
+        &#34;designFileName&#34;: &#34;cube&#34;,
+        &#34;instance&#34;: &#34;small&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;PartIDLetter&#34;: &#34;A&#34;,
+      &#34;UniqueID&#34;: &#34;&#34;,
+      &#34;ConfigError&#34;: &#34;&#34;,
+      &#34;OutputPathV2&#34;: &#34;&#34;,
+      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50.stl&#34;,
+      &#34;IgnoredParams&#34;: null,
+      &#34;ImageResults&#34;: [],
+      &#34;ExportImages&#34;: [
+        {
+          &#34;CameraName&#34;: &#34;nice&#34;,
+          &#34;CameraCoordinates&#34;: &#34;0,0,0,45,0,45,350&#34;,
+          &#34;ImageSize&#34;: &#34;&#34;,
+          &#34;ParamFilter&#34;: null
+        }
+      ],
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50&#34;,
+      &#34;SkipImages&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;SkippedImageReason&#34;: &#34;&#34;
+    },
+    &#34;OutputPath&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50.stl&#39; --render --backend=manifold -D &#39;instance=\&#34;small\&#34;&#39; -D &#39;designFileName=\&#34;cube\&#34;&#39; -D &#39;cube_size=50&#39; -D &#39;cube_center=true&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/cube.scad&#34;,
+    &#34;Error&#34;: &#34;&#34;,
+    &#34;AppliedParams&#34;: {
+      &#34;cube_center&#34;: true,
+      &#34;cube_size&#34;: 50,
+      &#34;designFileName&#34;: &#34;cube&#34;,
+      &#34;instance&#34;: &#34;small&#34;,
+      &#34;version&#34;: &#34;v0.1&#34;
+    },
+    &#34;TimeTaken&#34;: 188434583,
+    &#34;Skipped&#34;: false,
+    &#34;LowQuality&#34;: false,
+    &#34;SkippedReason&#34;: &#34;&#34;,
+    &#34;GenerateImageResult&#34;: null
+  },
+  {
+    &#34;InstanceConfig&#34;: {
+      &#34;ID&#34;: &#34;&#34;,
+      &#34;Name&#34;: &#34;&#34;,
+      &#34;AutoName&#34;: &#34;v0.1_cube-medium-false-50&#34;,
+      &#34;Description&#34;: &#34;&#34;,
+      &#34;ExportNameFormat&#34;: &#34;&#34;,
+      &#34;InputPath&#34;: {
+        &#34;Path&#34;: &#34;./cube.scad&#34;,
+        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+        &#34;RawOpenSCADFileName&#34;: &#34;cube&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;ParamSets&#34;: &#34;&#34;,
+        &#34;Params&#34;: null,
+        &#34;SkipImages&#34;: false,
+        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+      },
+      &#34;Params&#34;: {
+        &#34;cube_center&#34;: false,
+        &#34;cube_size&#34;: 50,
+        &#34;designFileName&#34;: &#34;cube&#34;,
+        &#34;instance&#34;: &#34;medium&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;PartIDLetter&#34;: &#34;B&#34;,
+      &#34;UniqueID&#34;: &#34;&#34;,
+      &#34;ConfigError&#34;: &#34;&#34;,
+      &#34;OutputPathV2&#34;: &#34;&#34;,
+      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50.stl&#34;,
+      &#34;IgnoredParams&#34;: null,
+      &#34;ImageResults&#34;: [],
+      &#34;ExportImages&#34;: [
+        {
+          &#34;CameraName&#34;: &#34;nice&#34;,
+          &#34;CameraCoordinates&#34;: &#34;0,0,0,45,0,45,350&#34;,
+          &#34;ImageSize&#34;: &#34;&#34;,
+          &#34;ParamFilter&#34;: null
+        }
+      ],
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50&#34;,
+      &#34;SkipImages&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;SkippedImageReason&#34;: &#34;&#34;
+    },
+    &#34;OutputPath&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50.stl&#39; --render --backend=manifold -D &#39;instance=\&#34;medium\&#34;&#39; -D &#39;designFileName=\&#34;cube\&#34;&#39; -D &#39;cube_size=50&#39; -D &#39;cube_center=false&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/cube.scad&#34;,
+    &#34;Error&#34;: &#34;&#34;,
+    &#34;AppliedParams&#34;: {
+      &#34;cube_center&#34;: false,
+      &#34;cube_size&#34;: 50,
+      &#34;designFileName&#34;: &#34;cube&#34;,
+      &#34;instance&#34;: &#34;medium&#34;,
+      &#34;version&#34;: &#34;v0.1&#34;
+    },
+    &#34;TimeTaken&#34;: 175199666,
+    &#34;Skipped&#34;: false,
+    &#34;LowQuality&#34;: false,
+    &#34;SkippedReason&#34;: &#34;&#34;,
+    &#34;GenerateImageResult&#34;: null
+  },
+  {
+    &#34;InstanceConfig&#34;: {
+      &#34;ID&#34;: &#34;&#34;,
+      &#34;Name&#34;: &#34;&#34;,
+      &#34;AutoName&#34;: &#34;v0.1_cube-chamfer-true-50&#34;,
+      &#34;Description&#34;: &#34;&#34;,
+      &#34;ExportNameFormat&#34;: &#34;&#34;,
+      &#34;InputPath&#34;: {
+        &#34;Path&#34;: &#34;./cube.scad&#34;,
+        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+        &#34;RawOpenSCADFileName&#34;: &#34;cube&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;ParamSets&#34;: &#34;&#34;,
+        &#34;Params&#34;: null,
+        &#34;SkipImages&#34;: false,
+        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+      },
+      &#34;Params&#34;: {
+        &#34;chamfer&#34;: 3,
+        &#34;cube_center&#34;: true,
+        &#34;cube_size&#34;: 50,
+        &#34;designFileName&#34;: &#34;cube&#34;,
+        &#34;instance&#34;: &#34;chamfer&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;PartIDLetter&#34;: &#34;C&#34;,
+      &#34;UniqueID&#34;: &#34;&#34;,
+      &#34;ConfigError&#34;: &#34;&#34;,
+      &#34;OutputPathV2&#34;: &#34;&#34;,
+      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50.stl&#34;,
+      &#34;IgnoredParams&#34;: null,
+      &#34;ImageResults&#34;: [],
+      &#34;ExportImages&#34;: [
+        {
+          &#34;CameraName&#34;: &#34;nice&#34;,
+          &#34;CameraCoordinates&#34;: &#34;0,0,0,45,0,45,350&#34;,
+          &#34;ImageSize&#34;: &#34;&#34;,
+          &#34;ParamFilter&#34;: null
+        }
+      ],
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50&#34;,
+      &#34;SkipImages&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;SkippedImageReason&#34;: &#34;&#34;
+    },
+    &#34;OutputPath&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50.stl&#39; --render --backend=manifold -D &#39;instance=\&#34;chamfer\&#34;&#39; -D &#39;designFileName=\&#34;cube\&#34;&#39; -D &#39;chamfer=3&#39; -D &#39;cube_size=50&#39; -D &#39;cube_center=true&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/cube.scad&#34;,
+    &#34;Error&#34;: &#34;&#34;,
+    &#34;AppliedParams&#34;: {
+      &#34;chamfer&#34;: 3,
+      &#34;cube_center&#34;: true,
+      &#34;cube_size&#34;: 50,
+      &#34;designFileName&#34;: &#34;cube&#34;,
+      &#34;instance&#34;: &#34;chamfer&#34;,
+      &#34;version&#34;: &#34;v0.1&#34;
+    },
+    &#34;TimeTaken&#34;: 168218333,
+    &#34;Skipped&#34;: false,
+    &#34;LowQuality&#34;: false,
+    &#34;SkippedReason&#34;: &#34;&#34;,
+    &#34;GenerateImageResult&#34;: null
+  }
+]</pre></div></details> <div class="table-container"><table class="table is-fullwidth" id="stl-results-table"><thead><tr><th style="width: 150px;">Instance</th><th style="width: 100px;">Time Taken</th><th style="width: 200px;">Params</th><th style="width: 150px;" x-show="showDebug">Debug</th><th style="width: 200px;">Command</th></tr></thead> <tbody><tr id="stl-result-0" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>188.434583ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
+cube_size = 50;
+designFileName = &#34;cube&#34;;
+instance = &#34;small&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td x-show="showDebug"><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50.stl&#39; --render --backend=manifold -D &#39;instance=&#34;small&#34;&#39; -D &#39;designFileName=&#34;cube&#34;&#39; -D &#39;cube_size=50&#39; -D &#39;cube_center=true&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/cube.scad</pre></code></div></details></td></tr><tr id="stl-result-1" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>175.199666ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = false;
+cube_size = 50;
+designFileName = &#34;cube&#34;;
+instance = &#34;medium&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td x-show="showDebug"><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50.stl&#39; --render --backend=manifold -D &#39;instance=&#34;medium&#34;&#39; -D &#39;designFileName=&#34;cube&#34;&#39; -D &#39;cube_size=50&#39; -D &#39;cube_center=false&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/cube.scad</pre></code></div></details></td></tr><tr id="stl-result-2" x-show="searchQuery === &#39;&#39; || (&#39; &#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td> </td><td><a href="" target="_blank"></a></td><td>168.218333ms</td><td><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>chamfer = 3;
+cube_center = true;
+cube_size = 50;
+designFileName = &#34;cube&#34;;
+instance = &#34;chamfer&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><!-- <td>
+            <details>
+                <summary>OpenSCAD Code</summary>
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+            </details>
+        </td> --><td x-show="showDebug"><details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50.stl&#39; --render --backend=manifold -D &#39;instance=&#34;chamfer&#34;&#39; -D &#39;designFileName=&#34;cube&#34;&#39; -D &#39;chamfer=3&#39; -D &#39;cube_size=50&#39; -D &#39;cube_center=true&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/cube.scad</pre></code></div></details></td></tr></tbody></table></div></div></div> <div><div x-show="navSelected === &#39;imageResults&#39;"><div>Generated 3 images</div><style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">Image Results</summary><div class="json-viewer-content"><pre class="json-pretty">[
+  {
+    &#34;InstanceConfig&#34;: {
+      &#34;ID&#34;: &#34;&#34;,
+      &#34;Name&#34;: &#34;&#34;,
+      &#34;AutoName&#34;: &#34;v0.1_cube-small-true-50&#34;,
+      &#34;Description&#34;: &#34;&#34;,
+      &#34;ExportNameFormat&#34;: &#34;&#34;,
+      &#34;InputPath&#34;: {
+        &#34;Path&#34;: &#34;./cube.scad&#34;,
+        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+        &#34;RawOpenSCADFileName&#34;: &#34;cube&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;ParamSets&#34;: &#34;&#34;,
+        &#34;Params&#34;: null,
+        &#34;SkipImages&#34;: false,
+        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+      },
+      &#34;Params&#34;: {
+        &#34;cube_center&#34;: true,
+        &#34;cube_size&#34;: 50,
+        &#34;designFileName&#34;: &#34;cube&#34;,
+        &#34;instance&#34;: &#34;small&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;PartIDLetter&#34;: &#34;A&#34;,
+      &#34;UniqueID&#34;: &#34;&#34;,
+      &#34;ConfigError&#34;: &#34;&#34;,
+      &#34;OutputPathV2&#34;: &#34;&#34;,
+      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50.stl&#34;,
+      &#34;IgnoredParams&#34;: null,
+      &#34;ImageResults&#34;: [],
+      &#34;ExportImages&#34;: [
+        {
+          &#34;CameraName&#34;: &#34;nice&#34;,
+          &#34;CameraCoordinates&#34;: &#34;0,0,0,45,0,45,350&#34;,
+          &#34;ImageSize&#34;: &#34;&#34;,
+          &#34;ParamFilter&#34;: null
+        }
+      ],
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50&#34;,
+      &#34;SkipImages&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;SkippedImageReason&#34;: &#34;&#34;
+    },
+    &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50-nice.png&#34;,
+    &#34;Command&#34;: &#34;&#34;,
+    &#34;Error&#34;: &#34;&#34;,
+    &#34;AppliedParams&#34;: {
+      &#34;cube_center&#34;: true,
+      &#34;cube_size&#34;: 50,
+      &#34;designFileName&#34;: &#34;cube&#34;,
+      &#34;instance&#34;: &#34;small&#34;,
+      &#34;version&#34;: &#34;v0.1&#34;
+    },
+    &#34;TimeTaken&#34;: 376333125,
+    &#34;Skipped&#34;: false,
+    &#34;CameraName&#34;: &#34;nice&#34;,
+    &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
+  },
+  {
+    &#34;InstanceConfig&#34;: {
+      &#34;ID&#34;: &#34;&#34;,
+      &#34;Name&#34;: &#34;&#34;,
+      &#34;AutoName&#34;: &#34;v0.1_cube-medium-false-50&#34;,
+      &#34;Description&#34;: &#34;&#34;,
+      &#34;ExportNameFormat&#34;: &#34;&#34;,
+      &#34;InputPath&#34;: {
+        &#34;Path&#34;: &#34;./cube.scad&#34;,
+        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+        &#34;RawOpenSCADFileName&#34;: &#34;cube&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;ParamSets&#34;: &#34;&#34;,
+        &#34;Params&#34;: null,
+        &#34;SkipImages&#34;: false,
+        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+      },
+      &#34;Params&#34;: {
+        &#34;cube_center&#34;: false,
+        &#34;cube_size&#34;: 50,
+        &#34;designFileName&#34;: &#34;cube&#34;,
+        &#34;instance&#34;: &#34;medium&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;PartIDLetter&#34;: &#34;B&#34;,
+      &#34;UniqueID&#34;: &#34;&#34;,
+      &#34;ConfigError&#34;: &#34;&#34;,
+      &#34;OutputPathV2&#34;: &#34;&#34;,
+      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50.stl&#34;,
+      &#34;IgnoredParams&#34;: null,
+      &#34;ImageResults&#34;: [],
+      &#34;ExportImages&#34;: [
+        {
+          &#34;CameraName&#34;: &#34;nice&#34;,
+          &#34;CameraCoordinates&#34;: &#34;0,0,0,45,0,45,350&#34;,
+          &#34;ImageSize&#34;: &#34;&#34;,
+          &#34;ParamFilter&#34;: null
+        }
+      ],
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50&#34;,
+      &#34;SkipImages&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;SkippedImageReason&#34;: &#34;&#34;
+    },
+    &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50-nice.png&#34;,
+    &#34;Command&#34;: &#34;&#34;,
+    &#34;Error&#34;: &#34;&#34;,
+    &#34;AppliedParams&#34;: {
+      &#34;cube_center&#34;: false,
+      &#34;cube_size&#34;: 50,
+      &#34;designFileName&#34;: &#34;cube&#34;,
+      &#34;instance&#34;: &#34;medium&#34;,
+      &#34;version&#34;: &#34;v0.1&#34;
+    },
+    &#34;TimeTaken&#34;: 357569292,
+    &#34;Skipped&#34;: false,
+    &#34;CameraName&#34;: &#34;nice&#34;,
+    &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
+  },
+  {
+    &#34;InstanceConfig&#34;: {
+      &#34;ID&#34;: &#34;&#34;,
+      &#34;Name&#34;: &#34;&#34;,
+      &#34;AutoName&#34;: &#34;v0.1_cube-chamfer-true-50&#34;,
+      &#34;Description&#34;: &#34;&#34;,
+      &#34;ExportNameFormat&#34;: &#34;&#34;,
+      &#34;InputPath&#34;: {
+        &#34;Path&#34;: &#34;./cube.scad&#34;,
+        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+        &#34;RawOpenSCADFileName&#34;: &#34;cube&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;ParamSets&#34;: &#34;&#34;,
+        &#34;Params&#34;: null,
+        &#34;SkipImages&#34;: false,
+        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+      },
+      &#34;Params&#34;: {
+        &#34;chamfer&#34;: 3,
+        &#34;cube_center&#34;: true,
+        &#34;cube_size&#34;: 50,
+        &#34;designFileName&#34;: &#34;cube&#34;,
+        &#34;instance&#34;: &#34;chamfer&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;PartIDLetter&#34;: &#34;C&#34;,
+      &#34;UniqueID&#34;: &#34;&#34;,
+      &#34;ConfigError&#34;: &#34;&#34;,
+      &#34;OutputPathV2&#34;: &#34;&#34;,
+      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50.stl&#34;,
+      &#34;IgnoredParams&#34;: null,
+      &#34;ImageResults&#34;: [],
+      &#34;ExportImages&#34;: [
+        {
+          &#34;CameraName&#34;: &#34;nice&#34;,
+          &#34;CameraCoordinates&#34;: &#34;0,0,0,45,0,45,350&#34;,
+          &#34;ImageSize&#34;: &#34;&#34;,
+          &#34;ParamFilter&#34;: null
+        }
+      ],
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50&#34;,
+      &#34;SkipImages&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;SkippedImageReason&#34;: &#34;&#34;
+    },
+    &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50-nice.png&#34;,
+    &#34;Command&#34;: &#34;&#34;,
+    &#34;Error&#34;: &#34;&#34;,
+    &#34;AppliedParams&#34;: {
+      &#34;chamfer&#34;: 3,
+      &#34;cube_center&#34;: true,
+      &#34;cube_size&#34;: 50,
+      &#34;designFileName&#34;: &#34;cube&#34;,
+      &#34;instance&#34;: &#34;chamfer&#34;,
+      &#34;version&#34;: &#34;v0.1&#34;
+    },
+    &#34;TimeTaken&#34;: 343915834,
+    &#34;Skipped&#34;: false,
+    &#34;CameraName&#34;: &#34;nice&#34;,
+    &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
+  }
+]</pre></div></details> <div class="table-container"><table class="table is-fullwidth" id="image-results-table"><thead><tr><th>Instance</th><th>Camera</th><th>Output Path</th><th>Time Taken</th><th>Camera Coordinates</th><th>Preview</th><th>Error</th><th>Command</th></tr></thead> <tbody><tr id="image-result-0" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>../v0.1/cube-small-true-50-nice.png</td><td>376.33ms</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
+cube_size = 50;
+designFileName = &#34;cube&#34;;
+instance = &#34;small&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-small-true-50-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-1" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>../v0.1/cube-medium-false-50-nice.png</td><td>357.57ms</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = false;
+cube_size = 50;
+designFileName = &#34;cube&#34;;
+instance = &#34;medium&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-medium-false-50-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr><tr id="image-result-2" x-show="searchQuery === &#39;&#39; || (&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50-nice.png&#39;).toLowerCase().includes(searchQuery.toLowerCase())"><td></td><td>nice</td><td>../v0.1/cube-chamfer-true-50-nice.png</td><td>343.92ms</td><td><details><summary>View Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div></details><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>chamfer = 3;
+cube_center = true;
+cube_size = 50;
+designFileName = &#34;cube&#34;;
+instance = &#34;chamfer&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></td><td><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/v0.1/cube-chamfer-true-50-nice.png</div></td><td></td><td><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></td></tr></tbody></table></div></div></div> <div></div></div><script>
             // Enable htmx debug mode
             window.htmx && (htmx.config.debug = true);
 
@@ -442,4 +1248,4 @@ dont_use_manifold = false         # If true, disables manifold operations
             document.body.addEventListener('htmx:afterOnLoad', function(evt) {
                 console.log('htmx:afterOnLoad', evt);
             });
-        </script></body></html>
+        </script><div><h1>Config Summary</h1><p>Output Path: /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/report.html</p><p>Total Time: 1.61s</p><p>No global parameters</p><h2>Output Paths</h2><p><strong>OutputPath:</strong> /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube/export/v0.1/report.html</p><p class="is-size-6 is-italic is-text-grey is-centered">Generated by openscadgen OpenSCAD version 2025.07.21 v2.7.25 at 2025-09-25 20:36:37</p><p class="is-size-6 is-italic is-text-grey is-centered">Total processing time: 1.61s</p></div></div></body></html>

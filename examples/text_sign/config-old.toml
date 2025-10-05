@@ -1,0 +1,28 @@
+[openscadgen]
+name = "text_sign"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{textLineThree}"
+
+[[openscadgen.input_paths]]
+path = "./text_sign.scad"
+
+[[openscadgen.images]]
+name = "nice"
+
+
+[[openscadgen.instances]]
+params = { textLineOne = "WE STAND", textLineTwo = "WITH OUR", textLineThree = "TEACHERS" }
+direct_array_params = ["supports"]
+
+
+[[openscadgen.instances]]
+params = { textLineOne = "WE STAND", textLineTwo = "WITH OUR", textLineThree = "NURSES" }
+direct_array_params = ["supports"]
+
+
+[[openscadgen.instances]]
+params = { textLineOne = "WE STAND", textLineTwo = "WITH OUR", textLineThree = "DOCTORS" }
+direct_array_params = ["supports"]

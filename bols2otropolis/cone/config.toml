@@ -4,7 +4,7 @@ description = "BOSL2 cone with various sizes"
 
 version = "v0.1"
 
-export_name_format = "/{version}/{designFileName}"
+export_name_format = "/{version}/{designFileName}_{cone_h}_{cone_r1}"
 
 [[openscadgen.input_paths]]
 path = "./cone.scad"

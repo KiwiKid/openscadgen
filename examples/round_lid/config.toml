@@ -12,16 +12,16 @@ global_params = { renderType = "obj,vertSlice" }
 path = "./round_lid.scad"
 
 [[openscadgen.instances]]
-params = { name="big", plugRadius = 16, rimRadius = 31 }
+params = { name="big", plugRadius = 16, plugRadiusBottom=16, rimRadius = 31 }
 
 [[openscadgen.instances]]
-params = { name = "small", plugRadius = 15, rimRadius = 24, plugHeight=70 }
+params = { name = "small", plugRadius = 15, plugRadiusBottom = 15, rimRadius = 24, plugHeight=70 }
 
 [[openscadgen.instances]]
-params = { name = "tiny", plugRadius = 6.5, rimRadius = 13, plugHeight=50 }
+params = { name = "tiny", plugRadius = 8.5, plugRadiusBottom = 7.5, rimRadius = 13, plugHeight=50 }
 
 [[openscadgen.instances]]
-params = { name = "tiny-wide", plugRadius = 6.5, rimRadius = 18, plugHeight=50 }
+params = { name = "tiny-wide", plugRadius = 8.5, plugRadiusBottom = 7.5, rimRadius = 18, plugHeight=50 }
 
 
 [[openscadgen.images]]

@@ -58,6 +58,16 @@ func main() {
 		return
 	}
 
+	if cmdFlags.ProcessFolder != "" {
+		cmdFlags.OverwriteExisting = true
+		processResults, err := pkg.ProcessFolder(cmdFlags.ProcessFolder, cmdFlags)
+		if err != nil {
+			log.Fatalf("Error: %v", err)
+		}
+		log.Printf("Processed %d config files", len(processResults))
+		return
+	}
+
 	config, err := pkg.LoadConfig(cmdFlags)
 	if err != nil {
 		log.Fatalf("Error: %v", err)
@@ -71,7 +81,9 @@ func main() {
 		progress = pkg.NewTerminalProgressReporter(config)
 	}
 
-	processResult, err := pkg.Process(config, progress, nil)
+	processResult, err := pkg.Process(config, progress, nil, pkg.Operations{
+		GenerateReport: true,
+	})
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
@@ -96,14 +108,4 @@ func main() {
 		return
 	}
 
-	_, location, genReportErr := pkg.GenerateOutputReport(config, processResult.Instances, processResult.STLResults, processResult.ImageResults, processResult.ExportLocation, true, processResult.TotalTimeTaken)
-	if genReportErr != nil {
-		if config.ContinueOnError {
-			log.Printf("Warning: failed to generate output report: %v", err)
-		} else {
-			log.Fatalf("failed to generate output report: %v", err)
-		}
-	} else if config.Debug {
-		pkg.LogKeyValuePair("Output report generated at", location)
-	}
 }
