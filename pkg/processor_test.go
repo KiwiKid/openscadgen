@@ -2532,3 +2532,35 @@ func TestGetNiceName(t *testing.T) {
 		})
 	}
 }
+
+func TestGetImagePath(t *testing.T) {
+	testCases := []struct {
+		name  string
+		input struct {
+			runOutputImagePath string
+			cameraName         string
+		}
+		expected string
+	}{
+		{
+			name: "standard input",
+			input: struct {
+				runOutputImagePath string
+				cameraName         string
+			}{
+				runOutputImagePath: "export/v0.1/nice.stl",
+				cameraName:         "nice",
+			},
+			expected: "export/v0.1/nice-nice.png",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := GetImagePath(tc.input.runOutputImagePath, tc.input.cameraName)
+			if result != tc.expected {
+				t.Errorf("GetImagePath(%q, %q) = %q; want %q", tc.input.runOutputImagePath, tc.input.cameraName, result, tc.expected)
+			}
+		})
+	}
+}

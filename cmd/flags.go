@@ -48,8 +48,8 @@ func ParseFlags() models.CmdFlags {
 
 	flag.IntVar(&cmdFlags.MaxInstances, "n", 0, "Maximum number of instances to process")
 
-	flag.BoolVar(&cmdFlags.ContinueOnError, "coe", false, "Continue if an error occurs when loading or generating files - not recommended as the checks can be handy (experimental)")
-	flag.BoolVar(&cmdFlags.ContinueOnError, "continue-on-error", false, "Alias for -co")
+	flag.BoolVar(&cmdFlags.StopOnError, "soe", false, "Stop if an error occurs when loading or generating files")
+	flag.BoolVar(&cmdFlags.StopOnError, "stop-on-error", false, "Alias for -soe")
 
 	flag.BoolVar(&cmdFlags.IncludeExportLog, "include-export-log-file", false, "Include the export log in the README.md file")
 	flag.BoolVar(&cmdFlags.IncludeExportLog, "el", false, "Alias for -include-export-log-file")

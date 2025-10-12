@@ -42,7 +42,7 @@ func getStatusText(skippedReason string) string {
 }
 
 templ InstanceCard(instance models.InstanceConfig, outputPath string) {
-    <div class="column is-4" id={ fmt.Sprintf("instance-%s", instance.AutoName) } hx-swap-oob="true">
+    <div class="column is-4" id={ fmt.Sprintf("instance-%s", instance.UniqueID) } hx-swap-oob="true">
         <div class="card">[[InstanceCard]]
             <header class="card-header">
                 <p class="card-header-title">

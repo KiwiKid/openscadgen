@@ -424,21 +424,19 @@ git push && git push --tags
 - [ ] Add openscad parameter JSON file export
 - [ ] Allow for concurrent openscad runs
 - [ ] Directory generation (i.e. dynamically find and generate all the instance configs in a directory)
-- [ ] (maybe) Add ability to generate instances via annotations in the scad file (i.e. remove need for config file). Something like:
 ```
 // openscadgen: handle_offset: 10, 15, 25
 handle_offset = 10
 ```
-- [ ] Use new Go Tool include features to include openscad directly
 - [ ] Allow for building a whole directory of scad files (i.e. generate all the instances in a directory)
 - [ ] Split export folder into 'base' and 'has_part_letter' folders + refine part letter generation
 - [ ] Allow for setting of part id in the static instance config
-- [ ] Allow for exporting a set of images
-- [ ] (maybe) Configure option to automatically create a horizontal and/or vertical cross-sectional slice of the part
 - [ ] Add clean-up option for old versions
 - [ ] (maybe) Add configurable watch mode to automatically re-run the tool when the scad file is changed
 - [ ] Tidy/Improve logging and log handling
+- [ ]Tools to ease handling of openscad directly
 - [ ] Tools to ease handling of common openscad external libraries (i.e. BOSL2 etc)
+
 - [-] Better handling of params with Spaces in them (i.e. name= "My Name" -> "My-Name.stl")
 - [-] Better handling of params with Spaces in them (i.e. name= "My Name" -> "My-Name.stl")
 - [-] Add a HTML export file + image generation
@@ -446,6 +444,8 @@ handle_offset = 10
 - [-] Add ability to configure ranges of parameters in config file with auto-naming (i.e. i want models for each handle_diameter from 5 to 10, with )
 - [-] Allow for multi-part builds in the same config file (i.e. multiple scad files, generated with the same input parameters)
 - [-] Add config file generation quickstart command (to initialize a openscadgen config file from a scad file) (`openscadgen i new-project-name`)
+- [-] Configure option (-ie) to automatically create a horizontal and/or vertical cross-sectional slice of the part
+- [-] Allow for exporting a set of images
 
 
 If you have any ideas/bugs/etc, please let me know and i'll try and fix them where possible. I do want to keep the goals of the project simple and specific

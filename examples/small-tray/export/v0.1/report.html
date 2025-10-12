@@ -1,10 +1,24 @@
-<!doctype html><html lang="en" x-data="alpineReportData()" x-init="init()"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>small-tray - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"><script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script><script>
+<!doctype html><html lang="en" x-data="alpineReportData()" x-init="init()"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>small-tray - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script><script>
         function alpineReportData() {
             return {
                 darkMode: true,
                 showDebug: false,
+                showInstancesWithoutImages: false,
                 navSelected: "instances",
                 searchQuery: '',
+                // Advanced filtering options
+                filters: {
+                    searchQuery: '',
+                    showInstancesWithoutImages: false,
+                    showOnlyWithImages: false,
+                    showOnlyWithErrors: false,
+                    showOnlySkipped: false,
+                    showOnlySuccessful: false,
+                    paramFilters: {},
+                    namePattern: '',
+                    descriptionPattern: '',
+                    outputPathPattern: ''
+                },
                 configHistory: JSON.parse(localStorage.getItem('configHistory') || '[]'),
                 configFile: '',
                 savedConfigFile: localStorage.getItem('savedConfigFile') || '',
@@ -17,6 +31,116 @@
                     this.savedConfigFile = path;
                     localStorage.setItem('savedConfigFile', path);
                 },
+                // Filtering methods
+                matchesSearch(instance) {
+                    const search = this.filters.searchQuery.toLowerCase();
+                    if (!search) return true;
+                    const searchText = `${instance.Name} ${instance.Description} ${instance.RunOutputPathV3}`.toLowerCase();
+                    return searchText.includes(search);
+                },
+                matchesNamePattern(instance) {
+                    if (!this.filters.namePattern) return true;
+                    try {
+                        const pattern = new RegExp(this.filters.namePattern, 'i');
+                        return pattern.test(instance.Name);
+                    } catch (e) {
+                        return true; // Invalid regex, don't filter
+                    }
+                },
+                matchesDescriptionPattern(instance) {
+                    if (!this.filters.descriptionPattern) return true;
+                    try {
+                        const pattern = new RegExp(this.filters.descriptionPattern, 'i');
+                        return pattern.test(instance.Description);
+                    } catch (e) {
+                        return true; // Invalid regex, don't filter
+                    }
+                },
+                matchesOutputPathPattern(instance) {
+                    if (!this.filters.outputPathPattern) return true;
+                    try {
+                        const pattern = new RegExp(this.filters.outputPathPattern, 'i');
+                        return pattern.test(instance.RunOutputPathV3);
+                    } catch (e) {
+                        return true; // Invalid regex, don't filter
+                    }
+                },
+                matchesImageFilter(instance) {
+                    const hasImages = (instance.ImageResults && instance.ImageResults > 0) || 
+                                     (instance.ExportImages && instance.ExportImages > 0);
+                    
+                    if (this.filters.showOnlyWithImages) return hasImages;
+                    if (this.filters.showInstancesWithoutImages) return !hasImages;
+                    return true;
+                },
+                matchesErrorFilter(instance) {
+                    if (this.filters.showOnlyWithErrors) return instance.ConfigError !== '';
+                    if (this.filters.showOnlySkipped) return instance.SkippedReason !== '';
+                    if (this.filters.showOnlySuccessful) return instance.ConfigError === '' && instance.SkippedReason === '';
+                    return true;
+                },
+                matchesParamFilters(instance) {
+                    for (const [paramName, paramValue] of Object.entries(this.filters.paramFilters)) {
+                        if (!paramValue) continue;
+                        const instanceValue = instance.Params[paramName];
+                        if (instanceValue === undefined) return false;
+                        
+                        // Support different comparison types
+                        if (typeof paramValue === 'string') {
+                            if (!String(instanceValue).toLowerCase().includes(paramValue.toLowerCase())) {
+                                return false;
+                            }
+                        } else if (instanceValue !== paramValue) {
+                            return false;
+                        }
+                    }
+                    return true;
+                },
+                shouldShowInstance(instance) {
+                    return this.matchesSearch(instance) &&
+                           this.matchesNamePattern(instance) &&
+                           this.matchesDescriptionPattern(instance) &&
+                           this.matchesOutputPathPattern(instance) &&
+                           this.matchesImageFilter(instance) &&
+                           this.matchesErrorFilter(instance) &&
+                           this.matchesParamFilters(instance);
+                },
+                clearAllFilters() {
+                    this.filters = {
+                        searchQuery: '',
+                        showInstancesWithoutImages: false,
+                        showOnlyWithImages: false,
+                        showOnlyWithErrors: false,
+                        showOnlySkipped: false,
+                        showOnlySuccessful: false,
+                        paramFilters: {},
+                        namePattern: '',
+                        descriptionPattern: '',
+                        outputPathPattern: ''
+                    };
+                },
+                // Debug methods for filter conditions
+                debugMatchesSearch(instance) {
+                    return this.matchesSearch(instance);
+                },
+                debugMatchesNamePattern(instance) {
+                    return this.matchesNamePattern(instance);
+                },
+                debugMatchesDescriptionPattern(instance) {
+                    return this.matchesDescriptionPattern(instance);
+                },
+                debugMatchesOutputPathPattern(instance) {
+                    return this.matchesOutputPathPattern(instance);
+                },
+                debugMatchesImageFilter(instance) {
+                    return this.matchesImageFilter(instance);
+                },
+                debugMatchesErrorFilter(instance) {
+                    return this.matchesErrorFilter(instance);
+                },
+                debugMatchesParamFilters(instance) {
+                    return this.matchesParamFilters(instance);
+                },
                 init() {
                     // Watchers
                     this.$watch('darkMode', value => {
@@ -26,7 +150,7 @@
                     this.$watch('showDebug', value => {
                         localStorage.setItem('showDebug', value);
                     });
-                    this.$watch('searchQuery', value => {
+                    this.$watch('filters.searchQuery', value => {
                         if (value && !this.searchHistory.includes(value)) {
                             this.searchHistory.unshift(value);
                             this.searchHistory = this.searchHistory.slice(0, 20);
@@ -393,7 +517,7 @@ html, body {
                     background-color: var(--hover-bg) !important;
                     color: var(--text-color) !important;
                 }
-            </style></head><body><div x-show="showDebug">Show DEBUG ON</div><div class="global-header fixed-grid"><nav class="navbar navbar-expand-lg navbar-light bg-light"><a class="navbar-brand">small-tray</a> <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button> <div class="collapse navbar-collapse" id="navbarSupportedContent"><ul class="navbar-nav mr-auto"><li class="nav-item" :class="{ active: navSelected === 'instances' }"><a class="nav-link" @click="navSelected = 'instances'">Instances 4</a></li><li class="nav-item" :class="{ active: navSelected === 'stlResults' }"><a class="nav-link" @click="navSelected = 'stlResults'">STL Results 4</a></li><li class="nav-item" :class="{ active: navSelected === 'imageResults' }"><a class="nav-link" @click="navSelected = 'imageResults'">Image Results (4)</a></li><li class="nav-item" :class="{ active: navSelected === 'images' }"><a class="nav-link" @click="navSelected = 'images'">Images (4)</a></li><li class="nav-item" :class="{ active: navSelected === 'json' }"><a class="nav-link" @click="navSelected = 'json'">Config</a></li><a class="nav-link" href="/api/config?path=/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/config.toml" target="_blank">Config</a></ul></div><form class="form-inline my-2 my-lg-0"><input class="form-control mr-sm-2" type="search" placeholder="Filter instances..." x-model="searchQuery" aria-label="Search"> <button class="btn btn-outline-success my-2 my-sm-0" type="button" @click="searchQuery = ''">Clear</button></form><div class="ml-2"><button class="btn btn-outline-secondary" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button> <button class="btn btn-outline-secondary ml-1" @click="showDebug = !showDebug"><span x-show="!showDebug">🐛</span> <span x-show="showDebug">🐛</span> <span x-show="showDebug" style="text-decoration: underline;">Debug</span></button></div></nav></div><div class="container-fluid"><!-- Main Content --><div class="container"><div><div x-show="navSelected === &#39;instances&#39;"><div class="columns is-multiline"><style>
+            </style></head><body><div x-show="showDebug">Show DEBUG ON</div><div class="global-header fixed-grid"><nav class="navbar navbar-expand-lg navbar-light bg-light"><a class="navbar-brand">small-tray</a> <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button> <div class="collapse navbar-collapse" id="navbarSupportedContent"><ul class="navbar-nav mr-auto"><li class="nav-item" :class="{ active: navSelected === 'instances' }"><a class="nav-link" @click="navSelected = 'instances'">Instances (5)</a></li><li class="nav-item" :class="{ active: navSelected === 'stlResults' }"><a class="nav-link" @click="navSelected = 'stlResults'">STLs (5)</a></li><li class="nav-item" :class="{ active: navSelected === 'images' }"><a class="nav-link" @click="navSelected = 'images'">Images (5)</a></li></ul></div><div class="dropdown"><button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">🔍 Filters</button><ul class="dropdown-menu dropdown-menu-end" style="min-width: 400px; padding: 1rem;"><li><div class="mb-3"><label class="form-label">Search Query</label> <input type="text" class="form-control" x-model="filters.searchQuery" placeholder="Search instances..."></div></li><li><div class="mb-3"><label class="form-label">Name Pattern (Regex)</label> <input type="text" class="form-control" x-model="filters.namePattern" placeholder="e.g., ^test.*"></div></li><li><div class="mb-3"><label class="form-label">Description Pattern (Regex)</label> <input type="text" class="form-control" x-model="filters.descriptionPattern" placeholder="e.g., .*large.*"></div></li><li><div class="mb-3"><label class="form-label">Output Path Pattern (Regex)</label> <input type="text" class="form-control" x-model="filters.outputPathPattern" placeholder="e.g., .*\.stl$"></div></li><li><div class="mb-3"><div class="form-check"><input class="form-check-input" type="checkbox" x-model="filters.showOnlyWithImages" id="showOnlyWithImages"> <label class="form-check-label" for="showOnlyWithImages">Only with images</label></div><div class="form-check"><input class="form-check-input" type="checkbox" x-model="filters.showInstancesWithoutImages" id="showInstancesWithoutImages"> <label class="form-check-label" for="showInstancesWithoutImages">Only without images</label></div><div class="form-check"><input class="form-check-input" type="checkbox" x-model="filters.showOnlyWithErrors" id="showOnlyWithErrors"> <label class="form-check-label" for="showOnlyWithErrors">Only with errors</label></div><div class="form-check"><input class="form-check-input" type="checkbox" x-model="filters.showOnlySkipped" id="showOnlySkipped"> <label class="form-check-label" for="showOnlySkipped">Only skipped</label></div><div class="form-check"><input class="form-check-input" type="checkbox" x-model="filters.showOnlySuccessful" id="showOnlySuccessful"> <label class="form-check-label" for="showOnlySuccessful">Only successful</label></div></div></li><li><div class="d-flex gap-2"><button class="btn btn-outline-secondary btn-sm" @click="clearAllFilters()">Clear All</button> <button class="btn btn-outline-primary btn-sm" @click="$el.closest('.dropdown').querySelector('.dropdown-toggle').click()">Apply</button></div></li></ul></div><div class="ml-2"><button class="btn btn-outline-secondary" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button> <button class="btn btn-outline-secondary ml-1" @click="showDebug = !showDebug"><span x-show="!showDebug">🐛</span> <span x-show="showDebug">🐛</span> <span x-show="showDebug" style="text-decoration: underline;">Debug</span></button></div></nav></div><div class="container-fluid" id="main-content"><!-- Main Content --><div class="container"><div><div x-show="navSelected === &#39;instances&#39;"><h3>Instances (5)</h3></div><div x-show="navSelected === &#39;instances&#39;"><div class="columns is-multiline"><style>
         .json-viewer {
             margin: 10px 0;
             border: 1px solid #ddd;
@@ -497,7 +621,8 @@ html, body {
             &#34;CameraName&#34;: &#34;front&#34;,
             &#34;CameraCoordinates&#34;: &#34;0,0,0,0,0,0,100&#34;,
             &#34;ImageSize&#34;: &#34;&#34;,
-            &#34;ParamFilter&#34;: null
+            &#34;ParamFilter&#34;: null,
+            &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box-front.png&#34;
           }
         ],
         &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box&#34;,
@@ -506,7 +631,8 @@ html, body {
         &#34;SkippedImageReason&#34;: &#34;&#34;
       },
       &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box-front.png&#34;,
-      &#34;Command&#34;: &#34;&#34;,
+      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box-front.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,100 --preview -D genType=\&#34;image\&#34; -D &#39;tray_width=230&#39; -D &#39;tray_height=250&#39; -D &#39;height=100&#39; -D &#39;partType=\&#34;box\&#34;&#39; -D &#39;designFileName=\&#34;small-tray\&#34;&#39; -D &#39;name=\&#34;large-tray-100\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad&#34;,
+      &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file small-tray.scad, line 94\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 2 elements\nGeometries in cache: 25\nGeometry cache size in bytes: 4120432\nCGAL Polyhedrons in cache: 28\nCGAL cache size in bytes: 57624256\nTotal rendering time: 0:00:18.838\n&#34;,
       &#34;Error&#34;: &#34;&#34;,
       &#34;AppliedParams&#34;: {
         &#34;designFileName&#34;: &#34;small-tray&#34;,
@@ -517,7 +643,7 @@ html, body {
         &#34;tray_width&#34;: 230,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 21711365209,
+      &#34;TimeTaken&#34;: 20058218292,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;front&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,100&#34;
@@ -528,21 +654,54 @@ html, body {
       &#34;CameraName&#34;: &#34;front&#34;,
       &#34;CameraCoordinates&#34;: &#34;0,0,0,0,0,0,100&#34;,
       &#34;ImageSize&#34;: &#34;&#34;,
-      &#34;ParamFilter&#34;: null
+      &#34;ParamFilter&#34;: null,
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box-front.png&#34;
     }
   ],
   &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box&#34;,
   &#34;SkipImages&#34;: false,
   &#34;SkippedReason&#34;: &#34;&#34;,
   &#34;SkippedImageReason&#34;: &#34;&#34;
-}</pre></div></details><div class="column is-full" id="instance-small-tray-large-tray-100-box" hx-swap-oob="true">[[InstanceCardV2 complete ]]<div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">small-tray-large-tray-100-box</p><p class="subtitle is-6"></p></div></div><div class="content"><p><strong>Output Path:</strong> </p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
+}</pre></div></details><!-- Debug Filter Status --><div x-show="showDebug" class="debug-filter-status" style="border-radius: 4px; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px;"><div style="font-weight: bold; margin-bottom: 8px;">🔍 Filter Debug for small-tray-large-tray-100-box</div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(showDebug)"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(showDebug)"></i></span> <span style="margin-left: 8px;">showDebug: showDebug</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.searchQuery === &#39;&#39; || (&#39;%s %s %s&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.searchQuery === &#39;&#39; || (&#39;%s %s %s&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()))"></i></span> <span style="margin-left: 8px;">Search: &#39;small-tray-large-tray-100-box&#39;: filters.searchQuery === &#39;&#39; || (&#39;%s %s %s&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.namePattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.namePattern.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.namePattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.namePattern.toLowerCase()))"></i></span> <span style="margin-left: 8px;">small-tray-large-tray-100-box: filters.namePattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.descriptionPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.descriptionPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase()))"></i></span> <span style="margin-left: 8px;">: filters.descriptionPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.outputPathPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.outputPathPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase()))"></i></span> <span style="margin-left: 8px;">/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box.stl: filters.outputPathPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.searchQuery === &#39;&#39; || (&#39;large-tray-100  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;large-tray-100&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;)))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.searchQuery === &#39;&#39; || (&#39;large-tray-100  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;large-tray-100&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;)))"></i></span> <span style="margin-left: 8px;">FINAL RESULT: filters.searchQuery === &#39;&#39; || (&#39;large-tray-100  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;large-tray-100&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;))</span></div></div><div class="column is-full" id="instance-small-tray-large-tray-100-box" hx-swap-oob="true" x-show="filters.searchQuery === &#39;&#39; || (&#39;large-tray-100  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;large-tray-100&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;))"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">small-tray-large-tray-100-box</p><p class="subtitle is-6"></p></div></div><div class="content"><p><strong>Output Path:</strong> ../small-tray-large-tray-100-box.stl</p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
 height = 100;
 name = &#34;large-tray-100&#34;;
 partType = &#34;box&#34;;
 tray_height = 250;
 tray_width = 230;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>tray_height:</strong> 250</div><div class="cell is-one-third"><strong>height:</strong> 100</div><div class="cell is-one-third"><strong>partType:</strong> box</div><div class="cell is-one-third"><strong>designFileName:</strong> small-tray</div><div class="cell is-one-third"><strong>name:</strong> large-tray-100</div><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>tray_width:</strong> 230</div></div></div></details></div><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box-front.png" alt="Preview of large-tray-100 from front" class="image-preview"> </div></div></div></div><style>
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>tray_width:</strong> 230</div><div class="cell is-one-third"><strong>tray_height:</strong> 250</div><div class="cell is-one-third"><strong>height:</strong> 100</div><div class="cell is-one-third"><strong>partType:</strong> box</div><div class="cell is-one-third"><strong>designFileName:</strong> small-tray</div><div class="cell is-one-third"><strong>name:</strong> large-tray-100</div></div></div></details></div><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box-front.png" alt="Preview of large-tray-100 from front" class="image-preview"><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box.stl" target="_blank">Open STL</a></p></div></div></div></div><style>
         .json-viewer {
             margin: 10px 0;
             border: 1px solid #ddd;
@@ -646,7 +805,8 @@ version = &#34;v0.1&#34;;
             &#34;CameraName&#34;: &#34;front&#34;,
             &#34;CameraCoordinates&#34;: &#34;0,0,0,0,0,0,100&#34;,
             &#34;ImageSize&#34;: &#34;&#34;,
-            &#34;ParamFilter&#34;: null
+            &#34;ParamFilter&#34;: null,
+            &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box-front.png&#34;
           }
         ],
         &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box&#34;,
@@ -655,7 +815,8 @@ version = &#34;v0.1&#34;;
         &#34;SkippedImageReason&#34;: &#34;&#34;
       },
       &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box-front.png&#34;,
-      &#34;Command&#34;: &#34;&#34;,
+      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box-front.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,100 --preview -D genType=\&#34;image\&#34; -D &#39;height=35&#39; -D &#39;tray_width=230&#39; -D &#39;tray_height=250&#39; -D &#39;partType=\&#34;box\&#34;&#39; -D &#39;designFileName=\&#34;small-tray\&#34;&#39; -D &#39;name=\&#34;large-tray-35\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad&#34;,
+      &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file small-tray.scad, line 94\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 2 elements\nGeometries in cache: 25\nGeometry cache size in bytes: 4120432\nCGAL Polyhedrons in cache: 28\nCGAL cache size in bytes: 57624256\nTotal rendering time: 0:00:18.264\n&#34;,
       &#34;Error&#34;: &#34;&#34;,
       &#34;AppliedParams&#34;: {
         &#34;designFileName&#34;: &#34;small-tray&#34;,
@@ -666,7 +827,7 @@ version = &#34;v0.1&#34;;
         &#34;tray_width&#34;: 230,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 22097673458,
+      &#34;TimeTaken&#34;: 19456764542,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;front&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,100&#34;
@@ -677,21 +838,54 @@ version = &#34;v0.1&#34;;
       &#34;CameraName&#34;: &#34;front&#34;,
       &#34;CameraCoordinates&#34;: &#34;0,0,0,0,0,0,100&#34;,
       &#34;ImageSize&#34;: &#34;&#34;,
-      &#34;ParamFilter&#34;: null
+      &#34;ParamFilter&#34;: null,
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box-front.png&#34;
     }
   ],
   &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box&#34;,
   &#34;SkipImages&#34;: false,
   &#34;SkippedReason&#34;: &#34;&#34;,
   &#34;SkippedImageReason&#34;: &#34;&#34;
-}</pre></div></details><div class="column is-full" id="instance-small-tray-large-tray-35-box" hx-swap-oob="true">[[InstanceCardV2 complete ]]<div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">small-tray-large-tray-35-box</p><p class="subtitle is-6"></p></div></div><div class="content"><p><strong>Output Path:</strong> </p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
+}</pre></div></details><!-- Debug Filter Status --><div x-show="showDebug" class="debug-filter-status" style="border-radius: 4px; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px;"><div style="font-weight: bold; margin-bottom: 8px;">🔍 Filter Debug for small-tray-large-tray-35-box</div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(showDebug)"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(showDebug)"></i></span> <span style="margin-left: 8px;">showDebug: showDebug</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.searchQuery === &#39;&#39; || (&#39;%s %s %s&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.searchQuery === &#39;&#39; || (&#39;%s %s %s&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()))"></i></span> <span style="margin-left: 8px;">Search: &#39;small-tray-large-tray-35-box&#39;: filters.searchQuery === &#39;&#39; || (&#39;%s %s %s&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.namePattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.namePattern.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.namePattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.namePattern.toLowerCase()))"></i></span> <span style="margin-left: 8px;">small-tray-large-tray-35-box: filters.namePattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.descriptionPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.descriptionPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase()))"></i></span> <span style="margin-left: 8px;">: filters.descriptionPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.outputPathPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.outputPathPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase()))"></i></span> <span style="margin-left: 8px;">/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box.stl: filters.outputPathPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.searchQuery === &#39;&#39; || (&#39;large-tray-35  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;large-tray-35&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;)))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.searchQuery === &#39;&#39; || (&#39;large-tray-35  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;large-tray-35&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;)))"></i></span> <span style="margin-left: 8px;">FINAL RESULT: filters.searchQuery === &#39;&#39; || (&#39;large-tray-35  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;large-tray-35&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;))</span></div></div><div class="column is-full" id="instance-small-tray-large-tray-35-box" hx-swap-oob="true" x-show="filters.searchQuery === &#39;&#39; || (&#39;large-tray-35  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;large-tray-35&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;))"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">small-tray-large-tray-35-box</p><p class="subtitle is-6"></p></div></div><div class="content"><p><strong>Output Path:</strong> ../small-tray-large-tray-35-box.stl</p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
 height = 35;
 name = &#34;large-tray-35&#34;;
 partType = &#34;box&#34;;
 tray_height = 250;
 tray_width = 230;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>tray_height:</strong> 250</div><div class="cell is-one-third"><strong>height:</strong> 35</div><div class="cell is-one-third"><strong>partType:</strong> box</div><div class="cell is-one-third"><strong>designFileName:</strong> small-tray</div><div class="cell is-one-third"><strong>name:</strong> large-tray-35</div><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>tray_width:</strong> 230</div></div></div></details></div><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box-front.png" alt="Preview of large-tray-35 from front" class="image-preview"> </div></div></div></div><style>
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>tray_width:</strong> 230</div><div class="cell is-one-third"><strong>tray_height:</strong> 250</div><div class="cell is-one-third"><strong>height:</strong> 35</div><div class="cell is-one-third"><strong>partType:</strong> box</div><div class="cell is-one-third"><strong>designFileName:</strong> small-tray</div><div class="cell is-one-third"><strong>name:</strong> large-tray-35</div></div></div></details></div><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box-front.png" alt="Preview of large-tray-35 from front" class="image-preview"><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box.stl" target="_blank">Open STL</a></p></div></div></div></div><style>
         .json-viewer {
             margin: 10px 0;
             border: 1px solid #ddd;
@@ -795,7 +989,8 @@ version = &#34;v0.1&#34;;
             &#34;CameraName&#34;: &#34;front&#34;,
             &#34;CameraCoordinates&#34;: &#34;0,0,0,0,0,0,100&#34;,
             &#34;ImageSize&#34;: &#34;&#34;,
-            &#34;ParamFilter&#34;: null
+            &#34;ParamFilter&#34;: null,
+            &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box-front.png&#34;
           }
         ],
         &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box&#34;,
@@ -804,7 +999,8 @@ version = &#34;v0.1&#34;;
         &#34;SkippedImageReason&#34;: &#34;&#34;
       },
       &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box-front.png&#34;,
-      &#34;Command&#34;: &#34;&#34;,
+      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box-front.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,100 --preview -D genType=\&#34;image\&#34; -D &#39;name=\&#34;large-tray-50\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; -D &#39;tray_height=250&#39; -D &#39;height=50&#39; -D &#39;tray_width=230&#39; -D &#39;partType=\&#34;box\&#34;&#39; -D &#39;designFileName=\&#34;small-tray\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad&#34;,
+      &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file small-tray.scad, line 94\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 2 elements\nGeometries in cache: 25\nGeometry cache size in bytes: 4120432\nCGAL Polyhedrons in cache: 28\nCGAL cache size in bytes: 57624256\nTotal rendering time: 0:00:17.807\n&#34;,
       &#34;Error&#34;: &#34;&#34;,
       &#34;AppliedParams&#34;: {
         &#34;designFileName&#34;: &#34;small-tray&#34;,
@@ -815,7 +1011,7 @@ version = &#34;v0.1&#34;;
         &#34;tray_width&#34;: 230,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 23053428166,
+      &#34;TimeTaken&#34;: 19011697542,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;front&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,100&#34;
@@ -826,21 +1022,54 @@ version = &#34;v0.1&#34;;
       &#34;CameraName&#34;: &#34;front&#34;,
       &#34;CameraCoordinates&#34;: &#34;0,0,0,0,0,0,100&#34;,
       &#34;ImageSize&#34;: &#34;&#34;,
-      &#34;ParamFilter&#34;: null
+      &#34;ParamFilter&#34;: null,
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box-front.png&#34;
     }
   ],
   &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box&#34;,
   &#34;SkipImages&#34;: false,
   &#34;SkippedReason&#34;: &#34;&#34;,
   &#34;SkippedImageReason&#34;: &#34;&#34;
-}</pre></div></details><div class="column is-full" id="instance-small-tray-large-tray-50-box" hx-swap-oob="true">[[InstanceCardV2 complete ]]<div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">small-tray-large-tray-50-box</p><p class="subtitle is-6"></p></div></div><div class="content"><p><strong>Output Path:</strong> </p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
+}</pre></div></details><!-- Debug Filter Status --><div x-show="showDebug" class="debug-filter-status" style="border-radius: 4px; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px;"><div style="font-weight: bold; margin-bottom: 8px;">🔍 Filter Debug for small-tray-large-tray-50-box</div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(showDebug)"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(showDebug)"></i></span> <span style="margin-left: 8px;">showDebug: showDebug</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.searchQuery === &#39;&#39; || (&#39;%s %s %s&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.searchQuery === &#39;&#39; || (&#39;%s %s %s&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()))"></i></span> <span style="margin-left: 8px;">Search: &#39;small-tray-large-tray-50-box&#39;: filters.searchQuery === &#39;&#39; || (&#39;%s %s %s&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.namePattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.namePattern.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.namePattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.namePattern.toLowerCase()))"></i></span> <span style="margin-left: 8px;">small-tray-large-tray-50-box: filters.namePattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.descriptionPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.descriptionPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase()))"></i></span> <span style="margin-left: 8px;">: filters.descriptionPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.outputPathPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.outputPathPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase()))"></i></span> <span style="margin-left: 8px;">/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box.stl: filters.outputPathPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.searchQuery === &#39;&#39; || (&#39;large-tray-50  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;large-tray-50&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;)))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.searchQuery === &#39;&#39; || (&#39;large-tray-50  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;large-tray-50&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;)))"></i></span> <span style="margin-left: 8px;">FINAL RESULT: filters.searchQuery === &#39;&#39; || (&#39;large-tray-50  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;large-tray-50&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;))</span></div></div><div class="column is-full" id="instance-small-tray-large-tray-50-box" hx-swap-oob="true" x-show="filters.searchQuery === &#39;&#39; || (&#39;large-tray-50  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;large-tray-50&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;))"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">small-tray-large-tray-50-box</p><p class="subtitle is-6"></p></div></div><div class="content"><p><strong>Output Path:</strong> ../small-tray-large-tray-50-box.stl</p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
 height = 50;
 name = &#34;large-tray-50&#34;;
 partType = &#34;box&#34;;
 tray_height = 250;
 tray_width = 230;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>tray_height:</strong> 250</div><div class="cell is-one-third"><strong>height:</strong> 50</div><div class="cell is-one-third"><strong>partType:</strong> box</div><div class="cell is-one-third"><strong>designFileName:</strong> small-tray</div><div class="cell is-one-third"><strong>name:</strong> large-tray-50</div><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>tray_width:</strong> 230</div></div></div></details></div><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box-front.png" alt="Preview of large-tray-50 from front" class="image-preview"> </div></div></div></div><style>
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>tray_width:</strong> 230</div><div class="cell is-one-third"><strong>tray_height:</strong> 250</div><div class="cell is-one-third"><strong>height:</strong> 50</div><div class="cell is-one-third"><strong>partType:</strong> box</div><div class="cell is-one-third"><strong>designFileName:</strong> small-tray</div><div class="cell is-one-third"><strong>name:</strong> large-tray-50</div></div></div></details></div><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box-front.png" alt="Preview of large-tray-50 from front" class="image-preview"><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box.stl" target="_blank">Open STL</a></p></div></div></div></div><style>
         .json-viewer {
             margin: 10px 0;
             border: 1px solid #ddd;
@@ -944,7 +1173,8 @@ version = &#34;v0.1&#34;;
             &#34;CameraName&#34;: &#34;front&#34;,
             &#34;CameraCoordinates&#34;: &#34;0,0,0,0,0,0,100&#34;,
             &#34;ImageSize&#34;: &#34;&#34;,
-            &#34;ParamFilter&#34;: null
+            &#34;ParamFilter&#34;: null,
+            &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box-front.png&#34;
           }
         ],
         &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box&#34;,
@@ -953,7 +1183,8 @@ version = &#34;v0.1&#34;;
         &#34;SkippedImageReason&#34;: &#34;&#34;
       },
       &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box-front.png&#34;,
-      &#34;Command&#34;: &#34;&#34;,
+      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box-front.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,100 --preview -D genType=\&#34;image\&#34; -D &#39;tray_width=48&#39; -D &#39;tray_height=52&#39; -D &#39;height=30&#39; -D &#39;partType=\&#34;box\&#34;&#39; -D &#39;designFileName=\&#34;small-tray\&#34;&#39; -D &#39;name=\&#34;small-tray\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad&#34;,
+      &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file small-tray.scad, line 94\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 2 elements\nGeometries in cache: 25\nGeometry cache size in bytes: 4120432\nCGAL Polyhedrons in cache: 28\nCGAL cache size in bytes: 57624256\nTotal rendering time: 0:00:19.698\n&#34;,
       &#34;Error&#34;: &#34;&#34;,
       &#34;AppliedParams&#34;: {
         &#34;designFileName&#34;: &#34;small-tray&#34;,
@@ -964,7 +1195,7 @@ version = &#34;v0.1&#34;;
         &#34;tray_width&#34;: 48,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 22202658833,
+      &#34;TimeTaken&#34;: 20935140875,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;front&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,100&#34;
@@ -975,21 +1206,54 @@ version = &#34;v0.1&#34;;
       &#34;CameraName&#34;: &#34;front&#34;,
       &#34;CameraCoordinates&#34;: &#34;0,0,0,0,0,0,100&#34;,
       &#34;ImageSize&#34;: &#34;&#34;,
-      &#34;ParamFilter&#34;: null
+      &#34;ParamFilter&#34;: null,
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box-front.png&#34;
     }
   ],
   &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box&#34;,
   &#34;SkipImages&#34;: false,
   &#34;SkippedReason&#34;: &#34;&#34;,
   &#34;SkippedImageReason&#34;: &#34;&#34;
-}</pre></div></details><div class="column is-full" id="instance-small-tray-small-tray-box" hx-swap-oob="true">[[InstanceCardV2 complete ]]<div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">small-tray-small-tray-box</p><p class="subtitle is-6"></p></div></div><div class="content"><p><strong>Output Path:</strong> </p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
+}</pre></div></details><!-- Debug Filter Status --><div x-show="showDebug" class="debug-filter-status" style="border-radius: 4px; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px;"><div style="font-weight: bold; margin-bottom: 8px;">🔍 Filter Debug for small-tray-small-tray-box</div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(showDebug)"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(showDebug)"></i></span> <span style="margin-left: 8px;">showDebug: showDebug</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.searchQuery === &#39;&#39; || (&#39;%s %s %s&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.searchQuery === &#39;&#39; || (&#39;%s %s %s&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()))"></i></span> <span style="margin-left: 8px;">Search: &#39;small-tray-small-tray-box&#39;: filters.searchQuery === &#39;&#39; || (&#39;%s %s %s&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.namePattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.namePattern.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.namePattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.namePattern.toLowerCase()))"></i></span> <span style="margin-left: 8px;">small-tray-small-tray-box: filters.namePattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.descriptionPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.descriptionPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase()))"></i></span> <span style="margin-left: 8px;">: filters.descriptionPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.outputPathPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.outputPathPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase()))"></i></span> <span style="margin-left: 8px;">/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box.stl: filters.outputPathPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.searchQuery === &#39;&#39; || (&#39;small-tray  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;small-tray&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;)))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.searchQuery === &#39;&#39; || (&#39;small-tray  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;small-tray&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;)))"></i></span> <span style="margin-left: 8px;">FINAL RESULT: filters.searchQuery === &#39;&#39; || (&#39;small-tray  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;small-tray&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;))</span></div></div><div class="column is-full" id="instance-small-tray-small-tray-box" hx-swap-oob="true" x-show="filters.searchQuery === &#39;&#39; || (&#39;small-tray  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;small-tray&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;))"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">small-tray-small-tray-box</p><p class="subtitle is-6"></p></div></div><div class="content"><p><strong>Output Path:</strong> ../small-tray-small-tray-box.stl</p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
 height = 30;
 name = &#34;small-tray&#34;;
 partType = &#34;box&#34;;
 tray_height = 52;
 tray_width = 48;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>tray_height:</strong> 52</div><div class="cell is-one-third"><strong>height:</strong> 30</div><div class="cell is-one-third"><strong>partType:</strong> box</div><div class="cell is-one-third"><strong>designFileName:</strong> small-tray</div><div class="cell is-one-third"><strong>name:</strong> small-tray</div><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>tray_width:</strong> 48</div></div></div></details></div><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box-front.png" alt="Preview of small-tray from front" class="image-preview"> </div></div></div></div></div> <div class="my-2"></div></div></div><div><div x-show="navSelected === &#39;stlResults&#39;"><style>
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>tray_width:</strong> 48</div><div class="cell is-one-third"><strong>tray_height:</strong> 52</div><div class="cell is-one-third"><strong>height:</strong> 30</div><div class="cell is-one-third"><strong>partType:</strong> box</div><div class="cell is-one-third"><strong>designFileName:</strong> small-tray</div><div class="cell is-one-third"><strong>name:</strong> small-tray</div></div></div></details></div><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box-front.png" alt="Preview of small-tray from front" class="image-preview"><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box.stl" target="_blank">Open STL</a></p></div></div></div></div><style>
         .json-viewer {
             margin: 10px 0;
             border: 1px solid #ddd;
@@ -1023,7 +1287,191 @@ version = &#34;v0.1&#34;;
             white-space: pre-wrap;
             word-wrap: break-word;
         }
-    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">STL Results</summary><div class="json-viewer-content"><pre class="json-pretty">[
+    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">Instance small-tray-test-command-output-box</summary><div class="json-viewer-content"><pre class="json-pretty">{
+  &#34;ID&#34;: &#34;small-tray-test-command-output-box&#34;,
+  &#34;Name&#34;: &#34;test-command-output&#34;,
+  &#34;AutoName&#34;: &#34;small-tray-test-command-output-box&#34;,
+  &#34;Description&#34;: &#34;&#34;,
+  &#34;ExportNameFormat&#34;: &#34;&#34;,
+  &#34;InputPath&#34;: {
+    &#34;Path&#34;: &#34;./small-tray.scad&#34;,
+    &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+    &#34;RawOpenSCADFileName&#34;: &#34;small-tray&#34;,
+    &#34;ExportNameFormat&#34;: &#34;&#34;,
+    &#34;ParamSets&#34;: &#34;&#34;,
+    &#34;Params&#34;: null,
+    &#34;SkipImages&#34;: false,
+    &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+  },
+  &#34;Params&#34;: {
+    &#34;designFileName&#34;: &#34;small-tray&#34;,
+    &#34;height&#34;: 20,
+    &#34;name&#34;: &#34;test-command-output&#34;,
+    &#34;partType&#34;: &#34;box&#34;,
+    &#34;tray_height&#34;: 50,
+    &#34;tray_width&#34;: 50,
+    &#34;version&#34;: &#34;v0.1&#34;
+  },
+  &#34;PartIDLetter&#34;: &#34;E&#34;,
+  &#34;UniqueID&#34;: &#34;&#34;,
+  &#34;ConfigError&#34;: &#34;&#34;,
+  &#34;OutputPathV2&#34;: &#34;&#34;,
+  &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box.stl&#34;,
+  &#34;IgnoredParams&#34;: null,
+  &#34;ImageResults&#34;: [
+    {
+      &#34;InstanceConfig&#34;: {
+        &#34;ID&#34;: &#34;small-tray-test-command-output-box&#34;,
+        &#34;Name&#34;: &#34;test-command-output&#34;,
+        &#34;AutoName&#34;: &#34;small-tray-test-command-output-box&#34;,
+        &#34;Description&#34;: &#34;&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;InputPath&#34;: {
+          &#34;Path&#34;: &#34;./small-tray.scad&#34;,
+          &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+          &#34;RawOpenSCADFileName&#34;: &#34;small-tray&#34;,
+          &#34;ExportNameFormat&#34;: &#34;&#34;,
+          &#34;ParamSets&#34;: &#34;&#34;,
+          &#34;Params&#34;: null,
+          &#34;SkipImages&#34;: false,
+          &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+        },
+        &#34;Params&#34;: {
+          &#34;designFileName&#34;: &#34;small-tray&#34;,
+          &#34;height&#34;: 20,
+          &#34;name&#34;: &#34;test-command-output&#34;,
+          &#34;partType&#34;: &#34;box&#34;,
+          &#34;tray_height&#34;: 50,
+          &#34;tray_width&#34;: 50,
+          &#34;version&#34;: &#34;v0.1&#34;
+        },
+        &#34;PartIDLetter&#34;: &#34;E&#34;,
+        &#34;UniqueID&#34;: &#34;&#34;,
+        &#34;ConfigError&#34;: &#34;&#34;,
+        &#34;OutputPathV2&#34;: &#34;&#34;,
+        &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box.stl&#34;,
+        &#34;IgnoredParams&#34;: null,
+        &#34;ImageResults&#34;: [],
+        &#34;ExportImages&#34;: [
+          {
+            &#34;CameraName&#34;: &#34;front&#34;,
+            &#34;CameraCoordinates&#34;: &#34;0,0,0,0,0,0,100&#34;,
+            &#34;ImageSize&#34;: &#34;&#34;,
+            &#34;ParamFilter&#34;: null,
+            &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box-front.png&#34;
+          }
+        ],
+        &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box&#34;,
+        &#34;SkipImages&#34;: false,
+        &#34;SkippedReason&#34;: &#34;&#34;,
+        &#34;SkippedImageReason&#34;: &#34;&#34;
+      },
+      &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box-front.png&#34;,
+      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box-front.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,100 --preview -D genType=\&#34;image\&#34; -D &#39;name=\&#34;test-command-output\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; -D &#39;tray_width=50&#39; -D &#39;tray_height=50&#39; -D &#39;height=20&#39; -D &#39;partType=\&#34;box\&#34;&#39; -D &#39;designFileName=\&#34;small-tray\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad&#34;,
+      &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file small-tray.scad, line 94\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 2 elements\nGeometries in cache: 25\nGeometry cache size in bytes: 4120432\nCGAL Polyhedrons in cache: 28\nCGAL cache size in bytes: 57624256\nTotal rendering time: 0:00:20.006\n&#34;,
+      &#34;Error&#34;: &#34;&#34;,
+      &#34;AppliedParams&#34;: {
+        &#34;designFileName&#34;: &#34;small-tray&#34;,
+        &#34;height&#34;: 20,
+        &#34;name&#34;: &#34;test-command-output&#34;,
+        &#34;partType&#34;: &#34;box&#34;,
+        &#34;tray_height&#34;: 50,
+        &#34;tray_width&#34;: 50,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;TimeTaken&#34;: 21256572667,
+      &#34;Skipped&#34;: false,
+      &#34;CameraName&#34;: &#34;front&#34;,
+      &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,100&#34;
+    }
+  ],
+  &#34;ExportImages&#34;: [
+    {
+      &#34;CameraName&#34;: &#34;front&#34;,
+      &#34;CameraCoordinates&#34;: &#34;0,0,0,0,0,0,100&#34;,
+      &#34;ImageSize&#34;: &#34;&#34;,
+      &#34;ParamFilter&#34;: null,
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box-front.png&#34;
+    }
+  ],
+  &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box&#34;,
+  &#34;SkipImages&#34;: false,
+  &#34;SkippedReason&#34;: &#34;&#34;,
+  &#34;SkippedImageReason&#34;: &#34;&#34;
+}</pre></div></details><!-- Debug Filter Status --><div x-show="showDebug" class="debug-filter-status" style="border-radius: 4px; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px;"><div style="font-weight: bold; margin-bottom: 8px;">🔍 Filter Debug for small-tray-test-command-output-box</div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(showDebug)"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(showDebug)"></i></span> <span style="margin-left: 8px;">showDebug: showDebug</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.searchQuery === &#39;&#39; || (&#39;%s %s %s&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.searchQuery === &#39;&#39; || (&#39;%s %s %s&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()))"></i></span> <span style="margin-left: 8px;">Search: &#39;small-tray-test-command-output-box&#39;: filters.searchQuery === &#39;&#39; || (&#39;%s %s %s&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.namePattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.namePattern.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.namePattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.namePattern.toLowerCase()))"></i></span> <span style="margin-left: 8px;">small-tray-test-command-output-box: filters.namePattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.descriptionPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.descriptionPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase()))"></i></span> <span style="margin-left: 8px;">: filters.descriptionPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.outputPathPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.outputPathPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase()))"></i></span> <span style="margin-left: 8px;">/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box.stl: filters.outputPathPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.searchQuery === &#39;&#39; || (&#39;test-command-output  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;test-command-output&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;)))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.searchQuery === &#39;&#39; || (&#39;test-command-output  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;test-command-output&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;)))"></i></span> <span style="margin-left: 8px;">FINAL RESULT: filters.searchQuery === &#39;&#39; || (&#39;test-command-output  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;test-command-output&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;))</span></div></div><div class="column is-full" id="instance-small-tray-test-command-output-box" hx-swap-oob="true" x-show="filters.searchQuery === &#39;&#39; || (&#39;test-command-output  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;test-command-output&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;))"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">small-tray-test-command-output-box</p><p class="subtitle is-6"></p></div></div><div class="content"><p><strong>Output Path:</strong> ../small-tray-test-command-output-box.stl</p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
+height = 20;
+name = &#34;test-command-output&#34;;
+partType = &#34;box&#34;;
+tray_height = 50;
+tray_width = 50;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>tray_width:</strong> 50</div><div class="cell is-one-third"><strong>tray_height:</strong> 50</div><div class="cell is-one-third"><strong>height:</strong> 20</div><div class="cell is-one-third"><strong>partType:</strong> box</div><div class="cell is-one-third"><strong>designFileName:</strong> small-tray</div><div class="cell is-one-third"><strong>name:</strong> test-command-output</div></div></div></details></div><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box-front.png" alt="Preview of test-command-output from front" class="image-preview"><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box.stl" target="_blank">Open STL</a></p></div></div></div></div></div> <div class="my-2"></div></div></div><div><div x-show="navSelected === &#39;stlResults&#39;"><h3>STLs (5)</h3></div><div x-show="navSelected === &#39;stlResults&#39;"><style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">STLs</summary><div class="json-viewer-content"><pre class="json-pretty">[
   {
     &#34;InstanceConfig&#34;: {
       &#34;ID&#34;: &#34;small-tray-small-tray-box&#34;,
@@ -1062,7 +1510,8 @@ version = &#34;v0.1&#34;;
           &#34;CameraName&#34;: &#34;front&#34;,
           &#34;CameraCoordinates&#34;: &#34;0,0,0,0,0,0,100&#34;,
           &#34;ImageSize&#34;: &#34;&#34;,
-          &#34;ParamFilter&#34;: null
+          &#34;ParamFilter&#34;: null,
+          &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box-front.png&#34;
         }
       ],
       &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box&#34;,
@@ -1071,7 +1520,8 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box.stl&#39; --render --backend=manifold -D &#39;designFileName=\&#34;small-tray\&#34;&#39; -D &#39;name=\&#34;small-tray\&#34;&#39; -D &#39;tray_height=52&#39; -D &#39;height=30&#39; -D &#39;tray_width=48&#39; -D &#39;partType=\&#34;box\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box.stl&#39; --render --backend=manifold -D &#39;partType=\&#34;box\&#34;&#39; -D &#39;designFileName=\&#34;small-tray\&#34;&#39; -D &#39;name=\&#34;small-tray\&#34;&#39; -D &#39;tray_width=48&#39; -D &#39;tray_height=52&#39; -D &#39;height=30&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;Geometries in cache: 28\nGeometry cache size in bytes: 5720752\nCGAL Polyhedrons in cache: 29\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.589\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    11045\n   Facets:      22086\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;small-tray&#34;,
@@ -1082,7 +1532,7 @@ version = &#34;v0.1&#34;;
       &#34;tray_width&#34;: 48,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 1742358000,
+    &#34;TimeTaken&#34;: 2140654667,
     &#34;Skipped&#34;: false,
     &#34;LowQuality&#34;: false,
     &#34;SkippedReason&#34;: &#34;&#34;,
@@ -1126,7 +1576,8 @@ version = &#34;v0.1&#34;;
           &#34;CameraName&#34;: &#34;front&#34;,
           &#34;CameraCoordinates&#34;: &#34;0,0,0,0,0,0,100&#34;,
           &#34;ImageSize&#34;: &#34;&#34;,
-          &#34;ParamFilter&#34;: null
+          &#34;ParamFilter&#34;: null,
+          &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box-front.png&#34;
         }
       ],
       &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box&#34;,
@@ -1135,7 +1586,8 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box.stl&#39; --render --backend=manifold -D &#39;name=\&#34;large-tray-35\&#34;&#39; -D &#39;tray_width=230&#39; -D &#39;tray_height=250&#39; -D &#39;height=35&#39; -D &#39;partType=\&#34;box\&#34;&#39; -D &#39;designFileName=\&#34;small-tray\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box.stl&#39; --render --backend=manifold -D &#39;tray_width=230&#39; -D &#39;tray_height=250&#39; -D &#39;partType=\&#34;box\&#34;&#39; -D &#39;designFileName=\&#34;small-tray\&#34;&#39; -D &#39;name=\&#34;large-tray-35\&#34;&#39; -D &#39;height=35&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;Geometries in cache: 28\nGeometry cache size in bytes: 5711920\nCGAL Polyhedrons in cache: 29\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.549\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    11026\n   Facets:      22048\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;small-tray&#34;,
@@ -1146,7 +1598,7 @@ version = &#34;v0.1&#34;;
       &#34;tray_width&#34;: 230,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2102833500,
+    &#34;TimeTaken&#34;: 1797776000,
     &#34;Skipped&#34;: false,
     &#34;LowQuality&#34;: false,
     &#34;SkippedReason&#34;: &#34;&#34;,
@@ -1190,7 +1642,8 @@ version = &#34;v0.1&#34;;
           &#34;CameraName&#34;: &#34;front&#34;,
           &#34;CameraCoordinates&#34;: &#34;0,0,0,0,0,0,100&#34;,
           &#34;ImageSize&#34;: &#34;&#34;,
-          &#34;ParamFilter&#34;: null
+          &#34;ParamFilter&#34;: null,
+          &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box-front.png&#34;
         }
       ],
       &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box&#34;,
@@ -1199,7 +1652,8 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box.stl&#39; --render --backend=manifold -D &#39;partType=\&#34;box\&#34;&#39; -D &#39;designFileName=\&#34;small-tray\&#34;&#39; -D &#39;name=\&#34;large-tray-50\&#34;&#39; -D &#39;tray_width=230&#39; -D &#39;tray_height=250&#39; -D &#39;height=50&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box.stl&#39; --render --backend=manifold -D &#39;tray_height=250&#39; -D &#39;height=50&#39; -D &#39;tray_width=230&#39; -D &#39;partType=\&#34;box\&#34;&#39; -D &#39;designFileName=\&#34;small-tray\&#34;&#39; -D &#39;name=\&#34;large-tray-50\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;Geometries in cache: 28\nGeometry cache size in bytes: 5711920\nCGAL Polyhedrons in cache: 29\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.564\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    11026\n   Facets:      22048\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;small-tray&#34;,
@@ -1210,7 +1664,7 @@ version = &#34;v0.1&#34;;
       &#34;tray_width&#34;: 230,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2009882500,
+    &#34;TimeTaken&#34;: 1754928833,
     &#34;Skipped&#34;: false,
     &#34;LowQuality&#34;: false,
     &#34;SkippedReason&#34;: &#34;&#34;,
@@ -1254,7 +1708,8 @@ version = &#34;v0.1&#34;;
           &#34;CameraName&#34;: &#34;front&#34;,
           &#34;CameraCoordinates&#34;: &#34;0,0,0,0,0,0,100&#34;,
           &#34;ImageSize&#34;: &#34;&#34;,
-          &#34;ParamFilter&#34;: null
+          &#34;ParamFilter&#34;: null,
+          &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box-front.png&#34;
         }
       ],
       &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box&#34;,
@@ -1263,7 +1718,8 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box.stl&#39; --render --backend=manifold -D &#39;tray_width=230&#39; -D &#39;tray_height=250&#39; -D &#39;height=100&#39; -D &#39;partType=\&#34;box\&#34;&#39; -D &#39;designFileName=\&#34;small-tray\&#34;&#39; -D &#39;name=\&#34;large-tray-100\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box.stl&#39; --render --backend=manifold -D &#39;name=\&#34;large-tray-100\&#34;&#39; -D &#39;tray_width=230&#39; -D &#39;tray_height=250&#39; -D &#39;height=100&#39; -D &#39;partType=\&#34;box\&#34;&#39; -D &#39;designFileName=\&#34;small-tray\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;Geometries in cache: 28\nGeometry cache size in bytes: 5711920\nCGAL Polyhedrons in cache: 29\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.541\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    11026\n   Facets:      22048\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;small-tray&#34;,
@@ -1274,41 +1730,164 @@ version = &#34;v0.1&#34;;
       &#34;tray_width&#34;: 230,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 1880866125,
+    &#34;TimeTaken&#34;: 1761156625,
+    &#34;Skipped&#34;: false,
+    &#34;LowQuality&#34;: false,
+    &#34;SkippedReason&#34;: &#34;&#34;,
+    &#34;GenerateImageResult&#34;: null
+  },
+  {
+    &#34;InstanceConfig&#34;: {
+      &#34;ID&#34;: &#34;small-tray-test-command-output-box&#34;,
+      &#34;Name&#34;: &#34;test-command-output&#34;,
+      &#34;AutoName&#34;: &#34;small-tray-test-command-output-box&#34;,
+      &#34;Description&#34;: &#34;&#34;,
+      &#34;ExportNameFormat&#34;: &#34;&#34;,
+      &#34;InputPath&#34;: {
+        &#34;Path&#34;: &#34;./small-tray.scad&#34;,
+        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+        &#34;RawOpenSCADFileName&#34;: &#34;small-tray&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;ParamSets&#34;: &#34;&#34;,
+        &#34;Params&#34;: null,
+        &#34;SkipImages&#34;: false,
+        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+      },
+      &#34;Params&#34;: {
+        &#34;designFileName&#34;: &#34;small-tray&#34;,
+        &#34;height&#34;: 20,
+        &#34;name&#34;: &#34;test-command-output&#34;,
+        &#34;partType&#34;: &#34;box&#34;,
+        &#34;tray_height&#34;: 50,
+        &#34;tray_width&#34;: 50,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;PartIDLetter&#34;: &#34;E&#34;,
+      &#34;UniqueID&#34;: &#34;&#34;,
+      &#34;ConfigError&#34;: &#34;&#34;,
+      &#34;OutputPathV2&#34;: &#34;&#34;,
+      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box.stl&#34;,
+      &#34;IgnoredParams&#34;: null,
+      &#34;ImageResults&#34;: [],
+      &#34;ExportImages&#34;: [
+        {
+          &#34;CameraName&#34;: &#34;front&#34;,
+          &#34;CameraCoordinates&#34;: &#34;0,0,0,0,0,0,100&#34;,
+          &#34;ImageSize&#34;: &#34;&#34;,
+          &#34;ParamFilter&#34;: null,
+          &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box-front.png&#34;
+        }
+      ],
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box&#34;,
+      &#34;SkipImages&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;SkippedImageReason&#34;: &#34;&#34;
+    },
+    &#34;OutputPath&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box.stl&#39; --render --backend=manifold -D &#39;tray_width=50&#39; -D &#39;tray_height=50&#39; -D &#39;height=20&#39; -D &#39;partType=\&#34;box\&#34;&#39; -D &#39;designFileName=\&#34;small-tray\&#34;&#39; -D &#39;name=\&#34;test-command-output\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;Geometries in cache: 28\nGeometry cache size in bytes: 5720560\nCGAL Polyhedrons in cache: 29\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.576\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    11044\n   Facets:      22084\n&#34;,
+    &#34;Error&#34;: &#34;&#34;,
+    &#34;AppliedParams&#34;: {
+      &#34;designFileName&#34;: &#34;small-tray&#34;,
+      &#34;height&#34;: 20,
+      &#34;name&#34;: &#34;test-command-output&#34;,
+      &#34;partType&#34;: &#34;box&#34;,
+      &#34;tray_height&#34;: 50,
+      &#34;tray_width&#34;: 50,
+      &#34;version&#34;: &#34;v0.1&#34;
+    },
+    &#34;TimeTaken&#34;: 1799830417,
     &#34;Skipped&#34;: false,
     &#34;LowQuality&#34;: false,
     &#34;SkippedReason&#34;: &#34;&#34;,
     &#34;GenerateImageResult&#34;: null
   }
-]</pre></div></details> <div class="columns is-multiline"><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">small-tray-large-tray-100-box</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 1.880866125s</p><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box.stl" target="_blank">Open STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
+]</pre></div></details> <div class="columns is-multiline"><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">small-tray-large-tray-100-box</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 1.761156625s</p><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box.stl" target="_blank">Open STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
 height = 100;
 name = &#34;large-tray-100&#34;;
 partType = &#34;box&#34;;
 tray_height = 250;
 tray_width = 230;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box.stl&#39; --render --backend=manifold -D &#39;tray_width=230&#39; -D &#39;tray_height=250&#39; -D &#39;height=100&#39; -D &#39;partType=&#34;box&#34;&#39; -D &#39;designFileName=&#34;small-tray&#34;&#39; -D &#39;name=&#34;large-tray-100&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad</pre></code></div></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">small-tray-large-tray-35-box</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 2.1028335s</p><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box.stl" target="_blank">Open STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary> <details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box.stl&#39; --render --backend=manifold -D &#39;name=&#34;large-tray-100&#34;&#39; -D &#39;tray_width=230&#39; -D &#39;tray_height=250&#39; -D &#39;height=100&#39; -D &#39;partType=&#34;box&#34;&#39; -D &#39;designFileName=&#34;small-tray&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>Geometries in cache: 28
+Geometry cache size in bytes: 5711920
+CGAL Polyhedrons in cache: 29
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.541
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      0
+   Vertices:    11026
+   Facets:      22048
+</pre></code></div></details></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">small-tray-large-tray-35-box</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 1.797776s</p><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box.stl" target="_blank">Open STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
 height = 35;
 name = &#34;large-tray-35&#34;;
 partType = &#34;box&#34;;
 tray_height = 250;
 tray_width = 230;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box.stl&#39; --render --backend=manifold -D &#39;name=&#34;large-tray-35&#34;&#39; -D &#39;tray_width=230&#39; -D &#39;tray_height=250&#39; -D &#39;height=35&#39; -D &#39;partType=&#34;box&#34;&#39; -D &#39;designFileName=&#34;small-tray&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad</pre></code></div></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">small-tray-large-tray-50-box</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 2.0098825s</p><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box.stl" target="_blank">Open STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary> <details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box.stl&#39; --render --backend=manifold -D &#39;tray_width=230&#39; -D &#39;tray_height=250&#39; -D &#39;partType=&#34;box&#34;&#39; -D &#39;designFileName=&#34;small-tray&#34;&#39; -D &#39;name=&#34;large-tray-35&#34;&#39; -D &#39;height=35&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>Geometries in cache: 28
+Geometry cache size in bytes: 5711920
+CGAL Polyhedrons in cache: 29
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.549
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      0
+   Vertices:    11026
+   Facets:      22048
+</pre></code></div></details></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">small-tray-large-tray-50-box</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 1.754928833s</p><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box.stl" target="_blank">Open STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
 height = 50;
 name = &#34;large-tray-50&#34;;
 partType = &#34;box&#34;;
 tray_height = 250;
 tray_width = 230;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box.stl&#39; --render --backend=manifold -D &#39;partType=&#34;box&#34;&#39; -D &#39;designFileName=&#34;small-tray&#34;&#39; -D &#39;name=&#34;large-tray-50&#34;&#39; -D &#39;tray_width=230&#39; -D &#39;tray_height=250&#39; -D &#39;height=50&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad</pre></code></div></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">small-tray-small-tray-box</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 1.742358s</p><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box.stl" target="_blank">Open STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary> <details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box.stl&#39; --render --backend=manifold -D &#39;tray_height=250&#39; -D &#39;height=50&#39; -D &#39;tray_width=230&#39; -D &#39;partType=&#34;box&#34;&#39; -D &#39;designFileName=&#34;small-tray&#34;&#39; -D &#39;name=&#34;large-tray-50&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>Geometries in cache: 28
+Geometry cache size in bytes: 5711920
+CGAL Polyhedrons in cache: 29
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.564
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      0
+   Vertices:    11026
+   Facets:      22048
+</pre></code></div></details></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">small-tray-small-tray-box</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 2.140654667s</p><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box.stl" target="_blank">Open STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
 height = 30;
 name = &#34;small-tray&#34;;
 partType = &#34;box&#34;;
 tray_height = 52;
 tray_width = 48;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box.stl&#39; --render --backend=manifold -D &#39;designFileName=&#34;small-tray&#34;&#39; -D &#39;name=&#34;small-tray&#34;&#39; -D &#39;tray_height=52&#39; -D &#39;height=30&#39; -D &#39;tray_width=48&#39; -D &#39;partType=&#34;box&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad</pre></code></div></details></div></div></div></div></div></div></div></div><div><div x-show="navSelected === &#39;imageResults&#39;"><div>Generated 4 images</div><style>
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary> <details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box.stl&#39; --render --backend=manifold -D &#39;partType=&#34;box&#34;&#39; -D &#39;designFileName=&#34;small-tray&#34;&#39; -D &#39;name=&#34;small-tray&#34;&#39; -D &#39;tray_width=48&#39; -D &#39;tray_height=52&#39; -D &#39;height=30&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>Geometries in cache: 28
+Geometry cache size in bytes: 5720752
+CGAL Polyhedrons in cache: 29
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.589
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      0
+   Vertices:    11045
+   Facets:      22086
+</pre></code></div></details></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">small-tray-test-command-output-box</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 1.799830417s</p><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box.stl" target="_blank">Open STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
+height = 20;
+name = &#34;test-command-output&#34;;
+partType = &#34;box&#34;;
+tray_height = 50;
+tray_width = 50;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary> <details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box.stl&#39; --render --backend=manifold -D &#39;tray_width=50&#39; -D &#39;tray_height=50&#39; -D &#39;height=20&#39; -D &#39;partType=&#34;box&#34;&#39; -D &#39;designFileName=&#34;small-tray&#34;&#39; -D &#39;name=&#34;test-command-output&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>Geometries in cache: 28
+Geometry cache size in bytes: 5720560
+CGAL Polyhedrons in cache: 29
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.576
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      0
+   Vertices:    11044
+   Facets:      22084
+</pre></code></div></details></details></div></div></div></div></div></div></div></div><div><div x-show="navSelected === &#39;images&#39;"><h3>Image Results (5)</h3></div><div x-show="navSelected === &#39;images&#39;"><style>
         .json-viewer {
             margin: 10px 0;
             border: 1px solid #ddd;
@@ -1381,7 +1960,8 @@ version = &#34;v0.1&#34;;
           &#34;CameraName&#34;: &#34;front&#34;,
           &#34;CameraCoordinates&#34;: &#34;0,0,0,0,0,0,100&#34;,
           &#34;ImageSize&#34;: &#34;&#34;,
-          &#34;ParamFilter&#34;: null
+          &#34;ParamFilter&#34;: null,
+          &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box-front.png&#34;
         }
       ],
       &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box&#34;,
@@ -1390,7 +1970,8 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box-front.png&#34;,
-    &#34;Command&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box-front.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,100 --preview -D genType=\&#34;image\&#34; -D &#39;tray_width=48&#39; -D &#39;tray_height=52&#39; -D &#39;height=30&#39; -D &#39;partType=\&#34;box\&#34;&#39; -D &#39;designFileName=\&#34;small-tray\&#34;&#39; -D &#39;name=\&#34;small-tray\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file small-tray.scad, line 94\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 2 elements\nGeometries in cache: 25\nGeometry cache size in bytes: 4120432\nCGAL Polyhedrons in cache: 28\nCGAL cache size in bytes: 57624256\nTotal rendering time: 0:00:19.698\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;small-tray&#34;,
@@ -1401,7 +1982,7 @@ version = &#34;v0.1&#34;;
       &#34;tray_width&#34;: 48,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 22202658833,
+    &#34;TimeTaken&#34;: 20935140875,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;front&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,100&#34;
@@ -1444,7 +2025,8 @@ version = &#34;v0.1&#34;;
           &#34;CameraName&#34;: &#34;front&#34;,
           &#34;CameraCoordinates&#34;: &#34;0,0,0,0,0,0,100&#34;,
           &#34;ImageSize&#34;: &#34;&#34;,
-          &#34;ParamFilter&#34;: null
+          &#34;ParamFilter&#34;: null,
+          &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box-front.png&#34;
         }
       ],
       &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box&#34;,
@@ -1453,7 +2035,8 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box-front.png&#34;,
-    &#34;Command&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box-front.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,100 --preview -D genType=\&#34;image\&#34; -D &#39;height=35&#39; -D &#39;tray_width=230&#39; -D &#39;tray_height=250&#39; -D &#39;partType=\&#34;box\&#34;&#39; -D &#39;designFileName=\&#34;small-tray\&#34;&#39; -D &#39;name=\&#34;large-tray-35\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file small-tray.scad, line 94\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 2 elements\nGeometries in cache: 25\nGeometry cache size in bytes: 4120432\nCGAL Polyhedrons in cache: 28\nCGAL cache size in bytes: 57624256\nTotal rendering time: 0:00:18.264\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;small-tray&#34;,
@@ -1464,7 +2047,7 @@ version = &#34;v0.1&#34;;
       &#34;tray_width&#34;: 230,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 22097673458,
+    &#34;TimeTaken&#34;: 19456764542,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;front&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,100&#34;
@@ -1507,7 +2090,8 @@ version = &#34;v0.1&#34;;
           &#34;CameraName&#34;: &#34;front&#34;,
           &#34;CameraCoordinates&#34;: &#34;0,0,0,0,0,0,100&#34;,
           &#34;ImageSize&#34;: &#34;&#34;,
-          &#34;ParamFilter&#34;: null
+          &#34;ParamFilter&#34;: null,
+          &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box-front.png&#34;
         }
       ],
       &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box&#34;,
@@ -1516,7 +2100,8 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box-front.png&#34;,
-    &#34;Command&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box-front.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,100 --preview -D genType=\&#34;image\&#34; -D &#39;name=\&#34;large-tray-50\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; -D &#39;tray_height=250&#39; -D &#39;height=50&#39; -D &#39;tray_width=230&#39; -D &#39;partType=\&#34;box\&#34;&#39; -D &#39;designFileName=\&#34;small-tray\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file small-tray.scad, line 94\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 2 elements\nGeometries in cache: 25\nGeometry cache size in bytes: 4120432\nCGAL Polyhedrons in cache: 28\nCGAL cache size in bytes: 57624256\nTotal rendering time: 0:00:17.807\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;small-tray&#34;,
@@ -1527,7 +2112,7 @@ version = &#34;v0.1&#34;;
       &#34;tray_width&#34;: 230,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 23053428166,
+    &#34;TimeTaken&#34;: 19011697542,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;front&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,100&#34;
@@ -1570,7 +2155,8 @@ version = &#34;v0.1&#34;;
           &#34;CameraName&#34;: &#34;front&#34;,
           &#34;CameraCoordinates&#34;: &#34;0,0,0,0,0,0,100&#34;,
           &#34;ImageSize&#34;: &#34;&#34;,
-          &#34;ParamFilter&#34;: null
+          &#34;ParamFilter&#34;: null,
+          &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box-front.png&#34;
         }
       ],
       &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box&#34;,
@@ -1579,7 +2165,8 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box-front.png&#34;,
-    &#34;Command&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box-front.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,100 --preview -D genType=\&#34;image\&#34; -D &#39;tray_width=230&#39; -D &#39;tray_height=250&#39; -D &#39;height=100&#39; -D &#39;partType=\&#34;box\&#34;&#39; -D &#39;designFileName=\&#34;small-tray\&#34;&#39; -D &#39;name=\&#34;large-tray-100\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file small-tray.scad, line 94\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 2 elements\nGeometries in cache: 25\nGeometry cache size in bytes: 4120432\nCGAL Polyhedrons in cache: 28\nCGAL cache size in bytes: 57624256\nTotal rendering time: 0:00:18.838\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;small-tray&#34;,
@@ -1590,40 +2177,177 @@ version = &#34;v0.1&#34;;
       &#34;tray_width&#34;: 230,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 21711365209,
+    &#34;TimeTaken&#34;: 20058218292,
+    &#34;Skipped&#34;: false,
+    &#34;CameraName&#34;: &#34;front&#34;,
+    &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,100&#34;
+  },
+  {
+    &#34;InstanceConfig&#34;: {
+      &#34;ID&#34;: &#34;small-tray-test-command-output-box&#34;,
+      &#34;Name&#34;: &#34;test-command-output&#34;,
+      &#34;AutoName&#34;: &#34;small-tray-test-command-output-box&#34;,
+      &#34;Description&#34;: &#34;&#34;,
+      &#34;ExportNameFormat&#34;: &#34;&#34;,
+      &#34;InputPath&#34;: {
+        &#34;Path&#34;: &#34;./small-tray.scad&#34;,
+        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+        &#34;RawOpenSCADFileName&#34;: &#34;small-tray&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;ParamSets&#34;: &#34;&#34;,
+        &#34;Params&#34;: null,
+        &#34;SkipImages&#34;: false,
+        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+      },
+      &#34;Params&#34;: {
+        &#34;designFileName&#34;: &#34;small-tray&#34;,
+        &#34;height&#34;: 20,
+        &#34;name&#34;: &#34;test-command-output&#34;,
+        &#34;partType&#34;: &#34;box&#34;,
+        &#34;tray_height&#34;: 50,
+        &#34;tray_width&#34;: 50,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;PartIDLetter&#34;: &#34;E&#34;,
+      &#34;UniqueID&#34;: &#34;&#34;,
+      &#34;ConfigError&#34;: &#34;&#34;,
+      &#34;OutputPathV2&#34;: &#34;&#34;,
+      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box.stl&#34;,
+      &#34;IgnoredParams&#34;: null,
+      &#34;ImageResults&#34;: [],
+      &#34;ExportImages&#34;: [
+        {
+          &#34;CameraName&#34;: &#34;front&#34;,
+          &#34;CameraCoordinates&#34;: &#34;0,0,0,0,0,0,100&#34;,
+          &#34;ImageSize&#34;: &#34;&#34;,
+          &#34;ParamFilter&#34;: null,
+          &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box-front.png&#34;
+        }
+      ],
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box&#34;,
+      &#34;SkipImages&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;SkippedImageReason&#34;: &#34;&#34;
+    },
+    &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box-front.png&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box-front.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,100 --preview -D genType=\&#34;image\&#34; -D &#39;name=\&#34;test-command-output\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; -D &#39;tray_width=50&#39; -D &#39;tray_height=50&#39; -D &#39;height=20&#39; -D &#39;partType=\&#34;box\&#34;&#39; -D &#39;designFileName=\&#34;small-tray\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file small-tray.scad, line 94\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 2 elements\nGeometries in cache: 25\nGeometry cache size in bytes: 4120432\nCGAL Polyhedrons in cache: 28\nCGAL cache size in bytes: 57624256\nTotal rendering time: 0:00:20.006\n&#34;,
+    &#34;Error&#34;: &#34;&#34;,
+    &#34;AppliedParams&#34;: {
+      &#34;designFileName&#34;: &#34;small-tray&#34;,
+      &#34;height&#34;: 20,
+      &#34;name&#34;: &#34;test-command-output&#34;,
+      &#34;partType&#34;: &#34;box&#34;,
+      &#34;tray_height&#34;: 50,
+      &#34;tray_width&#34;: 50,
+      &#34;version&#34;: &#34;v0.1&#34;
+    },
+    &#34;TimeTaken&#34;: 21256572667,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;front&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,0,0,0,100&#34;
   }
-]</pre></div></details> <div class="columns is-multiline"><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">small-tray</p><p class="subtitle is-6">Camera: front</p></div></div><div class="content"><p><strong>Output Path:</strong> ../small-tray-small-tray-box-front.png</p><p><strong>Time Taken:</strong> 22.20s</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,100</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
+]</pre></div></details> <div class="columns is-multiline"><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">small-tray</p><p class="subtitle is-6">Camera: front</p></div></div><div class="content"><p><strong>Output Path:</strong> ../small-tray-small-tray-box-front.png</p><p><strong>Time Taken:</strong> 20.94s</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,100</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
 height = 30;
 name = &#34;small-tray&#34;;
 partType = &#34;box&#34;;
 tray_height = 52;
 tray_width = 48;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box-front.png" alt="Preview of small-tray from front" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box-front.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></details></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">large-tray-35</p><p class="subtitle is-6">Camera: front</p></div></div><div class="content"><p><strong>Output Path:</strong> ../small-tray-large-tray-35-box-front.png</p><p><strong>Time Taken:</strong> 22.10s</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,100</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box-front.png" alt="Preview of small-tray from front" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box-front.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-small-tray-box-front.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,100 --preview -D genType=&#34;image&#34; -D &#39;tray_width=48&#39; -D &#39;tray_height=52&#39; -D &#39;height=30&#39; -D &#39;partType=&#34;box&#34;&#39; -D &#39;designFileName=&#34;small-tray&#34;&#39; -D &#39;name=&#34;small-tray&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>WARNING: Ignoring unknown variable &#34;image&#34; in file small-tray.scad, line 94
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+Compiling design (CSG Products normalization)...
+Normalized CSG tree has 2 elements
+Geometries in cache: 25
+Geometry cache size in bytes: 4120432
+CGAL Polyhedrons in cache: 28
+CGAL cache size in bytes: 57624256
+Total rendering time: 0:00:19.698
+</pre></code></div></details></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">large-tray-35</p><p class="subtitle is-6">Camera: front</p></div></div><div class="content"><p><strong>Output Path:</strong> ../small-tray-large-tray-35-box-front.png</p><p><strong>Time Taken:</strong> 19.46s</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,100</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
 height = 35;
 name = &#34;large-tray-35&#34;;
 partType = &#34;box&#34;;
 tray_height = 250;
 tray_width = 230;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box-front.png" alt="Preview of large-tray-35 from front" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box-front.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></details></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">large-tray-50</p><p class="subtitle is-6">Camera: front</p></div></div><div class="content"><p><strong>Output Path:</strong> ../small-tray-large-tray-50-box-front.png</p><p><strong>Time Taken:</strong> 23.05s</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,100</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box-front.png" alt="Preview of large-tray-35 from front" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box-front.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-35-box-front.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,100 --preview -D genType=&#34;image&#34; -D &#39;height=35&#39; -D &#39;tray_width=230&#39; -D &#39;tray_height=250&#39; -D &#39;partType=&#34;box&#34;&#39; -D &#39;designFileName=&#34;small-tray&#34;&#39; -D &#39;name=&#34;large-tray-35&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>WARNING: Ignoring unknown variable &#34;image&#34; in file small-tray.scad, line 94
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+Compiling design (CSG Products normalization)...
+Normalized CSG tree has 2 elements
+Geometries in cache: 25
+Geometry cache size in bytes: 4120432
+CGAL Polyhedrons in cache: 28
+CGAL cache size in bytes: 57624256
+Total rendering time: 0:00:18.264
+</pre></code></div></details></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">large-tray-50</p><p class="subtitle is-6">Camera: front</p></div></div><div class="content"><p><strong>Output Path:</strong> ../small-tray-large-tray-50-box-front.png</p><p><strong>Time Taken:</strong> 19.01s</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,100</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
 height = 50;
 name = &#34;large-tray-50&#34;;
 partType = &#34;box&#34;;
 tray_height = 250;
 tray_width = 230;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box-front.png" alt="Preview of large-tray-50 from front" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box-front.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></details></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">large-tray-100</p><p class="subtitle is-6">Camera: front</p></div></div><div class="content"><p><strong>Output Path:</strong> ../small-tray-large-tray-100-box-front.png</p><p><strong>Time Taken:</strong> 21.71s</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,100</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box-front.png" alt="Preview of large-tray-50 from front" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box-front.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-50-box-front.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,100 --preview -D genType=&#34;image&#34; -D &#39;name=&#34;large-tray-50&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;tray_height=250&#39; -D &#39;height=50&#39; -D &#39;tray_width=230&#39; -D &#39;partType=&#34;box&#34;&#39; -D &#39;designFileName=&#34;small-tray&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>WARNING: Ignoring unknown variable &#34;image&#34; in file small-tray.scad, line 94
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+Compiling design (CSG Products normalization)...
+Normalized CSG tree has 2 elements
+Geometries in cache: 25
+Geometry cache size in bytes: 4120432
+CGAL Polyhedrons in cache: 28
+CGAL cache size in bytes: 57624256
+Total rendering time: 0:00:17.807
+</pre></code></div></details></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">large-tray-100</p><p class="subtitle is-6">Camera: front</p></div></div><div class="content"><p><strong>Output Path:</strong> ../small-tray-large-tray-100-box-front.png</p><p><strong>Time Taken:</strong> 20.06s</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,100</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
 height = 100;
 name = &#34;large-tray-100&#34;;
 partType = &#34;box&#34;;
 tray_height = 250;
 tray_width = 230;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box-front.png" alt="Preview of large-tray-100 from front" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box-front.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></details></div></div></div></div></div></div></div><div></div></div><script>
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box-front.png" alt="Preview of large-tray-100 from front" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box-front.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-large-tray-100-box-front.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,100 --preview -D genType=&#34;image&#34; -D &#39;tray_width=230&#39; -D &#39;tray_height=250&#39; -D &#39;height=100&#39; -D &#39;partType=&#34;box&#34;&#39; -D &#39;designFileName=&#34;small-tray&#34;&#39; -D &#39;name=&#34;large-tray-100&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>WARNING: Ignoring unknown variable &#34;image&#34; in file small-tray.scad, line 94
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+Compiling design (CSG Products normalization)...
+Normalized CSG tree has 2 elements
+Geometries in cache: 25
+Geometry cache size in bytes: 4120432
+CGAL Polyhedrons in cache: 28
+CGAL cache size in bytes: 57624256
+Total rendering time: 0:00:18.838
+</pre></code></div></details></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">test-command-output</p><p class="subtitle is-6">Camera: front</p></div></div><div class="content"><p><strong>Output Path:</strong> ../small-tray-test-command-output-box-front.png</p><p><strong>Time Taken:</strong> 21.26s</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,0,0,0,100</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;small-tray&#34;;
+height = 20;
+name = &#34;test-command-output&#34;;
+partType = &#34;box&#34;;
+tray_height = 50;
+tray_width = 50;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box-front.png" alt="Preview of test-command-output from front" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box-front.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/small-tray-test-command-output-box-front.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,0,0,0,100 --preview -D genType=&#34;image&#34; -D &#39;name=&#34;test-command-output&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;tray_width=50&#39; -D &#39;tray_height=50&#39; -D &#39;height=20&#39; -D &#39;partType=&#34;box&#34;&#39; -D &#39;designFileName=&#34;small-tray&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/small-tray.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>WARNING: Ignoring unknown variable &#34;image&#34; in file small-tray.scad, line 94
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+Compiling design (CSG Products normalization)...
+Normalized CSG tree has 2 elements
+Geometries in cache: 25
+Geometry cache size in bytes: 4120432
+CGAL Polyhedrons in cache: 28
+CGAL cache size in bytes: 57624256
+Total rendering time: 0:00:20.006
+</pre></code></div></details></div></div></div></div></div></div></div><div></div></div><script>
             // Enable htmx debug mode
             window.htmx && (htmx.config.debug = true);
 
@@ -1646,4 +2370,4 @@ version = &#34;v0.1&#34;;
             document.body.addEventListener('htmx:afterOnLoad', function(evt) {
                 console.log('htmx:afterOnLoad', evt);
             });
-        </script><div><h1>Config Summary</h1><p>Output Path: /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/report.html</p><p>Total Time: 96.80s</p><h2>Global Parameters</h2><p><strong>partType:</strong> box</p><h2>Output Paths</h2><p><strong>OutputPath:</strong> /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/report.html</p><p class="is-size-6 is-italic is-text-grey is-centered">Generated by openscadgen OpenSCAD version 2025.07.21 v2.7.25 at 2025-10-04 17:17:18</p><p class="is-size-6 is-italic is-text-grey is-centered">Total processing time: 96.80s</p></div></div></body></html>
+        </script><div><h1>Config Summary</h1><p>Output Path: /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/report.html</p><p>Total Time: 109.97s</p><h2>Global Parameters</h2><p><strong>partType:</strong> box</p><h2>Output Paths</h2><p><strong>OutputPath:</strong> /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/small-tray/export/v0.1/report.html</p><p class="is-size-6 is-italic is-text-grey is-centered">Generated by openscadgen OpenSCAD version 2025.07.21 v2.7.27 at 2025-10-11 11:37:01</p><p class="is-size-6 is-italic is-text-grey is-centered">Total processing time: 109.97s</p></div></div></body></html>

@@ -6,16 +6,18 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
 )
 
 type ExportCameraCoordinates struct {
-	CameraName        string                 `toml:"name"`
-	CameraCoordinates string                 `toml:"coord"`
-	ImageSize         string                 `toml:"image_size"`
-	ParamFilter       map[string]interface{} `toml:"param_filter"`
+	CameraName         string                 `toml:"name"`
+	CameraCoordinates  string                 `toml:"coord"`
+	ImageSize          string                 `toml:"image_size"`
+	ParamFilter        map[string]interface{} `toml:"param_filter"`
+	RunOutputImagePath string
 }
 
 type ExportTextSizing struct {
@@ -76,11 +78,12 @@ type CmdFlags struct {
 	Version                      bool   `json:"version"`
 	RegexPattern                 string `json:"regex_pattern"`
 	MaxInstances                 int    `json:"max_instances"`
-	ContinueOnError              bool   `json:"continue_on_error"`
+	StopOnError                  bool   `json:"stop_on_error"`
 	IncludeExportLog             bool   `json:"include_export_log"`
 	OverwriteExisting            bool   `json:"overwrite_existing"`
 	ShowMan                      bool   `json:"show_man"`
 	Server                       bool   `json:"server"`
+	ServerModeConfigFile         string ``
 	ServerFolder                 string `json:"server_folder"`
 	ServerPort                   int    `json:"server_port"`
 	ProcessFolder                string `json:"process_folder"`
@@ -124,7 +127,7 @@ type Config struct {
 	Version                      bool   ///`flag:"v"`
 	RegexPattern                 string //`flag:"f"`
 	MaxInstances                 int    //`flag:"n"`
-	ContinueOnError              bool   //`flag:"coe"`
+	StopOnError                  bool   //`flag:"soe"`
 	IncludeExportLog             bool   // `flag:"el"`
 	Overwrite                    bool   //`flag:"r"`
 	SkipRender                   bool   //`flag:"sr"`
@@ -140,7 +143,8 @@ type Config struct {
 	SetBuildInfoInFileAttributes bool   //`flag:"fi"`
 	Server                       bool   //`flag:"s"`
 	ServerFolder                 string //`flag:"sf"`
-	EnableFileWatcher            bool   //`flag:"efw"`
+	ServerModeConfigFile         string
+	EnableFileWatcher            bool //`flag:"efw"`
 	OpenSCADVersion              string
 	OpenScadGenVersion           string
 	InitProjectName              string
@@ -183,6 +187,7 @@ type InstanceConfig struct {
 	SkipImages         bool
 	SkippedReason      string
 	SkippedImageReason string
+	IsComplete         bool
 }
 
 type InstanceConfigSlice []InstanceConfig
@@ -197,6 +202,7 @@ type GenerateSTLResult struct {
 	InstanceConfig      InstanceConfig
 	OutputPath          string
 	Command             string
+	CommandOutput       string
 	Error               string
 	AppliedParams       map[string]interface{}
 	TimeTaken           time.Duration
@@ -210,6 +216,7 @@ type GenerateImageResult struct {
 	InstanceConfig InstanceConfig
 	OutputPath     string
 	Command        string
+	CommandOutput  string
 	Error          string
 	AppliedParams  map[string]interface{}
 	TimeTaken      time.Duration
@@ -276,6 +283,12 @@ func (instance *InstanceConfig) GetInstancePaths(config *Config) *InstancePaths 
 type ConfigFile struct {
 	Path     string
 	NiceName string
+}
+
+type CleanResult struct {
+	Path               string
+	IsDeleted          bool
+	IsOldVersionFolder bool
 }
 
 type ProcessResult struct {
@@ -379,10 +392,35 @@ func MakeFileNameReplacements(globalParams map[string]interface{}, instanceParam
 		formatToUse = strings.ReplaceAll(formatToUse, "${"+ignoredParam+"}", "")
 	}
 
+	// Remove any remaining unreplaced placeholders to prevent them from appearing in filenames
+	// This handles cases where parameters are not set for certain instances
+	formatToUse = removeUnreplacedPlaceholders(formatToUse)
+
 	nonPathValidChars := []string{":", "*", "?", "\"", "<", ">", "|", " "}
 	for _, char := range nonPathValidChars {
 		formatToUse = strings.ReplaceAll(formatToUse, char, "")
 	}
+
+	return formatToUse
+}
+
+// removeUnreplacedPlaceholders removes any remaining {param} or ${param} placeholders
+// that weren't replaced with actual values
+func removeUnreplacedPlaceholders(formatToUse string) string {
+	// Remove any remaining {param} placeholders
+	re := regexp.MustCompile(`\{[^}]*\}`)
+	formatToUse = re.ReplaceAllString(formatToUse, "")
+
+	// Remove any remaining ${param} placeholders
+	re = regexp.MustCompile(`\$\{[^}]*\}`)
+	formatToUse = re.ReplaceAllString(formatToUse, "")
+
+	// Clean up any double underscores that might result from removed placeholders
+	re = regexp.MustCompile(`_{2,}`)
+	formatToUse = re.ReplaceAllString(formatToUse, "_")
+
+	// Clean up any leading/trailing underscores
+	formatToUse = strings.Trim(formatToUse, "_")
 
 	return formatToUse
 }

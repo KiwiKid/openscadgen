@@ -145,7 +145,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.7.27"
+const VERSION = "v2.7.28"
 
 type Version struct {
 	OpenSCADGen string
@@ -195,7 +195,7 @@ func GenerateInstanceConfigs(config *models.Config) ([]models.InstanceConfig, er
 			var newInstances []models.InstanceConfig
 			newInstances, _, err = GenerateInstances(config, dynamicInstance, inputPath)
 			if err != nil {
-				if config.ContinueOnError {
+				if config.StopOnError {
 					logError(fmt.Sprintf("Warning: failed to generate instances: %v", err))
 					continue
 				}
@@ -204,7 +204,7 @@ func GenerateInstanceConfigs(config *models.Config) ([]models.InstanceConfig, er
 
 			newInstancesWithImages, err := populateExportImages(config, newInstances)
 			if err != nil {
-				if config.ContinueOnError {
+				if config.StopOnError {
 					log.Printf("Warning: failed to generate export images: %v", err)
 					continue
 				}
@@ -263,7 +263,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 				var newInstances []models.InstanceConfig
 				newInstances, _, err = GenerateInstances(config, dynamicInstance, inputPath)
 				if err != nil {
-					if config.ContinueOnError {
+					if config.StopOnError {
 						logError(fmt.Sprintf("Warning: failed to generate instances: %v", err))
 						continue
 					}
@@ -272,7 +272,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 
 				newInstancesWithImages, err := populateExportImages(config, newInstances)
 				if err != nil {
-					if config.ContinueOnError {
+					if config.StopOnError {
 						log.Printf("Warning: failed to generate export images: %v", err)
 						continue
 					}
@@ -307,7 +307,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 				LogKeyValuePair(k, v)
 			}
 		}
-		if !config.ContinueOnError {
+		if !config.StopOnError {
 			if !config.Server {
 				os.Exit(1)
 			}
@@ -326,6 +326,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 	// Construct progress for all instances
 	progress.Construct(instances, nonSkippedInstances)
 
+	instanceIndex := 0
 	for i := range instances {
 		// Check for cancellation
 		select {
@@ -339,25 +340,26 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 
 		if instances[i].SkippedReason == "" {
 			// Start processing this instance
-			progress.StartInstance(instances[i].ID, instances[i].AutoName)
+			progress.StartInstance(instances[i].ID, instances[i].AutoName, instanceIndex+1, nonSkippedInstances)
 
 			if config.Debug {
 				logCreation(fmt.Sprintf("Generated instance %s", instances[i].AutoName))
 				log.Printf("[DEBUG] Generating STL for instance %d: OutputPathV2=%s", i, instances[i].OutputPathV2)
 			}
 			var result models.GenerateSTLResult
-			var err error
+			var genErr error
 			if !config.OnlyImages {
-				result, err = generateSTL(&instances[i], config)
-				if err != nil {
-					if config.ContinueOnError && !config.Server {
-						logError(fmt.Sprintf("Warning: failed to generate STL for instance %s:\n Error:\n%+v", instances[i].Name, err))
-						stlResults = append(stlResults, result)
-						completedInstances++
-						continue
-					} else {
-						return models.ProcessResult{}, fmt.Errorf("failed to generate STL: %w", err)
+				result, genErr = generateSTL(&instances[i], config)
+				if genErr != nil {
+
+					logError(fmt.Sprintf("Warning: failed to generate STL for instance %s:\n Error:\n%+v", instances[i].Name, genErr))
+					stlResults = append(stlResults, result)
+					completedInstances++
+					if config.StopOnError {
+						return models.ProcessResult{}, fmt.Errorf("failed to generate STL: %w", genErr)
 					}
+					continue
+
 				} else {
 					stlResults = append(stlResults, result)
 				}
@@ -369,7 +371,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 			if !config.OnlyExport {
 				genImageResult, err := processImage(config, &instances[i], progress)
 				if err != nil {
-					if config.ContinueOnError && !config.Server {
+					if config.StopOnError && !config.Server {
 						logError(fmt.Sprintf("Warning: failed to generate image for instance %s:\n Error:\n%+v", instances[i].Name, err))
 						continue
 					}
@@ -391,6 +393,8 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 				logSkip(fmt.Sprintf("STL skipped %s %s", instances[i].AutoName, instances[i].SkippedReason))
 			}
 		}
+
+		instances[i].IsComplete = true
 
 		// Finish this instance
 		progress.FinishInstance()
@@ -424,7 +428,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 	if operations.GenerateReport {
 		_, location, genReportErr := GenerateOutputReport(config, instances, stlResults, allImageResults, exportLoc, operations.GenerateReport, totalTime)
 		if genReportErr != nil {
-			if config.ContinueOnError {
+			if config.StopOnError {
 				log.Printf("Warning: failed to generate output report: %v", genReportErr)
 			} else {
 				log.Fatalf("failed to generate output report: %v", genReportErr)
@@ -604,6 +608,176 @@ func ScanFolderForConfigFiles(folder string) ([]models.ConfigFile, error) {
 	return configFiles, nil
 }
 
+func CleanDirectory(dryRun bool, cleanOldVersions bool, folder string) ([]models.CleanResult, error) {
+	var results []models.CleanResult
+
+	// Find all config.toml files
+	configFiles, err := ScanFolderForConfigFiles(folder)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, configFile := range configFiles {
+		configPath := filepath.Join(folder, configFile.Path)
+		configDir := filepath.Dir(configPath)
+		exportDir := filepath.Join(configDir, "export")
+
+		// Check if export directory exists
+		if _, err := os.Stat(exportDir); os.IsNotExist(err) {
+			continue
+		}
+
+		// Find all STL files in export directory
+		var stlFiles []string
+		err := filepath.Walk(exportDir, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if !info.IsDir() && strings.HasSuffix(strings.ToLower(info.Name()), ".stl") {
+				stlFiles = append(stlFiles, path)
+			}
+			return nil
+		})
+		if err != nil {
+			continue
+		}
+
+		// Find old version folders
+		if cleanOldVersions {
+			err := filepath.Walk(exportDir, func(path string, info os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
+				if info.IsDir() && path != exportDir {
+					// Check if this is an old version folder (contains version pattern like v0.1, v1.0, etc.)
+					dirName := filepath.Base(path)
+					if matched, _ := regexp.MatchString(`^v\d+\.\d+`, dirName); matched {
+						result := models.CleanResult{
+							Path:               path,
+							IsDeleted:          false,
+							IsOldVersionFolder: true,
+						}
+
+						if !dryRun {
+							err := os.RemoveAll(path)
+							if err == nil {
+								result.IsDeleted = true
+							}
+						}
+
+						results = append(results, result)
+					}
+				}
+				return nil
+			})
+			if err != nil {
+				continue
+			}
+		}
+
+		// Add STL files to results
+		for _, stlFile := range stlFiles {
+			result := models.CleanResult{
+				Path:               stlFile,
+				IsDeleted:          false,
+				IsOldVersionFolder: false,
+			}
+
+			if !dryRun {
+				err := os.Remove(stlFile)
+				if err == nil {
+					result.IsDeleted = true
+				}
+			}
+
+			results = append(results, result)
+		}
+	}
+
+	return results, nil
+}
+
+func CleanConfig(dryRun bool, cleanOldVersions bool, folder string) (models.CleanResult, error) {
+	// Find config.toml file in the folder
+	configFiles, err := ScanFolderForConfigFiles(folder)
+	if err != nil {
+		return models.CleanResult{}, err
+	}
+
+	if len(configFiles) == 0 {
+		return models.CleanResult{}, fmt.Errorf("no config.toml files found in folder")
+	}
+
+	// Use the first config file found
+	configFile := configFiles[0]
+	configPath := filepath.Join(folder, configFile.Path)
+	configDir := filepath.Dir(configPath)
+	exportDir := filepath.Join(configDir, "export")
+
+	result := models.CleanResult{
+		Path:               exportDir,
+		IsDeleted:          false,
+		IsOldVersionFolder: false,
+	}
+
+	// Check if export directory exists
+	if _, err := os.Stat(exportDir); os.IsNotExist(err) {
+		return result, nil
+	}
+
+	// Find all STL files in export directory
+	var stlFiles []string
+	err = filepath.Walk(exportDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() && strings.HasSuffix(strings.ToLower(info.Name()), ".stl") {
+			stlFiles = append(stlFiles, path)
+		}
+		return nil
+	})
+	if err != nil {
+		return result, err
+	}
+
+	// Find old version folders
+	if cleanOldVersions {
+		err = filepath.Walk(exportDir, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if info.IsDir() && path != exportDir {
+				// Check if this is an old version folder (contains version pattern like v0.1, v1.0, etc.)
+				dirName := filepath.Base(path)
+				if matched, _ := regexp.MatchString(`^v\d+\.\d+`, dirName); matched {
+					if !dryRun {
+						err := os.RemoveAll(path)
+						if err == nil {
+							result.IsDeleted = true
+						}
+					}
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return result, err
+		}
+	}
+
+	// Remove STL files
+	for _, stlFile := range stlFiles {
+		if !dryRun {
+			err := os.Remove(stlFile)
+			if err == nil {
+				result.IsDeleted = true
+			}
+		}
+	}
+
+	return result, nil
+}
+
 var PRESET_images = []models.ExportCameraCoordinates{
 	{
 		CameraName:        "top",
@@ -690,6 +864,60 @@ var PRESET_images = []models.ExportCameraCoordinates{
 		CameraName:        "nice-near",
 		CameraCoordinates: "0,0,0,45,0,45,150",
 	},
+	{
+		CameraName:        "nice-far",
+		CameraCoordinates: "0,0,0,45,0,45,800",
+	},
+	{
+		CameraName:        "nice-100",
+		CameraCoordinates: "0,0,0,45,0,45,100",
+	},
+	{
+		CameraName:        "nice-200",
+		CameraCoordinates: "0,0,0,45,0,45,200",
+	},
+	{
+		CameraName:        "nice-300",
+		CameraCoordinates: "0,0,0,45,0,45,300",
+	},
+	{
+		CameraName:        "nice-400",
+		CameraCoordinates: "0,0,0,45,0,45,400",
+	},
+	{
+		CameraName:        "nice-500",
+		CameraCoordinates: "0,0,0,45,0,45,500",
+	},
+	{
+		CameraName:        "nice-600",
+		CameraCoordinates: "0,0,0,45,0,45,600",
+	},
+	{
+		CameraName:        "nice-700",
+		CameraCoordinates: "0,0,0,45,0,45,700",
+	},
+	{
+		CameraName:        "nice-800",
+		CameraCoordinates: "0,0,0,45,0,45,800",
+	},
+	{
+		CameraName:        "nice-900",
+		CameraCoordinates: "0,0,0,45,0,45,900",
+	},
+	{
+		CameraName:        "nice-1000",
+		CameraCoordinates: "0,0,0,45,0,45,1000",
+	},
+}
+
+func MakeExportImage(instance *models.InstanceConfig, camera models.ExportCameraCoordinates) models.ExportCameraCoordinates {
+	return models.ExportCameraCoordinates{
+		CameraName:         camera.CameraName,
+		CameraCoordinates:  camera.CameraCoordinates,
+		ImageSize:          camera.ImageSize,
+		ParamFilter:        camera.ParamFilter,
+		RunOutputImagePath: GetImagePath(instance.RunOutputImagePath, camera.CameraName),
+	}
 }
 
 func populateExportImages(config *models.Config, instances []models.InstanceConfig) ([]models.InstanceConfig, error) {
@@ -724,7 +952,7 @@ func populateExportImages(config *models.Config, instances []models.InstanceConf
 				}
 
 			}
-			exportImages := makePresetReplacement(instance)
+			exportImages := makePresetReplacement(instances[i].RunOutputPathV3, instance)
 			if len(exportImages) > 0 {
 				allExportImages = append(allExportImages, exportImages...)
 			}
@@ -817,7 +1045,7 @@ func generateCameraCoordinates(direction, distanceKey string) string {
 		x, y, z, rotX, rotY, rotZ, camDistance)
 }
 
-func makePresetReplacement(exportImage models.ExportCameraCoordinates) []models.ExportCameraCoordinates {
+func makePresetReplacement(runOutputPath string, exportImage models.ExportCameraCoordinates) []models.ExportCameraCoordinates {
 	if exportImage.CameraName == "all" {
 		return PRESET_images
 	} else if strings.HasPrefix(exportImage.CameraName, "all") && len(strings.Split(exportImage.CameraName, "-")) == 2 {
@@ -834,10 +1062,11 @@ func makePresetReplacement(exportImage models.ExportCameraCoordinates) []models.
 	if exportImage.CameraCoordinates != "" {
 		return []models.ExportCameraCoordinates{
 			{
-				CameraName:        exportImage.CameraName,
-				CameraCoordinates: exportImage.CameraCoordinates,
-				ImageSize:         exportImage.ImageSize,
-				ParamFilter:       exportImage.ParamFilter,
+				CameraName:         exportImage.CameraName,
+				CameraCoordinates:  exportImage.CameraCoordinates,
+				ImageSize:          exportImage.ImageSize,
+				ParamFilter:        exportImage.ParamFilter,
+				RunOutputImagePath: GetImagePath(runOutputPath, exportImage.CameraName),
 			},
 		}
 	}
@@ -853,10 +1082,11 @@ func makePresetReplacement(exportImage models.ExportCameraCoordinates) []models.
 		// Create a new camera preset with the generated coordinates
 		return []models.ExportCameraCoordinates{
 			{
-				CameraName:        exportImage.CameraName,
-				CameraCoordinates: coordinates,
-				ImageSize:         exportImage.ImageSize,
-				ParamFilter:       exportImage.ParamFilter,
+				CameraName:         exportImage.CameraName,
+				CameraCoordinates:  coordinates,
+				ImageSize:          exportImage.ImageSize,
+				ParamFilter:        exportImage.ParamFilter,
+				RunOutputImagePath: GetImagePath(runOutputPath, exportImage.CameraName),
 			},
 		}
 	}
@@ -866,10 +1096,11 @@ func makePresetReplacement(exportImage models.ExportCameraCoordinates) []models.
 		if preset.CameraName == exportImage.CameraName {
 			return []models.ExportCameraCoordinates{
 				{
-					CameraName:        exportImage.CameraName,
-					CameraCoordinates: preset.CameraCoordinates,
-					ImageSize:         preset.ImageSize,
-					ParamFilter:       exportImage.ParamFilter,
+					CameraName:         exportImage.CameraName,
+					CameraCoordinates:  preset.CameraCoordinates,
+					ImageSize:          preset.ImageSize,
+					ParamFilter:        exportImage.ParamFilter,
+					RunOutputImagePath: GetImagePath(runOutputPath, exportImage.CameraName),
 				},
 			}
 		}
@@ -1029,7 +1260,7 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 		for _, key := range undecoded {
 			logError(fmt.Sprintf("Invalid field: %s", key.String()))
 		}
-		if flags.ContinueOnError {
+		if flags.StopOnError {
 			log.Printf(colorYellow + "Continuing on error" + colorReset)
 		} else {
 			return nil, fmt.Errorf("invalid fields in config: %v", undecoded)
@@ -1065,12 +1296,13 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 	conf.IncludePartIDLetter = flags.IncludePartIDLetter
 	conf.SetBuildInfoInFileAttributes = flags.SetBuildInfoInFileAttributes
 
-	conf.ContinueOnError = flags.ContinueOnError
+	conf.StopOnError = flags.StopOnError
 	conf.ConfigFile = configPath
 	conf.IncludeExportLog = flags.IncludeExportLog
 	conf.OverwriteExisting = flags.OverwriteExisting
 	conf.Server = flags.Server
 	conf.ServerFolder = flags.ServerFolder
+	conf.ServerModeConfigFile = flags.ServerModeConfigFile
 	conf.OnlyImages = flags.OnlyImages
 	conf.OnlyExport = flags.OnlyExport
 	conf.Debug = flags.Debug
@@ -1899,6 +2131,38 @@ func generateUniqueAutoName(exportPath string, instanceName string, inputPath st
 	return baseName
 }
 
+// sanitizeForHTMLID converts a string to a valid HTML ID by replacing invalid characters
+func sanitizeForHTMLID(input string) string {
+	// Replace dots with underscores (dots are invalid in CSS selectors)
+	result := strings.ReplaceAll(input, ".", "_")
+
+	// Replace other invalid characters for HTML IDs
+	invalidChars := []string{":", "*", "?", "\"", "<", ">", "|", " ", "/", "\\", "+", "=", "&", "%", "#", "@", "!", "$", "^", "(", ")", "[", "]", "{", "}", ";", "'", ",", "~", "`"}
+	for _, char := range invalidChars {
+		result = strings.ReplaceAll(result, char, "_")
+	}
+
+	// Ensure the ID starts with a letter or underscore (HTML ID requirements)
+	if len(result) > 0 && !((result[0] >= 'a' && result[0] <= 'z') || (result[0] >= 'A' && result[0] <= 'Z') || result[0] == '_') {
+		result = "id_" + result
+	}
+
+	// Remove multiple consecutive underscores
+	for strings.Contains(result, "__") {
+		result = strings.ReplaceAll(result, "__", "_")
+	}
+
+	// Remove leading/trailing underscores
+	result = strings.Trim(result, "_")
+
+	// Ensure we have a valid ID
+	if result == "" {
+		result = "instance"
+	}
+
+	return result
+}
+
 func GenerateInstances(config *models.Config, configuredInstanceConfig models.ConfiguredInstanceConfig, inputPath models.InputPath) ([]models.InstanceConfig, string, error) {
 	if config.Debug {
 		logStage("=== Generating Instances === ")
@@ -2040,6 +2304,7 @@ func GenerateInstances(config *models.Config, configuredInstanceConfig models.Co
 				ImageResults:       []models.GenerateImageResult{},
 				RunOutputImagePath: "",
 				AutoName:           "", // Will be set after parameters are processed
+				IsComplete:         false,
 			}
 
 			// Add non-ignored parameters that don't have multiple values
@@ -2099,6 +2364,11 @@ func GenerateInstances(config *models.Config, configuredInstanceConfig models.Co
 			instance.AutoName = generateUniqueAutoName(outputPathReplace, configuredInstanceConfig.Name, inputPath.Path)
 			// Use AutoName as the ID
 			instance.ID = instance.AutoName
+			// Generate a sanitized UniqueID for HTML usage
+			instance.UniqueID = sanitizeForHTMLID(instance.AutoName)
+			if config.Debug {
+				log.Printf("[DEBUG] UniqueID: AutoName=%s, UniqueID=%s", instance.AutoName, instance.UniqueID)
+			}
 
 			//	instance.OutputPathV2 = outputPath
 			instance.RunOutputPathV3 = filepath.ToSlash(outputPathReplace + ".stl")
@@ -2450,7 +2720,7 @@ func openScadTemplateExtended(projectNameUnderLined string) string {
 module sliced(
     renderType = "horzSlice",        // "horzSlice", "vertSlice", or "all"
     sliceSize = 1000,
-    sliceThickness = 0.1,
+    sliceThickness = 0.2,
     showRawSlices = false,
     horzSlicePos = [-500, -500, 0],
     vertSlicePos = [0, -500, -500]
@@ -2899,7 +3169,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 	if !isValidPath(instance.OutputPathV2, invalidChars) {
 		errMsg := fmt.Sprintf("Output path '%s' contains invalid character(s) from '%s'. Please update your export_name_format in config.", instance.OutputPathV2, invalidChars)
 		result.Error = errMsg
-		if config.ContinueOnError {
+		if config.StopOnError {
 			return result, nil
 		}
 		return result, fmt.Errorf(errMsg)
@@ -2909,7 +3179,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 	outputDir := filepath.Dir(instance.OutputPathV2)
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
 		result.Error = fmt.Sprintf("failed to create output directory %s: %v", outputDir, err)
-		if config.ContinueOnError {
+		if config.StopOnError {
 			return result, nil
 		}
 		return result, fmt.Errorf("failed to create output directory %s: %w", outputDir, err)
@@ -3010,7 +3280,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 	if !isValidPath(instance.RunOutputPathV3, invalidChars) {
 		errMsg := fmt.Sprintf("Output path '%s' contains invalid character(s) from '%s'. Please update your export_name_format in config.", instance.OutputPathV2, invalidChars)
 		result.Error = errMsg
-		if config.ContinueOnError {
+		if config.StopOnError {
 			return result, nil
 		}
 		return result, fmt.Errorf(errMsg)
@@ -3076,6 +3346,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 	// Capture both stdout and stderr
 	output, err := cmd.CombinedOutput()
 	result.Command = commandStr
+	result.CommandOutput = string(output)
 	result.TimeTaken = time.Since(startTime)
 
 	if config.Debug {
@@ -3094,7 +3365,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 			log.Printf("OpenSCAD command failed with error: %v", err)
 			log.Printf("Command output: %s", string(output))
 		}
-		if config.ContinueOnError {
+		if config.StopOnError {
 			return result, nil
 		}
 		return result, fmt.Errorf("OpenSCAD command failed: %w\nOutput: %s", err, string(output))
@@ -3111,7 +3382,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 		if config.Debug {
 			log.Printf("[DEBUG] Output file does not exist: %s", instance.RunOutputPathV3)
 		}
-		if config.ContinueOnError {
+		if config.StopOnError {
 			return result, nil
 		}
 		return result, fmt.Errorf("output file was not created: %s", instance.RunOutputPathV3)
@@ -3120,7 +3391,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 		if config.Debug {
 			log.Printf("[DEBUG] Error checking output file: %v", statErr)
 		}
-		if config.ContinueOnError {
+		if config.StopOnError {
 			return result, nil
 		}
 		return result, fmt.Errorf("error checking output file: %w", statErr)
@@ -3129,7 +3400,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 		if config.Debug {
 			log.Printf("[DEBUG] Output file is empty (size: %d): %s", fileInfo.Size(), instance.RunOutputPathV3)
 		}
-		if config.ContinueOnError {
+		if config.StopOnError {
 			return result, nil
 		}
 		return result, fmt.Errorf("output file is empty: %s", instance.RunOutputPathV3)
@@ -3311,6 +3582,27 @@ func executeCommand(cmd string) error {
 	return nil
 }
 
+func executeCommandWithOutput(cmd string) (string, error) {
+	command := exec.Command("sh", "-c", cmd)
+
+	var stdout, stderr bytes.Buffer
+	command.Stdout = &stdout
+	command.Stderr = &stderr
+
+	if err := command.Run(); err != nil {
+		// Build detailed error message with command output
+		errorDetails := fmt.Sprintf("command failed: %v", err)
+		if stdout.Len() > 0 {
+			errorDetails += fmt.Sprintf("\nstdout: %s", stdout.String())
+		}
+		if stderr.Len() > 0 {
+			errorDetails += fmt.Sprintf("\nstderr: %s", stderr.String())
+		}
+		return stdout.String() + stderr.String(), fmt.Errorf("%s", errorDetails)
+	}
+	return stdout.String() + stderr.String(), nil
+}
+
 func processImage(config *models.Config, instance *models.InstanceConfig, progress ProgressReporter) ([]models.GenerateImageResult, error) {
 
 	var imageResults []models.GenerateImageResult
@@ -3360,6 +3652,14 @@ func processImage(config *models.Config, instance *models.InstanceConfig, progre
 	return imageResults, nil
 }
 
+func GetImagePath(runOutputImagePath string, cameraName string) string {
+	fileName := filepath.Base(runOutputImagePath)
+	// Remove file extension
+	fileNameWithoutExt := strings.TrimSuffix(fileName, filepath.Ext(fileName))
+	outputPath := filepath.Dir(runOutputImagePath)
+	return outputPath + "/" + fileNameWithoutExt + "-" + cameraName + ".png"
+}
+
 func generateImage(instance *models.InstanceConfig, config *models.Config, camera models.ExportCameraCoordinates, stlResult models.GenerateSTLResult) (models.GenerateImageResult, string, error) {
 	// Initialize result
 	imageResult := models.GenerateImageResult{
@@ -3377,7 +3677,7 @@ func generateImage(instance *models.InstanceConfig, config *models.Config, camer
 		log.Panic("RunOutputImagePath is empty")
 	}
 
-	outputImgPath := instance.RunOutputImagePath + "-" + camera.CameraName + ".png"
+	outputImgPath := GetImagePath(instance.RunOutputImagePath, camera.CameraName)
 	if !config.Quiet && config.Debug {
 		LogKeyValuePair("outputPath", outputImgPath)
 	}
@@ -3446,8 +3746,12 @@ func generateImage(instance *models.InstanceConfig, config *models.Config, camer
 	}
 
 	cmdStr := cmd.String()
-	// Run the command
-	if err := executeCommand(cmdStr); err != nil {
+	// Run the command and capture output
+	output, err := executeCommandWithOutput(cmdStr)
+	imageResult.Command = cmdStr
+	imageResult.CommandOutput = output
+
+	if err != nil {
 		// Log detailed error information
 		logError(fmt.Sprintf("OpenSCAD command failed for image generation"))
 		logError(fmt.Sprintf("Command: %s", cmd.String()))

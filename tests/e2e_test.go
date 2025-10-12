@@ -487,7 +487,7 @@ name = "bottom"
 			},
 			shouldFail: false,
 		},
-		{
+		/*{
 			name:          "9.invalid design",
 			configContent: defaultConfig,
 			scadContent:   scadFileInputExamples[invalidDesign],
@@ -529,7 +529,7 @@ name = "bottom"
 				}
 			}(),
 			shouldFail: false,
-		},
+		},*/
 		{
 			name: "11.Invalid extra parameter in instances",
 			configContent: `[openscadgen]

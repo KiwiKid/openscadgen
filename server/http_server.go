@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 
 	"github.com/BurntSushi/toml"
 	"github.com/kiwikid/openscadgen/pkg"
@@ -66,19 +67,22 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags) {
 	log.Print(msg)
 
 	// Setup handlers
+	http.HandleFunc("/", handleMainRequest)
+
 	http.HandleFunc("/start", StartHandler)
 	http.HandleFunc("/progress", ProgressHandler)
 	http.HandleFunc("/cancel", CancelHandler)
+	http.HandleFunc("/api/config", handleConfigRequest)
+	http.HandleFunc("/api/open", handleOpenFile)
+	http.HandleFunc("/api/edit", handleEditFile)
+
+	http.HandleFunc("/static/", handleStaticFiles)
+	http.HandleFunc("/images", handleImageRequest)
+
 	http.HandleFunc("/api/watcher/status", handleWatcherStatus)
 	http.HandleFunc("/api/watcher/pause", handleWatcherPause)
 	http.HandleFunc("/api/watcher/resume", handleWatcherResume)
 	http.HandleFunc("/api/watcher/ui", handleWatcherUI)
-	http.HandleFunc("/api/config", handleConfigRequest)
-	http.HandleFunc("/api/open", handleOpenFile)
-	http.HandleFunc("/api/edit", handleEditFile)
-	http.HandleFunc("/images", handleImageRequest)
-	http.HandleFunc("/static/", handleStaticFiles)
-	http.HandleFunc("/", handleMainRequest)
 
 	err = http.ListenAndServe(port, nil)
 	if err != nil {
@@ -95,6 +99,8 @@ func handleMainRequest(w http.ResponseWriter, r *http.Request) {
 		handlePOSTRequest(w, r)
 	case "PUT":
 		handlePUTRequest(w, r)
+	case "DELETE":
+		handleDeleteRequest(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -150,20 +156,93 @@ func handlePOSTRequest(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/?config="+encodedConfigEntry, http.StatusSeeOther)
 }
 
+type StartProcessingForm struct {
+	Path                 string `json:"path" form:"path"`
+	Regex                string `json:"regex" form:"regex"`
+	ServerModeConfigFile string `json:"server_mode_config_file" form:"server_mode_config_file"`
+	Quiet                bool   `json:"quiet" form:"quiet"`
+	Debug                bool   `json:"debug" form:"debug"`
+	NoProcessing         bool   `json:"no_processing" form:"no_processing"`
+	Version              bool   `json:"version" form:"version"`
+	RegexPattern         string `json:"regex_pattern" form:"regex_pattern"`
+	MaxInstances         int    `json:"max_instances" form:"max_instances"`
+	StopOnError          bool   `json:"stop_on_error" form:"stop_on_error"`
+	IncludeExportLog     bool   `json:"include_export_log" form:"include_export_log"`
+	OverwriteExisting    bool   `json:"overwrite_existing" form:"overwrite_existing"`
+	ConfigFile           string `json:"config_file" form:"config_file"`
+	SkipRender           bool   `json:"skip_render" form:"skip_render"`
+	SkipReadme           bool   `json:"skip_readme" form:"skip_readme"`
+	LowQuality           bool   `json:"low_quality" form:"low_quality"`
+}
+
+// formToCmdFlags maps StartProcessingForm to models.CmdFlags with explicit field mapping
+func formToCmdFlags(form StartProcessingForm) models.CmdFlags {
+	return models.CmdFlags{
+		ConfigFile:        form.Path,
+		RegexPattern:      form.Regex,
+		Quiet:             form.Quiet,
+		Debug:             form.Debug,
+		NoProcessing:      form.NoProcessing,
+		Version:           form.Version,
+		MaxInstances:      form.MaxInstances,
+		StopOnError:       form.StopOnError,
+		IncludeExportLog:  form.IncludeExportLog,
+		OverwriteExisting: form.OverwriteExisting,
+		ShowMan:           false,
+		Server:            true, // Always true for server requests
+		ServerFolder:      "",
+		ServerPort:        0,
+		SkipRender:        form.SkipRender,
+		SkipReadme:        form.SkipReadme,
+		EnableFileWatcher: false,
+	}
+}
+
 // handlePUTRequest handles PUT requests for processing
 func handlePUTRequest(w http.ResponseWriter, r *http.Request) {
 	log.Printf("PUT (Processing) request" + r.Method)
 
-	var cmdFlags models.CmdFlags
+	var form StartProcessingForm
+
+	// Parse request based on content type
 	if r.Header.Get("Content-Type") == "application/json" {
-		if err := json.NewDecoder(r.Body).Decode(&cmdFlags); err != nil {
+		if err := json.NewDecoder(r.Body).Decode(&form); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("PUT - Processing - Invalid JSON body: " + err.Error()))
 			return
 		}
 	} else {
-		cmdFlags.ConfigFile = r.FormValue("path")
+		// Parse form data manually
+		if err := r.ParseForm(); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("PUT - Processing - Failed to parse form: " + err.Error()))
+			return
+		}
+
+		// Map form values to struct fields
+		form.Path = r.FormValue("path")
+		form.Regex = r.FormValue("regex")
+		form.ServerModeConfigFile = r.FormValue("server_mode_config_file")
+		form.Quiet = r.FormValue("quiet") == "true" || r.FormValue("quiet") == "1" || r.FormValue("quiet") == "on"
+		form.Debug = r.FormValue("debug") == "true" || r.FormValue("debug") == "1" || r.FormValue("debug") == "on"
+		form.NoProcessing = r.FormValue("no_processing") == "true" || r.FormValue("no_processing") == "1" || r.FormValue("no_processing") == "on"
+		form.RegexPattern = r.FormValue("regex_pattern")
+		if maxInstances := r.FormValue("max_instances"); maxInstances != "" {
+			if val, err := strconv.Atoi(maxInstances); err == nil {
+				form.MaxInstances = val
+			}
+		}
+		form.StopOnError = r.FormValue("stop_on_error") == "true" || r.FormValue("stop_on_error") == "1" || r.FormValue("stop_on_error") == "on"
+		form.IncludeExportLog = r.FormValue("include_export_log") == "true" || r.FormValue("include_export_log") == "1" || r.FormValue("include_export_log") == "on"
+		form.OverwriteExisting = r.FormValue("overwrite_existing") == "true" || r.FormValue("overwrite_existing") == "1" || r.FormValue("overwrite_existing") == "on"
+		form.ConfigFile = r.FormValue("config_file")
+		form.SkipRender = r.FormValue("skip_render") == "true" || r.FormValue("skip_render") == "1" || r.FormValue("skip_render") == "on"
+		form.SkipReadme = r.FormValue("skip_readme") == "true" || r.FormValue("skip_readme") == "1" || r.FormValue("skip_readme") == "on"
+		form.LowQuality = r.FormValue("low_quality") == "true" || r.FormValue("low_quality") == "1" || r.FormValue("low_quality") == "on"
 	}
+
+	// Map form to cmdFlags
+	cmdFlags := formToCmdFlags(form)
 
 	if cmdFlags.ConfigFile == "" {
 		warning := templates.Warning("No config file provided")
@@ -171,11 +250,8 @@ func handlePUTRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmdFlags.Server = true
-
 	var useOOBUpdates bool
-	if r.FormValue("regex") != "" {
-		cmdFlags.RegexPattern = r.FormValue("regex")
+	if form.Regex != "" {
 		useOOBUpdates = true
 	}
 
@@ -189,14 +265,47 @@ func handlePUTRequest(w http.ResponseWriter, r *http.Request) {
 	id := StartProcessingJob(config)
 
 	if useOOBUpdates {
+		log.Printf("InstanceUpdate")
 		w.Header().Set("Content-Type", "text/html")
 		instanceUpdates := templates.InstanceUpdate(id)
 		instanceUpdates.Render(context.Background(), w)
 	} else {
+		log.Printf("GetProgressHTML")
 		w.Header().Set("Content-Type", "text/html")
+
+		// set the url to the full config file path with htmx and no reload
+		w.Header().Set("HX-Push-Url", fmt.Sprintf("/?config=%s", config.ConfigFile))
+
 		progressHTML := templates.GetProgressHTML(id)
 		progressHTML.Render(context.Background(), w)
 		//fmt.Fprintf(w, progressHTML)
+	}
+}
+
+func handleDeleteRequest(w http.ResponseWriter, r *http.Request) {
+	configFile := r.URL.Query().Get("configFile")
+	dryRun := r.URL.Query().Get("dryRun") == "true"
+	cleanOldVersions := r.URL.Query().Get("cleanOldVersions") == "true"
+
+	if len(configFile) > 0 {
+		// Clean specific config
+		folder := filepath.Dir(configFile)
+		_, err := pkg.CleanConfig(dryRun, cleanOldVersions, folder)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		// Clean entire directory
+		folder := r.URL.Query().Get("folder")
+		if folder == "" {
+			folder = "."
+		}
+		_, err := pkg.CleanDirectory(dryRun, cleanOldVersions, folder)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
@@ -529,8 +638,8 @@ func handleEditFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate file extension
-	if filepath.Ext(filePath) != ".toml" {
-		http.Error(w, "Only .toml files are allowed", http.StatusBadRequest)
+	if filepath.Ext(filePath) != ".toml" && filepath.Base(filePath) != "config.toml" {
+		http.Error(w, "Only config.toml files are allowed", http.StatusBadRequest)
 		return
 	}
 

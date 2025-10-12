@@ -36,7 +36,7 @@ example:
 
 # Live reload with air (templ + go)
 air:
-    air
+    air -- -sf ./examples/ -p 6767
 
 # Live reload templ files only
 air-templ:

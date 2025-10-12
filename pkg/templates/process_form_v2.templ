@@ -1,0 +1,184 @@
+package templates
+
+templ ProcessFormV2(configPath string) {
+	<div class="box m-3 p-3" style="height: 8rem; overflow-y: scroll;">
+		<div class="columns">
+			<div x-show="showDebug">
+				[[ProcessFormV2]]
+			</div>
+					
+			<form method="PUT" action="/" hx-put="/" hx-target="#process-result" hx-indicator="#loading">
+
+				<input class="input" type="text" name="path" value={ configPath } readonly hidden />
+
+				<!-- Top Row: Regex, Show/Hide Button, Process Button -->
+				<div class="columns is-vcentered">
+					<div class="column is-4">
+						<div class="field">
+							<label class="label">Regex Pattern</label>
+							<div class="control">
+								<input class="input" type="text" name="regex" placeholder="Optional regex to filter instances" />
+							</div>
+							<p class="help">Optional regex pattern to filter which instances to process</p>
+						</div>
+					</div>
+					<div class="column is-2">
+						<button type="button" x-show="!showProcessForm" class="button is-primary" @click="showProcessForm = !showProcessForm">
+							<span class="icon"><i class="fa-solid fa-arrow-down"></i></span>
+						</button>
+						<button type="button" x-show="showProcessForm" class="button is-primary" @click="showProcessForm = !showProcessForm">
+							<span class="icon"><i class="fa-solid fa-arrow-up"></i></span>
+						</button>
+					</div>
+					<div class="column is-6">
+						<div class="field">
+							<div class="control">
+								<button class="button is-large is-primary" type="submit" id="process-btn" title="Process Configuration">
+									<span class="icon">
+										<i class="fas fa-play"></i>
+									</span>
+								</button>
+								<div id="cancel-button"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+		<div x-show="showProcessForm">
+					<!-- Form Fields in Row Layout -->
+					<div class="columns">
+						<!-- Processing Options Column -->
+						<div class="column is-half">
+							<div class="field">
+								<label class="label">Processing Options</label>
+								<div class="field is-grouped is-grouped-multiline">
+									<div class="control">
+										<label class="checkbox">
+											<input type="checkbox" name="quiet" value="true" />
+											Quiet mode
+										</label>
+									</div>
+									<div class="control">
+										<label class="checkbox">
+											<input type="checkbox" name="debug" value="true" />
+											Debug mode
+										</label>
+									</div>
+									<div class="control">
+										<label class="checkbox">
+											<input type="checkbox" name="no_processing" value="true" />
+											Dry run (no processing)
+										</label>
+									</div>
+									<div class="control">
+										<label class="checkbox">
+											<input type="checkbox" name="overwrite_existing" value="true" />
+											Overwrite existing files
+										</label>
+									</div>
+									<div class="control">
+										<label class="checkbox">
+											<input type="checkbox" name="stop_on_error" value="true" />
+											Stop on error
+										</label>
+									</div>
+									<div class="control">
+										<label class="checkbox">
+											<input type="checkbox" name="include_export_log" value="true" />
+											Include export log
+										</label>
+									</div>
+									<div class="control">
+										<label class="checkbox">
+											<input type="checkbox" name="low_quality" value="true" />
+											Low quality
+										</label>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Advanced Options & Numeric Column -->
+						<div class="column is-half">
+							<div class="field">
+								<label class="label">Advanced Options</label>
+								<div class="field is-grouped is-grouped-multiline">
+									<div class="control">
+										<label class="checkbox">
+											<input type="checkbox" name="skip_render" value="true" />
+											Skip render
+										</label>
+									</div>
+									<div class="control">
+										<label class="checkbox">
+											<input type="checkbox" name="skip_readme" value="true" />
+											Skip README generation
+										</label>
+									</div>
+								</div>
+							</div>
+
+							<div class="field">
+								<label class="label">Max Instances</label>
+								<div class="control">
+									<input class="input" type="number" name="max_instances" placeholder="0 = no limit" min="0" />
+								</div>
+								<p class="help">Maximum number of instances to process (0 = no limit)</p>
+							</div>
+						</div>
+					</div>
+	</div>
+
+				<!-- Loading Indicator -->
+				<div id="loading" class="htmx-indicator">
+					<div class="notification is-info">
+						<div class="columns is-vcentered">
+							<div class="column">
+								<strong>Processing...</strong>
+							</div>
+							<div class="column is-narrow">
+								<div class="loader"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+			<div class="column is-2" x-show="showProcessForm" >
+				<button type="button" class="button is-primary" @click="showProcessForm = !showProcessForm">
+					<span class="icon"><i class="fa-solid fa-arrow-up"></i></span>
+				</button>
+			</div>
+
+				
+			</form>
+		<ul id="process-result" style="width: 300px; max-height: 300px"></ul>
+	</div>
+</div>
+	<style>
+		.loader {
+			border: 2px solid #f3f3f3;
+			border-top: 2px solid #3273dc;
+			border-radius: 50%;
+			width: 20px;
+			height: 20px;
+			animation: spin 1s linear infinite;
+		}
+		
+		@keyframes spin {
+			0% { transform: rotate(0deg); }
+			100% { transform: rotate(360deg); }
+		}
+		
+		.htmx-indicator {
+			display: none;
+		}
+		
+		.htmx-request .htmx-indicator {
+			display: block;
+		}
+		
+		.htmx-request.htmx-indicator {
+			display: block;
+		}
+	</style>
+}

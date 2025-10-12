@@ -12,6 +12,7 @@ templ TOMLEditForm(filePath string, content string, errorMsg templ.Component) {
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Edit TOML File</title>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
 		<link rel="stylesheet" href="/static/js/edit_area.css" type="text/css" media="screen" />
 		<style>
 			body {
@@ -128,7 +129,7 @@ templ TOMLEditForm(filePath string, content string, errorMsg templ.Component) {
 	<body>[[TOMLEditForm]]
 		<div class="container">
 			<h1>Edit TOML File</h1>
-			<a class="button is-danger" href={ templ.SafeURL(fmt.Sprintf("/?config=%s", filePath)) }>Cancel</a>
+			<a class="button is-warning" href={ templ.SafeURL(fmt.Sprintf("/?config=%s", filePath)) }>Cancel</a>
 			<div class="file-path">{ strings.TrimPrefix(filePath, "/") }</div>
 			
 			if errorMsg != nil {
@@ -144,7 +145,7 @@ templ TOMLEditForm(filePath string, content string, errorMsg templ.Component) {
 					<a href={ templ.SafeURL(fmt.Sprintf("/?config=%s", filePath)) } class="button is-alert">Cancel</a>
 					<button type="submit" class="button is-success">Save Changes</button>
 				</div>
-				<textarea id="editarea" name="content"  style="height: 350px; width: 100%;">{ content }</textarea>
+				<textarea id="editarea" style="height: 350px; width: 100%;">{ content }</textarea>
 			</form>
 		</div>
 		

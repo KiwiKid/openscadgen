@@ -15,7 +15,7 @@ type ProgressReporter interface {
 	Error(err error)
 	// Simplified progress bar methods
 	Construct(instances []models.InstanceConfig, nonSkippedInstances int)
-	StartInstance(instanceId string, name string)
+	StartInstance(instanceId string, name string, instanceIndex int, instanceCount int)
 	//ProgressInstance(instanceId string, progress int)
 	FinishInstance()
 }
@@ -26,9 +26,10 @@ func (n *NoopProgress) Update(msg string)                                       
 func (n *NoopProgress) Done()                                                                {}
 func (n *NoopProgress) Error(err error)                                                      {}
 func (n *NoopProgress) Construct(instances []models.InstanceConfig, nonSkippedInstances int) {}
-func (n *NoopProgress) StartInstance(instanceId string, name string)                         {}
-func (n *NoopProgress) ProgressInstance(instanceId string, progress int)                     {}
-func (n *NoopProgress) FinishInstance()                                                      {}
+func (n *NoopProgress) StartInstance(instanceId string, name string, instanceIndex int, instanceCount int) {
+}
+func (n *NoopProgress) ProgressInstance(instanceId string, progress int) {}
+func (n *NoopProgress) FinishInstance()                                  {}
 
 type ChanProgress struct {
 	Updates         chan<- string
@@ -48,7 +49,7 @@ func (c *ChanProgress) Construct(instances []models.InstanceConfig) {
 	c.Updates <- fmt.Sprintf("Constructed progress for %d instances", len(instances))
 }
 
-func (c *ChanProgress) StartInstance(instanceId string, name string) {
+func (c *ChanProgress) StartInstance(instanceId string, name string, instanceIndex int, instanceCount int) {
 	instance, exists := c.instances[instanceId]
 	if !exists {
 		//	c.Updates <- fmt.Sprintf("Starting: %s", instanceId)
@@ -152,7 +153,7 @@ func (t *TerminalProgressReporter) Construct(instances []models.InstanceConfig, 
 	}
 }
 
-func (t *TerminalProgressReporter) StartInstance(instanceId string, name string) {
+func (t *TerminalProgressReporter) StartInstance(instanceId string, name string, instanceIndex int, instanceCount int) {
 	t.currentInstance = instanceId
 
 	// Get instance details if available

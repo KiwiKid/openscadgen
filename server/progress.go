@@ -34,15 +34,17 @@ type HTMLProgressReporter struct {
 	instances         []models.InstanceConfig
 	allParamNames     []string
 	outputPath        string
+	configInputPath   string
 	instanceIndex     int
 	currentInstanceID string // To track which instance is currently being processed
 }
 
-func NewHTMLProgressReporter(updates chan<- string, config *models.Config, jobID string) *HTMLProgressReporter {
+func NewHTMLProgressReporter(updates chan<- string, config *models.Config, jobID string, configInputPath string) *HTMLProgressReporter {
 	return &HTMLProgressReporter{
-		updates: updates,
-		config:  config,
-		jobID:   jobID,
+		updates:         updates,
+		config:          config,
+		jobID:           jobID,
+		configInputPath: configInputPath,
 	}
 }
 
@@ -96,11 +98,14 @@ func (h *HTMLProgressReporter) Construct(instances []models.InstanceConfig, nonS
 
 	h.outputPath = filepath.Join(baseExportPath, "export", versionPath)
 
-	// Extract all parameter names from instances
+	var instanceCount int
 	paramSet := make(map[string]bool)
 	for _, instance := range instances {
 		for paramName := range instance.Params {
 			paramSet[paramName] = true
+		}
+		if instance.SkippedReason == "" {
+			instanceCount++
 		}
 	}
 
@@ -109,13 +114,13 @@ func (h *HTMLProgressReporter) Construct(instances []models.InstanceConfig, nonS
 		h.allParamNames = append(h.allParamNames, paramName)
 	}
 
-	h.updates <- fmt.Sprintf("Constructed progress for %d instances", len(instances))
+	h.updates <- fmt.Sprintf("Processing %d instances", instanceCount)
 }
 
-func (h *HTMLProgressReporter) StartInstance(instanceId string, name string) {
+func (h *HTMLProgressReporter) StartInstance(instanceId string, name string, instanceIndex int, instanceCount int) {
 	h.currentInstanceID = instanceId
 	log.Printf("HTMLProgressReporter: Starting instance: %s", instanceId)
-	h.updates <- fmt.Sprintf("Starting instance: %s", name)
+	h.updates <- fmt.Sprintf("Starting instance: %s (%d/%d)", name, instanceIndex, instanceCount)
 }
 
 func (h *HTMLProgressReporter) FinishInstance() {
@@ -147,7 +152,7 @@ func (h *HTMLProgressReporter) FinishInstance() {
 		var htmlCard strings.Builder
 		// templates.InstanceCard(*completedInstance, h.outputPath).Render(context.Background(), &htmlCard)
 
-		templates.InstanceCardV2(*completedInstance, h.outputPath, "complete", h.allParamNames, true, "").Render(context.Background(), &htmlCard)
+		templates.InstanceCardV2(*completedInstance, h.outputPath, "complete", h.allParamNames, true, h.config.ConfigFile).Render(context.Background(), &htmlCard)
 
 		// Send HTML update
 		htmlUpdate := "html:" + htmlCard.String()
@@ -205,7 +210,7 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 	mu.Unlock()
 
 	go func() {
-		progressReporter := NewHTMLProgressReporter(updates, config, id)
+		progressReporter := NewHTMLProgressReporter(updates, config, id, flags.ServerModeConfigFile)
 		result, err := pkg.Process(config, progressReporter, cancel, pkg.Operations{
 			GenerateReport: false,
 		}, true)
@@ -339,7 +344,7 @@ func StartProcessingJob(config *models.Config) string {
 	mu.Unlock()
 
 	go func() {
-		progressReporter := NewHTMLProgressReporter(updates, config, id)
+		progressReporter := NewHTMLProgressReporter(updates, config, id, config.ServerModeConfigFile)
 		result, err := pkg.Process(config, progressReporter, cancel, pkg.Operations{
 			GenerateReport: false,
 		}, true)

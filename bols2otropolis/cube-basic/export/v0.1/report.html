@@ -393,7 +393,7 @@ html, body {
                     background-color: var(--hover-bg) !important;
                     color: var(--text-color) !important;
                 }
-            </style></head><body><div x-show="showDebug">Show DEBUG ON</div><div class="global-header fixed-grid"><nav class="navbar navbar-expand-lg navbar-light bg-light"><a class="navbar-brand">cube-basic</a> <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button> <div class="collapse navbar-collapse" id="navbarSupportedContent"><ul class="navbar-nav mr-auto"><li class="nav-item" :class="{ active: navSelected === 'instances' }"><a class="nav-link" @click="navSelected = 'instances'">Instances 6</a></li><li class="nav-item" :class="{ active: navSelected === 'stlResults' }"><a class="nav-link" @click="navSelected = 'stlResults'">STLs 6</a></li><li class="nav-item" :class="{ active: navSelected === 'images' }"><a class="nav-link" @click="navSelected = 'images'">Images (6)</a></li></ul></div><form class="form-inline my-2 my-lg-0"><input class="form-control mr-sm-2" type="search" placeholder="Filter instances..." x-model="searchQuery" aria-label="Search"> <button class="btn btn-outline-success my-2 my-sm-0" type="button" @click="searchQuery = ''">Clear</button></form><div class="ml-2"><button class="btn btn-outline-secondary" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button> <button class="btn btn-outline-secondary ml-1" @click="showDebug = !showDebug"><span x-show="!showDebug">🐛</span> <span x-show="showDebug">🐛</span> <span x-show="showDebug" style="text-decoration: underline;">Debug</span></button></div></nav></div><div class="container-fluid"><!-- Main Content --><div class="container"><div><div x-show="navSelected === &#39;instances&#39;"><div class="columns is-multiline"><style>
+            </style></head><body><div x-show="showDebug">Show DEBUG ON</div><div class="global-header fixed-grid"><nav class="navbar navbar-expand-lg navbar-light bg-light"><a class="navbar-brand">cube-basic</a> <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button> <div class="collapse navbar-collapse" id="navbarSupportedContent"><ul class="navbar-nav mr-auto"><li class="nav-item" :class="{ active: navSelected === 'instances' }"><a class="nav-link" @click="navSelected = 'instances'">Instances (6)</a></li><li class="nav-item" :class="{ active: navSelected === 'stlResults' }"><a class="nav-link" @click="navSelected = 'stlResults'">STLs (6)</a></li><li class="nav-item" :class="{ active: navSelected === 'images' }"><a class="nav-link" @click="navSelected = 'images'">Images (6)</a></li></ul></div><form class="form-inline my-2 my-lg-0"><input class="form-control mr-sm-2" type="search" placeholder="Filter instances..." x-model="searchQuery" aria-label="Search"> <button class="btn btn-outline-success my-2 my-sm-0" type="button" @click="searchQuery = ''">Clear</button></form><div class="ml-2"><button class="btn btn-outline-secondary" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button> <button class="btn btn-outline-secondary ml-1" @click="showDebug = !showDebug"><span x-show="!showDebug">🐛</span> <span x-show="showDebug">🐛</span> <span x-show="showDebug" style="text-decoration: underline;">Debug</span></button></div></nav></div><div class="container-fluid"><!-- Main Content --><div class="container"><div><div x-show="navSelected === &#39;instances&#39;"><h3>Instances (6)</h3></div><div x-show="navSelected === &#39;instances&#39;"><div class="columns is-multiline"><style>
         .json-viewer {
             margin: 10px 0;
             border: 1px solid #ddd;
@@ -502,7 +502,8 @@ html, body {
         &#34;SkippedImageReason&#34;: &#34;&#34;
       },
       &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_0-nice.png&#34;,
-      &#34;Command&#34;: &#34;&#34;,
+      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_0-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;round=0&#39; -D &#39;cube_size=100&#39; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; -D &#39;cube_center=true&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+      &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file cube-basic.scad, line 19\nWARNING: variable \&#34;rounding\&#34; not specified as parameter in file cube-basic.scad, line 14\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 1 elements\nGeometries in cache: 1\nGeometry cache size in bytes: 848\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.190\n&#34;,
       &#34;Error&#34;: &#34;&#34;,
       &#34;AppliedParams&#34;: {
         &#34;cube_center&#34;: true,
@@ -511,7 +512,7 @@ html, body {
         &#34;round&#34;: 0,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 338114750,
+      &#34;TimeTaken&#34;: 382262375,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;nice&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -534,7 +535,7 @@ cube_size = 100;
 designFileName = &#34;cube-basic&#34;;
 round = 0;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>cube_center:</strong> true</div><div class="cell is-one-third"><strong>round:</strong> 0</div><div class="cell is-one-third"><strong>cube_size:</strong> 100</div><div class="cell is-one-third"><strong>designFileName:</strong> cube-basic</div></div></div></details></div><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_0-nice.png" alt="Preview of  from nice" class="image-preview"><form hx-put="/?regex=v0.1_cube-basic_100_0" hx-target="#instance-v0.1_cube-basic_100_0" hx-indicator="#loading-indicator"><input type="hidden" name="path" value=""> <button class="button is-large" id="process-btn" type="submit">Process v0.1_cube-basic_100_0</button></form></div></div></div></div><style>
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>cube_center:</strong> true</div><div class="cell is-one-third"><strong>round:</strong> 0</div><div class="cell is-one-third"><strong>cube_size:</strong> 100</div><div class="cell is-one-third"><strong>designFileName:</strong> cube-basic</div></div></div></details></div><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_0-nice.png" alt="Preview of  from nice" class="image-preview"> </div></div></div></div><style>
         .json-viewer {
             margin: 10px 0;
             border: 1px solid #ddd;
@@ -643,7 +644,8 @@ version = &#34;v0.1&#34;;
         &#34;SkippedImageReason&#34;: &#34;&#34;
       },
       &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_3-nice.png&#34;,
-      &#34;Command&#34;: &#34;&#34;,
+      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_3-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; -D &#39;cube_center=true&#39; -D &#39;cube_size=100&#39; -D &#39;round=3&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+      &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file cube-basic.scad, line 19\nWARNING: variable \&#34;rounding\&#34; not specified as parameter in file cube-basic.scad, line 14\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 1 elements\nGeometries in cache: 1\nGeometry cache size in bytes: 848\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.178\n&#34;,
       &#34;Error&#34;: &#34;&#34;,
       &#34;AppliedParams&#34;: {
         &#34;cube_center&#34;: true,
@@ -652,7 +654,7 @@ version = &#34;v0.1&#34;;
         &#34;round&#34;: 3,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 584337209,
+      &#34;TimeTaken&#34;: 348604750,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;nice&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -675,7 +677,7 @@ cube_size = 100;
 designFileName = &#34;cube-basic&#34;;
 round = 3;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>cube_center:</strong> true</div><div class="cell is-one-third"><strong>round:</strong> 3</div><div class="cell is-one-third"><strong>cube_size:</strong> 100</div><div class="cell is-one-third"><strong>designFileName:</strong> cube-basic</div></div></div></details></div><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_3-nice.png" alt="Preview of  from nice" class="image-preview"><form hx-put="/?regex=v0.1_cube-basic_100_3" hx-target="#instance-v0.1_cube-basic_100_3" hx-indicator="#loading-indicator"><input type="hidden" name="path" value=""> <button class="button is-large" id="process-btn" type="submit">Process v0.1_cube-basic_100_3</button></form></div></div></div></div><style>
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>cube_center:</strong> true</div><div class="cell is-one-third"><strong>round:</strong> 3</div><div class="cell is-one-third"><strong>cube_size:</strong> 100</div><div class="cell is-one-third"><strong>designFileName:</strong> cube-basic</div></div></div></details></div><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_3-nice.png" alt="Preview of  from nice" class="image-preview"> </div></div></div></div><style>
         .json-viewer {
             margin: 10px 0;
             border: 1px solid #ddd;
@@ -784,7 +786,8 @@ version = &#34;v0.1&#34;;
         &#34;SkippedImageReason&#34;: &#34;&#34;
       },
       &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_0-nice.png&#34;,
-      &#34;Command&#34;: &#34;&#34;,
+      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_0-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;cube_center=true&#39; -D &#39;cube_size=50&#39; -D &#39;round=0&#39; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+      &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file cube-basic.scad, line 19\nWARNING: variable \&#34;rounding\&#34; not specified as parameter in file cube-basic.scad, line 14\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 1 elements\nGeometries in cache: 1\nGeometry cache size in bytes: 848\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.181\n&#34;,
       &#34;Error&#34;: &#34;&#34;,
       &#34;AppliedParams&#34;: {
         &#34;cube_center&#34;: true,
@@ -793,7 +796,7 @@ version = &#34;v0.1&#34;;
         &#34;round&#34;: 0,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 357715750,
+      &#34;TimeTaken&#34;: 346453958,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;nice&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -816,7 +819,7 @@ cube_size = 50;
 designFileName = &#34;cube-basic&#34;;
 round = 0;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>cube_center:</strong> true</div><div class="cell is-one-third"><strong>round:</strong> 0</div><div class="cell is-one-third"><strong>cube_size:</strong> 50</div><div class="cell is-one-third"><strong>designFileName:</strong> cube-basic</div></div></div></details></div><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_0-nice.png" alt="Preview of  from nice" class="image-preview"><form hx-put="/?regex=v0.1_cube-basic_50_0" hx-target="#instance-v0.1_cube-basic_50_0" hx-indicator="#loading-indicator"><input type="hidden" name="path" value=""> <button class="button is-large" id="process-btn" type="submit">Process v0.1_cube-basic_50_0</button></form></div></div></div></div><style>
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>cube_center:</strong> true</div><div class="cell is-one-third"><strong>round:</strong> 0</div><div class="cell is-one-third"><strong>cube_size:</strong> 50</div><div class="cell is-one-third"><strong>designFileName:</strong> cube-basic</div></div></div></details></div><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_0-nice.png" alt="Preview of  from nice" class="image-preview"> </div></div></div></div><style>
         .json-viewer {
             margin: 10px 0;
             border: 1px solid #ddd;
@@ -925,7 +928,8 @@ version = &#34;v0.1&#34;;
         &#34;SkippedImageReason&#34;: &#34;&#34;
       },
       &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_3-nice.png&#34;,
-      &#34;Command&#34;: &#34;&#34;,
+      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_3-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;cube_center=true&#39; -D &#39;round=3&#39; -D &#39;cube_size=50&#39; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+      &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file cube-basic.scad, line 19\nWARNING: variable \&#34;rounding\&#34; not specified as parameter in file cube-basic.scad, line 14\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 1 elements\nGeometries in cache: 1\nGeometry cache size in bytes: 848\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.155\n&#34;,
       &#34;Error&#34;: &#34;&#34;,
       &#34;AppliedParams&#34;: {
         &#34;cube_center&#34;: true,
@@ -934,7 +938,7 @@ version = &#34;v0.1&#34;;
         &#34;round&#34;: 3,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 327964083,
+      &#34;TimeTaken&#34;: 328308250,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;nice&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -957,7 +961,7 @@ cube_size = 50;
 designFileName = &#34;cube-basic&#34;;
 round = 3;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>cube_center:</strong> true</div><div class="cell is-one-third"><strong>round:</strong> 3</div><div class="cell is-one-third"><strong>cube_size:</strong> 50</div><div class="cell is-one-third"><strong>designFileName:</strong> cube-basic</div></div></div></details></div><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_3-nice.png" alt="Preview of  from nice" class="image-preview"><form hx-put="/?regex=v0.1_cube-basic_50_3" hx-target="#instance-v0.1_cube-basic_50_3" hx-indicator="#loading-indicator"><input type="hidden" name="path" value=""> <button class="button is-large" id="process-btn" type="submit">Process v0.1_cube-basic_50_3</button></form></div></div></div></div><style>
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>cube_center:</strong> true</div><div class="cell is-one-third"><strong>round:</strong> 3</div><div class="cell is-one-third"><strong>cube_size:</strong> 50</div><div class="cell is-one-third"><strong>designFileName:</strong> cube-basic</div></div></div></details></div><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_3-nice.png" alt="Preview of  from nice" class="image-preview"> </div></div></div></div><style>
         .json-viewer {
             margin: 10px 0;
             border: 1px solid #ddd;
@@ -1066,7 +1070,8 @@ version = &#34;v0.1&#34;;
         &#34;SkippedImageReason&#34;: &#34;&#34;
       },
       &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_0-nice.png&#34;,
-      &#34;Command&#34;: &#34;&#34;,
+      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_0-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;cube_size=75&#39; -D &#39;round=0&#39; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; -D &#39;cube_center=true&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+      &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file cube-basic.scad, line 19\nWARNING: variable \&#34;rounding\&#34; not specified as parameter in file cube-basic.scad, line 14\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 1 elements\nGeometries in cache: 1\nGeometry cache size in bytes: 848\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.164\n&#34;,
       &#34;Error&#34;: &#34;&#34;,
       &#34;AppliedParams&#34;: {
         &#34;cube_center&#34;: true,
@@ -1075,7 +1080,7 @@ version = &#34;v0.1&#34;;
         &#34;round&#34;: 0,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 334337625,
+      &#34;TimeTaken&#34;: 920447834,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;nice&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -1098,7 +1103,7 @@ cube_size = 75;
 designFileName = &#34;cube-basic&#34;;
 round = 0;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>cube_center:</strong> true</div><div class="cell is-one-third"><strong>round:</strong> 0</div><div class="cell is-one-third"><strong>cube_size:</strong> 75</div><div class="cell is-one-third"><strong>designFileName:</strong> cube-basic</div></div></div></details></div><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_0-nice.png" alt="Preview of  from nice" class="image-preview"><form hx-put="/?regex=v0.1_cube-basic_75_0" hx-target="#instance-v0.1_cube-basic_75_0" hx-indicator="#loading-indicator"><input type="hidden" name="path" value=""> <button class="button is-large" id="process-btn" type="submit">Process v0.1_cube-basic_75_0</button></form></div></div></div></div><style>
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>cube_center:</strong> true</div><div class="cell is-one-third"><strong>round:</strong> 0</div><div class="cell is-one-third"><strong>cube_size:</strong> 75</div><div class="cell is-one-third"><strong>designFileName:</strong> cube-basic</div></div></div></details></div><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_0-nice.png" alt="Preview of  from nice" class="image-preview"> </div></div></div></div><style>
         .json-viewer {
             margin: 10px 0;
             border: 1px solid #ddd;
@@ -1207,7 +1212,8 @@ version = &#34;v0.1&#34;;
         &#34;SkippedImageReason&#34;: &#34;&#34;
       },
       &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_3-nice.png&#34;,
-      &#34;Command&#34;: &#34;&#34;,
+      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_3-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;cube_center=true&#39; -D &#39;cube_size=75&#39; -D &#39;round=3&#39; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+      &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file cube-basic.scad, line 19\nWARNING: variable \&#34;rounding\&#34; not specified as parameter in file cube-basic.scad, line 14\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 1 elements\nGeometries in cache: 1\nGeometry cache size in bytes: 848\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.165\n&#34;,
       &#34;Error&#34;: &#34;&#34;,
       &#34;AppliedParams&#34;: {
         &#34;cube_center&#34;: true,
@@ -1216,7 +1222,7 @@ version = &#34;v0.1&#34;;
         &#34;round&#34;: 3,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 326606750,
+      &#34;TimeTaken&#34;: 342575750,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;nice&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -1239,7 +1245,7 @@ cube_size = 75;
 designFileName = &#34;cube-basic&#34;;
 round = 3;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>cube_center:</strong> true</div><div class="cell is-one-third"><strong>round:</strong> 3</div><div class="cell is-one-third"><strong>cube_size:</strong> 75</div><div class="cell is-one-third"><strong>designFileName:</strong> cube-basic</div></div></div></details></div><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_3-nice.png" alt="Preview of  from nice" class="image-preview"><form hx-put="/?regex=v0.1_cube-basic_75_3" hx-target="#instance-v0.1_cube-basic_75_3" hx-indicator="#loading-indicator"><input type="hidden" name="path" value=""> <button class="button is-large" id="process-btn" type="submit">Process v0.1_cube-basic_75_3</button></form></div></div></div></div></div> <div class="my-2"></div></div></div><div><div x-show="navSelected === &#39;stlResults&#39;"><style>
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>cube_center:</strong> true</div><div class="cell is-one-third"><strong>round:</strong> 3</div><div class="cell is-one-third"><strong>cube_size:</strong> 75</div><div class="cell is-one-third"><strong>designFileName:</strong> cube-basic</div></div></div></details></div><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_3-nice.png" alt="Preview of  from nice" class="image-preview"> </div></div></div></div></div> <div class="my-2"></div></div></div><div><div x-show="navSelected === &#39;stlResults&#39;"><h3>STLs (6)</h3></div><div x-show="navSelected === &#39;stlResults&#39;"><style>
         .json-viewer {
             margin: 10px 0;
             border: 1px solid #ddd;
@@ -1319,7 +1325,8 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_0.stl&#39; --render --backend=manifold -D &#39;cube_size=50&#39; -D &#39;round=0&#39; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; -D &#39;cube_center=true&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_0.stl&#39; --render --backend=manifold -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; -D &#39;cube_center=true&#39; -D &#39;cube_size=50&#39; -D &#39;round=0&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;WARNING: variable \&#34;rounding\&#34; not specified as parameter in file cube-basic.scad, line 14\nGeometries in cache: 2\nGeometry cache size in bytes: 1696\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.000\nTop level object is a 3D object (PolySet):\n   Convex:       yes\n   Facets:         6\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;cube_center&#34;: true,
@@ -1328,7 +1335,7 @@ version = &#34;v0.1&#34;;
       &#34;round&#34;: 0,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 176454584,
+    &#34;TimeTaken&#34;: 166817125,
     &#34;Skipped&#34;: false,
     &#34;LowQuality&#34;: false,
     &#34;SkippedReason&#34;: &#34;&#34;,
@@ -1379,7 +1386,8 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_3.stl&#39; --render --backend=manifold -D &#39;cube_size=50&#39; -D &#39;round=3&#39; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; -D &#39;cube_center=true&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_3.stl&#39; --render --backend=manifold -D &#39;round=3&#39; -D &#39;cube_size=50&#39; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; -D &#39;cube_center=true&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;WARNING: variable \&#34;rounding\&#34; not specified as parameter in file cube-basic.scad, line 14\nGeometries in cache: 2\nGeometry cache size in bytes: 1696\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.000\nTop level object is a 3D object (PolySet):\n   Convex:       yes\n   Facets:         6\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;cube_center&#34;: true,
@@ -1388,7 +1396,7 @@ version = &#34;v0.1&#34;;
       &#34;round&#34;: 3,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 171007500,
+    &#34;TimeTaken&#34;: 160659458,
     &#34;Skipped&#34;: false,
     &#34;LowQuality&#34;: false,
     &#34;SkippedReason&#34;: &#34;&#34;,
@@ -1439,7 +1447,8 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_0.stl&#39; --render --backend=manifold -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; -D &#39;cube_center=true&#39; -D &#39;round=0&#39; -D &#39;cube_size=75&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_0.stl&#39; --render --backend=manifold -D &#39;round=0&#39; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; -D &#39;cube_center=true&#39; -D &#39;cube_size=75&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;WARNING: variable \&#34;rounding\&#34; not specified as parameter in file cube-basic.scad, line 14\nGeometries in cache: 2\nGeometry cache size in bytes: 1696\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.023\nTop level object is a 3D object (PolySet):\n   Convex:       yes\n   Facets:         6\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;cube_center&#34;: true,
@@ -1448,7 +1457,7 @@ version = &#34;v0.1&#34;;
       &#34;round&#34;: 0,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 198078542,
+    &#34;TimeTaken&#34;: 242144167,
     &#34;Skipped&#34;: false,
     &#34;LowQuality&#34;: false,
     &#34;SkippedReason&#34;: &#34;&#34;,
@@ -1499,7 +1508,8 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_3.stl&#39; --render --backend=manifold -D &#39;round=3&#39; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; -D &#39;cube_center=true&#39; -D &#39;cube_size=75&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_3.stl&#39; --render --backend=manifold -D &#39;cube_center=true&#39; -D &#39;cube_size=75&#39; -D &#39;round=3&#39; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;WARNING: variable \&#34;rounding\&#34; not specified as parameter in file cube-basic.scad, line 14\nGeometries in cache: 2\nGeometry cache size in bytes: 1696\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.000\nTop level object is a 3D object (PolySet):\n   Convex:       yes\n   Facets:         6\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;cube_center&#34;: true,
@@ -1508,7 +1518,7 @@ version = &#34;v0.1&#34;;
       &#34;round&#34;: 3,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 172352583,
+    &#34;TimeTaken&#34;: 171951917,
     &#34;Skipped&#34;: false,
     &#34;LowQuality&#34;: false,
     &#34;SkippedReason&#34;: &#34;&#34;,
@@ -1559,7 +1569,8 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_0.stl&#39; --render --backend=manifold -D &#39;cube_center=true&#39; -D &#39;round=0&#39; -D &#39;cube_size=100&#39; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_0.stl&#39; --render --backend=manifold -D &#39;round=0&#39; -D &#39;cube_size=100&#39; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; -D &#39;cube_center=true&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;WARNING: variable \&#34;rounding\&#34; not specified as parameter in file cube-basic.scad, line 14\nGeometries in cache: 2\nGeometry cache size in bytes: 1696\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.000\nTop level object is a 3D object (PolySet):\n   Convex:       yes\n   Facets:         6\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;cube_center&#34;: true,
@@ -1568,7 +1579,7 @@ version = &#34;v0.1&#34;;
       &#34;round&#34;: 0,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 162617333,
+    &#34;TimeTaken&#34;: 167840583,
     &#34;Skipped&#34;: false,
     &#34;LowQuality&#34;: false,
     &#34;SkippedReason&#34;: &#34;&#34;,
@@ -1619,7 +1630,8 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_3.stl&#39; --render --backend=manifold -D &#39;cube_size=100&#39; -D &#39;round=3&#39; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; -D &#39;cube_center=true&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_3.stl&#39; --render --backend=manifold -D &#39;cube_center=true&#39; -D &#39;cube_size=100&#39; -D &#39;round=3&#39; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;WARNING: variable \&#34;rounding\&#34; not specified as parameter in file cube-basic.scad, line 14\nGeometries in cache: 2\nGeometry cache size in bytes: 1696\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.000\nTop level object is a 3D object (PolySet):\n   Convex:       yes\n   Facets:         6\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;cube_center&#34;: true,
@@ -1628,43 +1640,97 @@ version = &#34;v0.1&#34;;
       &#34;round&#34;: 3,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 164213417,
+    &#34;TimeTaken&#34;: 163691708,
     &#34;Skipped&#34;: false,
     &#34;LowQuality&#34;: false,
     &#34;SkippedReason&#34;: &#34;&#34;,
     &#34;GenerateImageResult&#34;: null
   }
-]</pre></div></details> <div class="columns is-multiline"><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">v0.1_cube-basic_50_0</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 176.454584ms</p><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_0.stl" target="_blank">Open STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
+]</pre></div></details> <div class="columns is-multiline"><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">v0.1_cube-basic_50_0</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 166.817125ms</p><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_0.stl" target="_blank">Open STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
 cube_size = 50;
 designFileName = &#34;cube-basic&#34;;
 round = 0;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_0.stl&#39; --render --backend=manifold -D &#39;cube_size=50&#39; -D &#39;round=0&#39; -D &#39;designFileName=&#34;cube-basic&#34;&#39; -D &#39;cube_center=true&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad</pre></code></div></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">v0.1_cube-basic_50_3</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 171.0075ms</p><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_3.stl" target="_blank">Open STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary> <details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_0.stl&#39; --render --backend=manifold -D &#39;designFileName=&#34;cube-basic&#34;&#39; -D &#39;cube_center=true&#39; -D &#39;cube_size=50&#39; -D &#39;round=0&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>WARNING: variable &#34;rounding&#34; not specified as parameter in file cube-basic.scad, line 14
+Geometries in cache: 2
+Geometry cache size in bytes: 1696
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.000
+Top level object is a 3D object (PolySet):
+   Convex:       yes
+   Facets:         6
+</pre></code></div></details></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">v0.1_cube-basic_50_3</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 160.659458ms</p><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_3.stl" target="_blank">Open STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
 cube_size = 50;
 designFileName = &#34;cube-basic&#34;;
 round = 3;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_3.stl&#39; --render --backend=manifold -D &#39;cube_size=50&#39; -D &#39;round=3&#39; -D &#39;designFileName=&#34;cube-basic&#34;&#39; -D &#39;cube_center=true&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad</pre></code></div></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">v0.1_cube-basic_75_0</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 198.078542ms</p><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_0.stl" target="_blank">Open STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary> <details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_3.stl&#39; --render --backend=manifold -D &#39;round=3&#39; -D &#39;cube_size=50&#39; -D &#39;designFileName=&#34;cube-basic&#34;&#39; -D &#39;cube_center=true&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>WARNING: variable &#34;rounding&#34; not specified as parameter in file cube-basic.scad, line 14
+Geometries in cache: 2
+Geometry cache size in bytes: 1696
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.000
+Top level object is a 3D object (PolySet):
+   Convex:       yes
+   Facets:         6
+</pre></code></div></details></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">v0.1_cube-basic_75_0</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 242.144167ms</p><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_0.stl" target="_blank">Open STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
 cube_size = 75;
 designFileName = &#34;cube-basic&#34;;
 round = 0;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_0.stl&#39; --render --backend=manifold -D &#39;designFileName=&#34;cube-basic&#34;&#39; -D &#39;cube_center=true&#39; -D &#39;round=0&#39; -D &#39;cube_size=75&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad</pre></code></div></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">v0.1_cube-basic_75_3</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 172.352583ms</p><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_3.stl" target="_blank">Open STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary> <details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_0.stl&#39; --render --backend=manifold -D &#39;round=0&#39; -D &#39;designFileName=&#34;cube-basic&#34;&#39; -D &#39;cube_center=true&#39; -D &#39;cube_size=75&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>WARNING: variable &#34;rounding&#34; not specified as parameter in file cube-basic.scad, line 14
+Geometries in cache: 2
+Geometry cache size in bytes: 1696
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.023
+Top level object is a 3D object (PolySet):
+   Convex:       yes
+   Facets:         6
+</pre></code></div></details></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">v0.1_cube-basic_75_3</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 171.951917ms</p><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_3.stl" target="_blank">Open STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
 cube_size = 75;
 designFileName = &#34;cube-basic&#34;;
 round = 3;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_3.stl&#39; --render --backend=manifold -D &#39;round=3&#39; -D &#39;designFileName=&#34;cube-basic&#34;&#39; -D &#39;cube_center=true&#39; -D &#39;cube_size=75&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad</pre></code></div></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">v0.1_cube-basic_100_0</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 162.617333ms</p><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_0.stl" target="_blank">Open STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary> <details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_3.stl&#39; --render --backend=manifold -D &#39;cube_center=true&#39; -D &#39;cube_size=75&#39; -D &#39;round=3&#39; -D &#39;designFileName=&#34;cube-basic&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>WARNING: variable &#34;rounding&#34; not specified as parameter in file cube-basic.scad, line 14
+Geometries in cache: 2
+Geometry cache size in bytes: 1696
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.000
+Top level object is a 3D object (PolySet):
+   Convex:       yes
+   Facets:         6
+</pre></code></div></details></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">v0.1_cube-basic_100_0</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 167.840583ms</p><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_0.stl" target="_blank">Open STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
 cube_size = 100;
 designFileName = &#34;cube-basic&#34;;
 round = 0;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_0.stl&#39; --render --backend=manifold -D &#39;cube_center=true&#39; -D &#39;round=0&#39; -D &#39;cube_size=100&#39; -D &#39;designFileName=&#34;cube-basic&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad</pre></code></div></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">v0.1_cube-basic_100_3</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 164.213417ms</p><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_3.stl" target="_blank">Open STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary> <details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_0.stl&#39; --render --backend=manifold -D &#39;round=0&#39; -D &#39;cube_size=100&#39; -D &#39;designFileName=&#34;cube-basic&#34;&#39; -D &#39;cube_center=true&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>WARNING: variable &#34;rounding&#34; not specified as parameter in file cube-basic.scad, line 14
+Geometries in cache: 2
+Geometry cache size in bytes: 1696
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.000
+Top level object is a 3D object (PolySet):
+   Convex:       yes
+   Facets:         6
+</pre></code></div></details></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">v0.1_cube-basic_100_3</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 163.691708ms</p><p><strong>Output:</strong> <a href="file://Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_3.stl" target="_blank">Open STL</a></p><p><strong>Applied Params:</strong></p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
 cube_size = 100;
 designFileName = &#34;cube-basic&#34;;
 round = 3;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_3.stl&#39; --render --backend=manifold -D &#39;cube_size=100&#39; -D &#39;round=3&#39; -D &#39;designFileName=&#34;cube-basic&#34;&#39; -D &#39;cube_center=true&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad</pre></code></div></details></div></div></div></div></div></div></div></div><div><div x-show="navSelected === &#39;images&#39;"><style>
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div><div x-show="showDebug"><details><summary>Debug Info</summary> <details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_3.stl&#39; --render --backend=manifold -D &#39;cube_center=true&#39; -D &#39;cube_size=100&#39; -D &#39;round=3&#39; -D &#39;designFileName=&#34;cube-basic&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>WARNING: variable &#34;rounding&#34; not specified as parameter in file cube-basic.scad, line 14
+Geometries in cache: 2
+Geometry cache size in bytes: 1696
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.000
+Top level object is a 3D object (PolySet):
+   Convex:       yes
+   Facets:         6
+</pre></code></div></details></details></div></div></div></div></div></div></div></div><div><div x-show="navSelected === &#39;images&#39;"><h3>Image Results (6)</h3></div><div x-show="navSelected === &#39;images&#39;"><style>
         .json-viewer {
             margin: 10px 0;
             border: 1px solid #ddd;
@@ -1744,7 +1810,8 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_0-nice.png&#34;,
-    &#34;Command&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_0-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;cube_center=true&#39; -D &#39;cube_size=50&#39; -D &#39;round=0&#39; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file cube-basic.scad, line 19\nWARNING: variable \&#34;rounding\&#34; not specified as parameter in file cube-basic.scad, line 14\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 1 elements\nGeometries in cache: 1\nGeometry cache size in bytes: 848\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.181\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;cube_center&#34;: true,
@@ -1753,7 +1820,7 @@ version = &#34;v0.1&#34;;
       &#34;round&#34;: 0,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 357715750,
+    &#34;TimeTaken&#34;: 346453958,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;nice&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -1803,7 +1870,8 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_3-nice.png&#34;,
-    &#34;Command&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_3-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;cube_center=true&#39; -D &#39;round=3&#39; -D &#39;cube_size=50&#39; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file cube-basic.scad, line 19\nWARNING: variable \&#34;rounding\&#34; not specified as parameter in file cube-basic.scad, line 14\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 1 elements\nGeometries in cache: 1\nGeometry cache size in bytes: 848\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.155\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;cube_center&#34;: true,
@@ -1812,7 +1880,7 @@ version = &#34;v0.1&#34;;
       &#34;round&#34;: 3,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 327964083,
+    &#34;TimeTaken&#34;: 328308250,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;nice&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -1862,7 +1930,8 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_0-nice.png&#34;,
-    &#34;Command&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_0-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;cube_size=75&#39; -D &#39;round=0&#39; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; -D &#39;cube_center=true&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file cube-basic.scad, line 19\nWARNING: variable \&#34;rounding\&#34; not specified as parameter in file cube-basic.scad, line 14\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 1 elements\nGeometries in cache: 1\nGeometry cache size in bytes: 848\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.164\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;cube_center&#34;: true,
@@ -1871,7 +1940,7 @@ version = &#34;v0.1&#34;;
       &#34;round&#34;: 0,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 334337625,
+    &#34;TimeTaken&#34;: 920447834,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;nice&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -1921,7 +1990,8 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_3-nice.png&#34;,
-    &#34;Command&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_3-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;cube_center=true&#39; -D &#39;cube_size=75&#39; -D &#39;round=3&#39; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file cube-basic.scad, line 19\nWARNING: variable \&#34;rounding\&#34; not specified as parameter in file cube-basic.scad, line 14\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 1 elements\nGeometries in cache: 1\nGeometry cache size in bytes: 848\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.165\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;cube_center&#34;: true,
@@ -1930,7 +2000,7 @@ version = &#34;v0.1&#34;;
       &#34;round&#34;: 3,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 326606750,
+    &#34;TimeTaken&#34;: 342575750,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;nice&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -1980,7 +2050,8 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_0-nice.png&#34;,
-    &#34;Command&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_0-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;round=0&#39; -D &#39;cube_size=100&#39; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; -D &#39;cube_center=true&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file cube-basic.scad, line 19\nWARNING: variable \&#34;rounding\&#34; not specified as parameter in file cube-basic.scad, line 14\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 1 elements\nGeometries in cache: 1\nGeometry cache size in bytes: 848\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.190\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;cube_center&#34;: true,
@@ -1989,7 +2060,7 @@ version = &#34;v0.1&#34;;
       &#34;round&#34;: 0,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 338114750,
+    &#34;TimeTaken&#34;: 382262375,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;nice&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -2039,7 +2110,8 @@ version = &#34;v0.1&#34;;
       &#34;SkippedImageReason&#34;: &#34;&#34;
     },
     &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_3-nice.png&#34;,
-    &#34;Command&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_3-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;designFileName=\&#34;cube-basic\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; -D &#39;cube_center=true&#39; -D &#39;cube_size=100&#39; -D &#39;round=3&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file cube-basic.scad, line 19\nWARNING: variable \&#34;rounding\&#34; not specified as parameter in file cube-basic.scad, line 14\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 1 elements\nGeometries in cache: 1\nGeometry cache size in bytes: 848\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.178\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;cube_center&#34;: true,
@@ -2048,42 +2120,114 @@ version = &#34;v0.1&#34;;
       &#34;round&#34;: 3,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 584337209,
+    &#34;TimeTaken&#34;: 348604750,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;nice&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
   }
-]</pre></div></details> <div class="columns is-multiline"><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4"></p><p class="subtitle is-6">Camera: nice</p></div></div><div class="content"><p><strong>Output Path:</strong> ../v0.1/cube-basic_50_0-nice.png</p><p><strong>Time Taken:</strong> 357.72ms</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
+]</pre></div></details> <div class="columns is-multiline"><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4"></p><p class="subtitle is-6">Camera: nice</p></div></div><div class="content"><p><strong>Output Path:</strong> ../v0.1/cube-basic_50_0-nice.png</p><p><strong>Time Taken:</strong> 346.45ms</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
 cube_size = 50;
 designFileName = &#34;cube-basic&#34;;
 round = 0;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_0-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_0-nice.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></details></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4"></p><p class="subtitle is-6">Camera: nice</p></div></div><div class="content"><p><strong>Output Path:</strong> ../v0.1/cube-basic_50_3-nice.png</p><p><strong>Time Taken:</strong> 327.96ms</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_0-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_0-nice.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_0-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=&#34;image&#34; -D &#39;cube_center=true&#39; -D &#39;cube_size=50&#39; -D &#39;round=0&#39; -D &#39;designFileName=&#34;cube-basic&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>WARNING: Ignoring unknown variable &#34;image&#34; in file cube-basic.scad, line 19
+WARNING: variable &#34;rounding&#34; not specified as parameter in file cube-basic.scad, line 14
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+Compiling design (CSG Products normalization)...
+Normalized CSG tree has 1 elements
+Geometries in cache: 1
+Geometry cache size in bytes: 848
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.181
+</pre></code></div></details></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4"></p><p class="subtitle is-6">Camera: nice</p></div></div><div class="content"><p><strong>Output Path:</strong> ../v0.1/cube-basic_50_3-nice.png</p><p><strong>Time Taken:</strong> 328.31ms</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
 cube_size = 50;
 designFileName = &#34;cube-basic&#34;;
 round = 3;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_3-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_3-nice.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></details></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4"></p><p class="subtitle is-6">Camera: nice</p></div></div><div class="content"><p><strong>Output Path:</strong> ../v0.1/cube-basic_75_0-nice.png</p><p><strong>Time Taken:</strong> 334.34ms</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_3-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_3-nice.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_50_3-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=&#34;image&#34; -D &#39;cube_center=true&#39; -D &#39;round=3&#39; -D &#39;cube_size=50&#39; -D &#39;designFileName=&#34;cube-basic&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>WARNING: Ignoring unknown variable &#34;image&#34; in file cube-basic.scad, line 19
+WARNING: variable &#34;rounding&#34; not specified as parameter in file cube-basic.scad, line 14
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+Compiling design (CSG Products normalization)...
+Normalized CSG tree has 1 elements
+Geometries in cache: 1
+Geometry cache size in bytes: 848
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.155
+</pre></code></div></details></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4"></p><p class="subtitle is-6">Camera: nice</p></div></div><div class="content"><p><strong>Output Path:</strong> ../v0.1/cube-basic_75_0-nice.png</p><p><strong>Time Taken:</strong> 920.45ms</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
 cube_size = 75;
 designFileName = &#34;cube-basic&#34;;
 round = 0;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_0-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_0-nice.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></details></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4"></p><p class="subtitle is-6">Camera: nice</p></div></div><div class="content"><p><strong>Output Path:</strong> ../v0.1/cube-basic_75_3-nice.png</p><p><strong>Time Taken:</strong> 326.61ms</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_0-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_0-nice.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_0-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=&#34;image&#34; -D &#39;cube_size=75&#39; -D &#39;round=0&#39; -D &#39;designFileName=&#34;cube-basic&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;cube_center=true&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>WARNING: Ignoring unknown variable &#34;image&#34; in file cube-basic.scad, line 19
+WARNING: variable &#34;rounding&#34; not specified as parameter in file cube-basic.scad, line 14
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+Compiling design (CSG Products normalization)...
+Normalized CSG tree has 1 elements
+Geometries in cache: 1
+Geometry cache size in bytes: 848
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.164
+</pre></code></div></details></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4"></p><p class="subtitle is-6">Camera: nice</p></div></div><div class="content"><p><strong>Output Path:</strong> ../v0.1/cube-basic_75_3-nice.png</p><p><strong>Time Taken:</strong> 342.58ms</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
 cube_size = 75;
 designFileName = &#34;cube-basic&#34;;
 round = 3;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_3-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_3-nice.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></details></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4"></p><p class="subtitle is-6">Camera: nice</p></div></div><div class="content"><p><strong>Output Path:</strong> ../v0.1/cube-basic_100_0-nice.png</p><p><strong>Time Taken:</strong> 338.11ms</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_3-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_3-nice.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_75_3-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=&#34;image&#34; -D &#39;cube_center=true&#39; -D &#39;cube_size=75&#39; -D &#39;round=3&#39; -D &#39;designFileName=&#34;cube-basic&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>WARNING: Ignoring unknown variable &#34;image&#34; in file cube-basic.scad, line 19
+WARNING: variable &#34;rounding&#34; not specified as parameter in file cube-basic.scad, line 14
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+Compiling design (CSG Products normalization)...
+Normalized CSG tree has 1 elements
+Geometries in cache: 1
+Geometry cache size in bytes: 848
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.165
+</pre></code></div></details></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4"></p><p class="subtitle is-6">Camera: nice</p></div></div><div class="content"><p><strong>Output Path:</strong> ../v0.1/cube-basic_100_0-nice.png</p><p><strong>Time Taken:</strong> 382.26ms</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
 cube_size = 100;
 designFileName = &#34;cube-basic&#34;;
 round = 0;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_0-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_0-nice.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></details></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4"></p><p class="subtitle is-6">Camera: nice</p></div></div><div class="content"><p><strong>Output Path:</strong> ../v0.1/cube-basic_100_3-nice.png</p><p><strong>Time Taken:</strong> 584.34ms</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_0-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_0-nice.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_0-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=&#34;image&#34; -D &#39;round=0&#39; -D &#39;cube_size=100&#39; -D &#39;designFileName=&#34;cube-basic&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;cube_center=true&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>WARNING: Ignoring unknown variable &#34;image&#34; in file cube-basic.scad, line 19
+WARNING: variable &#34;rounding&#34; not specified as parameter in file cube-basic.scad, line 14
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+Compiling design (CSG Products normalization)...
+Normalized CSG tree has 1 elements
+Geometries in cache: 1
+Geometry cache size in bytes: 848
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.190
+</pre></code></div></details></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4"></p><p class="subtitle is-6">Camera: nice</p></div></div><div class="content"><p><strong>Output Path:</strong> ../v0.1/cube-basic_100_3-nice.png</p><p><strong>Time Taken:</strong> 348.60ms</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>cube_center = true;
 cube_size = 100;
 designFileName = &#34;cube-basic&#34;;
 round = 3;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_3-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_3-nice.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre></pre></code></div></details></div></div></div></div></div></div></div><div></div></div><script>
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_3-nice.png" alt="Preview of  from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_3-nice.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/v0.1/cube-basic_100_3-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=&#34;image&#34; -D &#39;designFileName=&#34;cube-basic&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;cube_center=true&#39; -D &#39;cube_size=100&#39; -D &#39;round=3&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/cube-basic.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <code style="white-space: pre;"><pre>WARNING: Ignoring unknown variable &#34;image&#34; in file cube-basic.scad, line 19
+WARNING: variable &#34;rounding&#34; not specified as parameter in file cube-basic.scad, line 14
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+Compiling design (CSG Products normalization)...
+Normalized CSG tree has 1 elements
+Geometries in cache: 1
+Geometry cache size in bytes: 848
+CGAL Polyhedrons in cache: 0
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.178
+</pre></code></div></details></div></div></div></div></div></div></div><div></div></div><script>
             // Enable htmx debug mode
             window.htmx && (htmx.config.debug = true);
 
@@ -2106,4 +2250,4 @@ version = &#34;v0.1&#34;;
             document.body.addEventListener('htmx:afterOnLoad', function(evt) {
                 console.log('htmx:afterOnLoad', evt);
             });
-        </script><div><h1>Config Summary</h1><p>Output Path: /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/report.html</p><p>Total Time: 4.50s</p><p>No global parameters</p><h2>Output Paths</h2><p><strong>OutputPath:</strong> /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/report.html</p><p class="is-size-6 is-italic is-text-grey is-centered">Generated by openscadgen OpenSCAD version 2025.07.21 v2.7.26 at 2025-10-06 08:53:26</p><p class="is-size-6 is-italic is-text-grey is-centered">Total processing time: 4.50s</p></div></div></body></html>
+        </script><div><h1>Config Summary</h1><p>Output Path: /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/report.html</p><p>Total Time: 4.93s</p><p>No global parameters</p><h2>Output Paths</h2><p><strong>OutputPath:</strong> /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/bols2otropolis/cube-basic/export/v0.1/report.html</p><p class="is-size-6 is-italic is-text-grey is-centered">Generated by openscadgen OpenSCAD version 2025.07.21 v2.7.27 at 2025-10-06 17:52:33</p><p class="is-size-6 is-italic is-text-grey is-centered">Total processing time: 4.93s</p></div></div></body></html>

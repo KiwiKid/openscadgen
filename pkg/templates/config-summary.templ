@@ -11,7 +11,8 @@ templ ConfigSummary(config models.Config, outputPath string, totalTimeTaken time
         <h1>Config Summary</h1>
         <p>Output Path: { outputPath }</p>
         <p>Total Time: { formatDuration(totalTimeTaken) }</p>
-        
+
+
         if len(config.Design.GlobalParams) > 0 {
             <h2>Global Parameters</h2>
             for name, value := range config.Design.GlobalParams {

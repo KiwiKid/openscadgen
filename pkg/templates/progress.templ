@@ -4,16 +4,17 @@ import "fmt"
 
 
 templ CancelButton(id string) {
-    <button id="cancel-button" class="button is-danger" hx-get={ fmt.Sprintf("/cancel?id=%s", id) }>Cancel</button>
+    <button id="cancel-button" hx-swap-oob="true" class="button is-danger" hx-get={ fmt.Sprintf("/cancel?id=%s", id) }>Cancel</button>
 }
 
 templ GetProgressHTML(id string) {
-    <div id="progress" hx-get={ fmt.Sprintf("/progress?id=%s", id) } hx-trigger="every 1s" hx-swap="outerHTML" class="notification is-info">Starting...
-       
-    </div>
-    <div>
+     <div>
         @CancelButton(id)
     </div>
+    <div id="progress" hx-get={ fmt.Sprintf("/progress?id=%s", id) } hx-trigger="every 1s" hx-swap="outerHTML" class="notification is-info p-1 m-1" style="max-width: 300px;">Starting...
+       
+    </div>
+   
     <script>
         // Handle completion by stopping polling
         document.body.addEventListener('htmx:afterRequest', function(evt) {
@@ -43,10 +44,10 @@ templ AllComplete() {
 }
 
 templ InstanceUpdate(id string) {
-		<div id="progress" class="notification is-info"></div>
+		<div id="progress" class="notification is-info" hx-get={ fmt.Sprintf("/progress?id=%s", id) } hx-trigger="every 1s" hx-swap="outerHTML"></div>
 		<script>
-            function poll() {
-                fetch('/progress?id=%s').then(r => {
+            /*function poll() {
+                fetch(fmt.Sprintf('/progress?id=%s'), id).then(r => {
                     const status = r.headers.get('X-Progress-Status');
                     return r.text().then(msg => ({ status, msg }));
                 }).then(({ status, msg }) => {
@@ -54,11 +55,11 @@ templ InstanceUpdate(id string) {
                         // Complete report received, replace the entire page content
                         document.documentElement.innerHTML = msg;
                     } else if(status === 'html') {
-                   /*     // HTML update received, append to instances grid
+                        // HTML update received, append to instances grid
                         const grid = document.querySelector('#instances-grid');
                         grid.insertAdjacentHTML('beforeend', msg);
                         // Continue polling
-                        setTimeout(poll, 1000);*/
+                        setTimeout(poll, 1000);
                     } else {
                         document.getElementById('progress').innerText = msg;
                         if(status !== 'done' && status !== 'cancelled' && !msg.startsWith('error:')) {
@@ -70,6 +71,6 @@ templ InstanceUpdate(id string) {
                     setTimeout(poll, 1000);
                 });
             }
-            poll();
+            poll();*/
 		</script>
 }
