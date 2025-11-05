@@ -1,0 +1,30 @@
+[openscadgen]
+name = "pen_whiteboard_holder"
+description = ""
+
+version = "v0.2"
+
+export_name_format = "{designFileName}_{renderType}_penDiameter_{penDiameter}"
+
+global_params = { renderType = "obj" }
+
+
+[[openscadgen.instances]]
+params = { penDiameter = 15.98,  penHolderDown = -3 }
+
+[[openscadgen.instances]]
+params = { penDiameter = 14.3,  penHolderDown = -2.1 }
+
+[[openscadgen.instances]]
+params = { penDiameter =9.98,  penHolderDown = 0.05 }
+
+
+
+[[openscadgen.instances]]
+params = { penDiameter = 11.5, penHolderDown = -0.7 }
+
+[[openscadgen.input_paths]]
+path = "./pen_whiteboard_holder.scad"
+
+[[openscadgen.images]]
+name = "nice"

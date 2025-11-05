@@ -74,3 +74,39 @@ templ InstanceUpdate(id string) {
             poll();*/
 		</script>
 }
+
+templ ProgressContainer(id string) {
+    <div id="progress-container" class="box m-3">
+        <div class="columns is-vcentered">
+            <div class="column">
+                <div id="progress" class="notification is-info" hx-get={ fmt.Sprintf("/progress?id=%s", id) } hx-trigger="every 1s" hx-swap="outerHTML">
+                    Starting...
+                </div>
+            </div>
+            <div class="column is-narrow">
+                <button id="cancel-button" class="button is-danger" hx-get={ fmt.Sprintf("/cancel?id=%s", id) } hx-swap-oob="true">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+templ ProgressUpdate(message string, id string, keepPolling bool) {
+    <div id="progress" class="notification is-info"
+    if keepPolling {
+        hx-get={ fmt.Sprintf("/progress?id=%s", id) } hx-trigger="every 1s" hx-swap="outerHTML"
+    }>
+        { message }
+    </div>
+}
+
+templ ProgressComplete() {
+    <div id="progress" class="notification is-success">
+        <span class="icon">
+            <i class="fas fa-check-circle"></i>
+        </span>
+        <span>All instances completed!</span>
+    </div>
+    <div id="cancel-button" hx-swap-oob="true"></div>
+}

@@ -1329,7 +1329,7 @@ coord = "0,0,0,90,0,0,600"
 			}
 
 			// Load config
-			config, err := LoadConfig(models.CmdFlags{
+			config, err, _ := LoadConfigFromFile(models.CmdFlags{
 				ConfigFile: tc.configPath,
 			})
 			if err != nil {
@@ -1828,7 +1828,7 @@ func TestScanFolderForConfigFiles(t *testing.T) {
 	}
 
 	// Should only find the two valid config files outside export folders
-	expectedPaths := []string{"/valid.toml", "/another_valid.toml"}
+	expectedPaths := []string{"valid.toml", "another_valid.toml"}
 	if len(files) != 2 {
 		t.Errorf("Expected 2 files, got %d: %v", len(files), files)
 	}
@@ -1885,7 +1885,7 @@ name = "nice"
 		cube(10);
 		`), 0644)
 
-	config, err := LoadConfig(models.CmdFlags{
+	config, err, _ := LoadConfigFromFile(models.CmdFlags{
 		ConfigFile: validConfigPath,
 	})
 	if err != nil {
@@ -1935,7 +1935,7 @@ func TestParseCameraNameValidDirections(t *testing.T) {
 		expectedDistance  string
 	}{
 		{"nice", "nice", ""},
-		{"front", "front", ""},
+		{"nice-near", "nice", "near"},
 		{"top", "top", ""},
 		{"nice-far", "nice", "far"},
 		{"front-near", "front", "near"},
@@ -2434,7 +2434,7 @@ func TestParseDirectArrayParam(t *testing.T) {
 			}
 
 			if err != nil {
-				t.Errorf("Unexpected error: %v", err)
+				t.Errorf("Unexpected parseDirectArrayParam error: %v", err)
 				return
 			}
 
@@ -2560,6 +2560,152 @@ func TestGetImagePath(t *testing.T) {
 			result := GetImagePath(tc.input.runOutputImagePath, tc.input.cameraName)
 			if result != tc.expected {
 				t.Errorf("GetImagePath(%q, %q) = %q; want %q", tc.input.runOutputImagePath, tc.input.cameraName, result, tc.expected)
+			}
+		})
+	}
+}
+
+func TestCheckRegexPattern(t *testing.T) {
+	tests := []struct {
+		name                     string
+		configuredInstanceConfig models.ConfiguredInstanceConfig
+		inputPath                models.InputPath
+		config                   *models.Config
+		expectedMatch            bool // true means should match (empty string returned), false means should not match (error string returned)
+	}{
+		{
+			name: "match param_set name from instance param_sets",
+			configuredInstanceConfig: models.ConfiguredInstanceConfig{
+				Name:      "some-instance",
+				ParamSets: "largeRectAnko",
+				Params:    make(map[string]interface{}),
+			},
+			inputPath: models.InputPath{
+				Path: "./test.scad",
+			},
+			config: &models.Config{
+				RegexPattern: "largeRectAnko",
+				Design: models.DesignConfig{
+					ParamSets: []models.ParamSet{
+						{
+							Name: "largeRectAnko",
+							Params: map[string]interface{}{
+								"size": "largeRectAnko",
+							},
+						},
+					},
+				},
+			},
+			expectedMatch: true,
+		},
+		{
+			name: "match param key from param_set",
+			configuredInstanceConfig: models.ConfiguredInstanceConfig{
+				Name:      "some-instance",
+				ParamSets: "largeRectAnko",
+				Params:    make(map[string]interface{}),
+			},
+			inputPath: models.InputPath{
+				Path: "./test.scad",
+			},
+			config: &models.Config{
+				RegexPattern: "size",
+				Design: models.DesignConfig{
+					ParamSets: []models.ParamSet{
+						{
+							Name: "largeRectAnko",
+							Params: map[string]interface{}{
+								"size": "largeRectAnko",
+							},
+						},
+					},
+				},
+			},
+			expectedMatch: true,
+		},
+		{
+			name: "match param value from param_set",
+			configuredInstanceConfig: models.ConfiguredInstanceConfig{
+				Name:      "some-instance",
+				ParamSets: "largeRectAnko",
+				Params:    make(map[string]interface{}),
+			},
+			inputPath: models.InputPath{
+				Path: "./test.scad",
+			},
+			config: &models.Config{
+				RegexPattern: "largeRectAnko",
+				Design: models.DesignConfig{
+					ParamSets: []models.ParamSet{
+						{
+							Name: "largeRectAnko",
+							Params: map[string]interface{}{
+								"size": "largeRectAnko",
+							},
+						},
+					},
+				},
+			},
+			expectedMatch: true,
+		},
+		{
+			name: "no match when pattern doesn't match anything",
+			configuredInstanceConfig: models.ConfiguredInstanceConfig{
+				Name:      "some-instance",
+				ParamSets: "largeRectAnko",
+				Params:    make(map[string]interface{}),
+			},
+			inputPath: models.InputPath{
+				Path: "./test.scad",
+			},
+			config: &models.Config{
+				RegexPattern: "nonexistent",
+				Design: models.DesignConfig{
+					ParamSets: []models.ParamSet{
+						{
+							Name: "largeRectAnko",
+							Params: map[string]interface{}{
+								"size": "largeRectAnko",
+							},
+						},
+					},
+				},
+			},
+			expectedMatch: false,
+		},
+		{
+			name: "match param key from instance params",
+			configuredInstanceConfig: models.ConfiguredInstanceConfig{
+				Name:      "some-instance",
+				ParamSets: "",
+				Params: map[string]interface{}{
+					"myParam": "value",
+				},
+			},
+			inputPath: models.InputPath{
+				Path: "./test.scad",
+			},
+			config: &models.Config{
+				RegexPattern: "myParam",
+				Design: models.DesignConfig{
+					ParamSets: []models.ParamSet{},
+				},
+			},
+			expectedMatch: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := checkRegexPattern(tt.config, tt.configuredInstanceConfig, tt.inputPath)
+			if tt.expectedMatch {
+				if result != "" {
+					t.Errorf("checkRegexPattern() = %q, expected empty string (match)", result)
+				}
+			} else {
+				if result == "" {
+					t.Errorf("checkRegexPattern() = empty string, expected non-empty error string (no match)")
+				}
 			}
 		})
 	}

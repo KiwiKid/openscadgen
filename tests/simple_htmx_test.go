@@ -14,7 +14,7 @@ func TestInstanceRenderingSimple(t *testing.T) {
 	configPath := "../examples/small-tray/config.toml"
 
 	// Load config to get expected instances
-	config, err := pkg.LoadConfig(models.CmdFlags{ConfigFile: configPath, Server: true})
+	config, _, err := pkg.LoadConfigFromFile(models.CmdFlags{ConfigFile: configPath, Server: true})
 	if err != nil {
 		t.Fatalf("Failed to load config: %v", err)
 	}

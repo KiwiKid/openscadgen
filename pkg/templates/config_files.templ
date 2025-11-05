@@ -2,8 +2,9 @@ package templates
 
 import "github.com/kiwikid/openscadgen/pkg/models"
 import "fmt"
+import "encoding/base64"
 
-templ EnterConfigPage(configFiles []models.ConfigFile) {
+templ EnterConfigPage(configFiles []models.ConfigFile, serverFolder string) {
      <head>
             <meta charset="UTF-8"/>
             <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -12,7 +13,7 @@ templ EnterConfigPage(configFiles []models.ConfigFile) {
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
             <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
             <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
+            @HeadLinks()
             <script>
                 (function() {
                     var darkMode = localStorage.getItem('darkMode');
@@ -235,13 +236,13 @@ html, body {
                 <h2>Config Files</h2>
                 <div class="fixed-grid has-4-cols">
                     for _, configFile := range configFiles {
-                        <div class="cell" title={ configFile.Path }><a class="button" href={ templ.SafeURL(fmt.Sprintf("/?config=%s", configFile.Path)) }>{ configFile.NiceName }</a></div>
+                        <div class="cell" title={ configFile.Path }><a class="button" href={ templ.SafeURL(fmt.Sprintf("/?config=%s&server_folder=%s", base64.StdEncoding.EncodeToString([]byte(configFile.Path)), base64.StdEncoding.EncodeToString([]byte(serverFolder)))) }>{ configFile.NiceName }</a></div>
                     }
                 </div>
                 <hr/>
                 
                 <form action="/" method="post">
-                    <input type="text" name="path" value="">
+                    <input type="text" name="config_path" value="">
                     <input type="submit" value="Enter">
                 </form>
             </div>
@@ -251,7 +252,7 @@ html, body {
 templ EnterConfig() {
 
     <form action="/" method="post">
-        <input type="text" name="path" value="">
+        <input type="text" name="config_path" value="">
         <details style="margin-top:1em;">
             <summary style="cursor:pointer; color:#66aaff;">Advanced Options</summary>
             <div style="margin-top:1em;">
@@ -268,6 +269,110 @@ templ EnterConfig() {
     </form>
 }
 
+templ ProjectFolderForm(warning templ.Component){
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+            <meta charset="UTF-8"/>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+            <base href="."/>
+            <title> OpenSCAD Generation - Pick a config file</title>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
+            @HeadLinks()
+            <style>
+                .container {
+                    max-width: 600px;
+                    margin: 50px auto;
+                    padding: 20px;
+                }
+                .error-message {
+                    color: #d32f2f;
+                    margin-top: 10px;
+                    display: none;
+                }
+                .success-message {
+                    color: #2e7d32;
+                    margin-top: 10px;
+                    display: none;
+                }
+            </style>
+            </head>
+    <body>
+        <div class="container">
+            <h1 class="title">Enter Project Folder Path</h1>
+
+            if warning != nil {
+                   @warning
+            }
+            
+            <form id="folderForm">
+                <div class="field">
+                    <label class="label">Full Path to Project Folder:</label>
+                    <div class="control">
+                        <input type="text" id="fullPathInput" class="input" placeholder="Enter the full path to your project folder (e.g., /Users/username/projects/my-openscad)" required>
+                    </div>
+                    <p class="help">Enter the complete path to your project folder containing config.toml files.</p>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <button type="submit" class="button is-primary">Navigate to Server Folder</button>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+        </div>
+        
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const folderForm = document.getElementById('folderForm');
+            const fullPathInput = document.getElementById('fullPathInput');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            
+            // Handle form submission
+            folderForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                const fullPath = fullPathInput.value.trim();
+                
+                if (!fullPath) {
+                    showError('Please enter the full path to the folder');
+                    return;
+                }
+                
+                try {
+                    const encodedPath = btoa(fullPath);
+                    const url = `/?server_folder=${encodeURIComponent(encodedPath)}`;
+                    
+                    showSuccess('Navigating to server folder...');
+                    
+                    // Navigate to the URL
+                    window.location.href = url;
+                } catch (error) {
+                    console.error('Error encoding folder path:', error);
+                    showError('Error processing folder path');
+                }
+            });
+            
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                successMessage.style.display = 'none';
+            }
+            
+            function showSuccess(message) {
+                successMessage.textContent = message;
+                successMessage.style.display = 'block';
+                errorMessage.style.display = 'none';
+            }
+        });
+        </script>
+    </body>
+
+</html>
+}
 
 templ Warning(message string) {
     <div class="notification is-warning">
@@ -285,4 +390,3 @@ templ ListConfig(configFiles []models.ConfigFile) {
         </ul>
     </div>
 }
-

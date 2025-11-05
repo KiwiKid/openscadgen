@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/cli/browser"
 	"github.com/kiwikid/openscadgen/cmd"
 	"github.com/kiwikid/openscadgen/pkg"
 	"github.com/kiwikid/openscadgen/server"
@@ -54,7 +55,7 @@ func main() {
 
 	if cmdFlags.Server || cmdFlags.ServerFolder != "" {
 		cmdFlags.Server = true
-		server.StartServer(cmdFlags.ServerFolder, cmdFlags)
+		server.StartServer(cmdFlags.ServerFolder, cmdFlags, nil)
 		return
 	}
 
@@ -62,50 +63,60 @@ func main() {
 		cmdFlags.OverwriteExisting = true
 		processResults, err := pkg.ProcessFolder(cmdFlags.ProcessFolder, cmdFlags)
 		if err != nil {
-			log.Fatalf("Error: %v", err)
+			log.Fatalf("ProcessFolder Error: %v", err)
 		}
 		log.Printf("Processed %d config files", len(processResults))
 		return
 	}
 
-	config, err := pkg.LoadConfig(cmdFlags)
-	if err != nil {
-		log.Fatalf("Error: %v", err)
-	}
+	if cmdFlags.ConfigFile != "" {
 
-	// Use terminal progress reporter instead of NoopProgress
-	var progress pkg.ProgressReporter
-	if config.Quiet {
-		progress = &pkg.NoopProgress{}
-	} else {
-		progress = pkg.NewTerminalProgressReporter(config)
-	}
-
-	processResult, err := pkg.Process(config, progress, nil, pkg.Operations{
-		GenerateReport: true,
-	}, false)
-	if err != nil {
-		log.Fatalf("Error: %v", err)
-	}
-
-	//if !config.Quiet {
-	log.Printf("Total processing time: %v", processResult.TotalTimeTaken)
-	//}
-
-	if len(processResult.STLResults) == 0 && len(processResult.ImageResults) == 0 {
-		log.Printf("Match options:")
-		for _, instance := range processResult.Instances {
-			instanceStr := fmt.Sprintf("  - %s", instance.Name)
-			/*for _, param := range instance.Params {
-				instanceStr += fmt.Sprintf(" %v", param)
-			}*/
-			log.Println(instanceStr)
+		config, _, err := pkg.LoadConfigFromFile(cmdFlags)
+		if err != nil {
+			log.Fatalf("LoadConfig Error: %v", err)
 		}
-		pkg.LogWarn("No STLs or images generated", true)
-		pkg.LogWarn(fmt.Sprintf("Regex pattern didn't match any instances: %s\n\n(match options listed above)", config.RegexPattern), false)
 
-		os.Exit(1)
-		return
+		// Use terminal progress reporter instead of NoopProgress
+		var progress pkg.ProgressReporter
+		if config.Quiet {
+			progress = &pkg.NoopProgress{}
+		} else {
+			progress = pkg.NewTerminalProgressReporter(config)
+		}
+
+		processResult, err := pkg.Process(config, progress, nil, pkg.Operations{
+			GenerateReport: true,
+		}, false)
+		if err != nil {
+			log.Fatalf("Process Error: %v", err)
+		}
+
+		//if !config.Quiet {
+		log.Printf("Total processing time: %v", processResult.TotalTimeTaken)
+		//}
+
+		if len(processResult.STLResults) == 0 && len(processResult.ImageResults) == 0 {
+			log.Printf("Match options:")
+			for _, instance := range processResult.Instances {
+				instanceStr := fmt.Sprintf("  - %s", instance.Name)
+				/*for _, param := range instance.Params {
+					instanceStr += fmt.Sprintf(" %v", param)
+				}*/
+				log.Println(instanceStr)
+			}
+			pkg.LogWarn("No STLs or images generated", true)
+			pkg.LogWarn(fmt.Sprintf("Regex pattern didn't match any instances: %s\n\n(match options listed above)", config.RegexPattern), false)
+
+			os.Exit(1)
+			return
+		}
+	} else {
+		onStart := func(port string) error {
+			// launch browser
+			browser.OpenURL(fmt.Sprintf("http://localhost%s", port))
+			return nil
+		}
+		server.StartServer("", cmdFlags, onStart)
 	}
 
 }

@@ -152,7 +152,15 @@ func (h *HTMLProgressReporter) FinishInstance() {
 		var htmlCard strings.Builder
 		// templates.InstanceCard(*completedInstance, h.outputPath).Render(context.Background(), &htmlCard)
 
-		templates.InstanceCardV2(*completedInstance, h.outputPath, "complete", h.allParamNames, true, h.config.ConfigFile).Render(context.Background(), &htmlCard)
+		reportMeta := pkg.BuildReportMeta(models.BuildReportMetaParams{
+			IsServerMode:   true,
+			ConfigFilePath: h.config.ConfigFile,
+			ServerFolder:   h.config.ServerFolder,
+		}, models.Results{
+			TimeTake: 0,
+		})
+
+		templates.InstanceCardV2(*completedInstance, h.outputPath, "complete", h.allParamNames, reportMeta).Render(context.Background(), &htmlCard)
 
 		// Send HTML update
 		htmlUpdate := "html:" + htmlCard.String()
@@ -198,7 +206,7 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	config, err := pkg.LoadConfig(flags)
+	config, _, err := pkg.LoadConfigFromFile(flags)
 	if err != nil {
 		http.Error(w, "Error loading config: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -281,29 +289,29 @@ func ProgressHandler(w http.ResponseWriter, r *http.Request) {
 
 			// Check if processing is complete by checking if we have a result
 			mu.Lock()
-			result, hasResult := resultMap[id]
+			_, hasResult := resultMap[id]
 			mu.Unlock()
 
 			if hasResult {
-				allCompleteHTML := templates.AllComplete()
+				// Return OOB updates for completion
+				progressComplete := templates.ProgressComplete()
 				w.Header().Set("Content-Type", "text/html")
 				w.Header().Set("X-Progress-Status", "complete")
-				allCompleteHTML.Render(context.Background(), w)
-				templates.ProcessForm(result.ConfigFile).Render(context.Background(), w)
+				progressComplete.Render(context.Background(), w)
 			} else {
-				// Return progress div with HTMX attributes and HTML content as OOB update
-				combinedHTML := fmt.Sprintf(`<div id="progress" hx-get="/progress?id=%s" hx-trigger="every 1s" hx-swap="outerHTML" class="notification is-info">%s</div> %s
-`, id, progressMsg, htmlContent)
+				// Return progress update and instance HTML as OOB updates
+				progressUpdate := templates.ProgressUpdate(progressMsg, id, true)
 				w.Header().Set("Content-Type", "text/html")
 				w.Header().Set("X-Progress-Status", "html")
-				w.Write([]byte(combinedHTML))
+				progressUpdate.Render(context.Background(), w)
+				w.Write([]byte(htmlContent))
 			}
 		} else {
 			// Return HTMX-compatible progress update with hx-get for next poll
-			progressHTML := fmt.Sprintf(`<div id="progress" hx-get="/progress?id=%s" hx-trigger="every 1s" hx-swap="outerHTML" class="notification is-info">%s</div>`, id, msg)
+			progressUpdate := templates.ProgressUpdate(msg, id, true)
 			w.Header().Set("Content-Type", "text/html")
 			w.Header().Set("X-Progress-Status", "progress")
-			w.Write([]byte(progressHTML))
+			progressUpdate.Render(context.Background(), w)
 		}
 	}
 	/*case <-time.After(120 * time.Second):
@@ -365,7 +373,7 @@ func StartProcessingJob(config *models.Config) string {
 // GetProgressHTML returns HTML for progress tracking
 func GetProgressHTML(id string) string {
 	return fmt.Sprintf(`
-		<div id="progress" class="notification is-info"></div>[[GetProgressHTML]]
+		<div id="progress" class="notification is-info" hx-get="/progress?id=%s" hx-trigger="every 1s" hx-swap="outerHTML"></div>[[GetProgressHTML]]
 
 		<button class="button is-danger" onclick="fetch('/cancel?id=%s')">Cancel</button>
 		<script>
@@ -396,5 +404,5 @@ func GetProgressHTML(id string) string {
 		}
 		poll();
 		</script>
-	`, id, id)
+	`, id, id, id)
 }

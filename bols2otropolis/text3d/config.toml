@@ -1,0 +1,15 @@
+[openscadgen]
+name = "text3d"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{content}_{test_font}"
+
+global_params = { content="A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z", font_size=50, test_font="Liberation Mono,.Al Bayan PUA:style=Plain" }
+
+[[openscadgen.input_paths]]
+path = "./text3d.scad"
+
+[[openscadgen.images]]
+name = "nice"

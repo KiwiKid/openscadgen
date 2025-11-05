@@ -443,6 +443,46 @@ name = "bottom"
 			shouldFail: false,
 		},
 		{
+			name: "6a.Run with regex pattern on param_set name",
+			configContent: `[openscadgen]
+		name = "test-project"
+		version = "1.0"
+		export_name_format = "{designFileName}-{instanceName}"
+
+		dont_use_manifold = true
+
+		[[openscadgen.input_paths]]
+		path = "./default_design.scad"
+
+		[[openscadgen.param_sets]]
+		name = "largeRectAnko"
+		params = { size = "largeRectAnko", shape = "rect" }
+
+		[[openscadgen.param_sets]]
+		name = "smallRectBasic"
+		params = { size = "smallRectBasic", shape = "rect" }
+
+		[[openscadgen.instances]]
+		name = "instance-one"
+		param_sets = "largeRectAnko"
+
+		[[openscadgen.instances]]
+		name = "instance-two"
+		param_sets = "smallRectBasic"
+		`,
+			scadContent: scadFileInputExamples[defaultDesign],
+			command:     binaryPath + " -c ./config.toml -r largeRectAnko --oe",
+			expectedFiles: []string{
+				"default_design.scad",
+				"config.toml",
+				"default_design_2.scad",
+				"shopping-list.toml",
+				"export/1.0/report.html",
+				"export/1.0/default_design-instance-one.stl",
+			},
+			shouldFail: false,
+		},
+		{
 			name: "7.Invalid config key",
 			configContent: `[openscadgen]
 		name = "test-project"

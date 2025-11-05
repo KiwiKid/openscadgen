@@ -1,6 +1,6 @@
 [openscadgen]
 name = "text_sign"
-description = ""
+description = "a description"
 
 version = "v0.1"
 

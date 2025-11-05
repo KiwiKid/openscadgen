@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/base64"
 	"flag"
 	"fmt"
 	"io"
@@ -145,7 +146,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.7.29"
+const VERSION = "v2.7.30"
 
 type Version struct {
 	OpenSCADGen string
@@ -170,7 +171,7 @@ var runErrorCodeName = map[RunErrorCode]string{
 func GetVersion() Version {
 	openSCADVersion, err := findOpenSCAD()
 	if err != nil {
-		log.Fatalf("Error: %v", err)
+		log.Fatalf("GetVersion Error: %v", err)
 	}
 	return Version{
 		OpenSCADGen: VERSION,
@@ -326,7 +327,6 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 	// Construct progress for all instances
 	progress.Construct(instances, nonSkippedInstances)
 
-	instanceIndex := 0
 	for i := range instances {
 		// Check for cancellation
 		select {
@@ -340,7 +340,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 
 		if instances[i].SkippedReason == "" {
 			// Start processing this instance
-			progress.StartInstance(instances[i].ID, instances[i].AutoName, instanceIndex+1, nonSkippedInstances)
+			progress.StartInstance(instances[i].ID, instances[i].AutoName, i, nonSkippedInstances)
 
 			if config.Debug {
 				logCreation(fmt.Sprintf("Generated instance %s", instances[i].AutoName))
@@ -352,6 +352,8 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 				result, genErr = generateSTL(&instances[i], config)
 				if genErr != nil {
 
+					result.OutputLog += genErr.Error()
+
 					logError(fmt.Sprintf("Warning: failed to generate STL for instance %s:\n Error:\n%+v", instances[i].Name, genErr))
 					stlResults = append(stlResults, result)
 					completedInstances++
@@ -361,6 +363,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 					continue
 
 				} else {
+
 					stlResults = append(stlResults, result)
 				}
 			}
@@ -395,6 +398,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 		}
 
 		instances[i].IsComplete = true
+		instances[i].CompletedAt = time.Now()
 
 		// Finish this instance
 		progress.FinishInstance()
@@ -559,6 +563,7 @@ func GetNiceName(path string) string {
 }
 
 func ScanFolderForConfigFiles(folder string) ([]models.ConfigFile, error) {
+	log.Printf("Scanning folder for config.toml files: %s", folder)
 	var configFiles []models.ConfigFile
 	maxSize := int64(2 * 1024 * 1024) // 2MB
 
@@ -597,7 +602,10 @@ func ScanFolderForConfigFiles(folder string) ([]models.ConfigFile, error) {
 			return nil
 		}
 
-		subPath := strings.TrimPrefix(path, folder)
+		subPath, err := filepath.Rel(folder, path)
+		if err != nil {
+			return err
+		}
 
 		configFiles = append(configFiles, models.ConfigFile{Path: subPath, NiceName: GetNiceName(subPath)})
 		return nil
@@ -1017,7 +1025,7 @@ func parseCameraName(cameraName string) (string, string) {
 		}
 	}
 
-	LogWarn(fmt.Sprintf("Camera name '%s' is not a preset and has no coordinates specified", cameraName), true)
+	LogWarn(fmt.Sprintf("Camera name '%s' is not a preset and has no coordinates specified", cameraName), false)
 
 	// If we can't parse it properly, return the original name and empty distance
 	return cameraName, ""
@@ -1112,10 +1120,10 @@ func makePresetReplacement(runOutputPath string, exportImage models.ExportCamera
 	}
 
 	// If no preset found and no coordinates provided, log an error
-	log.Panicf(`Camera '%s' is not a preset and has no coordinates specified.
-	
+	/*log.Panicf(`Camera '%s' is not a preset and has no coordinates specified.
+
 	Options are listed above
-	`, exportImage.CameraName)
+	`, exportImage.CameraName)*/
 
 	return []models.ExportCameraCoordinates{}
 }
@@ -1214,12 +1222,11 @@ This software is under active development - feedback welcome at https://github.c
 ` + colorReset)
 }
 
-// loadConfig reads the configuration file and populates the Config struct
-func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
-	var conf models.Config
+// LoadConfigFromFile reads the configuration file and populates the Config struct
+func LoadConfigFromFile(flags models.CmdFlags) (*models.Config, error, error) {
 	if flags.ConfigFile == "" {
 		log.Printf(colorRed + "Run directly with a config file use '-c' like '-c you-project/config.toml'\n\nUse -s to run in Server mode\n\n Or Server Folder Scan mode:  -sf parent-project-folder " + colorReset)
-		return nil, fmt.Errorf("no config file provided")
+		return nil, nil, fmt.Errorf("no config file provided")
 	}
 
 	// Resolve config file path relative to current working directory
@@ -1228,7 +1235,7 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 		absPath, err := filepath.Abs(configPath)
 		if err != nil {
 			log.Printf(colorRed+"Failed to resolve config file path '%s': %v", configPath, err)
-			return nil, err
+			return nil, nil, err
 		}
 		configPath = absPath
 	}
@@ -1239,18 +1246,26 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		log.Printf(colorRed+"Failed to read config file at path '%s'\n\n Error: %v", configPath, err)
-		return nil, err
+		return nil, nil, err
 	} else if flags.Debug {
 		log.Printf("ReadFile config for %s", configPath)
 	}
 
+	// Use the new LoadConfig method with the file content
+	return LoadConfig(string(data), flags, configPath)
+}
+
+// LoadConfig parses and validates a configuration string and populates the Config struct
+func LoadConfig(configData string, flags models.CmdFlags, configPath string) (*models.Config, error, error) {
+	var conf models.Config
+
 	// First decode into a map to check for unmapped fields
 	var metadata toml.MetaData
-	metadata, err = toml.Decode(string(data), &conf)
+	metadata, err := toml.Decode(configData, &conf)
 	if err != nil {
-		LogKeyValuePair("Config file", string(data))
+		LogKeyValuePair("Config file", configData)
 		log.Printf(colorRed+"Config file is not valid toml: %v", err)
-		return nil, err
+		return nil, err, nil
 	}
 
 	// Check for undecoded keys
@@ -1263,7 +1278,7 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 		if flags.StopOnError {
 			log.Printf(colorYellow + "Continuing on error" + colorReset)
 		} else {
-			return nil, fmt.Errorf("invalid fields in config: %v", undecoded)
+			return nil, fmt.Errorf("invalid fields in config: %v", undecoded), nil
 		}
 	}
 
@@ -1272,7 +1287,16 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 	err = validate.Struct(conf)
 	if err != nil {
 		log.Printf(colorRed+"Failed to validate config: %v", err)
-		return nil, err
+		return nil, err, nil
+	}
+
+	var warning error
+	for _, exportImage := range conf.Design.ExportImages {
+		cameraName, distance := parseCameraName(exportImage.CameraName)
+		if distance == "" {
+			log.Printf(colorRed+"Failed to parse camera name: %v", cameraName)
+			warning = fmt.Errorf("failed to parse camera name: %v", cameraName)
+		}
 	}
 
 	if flags.Debug {
@@ -1280,7 +1304,7 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 		LogKeyValuePair("Config", conf.ConfigFile)
 	}
 
-	conf.RawConfigFile = string(data)
+	conf.RawConfigFile = configData
 
 	// Merge command-line flags into the config
 	conf.Quiet = flags.Quiet
@@ -1360,7 +1384,7 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 
 	openSCADVersion, err := findOpenSCAD()
 	if err != nil {
-		return nil, fmt.Errorf("failed to find OpenSCAD version: %w", err)
+		return nil, nil, fmt.Errorf("failed to find OpenSCAD version: %w", err)
 	}
 	conf.OpenSCADVersion = openSCADVersion.Version
 	conf.OpenScadGenVersion = VERSION
@@ -1441,7 +1465,7 @@ func LoadConfig(flags models.CmdFlags) (*models.Config, error) {
 		return nil, fmt.Errorf("export name format validation failed: %w", err)
 	}	*/
 
-	return &conf, nil
+	return &conf, warning, nil
 }
 
 func ProcessFolder(folder string, cmdFlags models.CmdFlags) ([]models.ProcessResult, error) {
@@ -1453,7 +1477,7 @@ func ProcessFolder(folder string, cmdFlags models.CmdFlags) ([]models.ProcessRes
 	processResults := []models.ProcessResult{}
 	for _, config := range configs {
 		cmdFlags.ConfigFile = config.Path
-		config, err := LoadConfig(cmdFlags)
+		config, _, err := LoadConfigFromFile(cmdFlags)
 		if err != nil {
 			return []models.ProcessResult{}, fmt.Errorf("failed to load config: %w", err)
 		}
@@ -2062,7 +2086,40 @@ func checkRegexPattern(config *models.Config, configuredInstanceConfig models.Co
 			}
 			return ""
 		}
-		// Check params
+		// Check param set names from instance
+		if configuredInstanceConfig.ParamSets != "" {
+			for _, paramSetName := range strings.Split(configuredInstanceConfig.ParamSets, ",") {
+				paramSetName = strings.TrimSpace(paramSetName)
+				if regex.MatchString(paramSetName) {
+					if config.Debug {
+						logCreation(fmt.Sprintf("Regex Match (param_set name) %s %s", config.RegexPattern, paramSetName))
+					}
+					return ""
+				}
+			}
+		}
+		// Check param set names from input path
+		if inputPath.ParamSets != "" {
+			for _, paramSetName := range strings.Split(inputPath.ParamSets, ",") {
+				paramSetName = strings.TrimSpace(paramSetName)
+				if regex.MatchString(paramSetName) {
+					if config.Debug {
+						logCreation(fmt.Sprintf("Regex Match (inputPath param_set name) %s %s", config.RegexPattern, paramSetName))
+					}
+					return ""
+				}
+			}
+		}
+		// Check param keys from configuredInstanceConfig.Params
+		for paramKey := range configuredInstanceConfig.Params {
+			if regex.MatchString(paramKey) {
+				if config.Debug {
+					logCreation(fmt.Sprintf("Regex Match (param key) %s %s", config.RegexPattern, paramKey))
+				}
+				return ""
+			}
+		}
+		// Check param values from configuredInstanceConfig.Params
 		for _, param := range configuredInstanceConfig.Params {
 			if strValue, ok := param.(string); ok {
 				for _, val := range strings.Split(strValue, ",") {
@@ -2072,6 +2129,49 @@ func checkRegexPattern(config *models.Config, configuredInstanceConfig models.Co
 							logCreation(fmt.Sprintf("Regex Match (configuredInstanceConfig param) %s %s", config.RegexPattern, val))
 						}
 						return ""
+					}
+				}
+			}
+		}
+		// Check param sets from config for referenced param sets (check their names and params)
+		paramSetNames := append(strings.Split(configuredInstanceConfig.ParamSets, ","), strings.Split(inputPath.ParamSets, ",")...)
+		for _, paramSet := range config.Design.ParamSets {
+			// Check if this param set is referenced
+			for _, refName := range paramSetNames {
+				refName = strings.TrimSpace(refName)
+				if refName == "" {
+					continue
+				}
+				if paramSet.Name == refName {
+					// Check param set name (this is already checked earlier, but keeping for completeness)
+					if regex.MatchString(paramSet.Name) {
+						if config.Debug {
+							logCreation(fmt.Sprintf("Regex Match (referenced param_set name) %s %s", config.RegexPattern, paramSet.Name))
+						}
+						return ""
+					}
+					// Check param keys from this param set
+					for paramKey := range paramSet.Params {
+						if regex.MatchString(paramKey) {
+							if config.Debug {
+								logCreation(fmt.Sprintf("Regex Match (param_set param key) %s %s", config.RegexPattern, paramKey))
+							}
+							return ""
+						}
+					}
+					// Check param values from this param set
+					for _, paramValue := range paramSet.Params {
+						if strValue, ok := paramValue.(string); ok {
+							for _, val := range strings.Split(strValue, ",") {
+								val = strings.TrimSpace(val)
+								if regex.MatchString(val) {
+									if config.Debug {
+										logCreation(fmt.Sprintf("Regex Match (param_set param value) %s %s", config.RegexPattern, val))
+									}
+									return ""
+								}
+							}
+						}
 					}
 				}
 			}
@@ -2276,6 +2376,9 @@ func GenerateInstances(config *models.Config, configuredInstanceConfig models.Co
 		return []models.InstanceConfig{instance}, "", nil
 	}*/
 
+	// Get current working directory
+	workingDir, _ := os.Getwd()
+
 	// Generate combinations for parameters
 	var parameterCombos []map[string]interface{}
 	if len(paramCombos) > 0 {
@@ -2295,16 +2398,18 @@ func GenerateInstances(config *models.Config, configuredInstanceConfig models.Co
 	for _, paramCombo := range parameterCombos {
 		for _, globalCombo := range globalCombos {
 			instance := models.InstanceConfig{
-				Name:               configuredInstanceConfig.Name,
-				Params:             make(map[string]interface{}),
-				InputPath:          inputPath,
-				SkipImages:         configuredInstanceConfig.SkipImages || inputPath.SkipImages,
-				SkippedReason:      checkInstancesSkip(config, len(instances)) + checkRegexPattern(config, configuredInstanceConfig, inputPath),
-				ExportImages:       []models.ExportCameraCoordinates{},
-				ImageResults:       []models.GenerateImageResult{},
-				RunOutputImagePath: "",
-				AutoName:           "", // Will be set after parameters are processed
-				IsComplete:         false,
+				Name:                        configuredInstanceConfig.Name,
+				Params:                      make(map[string]interface{}),
+				InputPath:                   inputPath,
+				SkipImages:                  configuredInstanceConfig.SkipImages || inputPath.SkipImages,
+				SkippedReason:               checkInstancesSkip(config, len(instances)) + checkRegexPattern(config, configuredInstanceConfig, inputPath),
+				ExportImages:                []models.ExportCameraCoordinates{},
+				ImageResults:                []models.GenerateImageResult{},
+				RunOutputImagePath:          "",
+				AutoName:                    "", // Will be set after parameters are processed
+				IsComplete:                  false,
+				InputConfigFilePath:         config.ConfigFile,
+				InputConfigFilePathRelative: getRelativePath(config.ConfigFile, workingDir),
 			}
 
 			// Add non-ignored parameters that don't have multiple values
@@ -2372,6 +2477,7 @@ func GenerateInstances(config *models.Config, configuredInstanceConfig models.Co
 
 			//	instance.OutputPathV2 = outputPath
 			instance.RunOutputPathV3 = filepath.ToSlash(outputPathReplace + ".stl")
+			instance.RunOutputPathRelative = getRelativePath(instance.RunOutputPathV3, config.ConfigFile)
 			instance.RunOutputImagePath = outputPathReplace
 
 			for k := range ignoredParams {
@@ -2383,6 +2489,27 @@ func GenerateInstances(config *models.Config, configuredInstanceConfig models.Co
 	}
 
 	return instances, "NOT USED", nil
+}
+
+// Helper function to get relative path
+func getRelativePath(fullPath string, basePath string) string {
+	// If the full path is already relative, return it as is
+	if !strings.HasPrefix(fullPath, "/") {
+		return fullPath
+	}
+
+	// If base path is empty, just return the filename
+	if basePath == "" {
+		return filepath.Base(fullPath)
+	}
+
+	// Try to make the path relative to the base path
+	relPath, err := filepath.Rel(basePath, fullPath)
+	if err != nil {
+		// If we can't make it relative, return just the filename
+		return filepath.Base(fullPath)
+	}
+	return relPath
 }
 
 func commonPrefix(a, b string) string {
@@ -2889,28 +3016,28 @@ func InitLogger(logFilePath string) error {
 		return nil
 	}
 
-	if config.IncludeExportLog {
-		logFile, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	//if config.IncludeExportLog {
+	logFile, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+
+	multiWriter := io.MultiWriter(os.Stdout, logFile)
+	logger = log.New(multiWriter, "", log.Ldate|log.Ltime|log.Lshortfile)
+
+	if logToMemory {
+		// Flush the buffer to the log file
+		_, err := logFile.Write(logBuffer.Bytes())
 		if err != nil {
 			return err
 		}
-
-		multiWriter := io.MultiWriter(os.Stdout, logFile)
-		logger = log.New(multiWriter, "", log.Ldate|log.Ltime|log.Lshortfile)
-
-		if logToMemory {
-			// Flush the buffer to the log file
-			_, err := logFile.Write(logBuffer.Bytes())
-			if err != nil {
-				return err
-			}
-			logBuffer.Reset()
-			logToMemory = false
-		}
-	} else {
+		logBuffer.Reset()
+		logToMemory = false
+	}
+	/*} else {
 		// Ensure we still log to console even when not logging to file
 		logger = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
-	}
+	}*/
 
 	return nil
 }
@@ -3355,6 +3482,8 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 		log.Printf("[DEBUG] Output length: %d bytes", len(output))
 		if len(output) > 0 {
 			log.Printf("[DEBUG] Output: %s", string(output))
+			result.OutputLog = string(output)
+
 		}
 		log.Printf("[DEBUG] Time taken: %v", result.TimeTaken)
 	}
@@ -3433,6 +3562,21 @@ func FindOpenSCAD() string {
 	return path
 }
 
+func BuildReportMeta(params models.BuildReportMetaParams, results models.Results) models.ReportMeta {
+	encodedConfigFilePath := base64.StdEncoding.EncodeToString([]byte(params.ConfigFilePath))
+	encodedServerFolder := base64.StdEncoding.EncodeToString([]byte(params.ServerFolder))
+	reportMeta := models.ReportMeta{
+		IsServerMode:          params.IsServerMode,
+		ConfigFilePath:        params.ConfigFilePath,
+		ConfigFilePathEncoded: encodedConfigFilePath,
+		ServerFolder:          params.ServerFolder,
+		ServerFolderEncoded:   encodedServerFolder,
+		Results:               results,
+	}
+
+	return reportMeta
+}
+
 func GenerateOutputReport(config *models.Config, instances []models.InstanceConfig, stlResults []models.GenerateSTLResult, imageResults []models.GenerateImageResult, outputDir string, toFile bool, totalTimeTaken time.Duration) (templ.Component, string, error) {
 	logStage("Generating HTML report")
 	if config.Debug && toFile {
@@ -3474,7 +3618,15 @@ func GenerateOutputReport(config *models.Config, instances []models.InstanceConf
 		LogKeyValuePair("serveroutputfile", "")
 
 	}
-	htmlContent := templates.Report("complete", config, instances, outputFile, stlResults, imageResults, allParamNames, false, "", totalTimeTaken)
+
+	reportMeta := BuildReportMeta(models.BuildReportMetaParams{
+		IsServerMode:   false,
+		ConfigFilePath: "",
+		ServerFolder:   "",
+	}, models.Results{
+		TimeTake: totalTimeTaken,
+	})
+	htmlContent := templates.Report("complete", config, instances, outputFile, stlResults, imageResults, allParamNames, reportMeta, totalTimeTaken, nil)
 
 	var htmlFile *os.File
 	var err error

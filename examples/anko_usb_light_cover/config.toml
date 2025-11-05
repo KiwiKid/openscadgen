@@ -18,4 +18,4 @@ name = "nice-near"
 params = {  renderType="obj,vertSlice,horzSlice,all" }
 
 [[openscadgen.instances]]
-params = {  letter="G,K,ML,S" }
+params = {  letter="G,K,ML,S,ON" }

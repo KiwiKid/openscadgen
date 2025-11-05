@@ -77,6 +77,16 @@ input_path = "./clip.scad" # input_path is relative to the config.toml file
 export_name_format = "clip-{width}mm-{height}mm"
 version = "v1.0"
 
+# This will run the ./clip.scad file 9 times (use export_name_format for file naming) following params:
+# - width = "10" & height = "5"
+# - width = "10" & height = "10"
+# - width = "10" & height = "15"
+# - width = "20" & height = "5"
+# - width = "20" & height = "10"
+# - width = "20" & height = "15"
+# - width = "30" & height = "5"
+# - width = "30" & height = "10"
+# - width = "30" & height = "15"
 [[openscadgen.instances]]
 params = { width = "10,20,30", height = "5,10,15" }
 ```

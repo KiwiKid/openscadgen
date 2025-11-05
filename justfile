@@ -40,7 +40,8 @@ air:
 
 # Live reload templ files only
 air-templ:
-    go run github.com/a-h/templ/cmd/templ generate --watch
+    go run github.com/a-h/templ/cmd/templ generate -
+    -watch
 
 # Live reload go files only (after templ is generated)
 air-go:

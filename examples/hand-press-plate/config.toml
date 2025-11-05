@@ -2,28 +2,34 @@
 name = "hand-press-plate"
 description = ""
 
-version = "v0.1"
+version = "v0.9"
 
-export_name_format = "/{designFileName}-{renderType}-{plateType}-{attachCyliderHeight}-{plateHeight}"
+export_name_format = "/{designFileName}-{renderType}/plateTopSize-{plateBottomSize}-hasGroove-{hasGroove}"
 
-#global_params = { renderType = "", plateType = "large,none" }
+global_params = { renderType = "obj" }
 
 [[openscadgen.input_paths]]
 path = "./hand-press-plate.scad"
 
-[[openscadgen.instances]]
-params = {  plateType = "large", attachCyliderHeight = 25, plateHeight = [30,35,40,45,50] }
+#[[openscadgen.instances]]
+#params = {  plateType = "large", attachCyliderHeight = 25, plateHeight = [30,35,40,45,50] }
 
 [[openscadgen.instances]]
-params = { plateType = "none", attachCyliderHeight = 25  }
+params = {  plateAttachHeight = 30,  plateHeight = 30, plateBottomSize = 8, shiftTopX = 3, shiftTopY = 3, grooveWidth=8, hasGroove=[true,false] }
 
+
+[[openscadgen.instances]]
+params = {   plateAttachHeight = 30,  plateHeight = 30,  plateBottomSize = 15, shiftTopX=0, shiftTopY=0 }
+
+[[openscadgen.instances]]
+params = {   plateAttachHeight = 30,  plateHeight = 30, plateBottomSize = 30, shiftTopX=0, shiftTopY=0 }
+    
+ 
 
 
 [[openscadgen.images]]
-name = "top"
+name = "nice-near"
 
-[[openscadgen.images]]
-name = "left"
 
 
 # [[openscadgen.input_paths]]

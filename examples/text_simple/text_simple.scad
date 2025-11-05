@@ -5,15 +5,20 @@ $fs = $preview ? 5 : 1;
 $fn = 200;
 
 
-content="⇋";
+content="Greg";
 text_size=40;
-h=5;
-font="";
-spacing=1.0;
+h=50;
+font="Apple Chancery:style=Chancery";//"Baloo 2";
+spacing=.7;
 center=false;
 spin=0;
 orient=[0,0,-1];
-hasBase = false;
+hasBase = true;
+baseHeight= 30;
+rot= 30;
+
+textOffset=20;
+rounding=10;
 
 module text_simple(
     content,
@@ -25,7 +30,8 @@ module text_simple(
     spin,
     orient,
     hasBase,
-baseHeight
+baseHeight,
+rounding
 ){
     if(hasBase){
     difference(){
@@ -39,11 +45,32 @@ baseHeight
             spacing=spacing,
             center=true,
             spin=spin,
-            orient=orient
+            orient=orient,
+            rounding=rounding
         );
         }
     } else{
+    difference(){
+    union(){
     
+    move([0,0,-textOffset])
+    rotate([rot,0,0])
+    text3d(
+        content,
+        h=h,
+        size=text_size,
+        font=font,
+        spacing=spacing,
+        center=center,
+        spin=spin,
+        orient=orient,
+                    rounding=rounding
+
+    );
+    
+    
+    move([-120,0,textOffset])
+    rotate([rot,180,0])
     text3d(
         content,
         h=h,
@@ -55,6 +82,12 @@ baseHeight
         orient=orient
     );
     }
+    
+    fwd(40)
+    #cuboid([300,100,300]);
+    }
+    }
+    
 }
 
 text_simple(
@@ -67,6 +100,7 @@ text_simple(
     spin=spin,
     orient=orient,
     hasBase=hasBase,
-    baseHeight=baseHeight
+    baseHeight=baseHeight,
+    rounding=baseHeight
 );
         

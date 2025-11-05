@@ -167,27 +167,31 @@ type InputPath struct {
 
 // InstanceConfig represents a single instance configuration
 type InstanceConfig struct {
-	ID                 string
-	Name               string
-	AutoName           string
-	Description        string
-	ExportNameFormat   string
-	InputPath          InputPath
-	Params             map[string]interface{}
-	PartIDLetter       string
-	isDynamic          bool
-	UniqueID           string
-	ConfigError        string
-	OutputPathV2       string
-	RunOutputPathV3    string // Path used for OpenSCAD -o command, relative to config.toml location
-	IgnoredParams      []string
-	ImageResults       []GenerateImageResult
-	ExportImages       []ExportCameraCoordinates
-	RunOutputImagePath string
-	SkipImages         bool
-	SkippedReason      string
-	SkippedImageReason string
-	IsComplete         bool
+	ID                          string
+	Name                        string
+	AutoName                    string
+	Description                 string
+	ExportNameFormat            string
+	InputPath                   InputPath
+	Params                      map[string]interface{}
+	PartIDLetter                string
+	isDynamic                   bool
+	UniqueID                    string
+	ConfigError                 string
+	OutputPathV2                string
+	RunOutputPathV3             string // Path used for OpenSCAD -o command, relative to config.toml location
+	RunOutputPathRelative       string
+	IgnoredParams               []string
+	ImageResults                []GenerateImageResult
+	ExportImages                []ExportCameraCoordinates
+	RunOutputImagePath          string
+	InputConfigFilePath         string
+	InputConfigFilePathRelative string
+	SkipImages                  bool
+	SkippedReason               string
+	SkippedImageReason          string
+	IsComplete                  bool
+	CompletedAt                 time.Time
 }
 
 type InstanceConfigSlice []InstanceConfig
@@ -206,6 +210,7 @@ type GenerateSTLResult struct {
 	Error               string
 	AppliedParams       map[string]interface{}
 	TimeTaken           time.Duration
+	OutputLog           string
 	Skipped             bool
 	LowQuality          bool
 	SkippedReason       string
@@ -460,4 +465,30 @@ type WatcherStatusUI struct {
 	Watching    bool
 	ConfigPaths []string
 	Enabled     bool
+}
+
+type STLViewerParams struct {
+	InstanceID           string
+	STLPath              string
+	ConfigFilePath       string
+	ConfigFilePathBase64 string
+	InstanceConfig       InstanceConfig
+}
+
+type Results struct {
+	TimeTake time.Duration
+}
+type BuildReportMetaParams struct {
+	IsServerMode   bool
+	ConfigFilePath string
+	ServerFolder   string
+}
+
+type ReportMeta struct {
+	IsServerMode          bool
+	ConfigFilePath        string
+	ConfigFilePathEncoded string
+	ServerFolder          string
+	ServerFolderEncoded   string
+	Results               Results
 }

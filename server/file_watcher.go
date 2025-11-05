@@ -106,7 +106,7 @@ func (fw *FileWatcher) loadAndWatchConfig(configPath string) error {
 
 	// Load the config
 	cmdFlags := models.CmdFlags{ConfigFile: configPath, Server: true}
-	config, err := pkg.LoadConfig(cmdFlags)
+	config, _, err := pkg.LoadConfigFromFile(cmdFlags)
 	if err != nil {
 		return err
 	}
@@ -191,7 +191,7 @@ func (fw *FileWatcher) handleFileEvent(event fsnotify.Event) {
 func (fw *FileWatcher) handleConfigChange(configPath string) {
 	// Load the new config
 	cmdFlags := models.CmdFlags{ConfigFile: configPath, Server: true}
-	newConfig, err := pkg.LoadConfig(cmdFlags)
+	newConfig, _, err := pkg.LoadConfigFromFile(cmdFlags)
 	if err != nil {
 		log.Printf("Error loading changed config %s: %v", configPath, err)
 		return

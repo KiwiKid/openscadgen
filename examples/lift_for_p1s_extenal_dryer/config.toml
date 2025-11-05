@@ -1,0 +1,16 @@
+[openscadgen]
+name = "lift_for_p1s_extenal_dryer"
+description = ""
+
+version = "v0.2"
+
+export_name_format = "{designFileName}_{renderType}"
+
+global_params = { renderType = "obj,vertSlice,horzSlice,all"  }
+
+[[openscadgen.input_paths]]
+path = "./lift_for_p1s_extenal_dryer.scad"
+
+[[openscadgen.images]]
+name = "nice"
+param_filter = { renderType= "obj,vertSlice,horzSlice"}

@@ -230,3 +230,5 @@ module sliced(
 5. Check file permissions and paths
 
 Remember: Always test your changes with the slicing features before generating final STL files!
+
+

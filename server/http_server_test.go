@@ -12,7 +12,7 @@ func TestHandleImageRequest(t *testing.T) {
 	// Create a temporary test image file
 	tempDir := t.TempDir()
 	testImagePath := filepath.Join(tempDir, "test.png")
-	
+
 	// Create a simple test file
 	err := os.WriteFile(testImagePath, []byte("fake png content"), 0644)
 	if err != nil {
@@ -20,7 +20,7 @@ func TestHandleImageRequest(t *testing.T) {
 	}
 
 	// Test the endpoint
-	req, err := http.NewRequest("GET", "/images?path="+testImagePath, nil)
+	req, err := http.NewRequest("GET", "/images?config_path="+testImagePath, nil)
 	if err != nil {
 		t.Fatalf("Failed to create request: %v", err)
 	}
@@ -42,7 +42,7 @@ func TestHandleImageRequest(t *testing.T) {
 
 func TestHandleImageRequestNotFound(t *testing.T) {
 	// Test with non-existent file
-	req, err := http.NewRequest("GET", "/images?path=/nonexistent/file.png", nil)
+	req, err := http.NewRequest("GET", "/images?config_path=/nonexistent/file.png", nil)
 	if err != nil {
 		t.Fatalf("Failed to create request: %v", err)
 	}

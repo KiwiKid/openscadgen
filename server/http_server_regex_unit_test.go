@@ -247,7 +247,7 @@ func TestRegexEndpointErrorHandling(t *testing.T) {
 		}
 
 		// Test the config file path extraction
-		configFile := req.FormValue("path")
+		configFile := req.FormValue("config_path")
 		if configFile != "" {
 			t.Errorf("Expected empty config file path, got '%s'", configFile)
 		}
