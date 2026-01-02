@@ -54,7 +54,7 @@ func (h *HTMLProgressReporter) Update(msg string) {
 }
 
 func (h *HTMLProgressReporter) Done() {
-	h.updates <- "done 1"
+	h.updates <- "Complete"
 }
 
 func (h *HTMLProgressReporter) Error(err error) {
@@ -114,13 +114,23 @@ func (h *HTMLProgressReporter) Construct(instances []models.InstanceConfig, nonS
 		h.allParamNames = append(h.allParamNames, paramName)
 	}
 
-	h.updates <- fmt.Sprintf("Processing %d instances", instanceCount)
+	if instanceCount == 0 {
+		if h.config.RegexPattern == "" {
+			h.updates <- "No instances queued for processing"
+		} else {
+			h.updates <- fmt.Sprintf("%s - Did not match any instances", h.config.RegexPattern)
+		}
+	} else {
+
+		h.updates <- fmt.Sprintf("Processing %d instances", instanceCount)
+	}
 }
 
 func (h *HTMLProgressReporter) StartInstance(instanceId string, name string, instanceIndex int, instanceCount int) {
 	h.currentInstanceID = instanceId
 	log.Printf("HTMLProgressReporter: Starting instance: %s", instanceId)
-	h.updates <- fmt.Sprintf("Starting instance: %s (%d/%d)", name, instanceIndex, instanceCount)
+
+	h.updates <- fmt.Sprintf("Starting instance %s", name)
 }
 
 func (h *HTMLProgressReporter) FinishInstance() {
@@ -143,7 +153,7 @@ func (h *HTMLProgressReporter) FinishInstance() {
 	}
 
 	if completedInstance != nil {
-		log.Printf("HTMLProgressReporter: Found completed instance: %s", completedInstance.AutoName)
+		log.Printf("HTMLProgressReporter: Found completed instance: %s (ID: %s, UniqueID: %s)", completedInstance.AutoName, completedInstance.ID, completedInstance.UniqueID)
 
 		// Send terminal-style update first
 		//	h.updates <- fmt.Sprintf("Instance complete: %s", completedInstance.AutoName)
@@ -153,9 +163,10 @@ func (h *HTMLProgressReporter) FinishInstance() {
 		// templates.InstanceCard(*completedInstance, h.outputPath).Render(context.Background(), &htmlCard)
 
 		reportMeta := pkg.BuildReportMeta(models.BuildReportMetaParams{
-			IsServerMode:   true,
-			ConfigFilePath: h.config.ConfigFile,
-			ServerFolder:   h.config.ServerFolder,
+			IsServerMode:         true,
+			ConfigFilePath:       h.config.ConfigFile,
+			ServerFolder:         h.config.ServerFolder,
+			TotalQueuedInstances: h.config.TotalQueuedInstances,
 		}, models.Results{
 			TimeTake: 0,
 		})
@@ -164,7 +175,7 @@ func (h *HTMLProgressReporter) FinishInstance() {
 
 		// Send HTML update
 		htmlUpdate := "html:" + htmlCard.String()
-		log.Printf("HTMLProgressReporter: Sending HTML update for instance: %s", completedInstance.AutoName)
+		log.Printf("HTMLProgressReporter: Sending HTML update for instance: %s (UniqueID: %s, HTML ID will be: instance-%s)", completedInstance.AutoName, completedInstance.UniqueID, completedInstance.UniqueID)
 		h.updates <- htmlUpdate
 
 		// Store the completed instance
@@ -267,25 +278,48 @@ func ProgressHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Check if this is an instance start HTML update
+		if strings.HasPrefix(msg, "instance-start-html:") {
+			// Render instance start template directly
+			htmlContent := strings.TrimPrefix(msg, "instance-start-html:")
+			w.Header().Set("Content-Type", "text/html")
+			w.Header().Set("X-Progress-Status", "progress")
+			w.Write([]byte(htmlContent))
+			return
+		}
 		// Check if this is an HTML update
 		if strings.HasPrefix(msg, "html:") {
 			// For HTML updates (instance completions), return HTMX OOB update
 			htmlContent := strings.TrimPrefix(msg, "html:")
 
-			// Get the current progress message (non-blocking)
+			// Drain all available HTML updates from the channel
+			// This ensures we don't miss any instance updates
+			htmlUpdates := []string{htmlContent}
 			var progressMsg string
-			select {
-			case progressUpdate := <-updates:
-				if strings.HasPrefix(progressUpdate, "html:") {
-					// Another HTML update, combine them
-					htmlContent += strings.TrimPrefix(progressUpdate, "html:")
-					progressMsg = "Instance completed"
-				} else {
-					progressMsg = progressUpdate
+			draining := true
+			for draining {
+				select {
+				case progressUpdate := <-updates:
+					if strings.HasPrefix(progressUpdate, "html:") {
+						// Another HTML update, add it to the list
+						htmlUpdates = append(htmlUpdates, strings.TrimPrefix(progressUpdate, "html:"))
+					} else {
+						// Non-HTML update, use it as progress message and stop draining
+						progressMsg = progressUpdate
+						draining = false
+					}
+				default:
+					// No more updates available, stop draining
+					draining = false
+					if progressMsg == "" {
+						progressMsg = "Instance completed"
+					}
 				}
-			default:
-				progressMsg = "Instance completed"
 			}
+
+			// Combine all HTML updates with proper spacing
+			htmlContent = strings.Join(htmlUpdates, "")
+			log.Printf("ProgressHandler: Batching %d HTML updates for OOB swap", len(htmlUpdates))
 
 			// Check if processing is complete by checking if we have a result
 			mu.Lock()
@@ -293,18 +327,40 @@ func ProgressHandler(w http.ResponseWriter, r *http.Request) {
 			mu.Unlock()
 
 			if hasResult {
+				log.Printf("ProgressHandler: Returning progress complete")
 				// Return OOB updates for completion
 				progressComplete := templates.ProgressComplete()
 				w.Header().Set("Content-Type", "text/html")
 				w.Header().Set("X-Progress-Status", "complete")
 				progressComplete.Render(context.Background(), w)
 			} else {
+				log.Printf("ProgressHandler: Returning progress update for instance: %s", progressMsg)
 				// Return progress update and instance HTML as OOB updates
 				progressUpdate := templates.ProgressUpdate(progressMsg, id, true)
 				w.Header().Set("Content-Type", "text/html")
 				w.Header().Set("X-Progress-Status", "html")
 				progressUpdate.Render(context.Background(), w)
 				w.Write([]byte(htmlContent))
+			}
+		} else if msg == "Complete" {
+			// "Complete" message signals processing is done
+			// Check if we have a result to confirm completion
+			mu.Lock()
+			_, hasResult := resultMap[id]
+			mu.Unlock()
+
+			if hasResult {
+				// Processing is complete
+				progressComplete := templates.ProgressComplete()
+				w.Header().Set("Content-Type", "text/html")
+				w.Header().Set("X-Progress-Status", "complete")
+				progressComplete.Render(context.Background(), w)
+			} else {
+				// Still processing, show the message and keep polling
+				progressUpdate := templates.ProgressUpdate(msg, id, true)
+				w.Header().Set("Content-Type", "text/html")
+				w.Header().Set("X-Progress-Status", "progress")
+				progressUpdate.Render(context.Background(), w)
 			}
 		} else {
 			// Return HTMX-compatible progress update with hx-get for next poll
@@ -313,6 +369,12 @@ func ProgressHandler(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("X-Progress-Status", "progress")
 			progressUpdate.Render(context.Background(), w)
 		}
+		/*default:
+		// No update available yet, return current state to keep polling
+		progressUpdate := templates.ProgressUpdate("Processing...", id, true)
+		w.Header().Set("Content-Type", "text/html")
+		w.Header().Set("X-Progress-Status", "waiting")
+		progressUpdate.Render(context.Background(), w)*/
 	}
 	/*case <-time.After(120 * time.Second):
 		// Return HTMX-compatible waiting update with hx-get for next poll

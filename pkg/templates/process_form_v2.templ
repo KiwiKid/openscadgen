@@ -1,7 +1,23 @@
 package templates
 
-templ ProcessFormV2(configPath string) {
-	<div class="box m-3 p-3" style="max-height: 8rem; overflow-y: scroll;">
+import "github.com/kiwikid/openscadgen/pkg/models"
+
+templ SlimProcessForm(reportMeta models.ReportMeta) {
+	<div style="width: 100%; max-height: 8rem; overflow-y: scroll;">
+		<form method="PUT" action="/" hx-put="/" hx-target="#process-status" hx-indicator="#loading" style="width: 100%; display: flex; gap: 0.5rem; align-items: center;">
+			<div x-show="showDebug">
+				[[SlimProcessForm]]
+			</div>
+			<input type="text" name="config_path" value={ reportMeta.ConfigFilePathEncoded } readonly hidden />
+			<input type="text" name="server_folder" value={ reportMeta.ServerFolderEncoded } readonly hidden />	
+			<input class="input" type="text" name="regex" placeholder="Only process instances that match this pattern" style="flex: 1 1 auto; min-width: 0;" />
+			<button class="button is-primary" type="submit" style="flex: 0 0 auto;">Process</button>
+		</form>
+	</div>
+}
+
+templ ProcessFormV2(reportMeta models.ReportMeta) {
+	<div class="box m-3 p-3">
 		<div class="columns">
 
 					
@@ -9,8 +25,8 @@ templ ProcessFormV2(configPath string) {
 				<div x-show="showDebug">
 					[[ProcessFormV2]]
 				</div>
-				<input class="input" type="text" name="config_file" value={ configPath } readonly hidden />
-
+				<input class="input" type="text" name="config_path" value={ reportMeta.ConfigFilePathEncoded } readonly hidden />
+				<input class="input" type="text" name="server_folder" value={ reportMeta.ServerFolderEncoded } readonly hidden />	
 				<!-- Top Row: Regex, Show/Hide Button, Process Button -->
 				<div class="columns is-vcentered">
 					<div class="column is-8">

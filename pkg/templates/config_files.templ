@@ -29,7 +29,21 @@ templ EnterConfigPage(configFiles []models.ConfigFile, serverFolder string) {
                     }
                 })();
             </script>
-            <script>
+            <script data-server-folder={ serverFolder }>
+                function setServerFolderOptions() {
+                    const serverFolder = document.querySelector('[data-server-folder]').getAttribute('data-server-folder');
+                    const currentOptions = JSON.parse(localStorage.getItem('opensacdgen-serverFolder') || '[]');
+                    currentOptions.unshift(serverFolder);
+                    currentOptions = currentOptions.slice(0, 20);
+                    localStorage.setItem('opensacdgen-serverFolder', JSON.stringify(currentOptions));
+                }
+
+                onload = setServerFolderOptions();
+
+                function getServerFolderOptionFromLocalStorage() {
+                    return localStorage.getItem('opensacdgen-serverFolder');
+                }
+
                 function copyDetailsContent() {
                     const button = $el.querySelector('button');
                     const codeBlock = $el.querySelector('pre code');
@@ -280,48 +294,91 @@ templ ProjectFolderForm(warning templ.Component){
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
             @HeadLinks()
             <style>
+                html, body {
+                    height: 100%;
+                }
+                body {
+                    margin: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: radial-gradient(circle at top, #f0f4ff 0, #e9ecf3 40%, #d7d9e0 100%);
+                }
                 .container {
-                    max-width: 600px;
-                    margin: 50px auto;
-                    padding: 20px;
+                    max-width: 640px;
+                    width: 100%;
+                    padding: 24px;
                 }
-                .error-message {
-                    color: #d32f2f;
-                    margin-top: 10px;
-                    display: none;
+                .card {
+                    border-radius: 10px;
+                    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
                 }
+                .card-content {
+                    padding: 2rem 2.25rem 2.5rem;
+                }
+                .title {
+                    text-align: center;
+                    margin-bottom: 0.5rem;
+                }
+                .intro {
+                    text-align: center;
+                    margin-bottom: 1.5rem;
+                    color: #4b5563;
+                }
+                .field + .field {
+                    margin-top: 1rem;
+                }
+                .recent-folders {
+                    margin-top: 2rem;
+                    padding-top: 1.5rem;
+                    border-top: 1px solid #e5e7eb;
+                }
+                .recent-folders-list .field {
+                    margin-bottom: 0.35rem;
+                }
+                .error-message,
                 .success-message {
-                    color: #2e7d32;
-                    margin-top: 10px;
-                    display: none;
+                    margin-top: 0.75rem;
                 }
             </style>
             </head>
     <body>
         <div class="container">
-            <h1 class="title">Enter Project Folder Path</h1>
+            <div class="card">
+                <div class="card-content">
+                    <h1 class="title">Enter Project Folder Path</h1>
+                    <p class="subtitle intro">Point the server at a project folder that contains one or more <code>config.toml</code> files.</p>
 
-            if warning != nil {
-                   @warning
-            }
-            
-            <form id="folderForm">
-                <div class="field">
-                    <label class="label">Full Path to Project Folder:</label>
-                    <div class="control">
-                        <input type="text" id="fullPathInput" class="input" placeholder="Enter the full path to your project folder (e.g., /Users/username/projects/my-openscad)" required>
+                    if warning != nil {
+                           @warning
+                    }
+                    
+                    <form id="folderForm">
+                        <div class="field">
+                            <label class="label">Full Path to Project Folder</label>
+                            <div class="control">
+                                <input type="text" id="fullPathInput" class="input" placeholder="e.g. /Users/you/making/openscad-project" required>
+                            </div>
+                            <p class="help">Use an absolute path to a folder that contains one or more <code>config.toml</code> files.</p>
+                        </div>
+                        <div class="field">
+                            <div class="control">
+                                <button type="submit" class="button is-primary is-fullwidth">Navigate to Server Folder</button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <div class="error-message has-text-danger" id="errorMessage" style="display:none;"></div>
+                    <div class="success-message has-text-success" id="successMessage" style="display:none;"></div>
+
+                    <div class="recent-folders">
+                        <h2 class="subtitle is-6">Recent folders</h2>
+                        <p class="help">Pick one of the folders you’ve used before, or paste a new path above.</p>
+                        @ServerFolderOptionsComponent()
+                        <server-folder-options class="recent-folders-list"></server-folder-options>
                     </div>
-                    <p class="help">Enter the complete path to your project folder containing config.toml files.</p>
                 </div>
-                <div class="field">
-                    <div class="control">
-                        <button type="submit" class="button is-primary">Navigate to Server Folder</button>
-                    </div>
-                </div>
-            </form>
-            
-            <div class="error-message" id="errorMessage"></div>
-            <div class="success-message" id="successMessage"></div>
+            </div>
         </div>
         
         <script>
@@ -330,6 +387,19 @@ templ ProjectFolderForm(warning templ.Component){
             const fullPathInput = document.getElementById('fullPathInput');
             const errorMessage = document.getElementById('errorMessage');
             const successMessage = document.getElementById('successMessage');
+            
+            // Prefill from last-used folder if available
+            try {
+                const raw = localStorage.getItem('opensacdgen-serverFolder');
+                if (raw) {
+                    const options = JSON.parse(raw) || [];
+                    if (Array.isArray(options) && options.length > 0 && !fullPathInput.value) {
+                        fullPathInput.value = options[0];
+                    }
+                }
+            } catch (e) {
+                console.error('Error reading stored server folders', e);
+            }
             
             // Handle form submission
             folderForm.addEventListener('submit', function(event) {
@@ -353,6 +423,18 @@ templ ProjectFolderForm(warning templ.Component){
                 } catch (error) {
                     console.error('Error encoding folder path:', error);
                     showError('Error processing folder path');
+                }
+            });
+
+            // When a recent folder radio is picked, sync it into the input
+            document.addEventListener('change', function(event) {
+                const target = event.target;
+                if (!target) {
+                    return;
+                }
+                if (target.matches('server-folder-options input[type="radio"][name="serverFolder"]')) {
+                    fullPathInput.value = target.value;
+                    showSuccess('Using previously used folder');
                 }
             });
             

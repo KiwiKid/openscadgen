@@ -10,6 +10,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/a-h/templ"
 )
 
 type ExportCameraCoordinates struct {
@@ -118,6 +120,7 @@ type OutputPaths struct {
 // Config holds the overall configuration structure
 type Config struct {
 	Design                       DesignConfig `toml:"openscadgen"`
+	TotalQueuedInstances         int
 	RawConfigFile                string
 	ConfigFile                   string //`flag:"c,config"`
 	Quiet                        bool   //`flag:"q"`
@@ -191,7 +194,9 @@ type InstanceConfig struct {
 	SkippedReason               string
 	SkippedImageReason          string
 	IsComplete                  bool
+	IsSuccessful                bool
 	CompletedAt                 time.Time
+	STLResults                  []GenerateSTLResult
 }
 
 type InstanceConfigSlice []InstanceConfig
@@ -286,8 +291,9 @@ func (instance *InstanceConfig) GetInstancePaths(config *Config) *InstancePaths 
 }
 
 type ConfigFile struct {
-	Path     string
-	NiceName string
+	Path         string
+	NiceName     string
+	DateModified time.Time
 }
 
 type CleanResult struct {
@@ -468,24 +474,52 @@ type WatcherStatusUI struct {
 }
 
 type STLViewerParams struct {
-	InstanceID           string
-	STLPath              string
-	ConfigFilePath       string
-	ConfigFilePathBase64 string
-	InstanceConfig       InstanceConfig
+	InstanceID  string
+	PageUrlInfo PageUrlInfo
+	STLPath     string
 }
 
 type Results struct {
 	TimeTake time.Duration
 }
 type BuildReportMetaParams struct {
-	IsServerMode   bool
-	ConfigFilePath string
-	ServerFolder   string
+	IsServerMode         bool
+	TotalQueuedInstances int
+	ConfigFilePath       string
+	ServerFolder         string
+	Config               *Config
+	Instances            []InstanceConfig
+}
+
+type FilterGroup struct {
+	Name string
+}
+
+type PageUrlInfo struct {
+	HomeURL               string
+	ConfigFileURL         string
+	ConfigFilePath        string
+	ConfigFilePathEncoded string
+	ServerFolder          string
+	ServerFolderEncoded   string
+	PageURL               string
+}
+
+type EditConfigParams struct {
+	ConfigFilePath        string
+	ConfigFilePathEncoded string
+	ServerFolder          string
+	ServerFolderEncoded   string
+	FilePath              string
+	FilePathEncoded       string
+	Content               string
+	ErrorMsg              templ.Component
 }
 
 type ReportMeta struct {
 	IsServerMode          bool
+	TotalQueuedInstances  int
+	HomeURL               string
 	ConfigFilePath        string
 	ConfigFilePathEncoded string
 	ServerFolder          string

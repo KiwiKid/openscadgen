@@ -244,7 +244,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 	}
 
 	// Check if export folder has existing files
-	clearExportFolder(config, outputPaths)
+	//clearExportFolder(config, outputPaths)
 
 	// Generate instances
 	var instances []models.InstanceConfig
@@ -354,15 +354,20 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 
 					result.OutputLog += genErr.Error()
 
-					logError(fmt.Sprintf("Warning: failed to generate STL for instance %s:\n Error:\n%+v", instances[i].Name, genErr))
+					logError(fmt.Sprintf("Warning: failed to generate STL for instance %s:\n Error:\n%+v", instances[i].AutoName, genErr))
 					stlResults = append(stlResults, result)
 					completedInstances++
 					if config.StopOnError {
 						return models.ProcessResult{}, fmt.Errorf("failed to generate STL: %w", genErr)
 					}
+					instances[i].IsSuccessful = false
 					continue
 
 				} else {
+
+					result.OutputLog = result.CommandOutput
+					instances[i].STLResults = append(instances[i].STLResults, result)
+					instances[i].IsSuccessful = true
 
 					stlResults = append(stlResults, result)
 				}
@@ -607,12 +612,21 @@ func ScanFolderForConfigFiles(folder string) ([]models.ConfigFile, error) {
 			return err
 		}
 
-		configFiles = append(configFiles, models.ConfigFile{Path: subPath, NiceName: GetNiceName(subPath)})
+		dateModified, err := os.Stat(path)
+		if err != nil {
+			return err
+		}
+
+		configFiles = append(configFiles, models.ConfigFile{Path: subPath, NiceName: GetNiceName(subPath), DateModified: dateModified.ModTime()})
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
+
+	sort.Slice(configFiles, func(i, j int) bool {
+		return configFiles[i].DateModified.After(configFiles[j].DateModified)
+	})
 	return configFiles, nil
 }
 
@@ -1012,13 +1026,16 @@ var cameraDistances = map[string]CameraDistance{
 
 // parseCameraName parses a camera name to extract direction and distance
 func parseCameraName(cameraName string) (string, string) {
+	log.Printf("parseCameraName: %s", cameraName)
 	parts := strings.Split(cameraName, "-")
 
 	if len(parts) == 1 {
+		log.Printf("parseCameraName 1: %s", parts[0])
 		return parts[0], ""
 	}
 
 	if len(parts) == 2 {
+		log.Printf("parseCameraName 2: %s", parts[0])
 		// Check if the second part is a distance keyword
 		if _, ok := cameraDistances[parts[1]]; ok {
 			return parts[0], parts[1]
@@ -1114,10 +1131,10 @@ func makePresetReplacement(runOutputPath string, exportImage models.ExportCamera
 		}
 	}
 
-	log.Printf("Preset Export Camera Names:")
+	/*log.Printf("Preset Export Camera Names:")
 	for _, preset := range PRESET_images {
 		log.Printf(preset.CameraName)
-	}
+	}*/
 
 	// If no preset found and no coordinates provided, log an error
 	/*log.Panicf(`Camera '%s' is not a preset and has no coordinates specified.
@@ -1245,8 +1262,28 @@ func LoadConfigFromFile(flags models.CmdFlags) (*models.Config, error, error) {
 
 	data, err := os.ReadFile(configPath)
 	if err != nil {
-		log.Printf(colorRed+"Failed to read config file at path '%s'\n\n Error: %v", configPath, err)
-		return nil, nil, err
+		// Try fallback to serverFolder + configFile if serverFolder is set
+		if flags.ServerFolder != "" {
+			fallbackPath := filepath.Join(flags.ServerFolder, flags.ConfigFile)
+			if flags.Debug {
+				log.Printf("Trying fallback config path: %s", fallbackPath)
+			}
+			fallbackData, fallbackErr := os.ReadFile(fallbackPath)
+			if fallbackErr == nil {
+				configPath = fallbackPath
+				data = fallbackData
+				err = nil
+				if flags.Debug {
+					log.Printf("Successfully read config from fallback path: %s", fallbackPath)
+				}
+			} else {
+				log.Printf(colorRed+"Failed to read config file at path '%s'\n\n Error: %v\n\nTried fallback path '%s' but also failed: %v"+colorReset, configPath, err, fallbackPath, fallbackErr)
+				return nil, nil, err
+			}
+		} else {
+			log.Printf(colorRed+"Failed to read config file at path '%s'\n\n Error: %v"+colorReset, configPath, err)
+			return nil, nil, err
+		}
 	} else if flags.Debug {
 		log.Printf("ReadFile config for %s", configPath)
 	}
@@ -1294,8 +1331,22 @@ func LoadConfig(configData string, flags models.CmdFlags, configPath string) (*m
 	for _, exportImage := range conf.Design.ExportImages {
 		cameraName, distance := parseCameraName(exportImage.CameraName)
 		if distance == "" {
-			log.Printf(colorRed+"Failed to parse camera name: %v", cameraName)
-			warning = fmt.Errorf("failed to parse camera name: %v", cameraName)
+			// Check if it's a known preset camera name
+			isPreset := false
+			for _, preset := range PRESET_images {
+				if preset.CameraName == cameraName {
+					isPreset = true
+					break
+				}
+			}
+			// Also check if it's in the cameraPresets map
+			if _, ok := cameraPresets[cameraName]; ok {
+				isPreset = true
+			}
+			if !isPreset {
+				log.Printf(colorRed+"Failed to parse camera name: %v"+colorReset, cameraName)
+				warning = fmt.Errorf("failed to parse camera name: %v", cameraName)
+			}
 		}
 	}
 
@@ -1339,6 +1390,7 @@ func LoadConfig(configData string, flags models.CmdFlags, configPath string) (*m
 	conf.OverwriteExisting = flags.OverwriteExisting
 	conf.CustomOpenSCADCommand = flags.CustomOpenSCADCommand
 
+	conf.TotalQueuedInstances = 0
 	if flags.CustomOpenSCADOutputFormat != "" {
 		conf.Design.CustomOpenSCADOutputFormat = flags.CustomOpenSCADOutputFormat
 	}
@@ -2182,6 +2234,120 @@ func checkRegexPattern(config *models.Config, configuredInstanceConfig models.Co
 	return ""
 }
 
+func checkRegexPatternV2(config *models.Config, instance models.InstanceConfig) string {
+	if config.RegexPattern != "" {
+		regex, err := regexp.Compile(config.RegexPattern)
+		if err != nil {
+			return fmt.Sprintf("Error compiling regex pattern: %v", err)
+		}
+		// Check AutoName first (new check)
+		if regex.MatchString(instance.AutoName) {
+			if config.Debug {
+				logCreation(fmt.Sprintf("Regex Match (AutoName) %s %s", config.RegexPattern, instance.AutoName))
+			}
+			return ""
+		}
+		// Check instance name
+		if regex.MatchString(instance.Name) {
+			if config.Debug {
+				logCreation(fmt.Sprintf("Regex Match (instance.Name) %s %s", config.RegexPattern, instance.Name))
+			}
+			return ""
+		}
+		// Check input path
+		if regex.MatchString(instance.InputPath.Path) {
+			if config.Debug {
+				logCreation(fmt.Sprintf("Regex Match (inputPath) %s %s", config.RegexPattern, instance.InputPath.Path))
+			}
+			return ""
+		}
+		// Check param set names from instance (need to get from config since InstanceConfig doesn't have ParamSets directly)
+		// We'll need to check the config for param sets that match the instance
+		// For now, we'll check what we can from the instance structure
+		// Check param keys from instance.Params
+		for paramKey := range instance.Params {
+			if regex.MatchString(paramKey) {
+				if config.Debug {
+					logCreation(fmt.Sprintf("Regex Match (param key) %s %s", config.RegexPattern, paramKey))
+				}
+				return ""
+			}
+		}
+		// Check param values from instance.Params
+		for _, param := range instance.Params {
+			if strValue, ok := param.(string); ok {
+				for _, val := range strings.Split(strValue, ",") {
+					val = strings.TrimSpace(val)
+					if regex.MatchString(val) {
+						if config.Debug {
+							logCreation(fmt.Sprintf("Regex Match (instance param value) %s %s", config.RegexPattern, val))
+						}
+						return ""
+					}
+				}
+			}
+		}
+		// Check param set names from input path
+		if instance.InputPath.ParamSets != "" {
+			for _, paramSetName := range strings.Split(instance.InputPath.ParamSets, ",") {
+				paramSetName = strings.TrimSpace(paramSetName)
+				if regex.MatchString(paramSetName) {
+					if config.Debug {
+						logCreation(fmt.Sprintf("Regex Match (inputPath param_set name) %s %s", config.RegexPattern, paramSetName))
+					}
+					return ""
+				}
+			}
+		}
+		// Check param sets from config for referenced param sets (check their names and params)
+		paramSetNames := strings.Split(instance.InputPath.ParamSets, ",")
+		for _, paramSet := range config.Design.ParamSets {
+			// Check if this param set is referenced
+			for _, refName := range paramSetNames {
+				refName = strings.TrimSpace(refName)
+				if refName == "" {
+					continue
+				}
+				if paramSet.Name == refName {
+					// Check param set name (this is already checked earlier, but keeping for completeness)
+					if regex.MatchString(paramSet.Name) {
+						if config.Debug {
+							logCreation(fmt.Sprintf("Regex Match (referenced param_set name) %s %s", config.RegexPattern, paramSet.Name))
+						}
+						return ""
+					}
+					// Check param keys from this param set
+					for paramKey := range paramSet.Params {
+						if regex.MatchString(paramKey) {
+							if config.Debug {
+								logCreation(fmt.Sprintf("Regex Match (param_set param key) %s %s", config.RegexPattern, paramKey))
+							}
+							return ""
+						}
+					}
+					// Check param values from this param set
+					for _, paramValue := range paramSet.Params {
+						if strValue, ok := paramValue.(string); ok {
+							for _, val := range strings.Split(strValue, ",") {
+								val = strings.TrimSpace(val)
+								if regex.MatchString(val) {
+									if config.Debug {
+										logCreation(fmt.Sprintf("Regex Match (param_set param value) %s %s", config.RegexPattern, val))
+									}
+									return ""
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		// No match found
+		return fmt.Sprintf("Regex pattern (%s) didn't match: (checked: %s, %s & %s)", config.RegexPattern, instance.AutoName, instance.Name, instance.InputPath.Path)
+	}
+	return ""
+}
+
 func generateAutoName(configuredInstanceConfig models.ConfiguredInstanceConfig, inputPath models.InputPath) string {
 	return fmt.Sprintf("%s_%s", configuredInstanceConfig.Name, inputPath.Path)
 }
@@ -2402,7 +2568,7 @@ func GenerateInstances(config *models.Config, configuredInstanceConfig models.Co
 				Params:                      make(map[string]interface{}),
 				InputPath:                   inputPath,
 				SkipImages:                  configuredInstanceConfig.SkipImages || inputPath.SkipImages,
-				SkippedReason:               checkInstancesSkip(config, len(instances)) + checkRegexPattern(config, configuredInstanceConfig, inputPath),
+				SkippedReason:               "",
 				ExportImages:                []models.ExportCameraCoordinates{},
 				ImageResults:                []models.GenerateImageResult{},
 				RunOutputImagePath:          "",
@@ -2483,6 +2649,8 @@ func GenerateInstances(config *models.Config, configuredInstanceConfig models.Co
 			for k := range ignoredParams {
 				instance.IgnoredParams = append(instance.IgnoredParams, k)
 			}
+
+			instance.SkippedReason = checkInstancesSkip(config, len(instances)) + checkRegexPatternV2(config, instance)
 
 			instances = append(instances, instance)
 		}
@@ -2804,6 +2972,7 @@ path = "./{{projectName}}.scad"
 
 [[openscadgen.images]]
 name = "nice"
+param_filter = { renderType= "obj,vertSlice,horzSlice"}
 `
 
 func openScadTemplateExtended(projectNameUnderLined string) string {
@@ -3417,7 +3586,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 	}
 
 	if !config.Design.DontUseManifold {
-		args = append(args, "--backend=manifold")
+		//	args = append(args, "--backend=manifold")
 	}
 
 	if config.Debug {
@@ -3562,15 +3731,61 @@ func FindOpenSCAD() string {
 	return path
 }
 
-func BuildReportMeta(params models.BuildReportMetaParams, results models.Results) models.ReportMeta {
-	encodedConfigFilePath := base64.StdEncoding.EncodeToString([]byte(params.ConfigFilePath))
-	encodedServerFolder := base64.StdEncoding.EncodeToString([]byte(params.ServerFolder))
-	reportMeta := models.ReportMeta{
-		IsServerMode:          params.IsServerMode,
-		ConfigFilePath:        params.ConfigFilePath,
+func BuildHomeURL(serverFolder string) string {
+	var homeURL string = "/"
+	if serverFolder != "" {
+		encodedServerFolder := base64.StdEncoding.EncodeToString([]byte(serverFolder))
+		homeURL = fmt.Sprintf("/?server_folder=%s", encodedServerFolder)
+	}
+	return homeURL
+}
+
+func BuildConfigFileURL(configFilePath string, serverFolder string) string {
+	var configFileURL string = "/"
+	if configFilePath != "" {
+		encodedConfigFilePath := base64.StdEncoding.EncodeToString([]byte(configFilePath))
+		encodedServerFolder := base64.StdEncoding.EncodeToString([]byte(serverFolder))
+		configFileURL = fmt.Sprintf("/?config=%s&server_folder=%s", encodedConfigFilePath, encodedServerFolder)
+	}
+	return configFileURL
+}
+
+func BuildPageUrl(configFilePath string, serverFolder string) models.PageUrlInfo {
+	var pageURL string = "/?"
+	var encodedConfigFilePath string
+	if configFilePath != "" {
+		encodedConfigFilePath = base64.StdEncoding.EncodeToString([]byte(configFilePath))
+		pageURL += fmt.Sprintf("config=%s&", encodedConfigFilePath)
+	}
+
+	var encodedServerFolder string
+	if serverFolder != "" {
+		encodedServerFolder = base64.StdEncoding.EncodeToString([]byte(serverFolder))
+		pageURL += fmt.Sprintf("server_folder=%s", encodedServerFolder)
+	}
+
+	return models.PageUrlInfo{
+		PageURL:               pageURL,
+		HomeURL:               BuildHomeURL(serverFolder),
+		ConfigFileURL:         BuildConfigFileURL(configFilePath, serverFolder),
+		ConfigFilePath:        configFilePath,
 		ConfigFilePathEncoded: encodedConfigFilePath,
-		ServerFolder:          params.ServerFolder,
+		ServerFolder:          serverFolder,
 		ServerFolderEncoded:   encodedServerFolder,
+	}
+}
+
+func BuildReportMeta(params models.BuildReportMetaParams, results models.Results) models.ReportMeta {
+	pageUrlInfo := BuildPageUrl(params.ConfigFilePath, params.ServerFolder)
+
+	reportMeta := models.ReportMeta{
+		HomeURL:               BuildHomeURL(params.ServerFolder),
+		IsServerMode:          params.IsServerMode,
+		TotalQueuedInstances:  params.TotalQueuedInstances,
+		ConfigFilePath:        params.ConfigFilePath,
+		ConfigFilePathEncoded: pageUrlInfo.ConfigFilePathEncoded,
+		ServerFolder:          params.ServerFolder,
+		ServerFolderEncoded:   pageUrlInfo.ServerFolderEncoded,
 		Results:               results,
 	}
 

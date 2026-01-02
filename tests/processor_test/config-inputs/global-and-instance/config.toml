@@ -1,0 +1,35 @@
+[openscadgen]
+name = "own_your_place_tokens"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{renderType}/{connector_type}/{name}"
+
+[[openscadgen.input_paths]]
+path = "./own_your_place_tokens.scad"
+
+[[openscadgen.instances]]
+name = "all"
+params = { connector_type = "tree,flag,star,circle,triangle,diamond,square,hexagon" }
+
+[[openscadgen.instances]]
+name = "home-hill-5"
+params = { connector_type = "house", floor_offset = -0.9, floor_steepness = 5, floor_rotate = 0 }
+
+[[openscadgen.instances]]
+name = "home-hill-10"
+params = { connector_type = "house", floor_offset = -0.9, floor_steepness = 10, floor_rotate = 0 }
+
+
+[[openscadgen.instances]]
+name = "home-hill-20"
+params = { connector_type = "house", floor_offset = -0.9, floor_steepness = 20, floor_rotate = 0 }
+
+[[openscadgen.instances]]
+name = "home-hill-30"
+params = { connector_type = "house", floor_offset = -0.9, floor_steepness = 30, floor_rotate = 0 }
+
+
+[[openscadgen.images]]
+name = "nice"

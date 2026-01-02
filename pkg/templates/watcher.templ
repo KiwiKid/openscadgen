@@ -18,7 +18,7 @@ templ WatcherStatusComponent(status models.WatcherStatusUI) {
             <button hx-post="/api/watcher/pause" hx-swap="none">Pause</button>
             <button hx-post="/api/watcher/resume" hx-swap="none">Resume</button>
         } else {
-            <span style="color:gray">File watching disabled</span>
+            <span style="color:gray display:none">File watching disabled</span>
         }
         <hr/>
     </div>

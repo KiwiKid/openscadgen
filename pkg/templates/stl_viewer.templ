@@ -1,6 +1,5 @@
 package templates
 
-import "fmt"
 import "github.com/kiwikid/openscadgen/pkg/models"
 
 
@@ -156,7 +155,6 @@ templ STLViewer(params models.STLViewerParams) {
 			</div>
 			
 			<div id="info" style="display: none;">
-				<div><strong>Instance:</strong> { params.InstanceConfig.Name }</div>
 				<div><strong>ID:</strong> { params.InstanceID }</div>
 				<div><strong>File:</strong> { params.STLPath }</div>
 				<div><strong>Controls:</strong> Left click + drag to rotate, Right click + drag to pan, Scroll to zoom</div>
@@ -463,8 +461,22 @@ templ STLViewer(params models.STLViewerParams) {
 				renderer.render(scene, camera);
 			}
 
-			// Initialize when page loads
-			init();
+			// Initialize when page loads and Alpine is ready
+			function waitForAlpine() {
+				if (typeof Alpine !== 'undefined' && Alpine.$data) {
+					init();
+				} else {
+					// Alpine is deferred, wait a bit and check again
+					setTimeout(waitForAlpine, 50);
+				}
+			}
+			
+			// Wait for DOM to be ready, then wait for Alpine
+			if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', waitForAlpine);
+			} else {
+				waitForAlpine();
+			}
 		</script>
 }
 
@@ -477,7 +489,6 @@ templ STLViewerHeaderBody( params models.STLViewerParams) {
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-		<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 		 @HeadLinks()
 		<style>
 			body { margin: 0; padding: 0; background: #2a2a2a; font-family: Arial, sans-serif; }
@@ -611,8 +622,8 @@ templ STLViewerHeaderBody( params models.STLViewerParams) {
     <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
 
-		<a class="button is-warning" href={ templ.SafeURL(fmt.Sprintf("/?config=%s#%s", params.ConfigFilePathBase64, params.InstanceConfig.UniqueID)) }>Cancel</a>
-		<button href="/" class="button is-large">Home</button>	
+		<a class="button is-warning" href={ templ.SafeURL(params.PageUrlInfo.ConfigFileURL) }>Cancel</a>
+		<button href={ templ.SafeURL(params.PageUrlInfo.HomeURL) } class="button is-large">Home</button>	
 	</nav>
      @STLViewer(params)
 	</body>

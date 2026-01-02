@@ -10,6 +10,8 @@ import (
 	"bytes"
 	"path/filepath"
 	"encoding/base64"
+	"net/url"
+	"github.com/dustin/go-humanize"
 )
 
 func formatDuration(d time.Duration) string {
@@ -19,7 +21,9 @@ func formatDuration(d time.Duration) string {
     if d < time.Second {
         return fmt.Sprintf("%.2fms", float64(d)/float64(time.Millisecond))
     }
-    return fmt.Sprintf("%.2fs", float64(d)/float64(time.Second))
+    // Use go-humanize's relative time, then trim off any trailing space/labels.
+    now := time.Now()
+    return strings.TrimSpace(humanize.RelTime(now.Add(-d), now, "", ""))
 }
 
 templ Success(message string) {
@@ -175,6 +179,55 @@ templ ProcessForm(reportMeta models.ReportMeta) {
     </form>
 }
 
+func buildDeleteURL(configFile string, serverFolder string, dryRun bool, cleanOldVersions bool) string {
+    var parts []string
+    
+    if len(configFile) > 0 {
+        parts = append(parts, fmt.Sprintf("config_file=%s", url.QueryEscape(configFile)))
+    } else if len(serverFolder) > 0 {
+        parts = append(parts, fmt.Sprintf("server_folder=%s", url.QueryEscape(serverFolder)))
+    }
+    
+    if dryRun {
+        parts = append(parts, "dryRun=true")
+    }
+    
+    if cleanOldVersions {
+        parts = append(parts, "cleanOldVersions=true")
+    }
+    
+    if len(parts) == 0 {
+        return "/"
+    }
+    
+    return "/?" + strings.Join(parts, "&")
+}
+
+func getDeleteTitle(configFile string, serverFolder string) string {
+    if len(configFile) > 0 {
+        return fmt.Sprintf("Delete config file: %s", configFile)
+    }
+    return fmt.Sprintf("Delete folder: %s", serverFolder)
+}
+
+templ DeleteButton(configFile string, serverFolder string, dryRun bool, cleanOldVersions bool) {
+    if len(configFile) > 0 || len(serverFolder) > 0 {
+        <button 
+            class="button is-danger" 
+            hx-delete={ templ.SafeURL(buildDeleteURL(configFile, serverFolder, dryRun, cleanOldVersions)) }
+            hx-confirm="Are you sure you want to delete this?"
+            hx-indicator="#delete-loading"
+            title={ getDeleteTitle(configFile, serverFolder) }
+        >
+            <span class="icon">
+                <i class="fas fa-trash"></i>
+            </span>
+            <span>Delete</span>
+        </button>
+        <span id="delete-loading" class="htmx-indicator" style="margin-left:8px;">Deleting...</span>
+    }
+}
+
 
 
 templ ReportInstance(instance models.InstanceConfig, allParamNames []string, outputPath string, instanceIndex int, isOOB bool) {
@@ -223,7 +276,7 @@ templ ReportSTLResult(stlResult models.GenerateSTLResult, outputPath string, res
         }
         </td>
         <td><a href={ templ.SafeURL(getRelativePath(stlResult.OutputPath, outputPath)) } target="_blank"></a></td>
-        <td>{ fmt.Sprintf("%v", stlResult.TimeTaken) }</td>
+        <td>{ formatDuration(stlResult.TimeTaken) }</td>
         if len(stlResult.AppliedParams) > 0 {
             <td> @RenderParams(stlResult.AppliedParams) </td>
         } else {
@@ -277,8 +330,106 @@ func getInstanceShow(instance models.InstanceConfig) string {
         instance.SkippedReason)
 }
 
-func buildPreviewSTLURL(instance models.InstanceConfig) templ.SafeURL {
-    return templ.SafeURL(fmt.Sprintf("/api/preview?instance=%s&config=%s", instance.UniqueID, base64.StdEncoding.EncodeToString([]byte(instance.InputConfigFilePathRelative))))
+func buildPreviewSTLURL(instance models.InstanceConfig, reportMeta models.ReportMeta) templ.SafeURL {
+    return templ.SafeURL(fmt.Sprintf("/api/preview?instance=%s&file_path=%s&config_path=%s&server_folder=%s", instance.UniqueID, base64.StdEncoding.EncodeToString([]byte(instance.InputConfigFilePathRelative)), reportMeta.ConfigFilePathEncoded, reportMeta.ServerFolderEncoded))
+}
+
+templ InstanceSlimRow(instance models.InstanceConfig, outputPath string, reportMode string, allParamNames []string, reportMeta models.ReportMeta) {
+    <div class="is-full-width" id={ fmt.Sprintf("instance-slim-row-%s", instance.UniqueID) }>
+    
+        <details>
+        <summary class="columns">
+            <div class="column is-narrow">
+            { instance.AutoName } 
+            </div>
+            <div class="column is-narrow">
+            { instance.Description }
+            </div>
+            for _, stlResult := range instance.STLResults {
+                <div class="column is-narrow">
+                { stlResult.Error }
+                </div>
+            }
+            <div class="column is-narrow">
+            { instance.SkippedReason }
+            </div>
+            <div class="column is-narrow">
+            { instance.ConfigError }
+            </div>
+        </summary>
+        <div class="card">
+            <div class="card-content">
+                    <div class="media">
+                        <div class="media-content">
+                            <p class="title is-4">{ instance.AutoName } </p>
+                            if instance.SkippedReason != "" {
+                                <p class="has-text-warning"><strong>Skipped:</strong> { instance.SkippedReason }</p>
+                            }
+                            if instance.SkippedImageReason != "" {
+                                <p class="has-text-warning"><strong>Skipped Image Reason:</strong> { instance.SkippedImageReason }</p>
+                            }
+                            if instance.ConfigError != "" {
+                                <p class="has-text-danger"><strong>Error:</strong> { instance.ConfigError }</p>
+                            }
+                            <div class="columns is-multiline">
+                            if len(instance.STLResults) > 0 {
+                                for _, stlResult := range instance.STLResults {
+                                    <details>
+                                    if stlResult.Error != "" {
+                                        <summary class="has-text-danger">{ stlResult.InstanceConfig.AutoName }: { stlResult.Error }</summary>
+                                    } else {
+                                        <summary class="has-text-success">[{ formatDuration(stlResult.TimeTaken) }] - { stlResult.InstanceConfig.AutoName }   </summary>
+                                    }
+                                        @CodeBlock(stlResult.Command, true, false)
+                                    </details>
+                                }
+                            }
+                            </div>
+                            <details>
+                            <summary>
+                                Command Output
+                            </summary>
+
+                            if instance.STLResults != nil && len(instance.STLResults) > 0 {
+                                for _, stlResult := range instance.STLResults {
+                                    @CodeBlock(stlResult.OutputLog, true, false)
+                                    @RenderParams(stlResult.AppliedParams)
+                                }
+                            } else {
+                                <p>No STL results</p>
+                            }
+
+                            if instance.ImageResults != nil && len(instance.ImageResults) > 0 {
+
+                                    <div class="columns">
+                                for _, imageResult := range instance.ImageResults {
+                                    <div class="column is-narrow">
+                                        if reportMeta.IsServerMode {
+                                            <img src={ fmt.Sprintf("/images?config_path=/%s", getRelativeImagePath(imageResult.OutputPath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, imageResult.CameraName) } class="image-preview" />
+                                        }else {
+                                            <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, imageResult.CameraName) } class="image-preview" />
+                                        }
+                                    </div>
+                                }
+                                </div>
+
+                                
+                                for _, imageResult := range instance.ImageResults {
+                                    @CodeBlock(imageResult.CommandOutput, true, false)
+                                    @RenderParams(imageResult.AppliedParams)
+                                }
+                            } else if instance.SkippedImageReason != "" {
+                                <p class="has-text-warning"><strong>Skipped Image Reason:</strong> { instance.SkippedImageReason }</p>
+                            } else {
+                                <p>No image results</p>
+                            }
+                            </details>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </details>
+    </div>
 }
 
 templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMode string, allParamNames []string, reportMeta models.ReportMeta) {
@@ -304,10 +455,14 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
             </div>
         </div>
     }*/
-    
+    if instance.IsComplete {
+        @InstanceSlimRow(instance, outputPath, reportMode, allParamNames, reportMeta)
+    }
+    <div x-show="showDebug">
+        [[InstanceCardV2 - { instance.AutoName }]]
+    </div>
     <div x-show="showDebug" class="debug-filter-status" style="border-radius: 4px; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px;">
-        <div style="font-weight: bold; margin-bottom: 8px;">🔍 Filter Debug for { instance.AutoName }</div>
-        
+        <details><summary tyle="font-weight: bold; margin-bottom: 8px;">🔍 Filter Debug for { instance.AutoName }</summary>
         @DebugAlpineState("showDebug", "showDebug")
          @DebugAlpineState("filters.showOnlyWithImages", "filters.showOnlyWithImages")
          @DebugAlpineState( fmt.Sprintf("filters.showOnlyWithImages || (%v > 0 || %v > 0)", len(instance.ImageResults), len(instance.ExportImages)),"showOnlyWithImages")
@@ -316,7 +471,7 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
         @DebugAlpineState("filters.descriptionPattern === '' || '%s'.toLowerCase().includes(filters.descriptionPattern.toLowerCase())", instance.Description)
         @DebugAlpineState("filters.outputPathPattern === '' || '%s'.toLowerCase().includes(filters.outputPathPattern.toLowerCase())", instance.RunOutputPathV3)
         @DebugAlpineState(getInstanceShow(instance), "FINAL RESULT")
-       
+       </details>
     </div>
 
     <div class="column is-full" id={ fmt.Sprintf("instance-%s", instance.UniqueID) } hx-swap-oob="true"
@@ -335,6 +490,12 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
                     
                     if instance.IsComplete {
                         <p class="has-text-success"><i class="fas fa-check-circle"> Completed at { instance.CompletedAt.Format("15:04") } ({ instance.CompletedAt.Format("2006-01-02") })</i></p>
+                    }
+                    if instance.SkippedReason != "" {
+                        <p class="has-text-warning"><strong>Skipped:</strong> { instance.SkippedReason }</p>
+                    }
+                    if instance.SkippedImageReason != "" {
+                        <p class="has-text-warning"><strong>Skipped Image Reason:</strong> { instance.SkippedImageReason }</p>
                     }
                     <p><strong>Output Path:</strong> { getRelativePath(instance.RunOutputPathV3, outputPath) }</p>
 
@@ -373,14 +534,10 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
                         }
                     }
                     if reportMeta.IsServerMode {
-                        <p><strong>Output:</strong> <a href={ buildPreviewSTLURL(instance) } target="_blank">Preview STL</a></p>
+                        <p><strong>Output:</strong> <a href={ buildPreviewSTLURL(instance, reportMeta) } target="_blank">Preview STL</a></p>
                     }
                     if reportMeta.IsServerMode {
-                        <form hx-put={ fmt.Sprintf("/?regex=%s", instance.AutoName) } hx-target={ fmt.Sprintf("#instance-%s", instance.UniqueID) } hx-indicator="#loading-indicator">
-                            <input type="hidden" name="config_path" value={ reportMeta.ConfigFilePathEncoded }>
-                            <input type="hidden" name="server_folder" value={ reportMeta.ServerFolderEncoded }>
-                            <button class="button is-large" id="process-btn" type="submit">Process { instance.AutoName }</button>
-                        </form>
+                        <button class="button is-large" id="process-btn" type="button" data-instance-name={ instance.AutoName } @click="processInstance($event.target.getAttribute('data-instance-name'))">Process { instance.AutoName }</button>
                     }
                 </div>
             </div>
@@ -391,9 +548,9 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
 // (coming soon)
 templ InstanceRowV3(instance models.InstanceConfig, outputPath string, reportMode string, allParamNames []string, reportMeta models.ReportMeta) {
     @JSONViewerWithStyle(fmt.Sprintf("Instance %s", instance.AutoName), instance)
-    
+    [[InstanceRowV3 - { instance.AutoName }]]
     <div x-show="showDebug" class="debug-filter-status" style="border-radius: 4px; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px;">
-        <div style="font-weight: bold; margin-bottom: 8px;">🔍 Filter Debug for { instance.AutoName }</div>
+        <details><summary style="font-weight: bold; margin-bottom: 8px;">🔍 Filter Debug for { instance.AutoName }</summary>
         
         @DebugAlpineState("showDebug", "showDebug")
         @DebugAlpineState("showOnlyWithImages", "showOnlyWithImages")
@@ -402,7 +559,7 @@ templ InstanceRowV3(instance models.InstanceConfig, outputPath string, reportMod
         @DebugAlpineState("filters.descriptionPattern === '' || '%s'.toLowerCase().includes(filters.descriptionPattern.toLowerCase())", instance.Description)
         @DebugAlpineState("filters.outputPathPattern === '' || '%s'.toLowerCase().includes(filters.outputPathPattern.toLowerCase())", instance.RunOutputPathV3)
         @DebugAlpineState(getInstanceShow(instance), "FINAL RESULT")
-       
+       </details>
     </div>
 
     <tr id={ fmt.Sprintf("instance-%s", instance.UniqueID) } hx-swap-oob="true"
@@ -533,6 +690,7 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
                 showInstancesWithoutImages: false,
                 navSelected: "instances",
                 searchQuery: '',
+                bottomNavExpanded: false,
                 // Advanced filtering options
                 filters: {
                     searchQuery: '',
@@ -697,6 +855,15 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
                 }
             }
         }
+        
+        function processInstance(autoName) {
+            // populate the regex with the auto-name, then trigger a click on the process button
+            const regex = document.querySelector('input[name="regex"]');
+            regex.value = autoName;
+            const processButton = document.querySelector('button[type="submit"]');
+            processButton.click();
+        }
+
         </script>
             <script>
                 (function() {
@@ -727,7 +894,16 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
                     });
                 }
             </script>
-            <style>
+            
+                <style>
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .fas.fa-spinner {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
                 :root {
                     --bg-color: #ffffff;
                     --text-color: #333333;
@@ -762,6 +938,12 @@ html, body {
                     background-color: var(--bg-color);
                     color: var(--text-color);
                     padding: 3rem;
+                    padding-bottom: 80px; /* Space for bottom nav when collapsed */
+                    transition: padding-bottom 0.3s ease-in-out;
+                }
+                
+                body.bottom-nav-expanded {
+                    padding-bottom: 0;
                 }
                 .container {
                     max-width: 1200px;
@@ -1046,9 +1228,78 @@ html, body {
                     background-color: var(--hover-bg) !important;
                     color: var(--text-color) !important;
                 }
+                
+                /* Bottom Navigation Styles */
+                .bottom-nav {
+                    position: fixed;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    width: 100%;
+                    background-color: var(--card-bg);
+                    border-top: 2px solid var(--border-color);
+                    z-index: 1000;
+                    transition: all 0.3s ease-in-out;
+                    box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+                }
+                
+                .bottom-nav.collapsed {
+                    height: 100px;
+                    max-height: 100px;
+                    overflow: hidden;
+                }
+                
+                .bottom-nav.expanded {
+                    height: calc(100vh - 40px);
+                    max-height: calc(100vh - 40px);
+                }
+                
+                .bottom-nav-header {
+                    padding: 0.75rem 1rem;
+                    min-height: 100px;
+                    border-bottom: 1px solid var(--border-color);
+                }
+                
+                .bottom-nav-header .columns {
+                    align-items: center;
+                }
+                
+                #progress-summary {
+                    font-size: 0.875rem;
+                    word-wrap: break-word;
+                    overflow-wrap: break-word;
+                }
+                
+                .bottom-nav-content {
+                    padding: 1.5rem;
+                    overflow-y: auto;
+                    height: calc(100% - 60px);
+                }
+                
+                .bottom-nav-toggle {
+                    background: none;
+                    border: none;
+                    color: var(--text-color);
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                    padding: 0.5rem;
+                    transition: transform 0.3s ease;
+                }
+                
+                .bottom-nav-toggle:hover {
+                    transform: scale(1.1);
+                }
+                
+                .bottom-nav-toggle .icon {
+                    transition: transform 0.3s ease;
+                }
+                
+                .bottom-nav.expanded .bottom-nav-toggle .icon {
+                    transform: rotate(180deg);
+                }
             </style>
         </head>
-        <body>
+        <body :class="{ 'bottom-nav-expanded': bottomNavExpanded }">
         <div x-show="showDebug">Show DEBUG ON</div>
         <div class="global-header fixed-grid">
             
@@ -1060,7 +1311,7 @@ html, body {
                                 <span class="navbar-toggler-icon"></span>
                             </button>
                             if reportMeta.IsServerMode {
-                                <a href="/" class="button is-large">Home</a>
+                                <a href={ templ.SafeURL(reportMeta.HomeURL) } class="button is-large">Home</a>
                             }
                         </div>
 
@@ -1083,31 +1334,13 @@ html, body {
                                     <li class="nav-item" :class="{ active: navSelected === 'json' }">
                                         <a class="nav-link" @click="navSelected = 'json'">Config</a>
                                     </li>
-                                    <a class="nav-link" href={ templ.SafeURL(fmt.Sprintf("/api/config?path=%s", config.ConfigFile)) }>Edit Config</a>
+                                    <a class="nav-link" href={ templ.SafeURL(fmt.Sprintf("/api/config?config_path=%s&server_folder=%s", reportMeta.ConfigFilePathEncoded, reportMeta.ServerFolderEncoded)) }>Edit Config</a>
                                  }
                             </ul>
                             
                         </div>
-                        if reportMeta.IsServerMode {
-                            <div >
-                                <div >
-                                if reportMeta.ConfigFilePath != "" {
-                                    @ProcessFormV2(reportMeta.ConfigFilePath)
-                                } else {
-                                    <form hx-post="/" hx-swap="outerHTML">
-                                        <input type="text" name="config_path" x-model="configFile">
-                                        <input type="submit" value="Enter">
-                                    </form>
-                                }
-                                </div>
-                            </div>
-                        }
-                        <div>
-                            <div id="process-status" style="width: 300px; max-height: 300px"></div>
-                        	<ul id="process-result" style="width: 300px; max-height: 300px"></ul>
-
-                        </div>
-                         <div class="mb-3">
+                        
+                                                 <div class="mb-3">
                             <label class="form-label">Search Query</label>
                             <input type="text" class="form-control" x-model="filters.searchQuery" placeholder="Search instances...">
                         </div>
@@ -1235,7 +1468,7 @@ html, body {
                                             <div class="content">
                                                 <p><strong>Time Taken:</strong> { fmt.Sprintf("%v", stlResult.TimeTaken) }</p>
                                                   if reportMeta.IsServerMode {
-                                                    <p><strong>Output:</strong> <a href={ buildPreviewSTLURL(stlResult.InstanceConfig) } target="_blank">Preview STL</a></p>
+                                                    <p><strong>Output:</strong> <a href={ buildPreviewSTLURL(stlResult.InstanceConfig, reportMeta) } target="_blank">Preview STL</a></p>
                                                   }
                                                 if len(stlResult.AppliedParams) > 0 {
                                                     <p><strong>Applied Params:</strong></p>
@@ -1396,6 +1629,145 @@ html, body {
     
             @ConfigSummary(*config, outputPath, totalTimeTaken)
             </div>
+            
+            <!-- Bottom Navigation -->
+            <nav class="bottom-nav" :class="bottomNavExpanded ? 'expanded' : 'collapsed'">
+                <div class="bottom-nav-header">
+                    <div class="columns is-vcentered is-mobile" style="margin: 0;">
+                        <div class="column is-narrow" style="flex: 0 0 auto; min-width: 150px; max-width: 200px;">
+                            <div id="progress-summary">[no progress-summary]</div>
+                        </div>
+                        <div class="column" style="flex: 1 1 auto; min-width: 0;">
+                            @SlimProcessForm(reportMeta)
+                        </div>
+                        <div class="column is-narrow" style="flex: 0 0 auto; width: auto; padding-left: 0.5rem;">
+                            <button class="bottom-nav-toggle" @click="bottomNavExpanded = !bottomNavExpanded" aria-label="Toggle navigation">
+                                <span class="icon">
+                                    <i class="fas fa-chevron-up"></i>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="bottom-nav-content" x-show="bottomNavExpanded">
+                    <div class="container">
+                        <div class="tabs is-centered is-fullwidth">
+                            <ul>
+                                <li :class="{ 'is-active': navSelected === 'instances' }">
+                                    <a @click="navSelected = 'instances'">Instances { fmt.Sprintf("(%d)", len(instances)) }</a>
+                                </li>
+                                if reportMode == "complete" {
+                                    <li :class="{ 'is-active': navSelected === 'stlResults' }">
+                                        <a @click="navSelected = 'stlResults'">STLs { fmt.Sprintf("(%d)", len(stlResults)) }</a>
+                                    </li>
+                                    <li :class="{ 'is-active': navSelected === 'images' }">
+                                        if len(imageResults) > 0 {
+                                            <a @click="navSelected = 'images'">Images { fmt.Sprintf("(%d)", len(imageResults)) }</a>
+                                        }
+                                    </li>
+                                }
+                                if reportMeta.IsServerMode {
+                                    <li :class="{ 'is-active': navSelected === 'json' }">
+                                        <a @click="navSelected = 'json'">Config</a>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                        
+                        <div class="section">
+                            <div>
+                                <div id="process-status">process-status</div>
+
+                            </div>
+
+                            if reportMeta.IsServerMode {
+                                <div class="box">
+                                    <div >
+                                    if reportMeta.ConfigFilePath != "" {
+                                        @ProcessFormV2(reportMeta)
+                                    } else {
+                                        <form hx-post="/" hx-swap="outerHTML">
+                                            <input type="text" name="config_path" x-model="configFile">
+                                            <input type="submit" value="Enter">
+                                        </form>
+                                    }
+                                    </div>
+                                </div>
+                            }
+                            <div class="field">
+                                <label class="label">Search Query</label>
+                                <div class="control">
+                                    <input type="text" class="input" x-model="filters.searchQuery" placeholder="Search instances...">
+                                </div>
+                            </div>
+                            
+                            <div class="field">
+                                <label class="label">Filters</label>
+                                <div class="control">
+                                    <div class="field">
+                                        <label class="checkbox">
+                                            <input type="checkbox" x-model="filters.showOnlyWithImages">
+                                            Only with images
+                                        </label>
+                                    </div>
+                                    <div class="field">
+                                        <label class="checkbox">
+                                            <input type="checkbox" x-model="filters.showInstancesWithoutImages">
+                                            Only without images
+                                        </label>
+                                    </div>
+                                    <div class="field">
+                                        <label class="checkbox">
+                                            <input type="checkbox" x-model="filters.showOnlyWithErrors">
+                                            Only with errors
+                                        </label>
+                                    </div>
+                                    <div class="field">
+                                        <label class="checkbox">
+                                            <input type="checkbox" x-model="filters.showOnlySkipped">
+                                            Only skipped
+                                        </label>
+                                    </div>
+                                    <div class="field">
+                                        <label class="checkbox">
+                                            <input type="checkbox" x-model="filters.showOnlySuccessful">
+                                            Only successful
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="field">
+                                <label class="label">Pattern Filters</label>
+                                <div class="control">
+                                    <input type="text" class="input mb-2" x-model="filters.namePattern" placeholder="Name Pattern (Regex)">
+                                    <input type="text" class="input mb-2" x-model="filters.descriptionPattern" placeholder="Description Pattern (Regex)">
+                                    <input type="text" class="input mb-2" x-model="filters.outputPathPattern" placeholder="Output Path Pattern (Regex)">
+                                </div>
+                            </div>
+                            
+                            <div class="field is-grouped">
+                                <div class="control">
+                                    <button class="button is-primary" @click="clearAllFilters()">Clear All Filters</button>
+                                </div>
+                                <div class="control">
+                                    <button class="button" @click="darkMode = !darkMode">
+                                        <span x-show="!darkMode">🌙</span>
+                                        <span x-show="darkMode">☀️</span>
+                                    </button>
+                                </div>
+                                <div class="control">
+                                    <button class="button" @click="showDebug = !showDebug">
+                                        <span x-show="!showDebug">🐛</span>
+                                        <span x-show="showDebug">🐛</span>
+                                        <span x-show="showDebug" style="text-decoration: underline;">Debug</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
     </body>
 </html>
 }

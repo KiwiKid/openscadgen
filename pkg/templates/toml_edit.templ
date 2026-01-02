@@ -3,9 +3,12 @@ package templates
 import (
 	"strings"
 	"fmt"
+	"github.com/kiwikid/openscadgen/pkg/models"
 )
 
-templ TOMLEditForm(filePath string, content string, errorMsg templ.Component) {
+
+
+templ TOMLEditForm(editFormConfig *models.EditConfigParams) {
 	<!DOCTYPE html>
 	<html lang="en">
 	<head>
@@ -129,14 +132,14 @@ templ TOMLEditForm(filePath string, content string, errorMsg templ.Component) {
 	<body>[[TOMLEditForm]]
 		<div class="container">
 			<h1>Edit TOML File</h1>
-			<a class="button is-warning" href={ templ.SafeURL(fmt.Sprintf("/?config=%s", filePath)) }>Cancel</a>
-			<div class="file-path">{ strings.TrimPrefix(filePath, "/") }</div>
+			<a class="button is-warning" href={ templ.SafeURL(fmt.Sprintf("/?config=%s", editFormConfig.ConfigFilePathEncoded)) }>Cancel</a>
+			<div class="file-path">{ strings.TrimPrefix(editFormConfig.ConfigFilePath, "/") }</div>
 			
-			if errorMsg != nil {
-				@errorMsg
+			if editFormConfig.ErrorMsg != nil {
+				@editFormConfig.ErrorMsg
 			}
 			
-			<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/api/edit?path=%s", filePath)) }>
+			<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/api/edit?config_path=%s&server_folder=%s", editFormConfig.ConfigFilePathEncoded, editFormConfig.ServerFolderEncoded)) }>
 				<!--<input type="hidden" id="content" name="content" value="" />-->
 				<div class="help-text">
 					# Optional: Camera positions for image generation
@@ -148,10 +151,10 @@ templ TOMLEditForm(filePath string, content string, errorMsg templ.Component) {
 
 				</div>
 				<div class="buttons">
-					<a href={ templ.SafeURL(fmt.Sprintf("/?config=%s", filePath)) } class="button is-alert">Cancel</a>
+					<a href={ templ.SafeURL(fmt.Sprintf("/?config_path=%s&server_folder=%s", editFormConfig.ConfigFilePathEncoded, editFormConfig.ServerFolderEncoded)) } class="button is-alert">Cancel</a>
 					<button type="submit" class="button is-success">Save Changes</button>
 				</div>
-				<textarea id="editarea" style="height: 350px; width: 100%;" id="content" name="content">{ content }</textarea>
+				<textarea id="editarea" style="height: 350px; width: 100%;" id="content" name="content">{ editFormConfig.Content }</textarea>
 			</form>
 		</div>
 		

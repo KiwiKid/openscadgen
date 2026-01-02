@@ -22,11 +22,12 @@ type ConfigInfo struct {
 
 // FileWatcher manages file watching and change detection
 type FileWatcher struct {
-	watcher    *fsnotify.Watcher
-	configs    map[string]*ConfigInfo
-	mu         sync.RWMutex
-	stopChan   chan struct{}
-	isWatching bool
+	watcher      *fsnotify.Watcher
+	configs      map[string]*ConfigInfo
+	mu           sync.RWMutex
+	stopChan     chan struct{}
+	isWatching   bool
+	serverFolder string
 }
 
 // NewFileWatcher creates a new file watcher instance
@@ -53,6 +54,9 @@ func (fw *FileWatcher) StartWatching(serverFolder string) error {
 		return nil // Already watching
 	}
 
+	// Store server folder for later use
+	fw.serverFolder = serverFolder
+
 	// Load initial configs
 	configFiles, err := pkg.ScanFolderForConfigFiles(serverFolder)
 	if err != nil {
@@ -61,8 +65,10 @@ func (fw *FileWatcher) StartWatching(serverFolder string) error {
 
 	// Load and cache each config
 	for _, configFile := range configFiles {
-		if err := fw.loadAndWatchConfig(configFile.Path); err != nil {
-			log.Printf("Error loading config %s: %v", configFile.Path, err)
+		// configFile.Path is relative to serverFolder, so join them
+		fullConfigPath := filepath.Join(serverFolder, configFile.Path)
+		if err := fw.loadAndWatchConfig(fullConfigPath, serverFolder); err != nil {
+			log.Printf("Error loading config %s: %v", fullConfigPath, err)
 			continue
 		}
 	}
@@ -97,7 +103,7 @@ func (fw *FileWatcher) StopWatching() {
 }
 
 // loadAndWatchConfig loads a config file and starts watching it
-func (fw *FileWatcher) loadAndWatchConfig(configPath string) error {
+func (fw *FileWatcher) loadAndWatchConfig(configPath string, serverFolder string) error {
 	// Get file info for modification time
 	fileInfo, err := os.Stat(configPath)
 	if err != nil {
@@ -105,7 +111,7 @@ func (fw *FileWatcher) loadAndWatchConfig(configPath string) error {
 	}
 
 	// Load the config
-	cmdFlags := models.CmdFlags{ConfigFile: configPath, Server: true}
+	cmdFlags := models.CmdFlags{ConfigFile: configPath, Server: true, ServerFolder: serverFolder}
 	config, _, err := pkg.LoadConfigFromFile(cmdFlags)
 	if err != nil {
 		return err
@@ -189,8 +195,12 @@ func (fw *FileWatcher) handleFileEvent(event fsnotify.Event) {
 
 // handleConfigChange processes a config file change
 func (fw *FileWatcher) handleConfigChange(configPath string) {
+	fw.mu.RLock()
+	serverFolder := fw.serverFolder
+	fw.mu.RUnlock()
+	
 	// Load the new config
-	cmdFlags := models.CmdFlags{ConfigFile: configPath, Server: true}
+	cmdFlags := models.CmdFlags{ConfigFile: configPath, Server: true, ServerFolder: serverFolder}
 	newConfig, _, err := pkg.LoadConfigFromFile(cmdFlags)
 	if err != nil {
 		log.Printf("Error loading changed config %s: %v", configPath, err)

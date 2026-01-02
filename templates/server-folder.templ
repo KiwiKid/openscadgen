@@ -1,0 +1,100 @@
+package templates
+
+
+templ SaveServerFolder(serverFolder string) {
+    <script data-server-folder={ serverFolder }>
+        (function () {
+            const key = 'opensacdgen-serverFolder';
+
+            function setServerFolderOptions() {
+                const el = document.querySelector('[data-server-folder]');
+                if (!el) {
+                    return;
+                }
+
+                const serverFolder = el.getAttribute('data-server-folder');
+                if (!serverFolder) {
+                    return;
+                }
+
+                let currentOptions;
+                try {
+                    currentOptions = JSON.parse(localStorage.getItem(key) || '[]');
+                } catch (e) {
+                    currentOptions = [];
+                }
+
+                currentOptions.unshift(serverFolder);
+
+                // de-dupe and clamp list
+                currentOptions = currentOptions.filter((value, index, self) => {
+                    return value && self.indexOf(value) === index;
+                }).slice(0, 20);
+
+                localStorage.setItem(key, JSON.stringify(currentOptions));
+            }
+
+            window.addEventListener('load', setServerFolderOptions, { once: true });
+        })();
+    </script>
+}
+
+templ ServerFolderOptionsComponent() {
+    <script>
+        (function () {
+            const KEY = 'opensacdgen-serverFolder';
+
+            class ServerFolderOptionsElement extends HTMLElement {
+                connectedCallback() {
+                    const raw = localStorage.getItem(KEY);
+                    if (!raw) {
+                        return;
+                    }
+
+                    let options;
+                    try {
+                        options = JSON.parse(raw) || [];
+                    } catch (e) {
+                        console.error('Invalid serverFolder options in localStorage', e);
+                        return;
+                    }
+
+                    const frag = document.createDocumentFragment();
+
+                    for (const serverFolder of options) {
+                        const field = document.createElement('div');
+                        field.className = 'field';
+
+                        const control = document.createElement('div');
+                        control.className = 'control';
+
+                        const label = document.createElement('label');
+                        label.className = 'checkbox';
+
+                        const input = document.createElement('input');
+                        input.type = 'radio';
+                        input.name = 'serverFolder';
+                        input.value = serverFolder;
+
+                        label.appendChild(input);
+                        label.appendChild(document.createTextNode(' ' + serverFolder));
+                        control.appendChild(label);
+                        field.appendChild(control);
+                        frag.appendChild(field);
+                    }
+
+                    this.replaceChildren(frag);
+                }
+            }
+
+            if (!customElements.get('server-folder-options')) {
+                customElements.define('server-folder-options', ServerFolderOptionsElement);
+            }
+        })();
+    </script>
+}
+
+templ ServerFolderForm(warning templ.Component){
+    @ServerFolderOptionsComponent()
+    <server-folder-options></server-folder-options>
+}

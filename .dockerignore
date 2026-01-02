@@ -17,6 +17,9 @@ openscadgen
 *.stl
 *.3mf
 **/*.stl
+examples/**/*.stl
+bols2otropolis/**/*.stl
+**/export/**/*.stl
 result
 
 # Nix
@@ -39,9 +42,26 @@ test_*.js
 test_*.stl
 test_*.log
 
-# Export directories
+# Export directories - exclude from build context
+# Use both with and without ** to ensure matching
 **/export/
+**/export
+examples/*/export/
+examples/*/export
+bols2otropolis/*/export/
+bols2otropolis/*/export
+output/
 **/output/
+
+# Large generated files (PNGs, etc.) - exclude from examples but allow static/
+examples/**/*.png
+examples/**/*.jpg  
+examples/**/*.jpeg
+examples/**/*.pdf
+examples/**/*.zip
+examples/**/*.html
+bols2otropolis/**/*.png
+bols2otropolis/**/*.jpg
 
 # Library files (large, not needed in container)
 library/

@@ -14,7 +14,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
-	"strings"
 
 	"github.com/BurntSushi/toml"
 	"github.com/a-h/templ"
@@ -31,6 +30,24 @@ var globalServerFolder string
 type ServerInfo struct {
 	Port    string
 	Address string
+}
+
+// resolveConfigPath resolves a config path using the server folder structure
+// If the path is absolute, it's returned as-is
+// If the path is relative and serverFolder is set, they are joined
+// Otherwise, the path is resolved relative to the current working directory
+func resolveConfigPath(configPath string, serverFolder string) string {
+	if filepath.IsAbs(configPath) {
+		return configPath
+	}
+	if serverFolder != "" {
+		return filepath.Join(serverFolder, configPath)
+	}
+	absPath, err := filepath.Abs(configPath)
+	if err != nil {
+		return configPath // fallback to original if abs fails
+	}
+	return absPath
 }
 
 // tryListenOnPort attempts to listen on the specified port.
@@ -123,7 +140,7 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 	http.HandleFunc("/api/watcher/resume", handleWatcherResume)
 	http.HandleFunc("/api/watcher/ui", handleWatcherUI)
 	http.HandleFunc("/api/preview", handlePreviewRequest)
-	http.HandleFunc("/api/stl/", handleSTLRequest)
+	http.HandleFunc("/api/stl", handleSTLRequest)
 
 	// Check if port is available, and if not specified, try random port
 	portWasSpecified := cmdFlags.ServerPort != 0
@@ -199,7 +216,11 @@ func handleGETRequest(w http.ResponseWriter, r *http.Request) {
 
 	var serverFolder string
 	serverFolderEncoded := r.URL.Query().Get("server_folder")
-	if serverFolderEncoded != "" {
+	if globalServerFolder != "" {
+		log.Printf("(cmd line) globalServerFolder: %s", globalServerFolder)
+		serverFolder = globalServerFolder
+	} else if serverFolderEncoded != "" {
+		log.Printf("(url) serverFolderEncoded: %s", serverFolderEncoded)
 		serverFolderBytes, err := base64.StdEncoding.DecodeString(serverFolderEncoded)
 		if err != nil {
 			warning := templates.Warning(fmt.Sprintf("Error decoding server folder: %v", err))
@@ -215,12 +236,19 @@ func handleGETRequest(w http.ResponseWriter, r *http.Request) {
 			warning := templates.Warning(fmt.Sprintf("Could not find any config.toml filesin the scanned folder %s: %v", serverFolder, err))
 			projectFolderForm := templates.ProjectFolderForm(warning)
 			projectFolderForm.Render(context.Background(), w)
+			return
 		}
 		log.Printf("Found %d config files in %s", len(configFiles), serverFolder)
 	}
 
-	if configEntryPath == "" {
+	// If no server_folder is provided and no config is specified, show the server folder selector
+	if serverFolderEncoded == "" && configEntryPath == "" {
+		projectFolderForm := templates.ProjectFolderForm(nil)
+		projectFolderForm.Render(context.Background(), w)
+		return
+	}
 
+	if configEntryPath == "" {
 		if len(configFiles) == 0 {
 			projectFolderForm := templates.ProjectFolderForm(nil)
 			projectFolderForm.Render(context.Background(), w)
@@ -261,7 +289,15 @@ func handleGETRequest(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		log.Printf("Generating report for %s with %d instances", decodedConfigEntryPathBytes, len(instances))
+		for _, instance := range instances {
+			if len(instance.SkippedReason) == 0 {
+				config.TotalQueuedInstances++
+			} else {
+				log.Printf("Skipped instance: %s - %s", instance.AutoName, instance.SkippedReason)
+			}
+		}
+
+		log.Printf("Generating report for %s with %d instances (total queued instances: %d)", decodedConfigEntryPath, len(instances), config.TotalQueuedInstances)
 
 		var warning templ.Component
 		if warn != nil {
@@ -269,9 +305,12 @@ func handleGETRequest(w http.ResponseWriter, r *http.Request) {
 		}
 
 		reportMeta := pkg.BuildReportMeta(models.BuildReportMetaParams{
-			IsServerMode:   true,
-			ConfigFilePath: decodedConfigEntryPath,
-			ServerFolder:   globalServerFolder,
+			IsServerMode:         true,
+			ConfigFilePath:       decodedConfigEntryPath,
+			ServerFolder:         globalServerFolder,
+			Config:               config,
+			Instances:            instances,
+			TotalQueuedInstances: config.TotalQueuedInstances,
 		}, models.Results{
 			TimeTake: 0,
 		})
@@ -300,14 +339,14 @@ func handlePOSTRequest(w http.ResponseWriter, r *http.Request) {
 
 	configEntry := r.FormValue("config_path")
 	if configEntry == "" {
-		warning := templates.Warning("No config file provided")
+		warning := templates.Warning("No config_path file provided")
 		warning.Render(context.Background(), w)
 		return
 	}
 
-	encodedConfigEntry := base64.StdEncoding.EncodeToString([]byte(configEntry))
+	pageUrlInfo := pkg.BuildPageUrl(configEntry, globalServerFolder)
 
-	http.Redirect(w, r, "/?config="+encodedConfigEntry, http.StatusSeeOther)
+	http.Redirect(w, r, pageUrlInfo.PageURL, http.StatusSeeOther)
 }
 
 type StartProcessingForm struct {
@@ -419,7 +458,7 @@ func handlePUTRequest(w http.ResponseWriter, r *http.Request) {
 	cmdFlags := formToCmdFlags(form)
 
 	if cmdFlags.ConfigFile == "" {
-		warning := templates.Warning("No config file provided")
+		warning := templates.Warning("No config_path file provided")
 		warning.Render(context.Background(), w)
 		return
 	}
@@ -442,16 +481,15 @@ func handlePUTRequest(w http.ResponseWriter, r *http.Request) {
 	id := StartProcessingJob(config)
 
 	if useOOBUpdates {
-		log.Printf("ProgressContainer with OOB updates")
 		w.Header().Set("Content-Type", "text/html")
 		progressContainer := templates.ProgressContainer(id)
 		progressContainer.Render(context.Background(), w)
 	} else {
-		log.Printf("GetProgressHTML")
 		w.Header().Set("Content-Type", "text/html")
 
+		pageUrlInfo := pkg.BuildPageUrl(form.Path, globalServerFolder)
 		// set the url to the full config file path with htmx and no reload
-		w.Header().Set("HX-Push-Url", fmt.Sprintf("/?config=%s", config.ConfigFile))
+		w.Header().Set("HX-Push-Url", pageUrlInfo.PageURL)
 
 		progressHTML := templates.GetProgressHTML(id)
 		progressHTML.Render(context.Background(), w)
@@ -460,7 +498,7 @@ func handlePUTRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleDeleteRequest(w http.ResponseWriter, r *http.Request) {
-	configFile := r.URL.Query().Get("configFile")
+	configFile := r.URL.Query().Get("config_file")
 	dryRun := r.URL.Query().Get("dryRun") == "true"
 	cleanOldVersions := r.URL.Query().Get("cleanOldVersions") == "true"
 
@@ -474,7 +512,7 @@ func handleDeleteRequest(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// Clean entire directory
-		folder := r.URL.Query().Get("folder")
+		folder := r.URL.Query().Get("server_folder")
 		if folder == "" {
 			folder = "."
 		}
@@ -567,11 +605,25 @@ func handleWatcherUI(w http.ResponseWriter, r *http.Request) {
 	templates.WatcherStatusComponent(status).Render(r.Context(), w)
 }
 
+func buildEditConfigParams(configPath string, serverFolder string, content string, errorMsg templ.Component) models.EditConfigParams {
+	configPathEncoded := base64.StdEncoding.EncodeToString([]byte(configPath))
+	serverFolderEncoded := base64.StdEncoding.EncodeToString([]byte(serverFolder))
+	return models.EditConfigParams{
+		ConfigFilePath:        configPath,
+		ConfigFilePathEncoded: configPathEncoded,
+		FilePathEncoded:       base64.StdEncoding.EncodeToString([]byte(content)),
+		ServerFolder:          serverFolder,
+		ServerFolderEncoded:   serverFolderEncoded,
+		Content:               content,
+		ErrorMsg:              errorMsg,
+	}
+}
+
 // handleConfigRequest handles GET and POST requests for config file operations
 func handleConfigRequest(w http.ResponseWriter, r *http.Request) {
 	configPathEncoded := r.URL.Query().Get("config_path")
 	if configPathEncoded == "" {
-		http.Error(w, "Missing 'path' query parameter", http.StatusBadRequest)
+		http.Error(w, "Missing 'config_path' query parameter", http.StatusBadRequest)
 		return
 	}
 
@@ -582,46 +634,54 @@ func handleConfigRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	configPath := string(configPathBytes)
 
-	// Resolve absolute path
-	if !filepath.IsAbs(configPath) {
-		absPath, err := filepath.Abs(configPath)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to resolve config file path: %v", err), http.StatusBadRequest)
-			return
-		}
-		configPath = absPath
+	serverFolderEncoded := r.URL.Query().Get("server_folder")
+	if serverFolderEncoded == "" {
+		http.Error(w, "Missing 'server_folder' query parameter", http.StatusBadRequest)
+		return
 	}
+	serverFolderBytes, err := base64.StdEncoding.DecodeString(serverFolderEncoded)
+	if err != nil {
+		http.Error(w, "Invalid server folder encoding", http.StatusBadRequest)
+		return
+	}
+	serverFolder := string(serverFolderBytes)
+
+	// Resolve path using server folder structure
+	//configPath = resolveConfigPath(configPath, serverFolder)
 
 	switch r.Method {
 	case "GET":
-		handleConfigGet(w, r, configPath)
+		handleConfigGet(w, r, configPath, serverFolder)
 	case "POST":
-		handleConfigPost(w, r, configPath)
+		handleConfigPost(w, r, configPath, serverFolder)
 	default:
 		http.Error(w, "handleConfigRequest - Method not allowed", http.StatusMethodNotAllowed)
 	}
 }
 
 // handleConfigGet reads and returns the config file content
-func handleConfigGet(w http.ResponseWriter, r *http.Request, configPath string) {
+func handleConfigGet(w http.ResponseWriter, r *http.Request, configPath string, serverFolder string) {
+	configPath = resolveConfigPath(configPath, serverFolder)
 	content, err := os.ReadFile(configPath)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to read config file: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	form := templates.TOMLEditForm(configPath, string(content), nil)
-	form.Render(r.Context(), w)
-	return
+	configParams := buildEditConfigParams(configPath, serverFolder, string(content), nil)
+	editForm := templates.TOMLEditForm(&configParams)
+	editForm.Render(r.Context(), w)
 }
 
 // handleConfigPost validates TOML and updates the config file
-func handleConfigPost(w http.ResponseWriter, r *http.Request, configPath string) {
+func handleConfigPost(w http.ResponseWriter, r *http.Request, configPath string, serverFolder string) {
 	// Parse form data
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, fmt.Sprintf("Failed to parse form: %v", err), http.StatusBadRequest)
 		return
 	}
+
+	path := resolveConfigPath(configPath, serverFolder)
 
 	configContent := r.FormValue("content")
 	if configContent == "" {
@@ -638,7 +698,7 @@ func handleConfigPost(w http.ResponseWriter, r *http.Request, configPath string)
 	}
 
 	// Write the content to the file
-	err = os.WriteFile(configPath, []byte(configContent), 0644)
+	err = os.WriteFile(path, []byte(configContent), 0644)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to write config file: %v", err), http.StatusInternalServerError)
 		return
@@ -646,7 +706,8 @@ func handleConfigPost(w http.ResponseWriter, r *http.Request, configPath string)
 
 	success := templates.Success("Config saved successfully")
 
-	editForm := templates.TOMLEditForm(configPath, configContent, success)
+	configParams := buildEditConfigParams(configPath, serverFolder, configContent, success)
+	editForm := templates.TOMLEditForm(&configParams)
 	editForm.Render(r.Context(), w)
 
 }
@@ -664,16 +725,8 @@ func handleImageRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Resolve absolute path
-	/*if !filepath.IsAbs(imagePath) {
-		// If it's a relative path, try to resolve it from the current working directory
-		absPath, err := filepath.Abs(imagePath)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to resolve image path: %v", err), http.StatusBadRequest)
-			return
-		}
-		imagePath = absPath
-	}*/
+	// Resolve path using server folder structure
+	imagePath = resolveConfigPath(imagePath, globalServerFolder)
 
 	// Check if file exists
 	if _, err := os.Stat(imagePath); os.IsNotExist(err) {
@@ -758,19 +811,12 @@ func handleOpenFile(w http.ResponseWriter, r *http.Request) {
 
 	filePath := r.URL.Query().Get("config_path")
 	if filePath == "" {
-		http.Error(w, "Missing 'path' query parameter", http.StatusBadRequest)
+		http.Error(w, "Missing 'config_path' query parameter", http.StatusBadRequest)
 		return
 	}
 
-	// Resolve absolute path
-	if !filepath.IsAbs(filePath) {
-		absPath, err := filepath.Abs(filePath)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to resolve file path: %v", err), http.StatusBadRequest)
-			return
-		}
-		filePath = absPath
-	}
+	// Resolve path using server folder structure
+	filePath = resolveConfigPath(filePath, globalServerFolder)
 
 	// Check if file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
@@ -808,21 +854,32 @@ func handleOpenFile(w http.ResponseWriter, r *http.Request) {
 
 // handleEditFile handles GET and POST requests for editing TOML files
 func handleEditFile(w http.ResponseWriter, r *http.Request) {
-	filePath := r.URL.Query().Get("config_path")
-	if filePath == "" {
-		http.Error(w, "Missing 'path' query parameter", http.StatusBadRequest)
+	filePathEncoded := r.URL.Query().Get("config_path")
+	if filePathEncoded == "" {
+		http.Error(w, "Missing 'config_path' query parameter", http.StatusBadRequest)
 		return
 	}
-
-	// Resolve absolute path
-	if !filepath.IsAbs(filePath) {
-		absPath, err := filepath.Abs(filePath)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to resolve file path: %v", err), http.StatusBadRequest)
-			return
-		}
-		filePath = absPath
+	filePathBytes, err := base64.StdEncoding.DecodeString(filePathEncoded)
+	if err != nil {
+		http.Error(w, "Invalid config path encoding", http.StatusBadRequest)
+		return
 	}
+	filePath := string(filePathBytes)
+
+	serverFolderEncoded := r.URL.Query().Get("server_folder")
+	if serverFolderEncoded == "" {
+		http.Error(w, "Missing 'server_folder' query parameter", http.StatusBadRequest)
+		return
+	}
+	serverFolderBytes, err := base64.StdEncoding.DecodeString(serverFolderEncoded)
+	if err != nil {
+		http.Error(w, "Invalid server folder encoding", http.StatusBadRequest)
+		return
+	}
+	serverFolder := string(serverFolderBytes)
+
+	// Resolve path using server folder structure
+	filePath = resolveConfigPath(filePath, serverFolder)
 
 	// Validate file extension
 	if filepath.Ext(filePath) != ".toml" && filepath.Base(filePath) != "config.toml" {
@@ -832,16 +889,16 @@ func handleEditFile(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		handleEditGet(w, r, filePath)
+		handleEditGet(w, r, serverFolder, filePath)
 	case "POST":
-		handleEditPost(w, r, filePath)
+		handleEditPost(w, r, serverFolder, filePath)
 	default:
 		http.Error(w, "HandleEditFile - Method not allowed", http.StatusMethodNotAllowed)
 	}
 }
 
 // handleEditGet loads and displays the TOML file in an editable form
-func handleEditGet(w http.ResponseWriter, r *http.Request, filePath string) {
+func handleEditGet(w http.ResponseWriter, r *http.Request, serverFolder string, filePath string) {
 	// Check if file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		http.Error(w, "File not found", http.StatusNotFound)
@@ -856,12 +913,13 @@ func handleEditGet(w http.ResponseWriter, r *http.Request, filePath string) {
 	}
 
 	// Render the edit form
-	editForm := templates.TOMLEditForm(filePath, string(content), nil)
+	configParams := buildEditConfigParams(filePath, serverFolder, string(content), nil)
+	editForm := templates.TOMLEditForm(&configParams)
 	editForm.Render(r.Context(), w)
 }
 
 // handleEditPost validates and saves the TOML file
-func handleEditPost(w http.ResponseWriter, r *http.Request, filePath string) {
+func handleEditPost(w http.ResponseWriter, r *http.Request, filePath string, serverFolder string) {
 	// Parse form data
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, fmt.Sprintf("Failed to parse form: %v", err), http.StatusBadRequest)
@@ -872,7 +930,8 @@ func handleEditPost(w http.ResponseWriter, r *http.Request, filePath string) {
 	if content == "" {
 		error := templates.Warning("Content cannot be empty")
 		// Show form with error
-		editForm := templates.TOMLEditForm(filePath, content, error)
+		configParams := buildEditConfigParams(filePath, serverFolder, content, error)
+		editForm := templates.TOMLEditForm(&configParams)
 		editForm.Render(r.Context(), w)
 		return
 	}
@@ -883,7 +942,8 @@ func handleEditPost(w http.ResponseWriter, r *http.Request, filePath string) {
 	if err != nil {
 		errorMsg := templates.Warning(fmt.Sprintf("Invalid TOML: %v", err))
 		// Show form with validation error
-		editForm := templates.TOMLEditForm(filePath, content, errorMsg)
+		configParams := buildEditConfigParams(filePath, serverFolder, content, errorMsg)
+		editForm := templates.TOMLEditForm(&configParams)
 		editForm.Render(r.Context(), w)
 		return
 	}
@@ -897,7 +957,8 @@ func handleEditPost(w http.ResponseWriter, r *http.Request, filePath string) {
 		}
 		errorMsg := templates.Warning(fmt.Sprintf("Invalid fields in config: %v", invalidFields))
 		// Show form with validation error
-		editForm := templates.TOMLEditForm(filePath, content, errorMsg)
+		configParams := buildEditConfigParams(filePath, serverFolder, content, errorMsg)
+		editForm := templates.TOMLEditForm(&configParams)
 		editForm.Render(r.Context(), w)
 		return
 	}
@@ -907,15 +968,14 @@ func handleEditPost(w http.ResponseWriter, r *http.Request, filePath string) {
 	if err != nil {
 		errorMsg := templates.Warning(fmt.Sprintf("Failed to save file: %v", err))
 		// Show form with save error
-		editForm := templates.TOMLEditForm(filePath, content, errorMsg)
+		configParams := buildEditConfigParams(filePath, serverFolder, content, errorMsg)
+		editForm := templates.TOMLEditForm(&configParams)
 		editForm.Render(r.Context(), w)
 		return
 	}
-
-	// Success - redirect to view the file
-	//http.Redirect(w, r, "/?config="+url.QueryEscape(filePath), http.StatusSeeOther)
 	success := templates.Success("File saved successfully")
-	editForm := templates.TOMLEditForm(filePath, content, success)
+	configParams := buildEditConfigParams(filePath, serverFolder, content, success)
+	editForm := templates.TOMLEditForm(&configParams)
 	editForm.Render(r.Context(), w)
 }
 
@@ -926,62 +986,71 @@ func handlePreviewRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	configFilePath := r.URL.Query().Get("config_path")
+	if configFilePath == "" {
+		http.Error(w, "Missing 'config_path' query parameter", http.StatusBadRequest)
+		return
+	}
+
+	serverFolder := r.URL.Query().Get("server_folder")
+	if serverFolder == "" {
+		http.Error(w, "Missing 'server_folder' query parameter", http.StatusBadRequest)
+		return
+	}
+
 	instanceID := r.URL.Query().Get("instance")
 	if instanceID == "" {
 		http.Error(w, "Missing 'instance' query parameter", http.StatusBadRequest)
 		return
 	}
 
-	configPathEncoded := r.URL.Query().Get("config")
-	if configPathEncoded == "" {
-		http.Error(w, "Missing 'config' query parameter", http.StatusBadRequest)
+	filePathEncoded := r.URL.Query().Get("file_path")
+	if filePathEncoded == "" {
+		http.Error(w, "Missing 'file_path' query parameter", http.StatusBadRequest)
 		return
 	}
 
-	configPathBytes, err := base64.StdEncoding.DecodeString(configPathEncoded)
+	filePathBytes, err := base64.StdEncoding.DecodeString(filePathEncoded)
 	if err != nil {
 		http.Error(w, "Invalid config path encoding", http.StatusBadRequest)
 		return
 	}
-	configPath := string(configPathBytes)
+	filePath := string(filePathBytes)
 
 	log.Printf("Preview request for instance: %s", instanceID)
 
-	// Find the instance by UniqueID
-	var targetInstance *models.InstanceConfig
-
-	// Search through all config files to find the instance
-	// Fix the path - if it starts with /, make it relative to the server folder
-	if strings.HasPrefix(configPath, "/") {
-		// Get the server folder from the command line args or use "examples" as default
-		serverFolder := "examples" // This should be passed from the server startup
-		configPath = serverFolder + configPath
-	}
-
-	log.Printf("Checking config file: %s (resolved to: %s)", configPath, configPath)
-	config, _, err := pkg.LoadConfigFromFile(models.CmdFlags{ConfigFile: configPath, Server: true})
+	// Load config and find the instance to get the STL file path
+	log.Printf("Checking config file: %s (encoded as: %s)", filePath, filePathEncoded)
+	config, _, err := pkg.LoadConfigFromFile(models.CmdFlags{ConfigFile: filePath, Server: true, ServerFolder: globalServerFolder})
 	if err != nil {
-		log.Printf("handlePreviewRequest Error loading config %s: %v", configPath, err)
-		warning := templates.Warning(fmt.Sprintf("handlePreviewRequest Error loading config %s: %v", configPath, err))
+		log.Printf("handlePreviewRequest Error loading config %s: %v", filePath, err)
+		warning := templates.Warning(fmt.Sprintf("handlePreviewRequest Error loading config %s: %v", filePath, err))
 		warning.Render(r.Context(), w)
 		return
 	}
 
 	instances, err := pkg.GenerateInstanceConfigs(config)
 	if err != nil {
-		log.Printf("Error generating instances for %s: %v", configPath, err)
+		log.Printf("Error generating instances for %s: %v", filePath, err)
 		http.Error(w, "Error generating instances", http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("Found %d instances in %s", len(instances), configPath)
+	log.Printf("Found %d instances in %s", len(instances), filePath)
+	var targetInstance *models.InstanceConfig
 	for _, instance := range instances {
 		log.Printf("Checking instance: %s", instance.UniqueID)
 		if instance.UniqueID == instanceID {
 			targetInstance = &instance
-			log.Printf("Found matching instance: %s, configPath set to: %s", instance.UniqueID, configPath)
+			log.Printf("Found matching instance: %s, STL path: %s", instance.UniqueID, instance.RunOutputPathV3)
 			break
 		}
+	}
+
+	if targetInstance == nil {
+		log.Printf("Instance not found: %s", instanceID)
+		http.Error(w, fmt.Sprintf("Instance not found: %s", instanceID), http.StatusNotFound)
+		return
 	}
 
 	// Check if STL file exists
@@ -998,33 +1067,22 @@ func handlePreviewRequest(w http.ResponseWriter, r *http.Request) {
 
 	// Create API path for serving the STL file
 	// Base64 encode the STL file path
-	encodedPath := base64.StdEncoding.EncodeToString([]byte(targetInstance.RunOutputPathV3))
+	encodedSTLPath := base64.StdEncoding.EncodeToString([]byte(targetInstance.RunOutputPathV3))
+	stlPath := fmt.Sprintf("/api/stl?file_path=%s", encodedSTLPath)
 
-	// Check if configPath is empty and log it
-	if configPath == "" {
-		log.Printf("WARNING: configPath is empty for instance %s", instanceID)
-		configPath = "unknown" // fallback
-	}
+	log.Printf("Using STL file path: %s", targetInstance.RunOutputPathV3)
+	log.Printf("Encoded STL path: %s", encodedSTLPath)
 
-	log.Printf("Using configPath: %s", configPath)
-	encodedConfig := base64.StdEncoding.EncodeToString([]byte(configPath))
-	log.Printf("Encoded config: %s", encodedConfig)
-	stlPath := fmt.Sprintf("/api/stl/%s?config=%s", encodedPath, encodedConfig)
-
-	// Use AutoName if Name is empty
-	displayName := targetInstance.Name
-	if displayName == "" {
-		displayName = targetInstance.AutoName
-	}
-	if displayName == "" {
-		displayName = instanceID
-	}
-
-	log.Printf("Rendering STL viewer for: %s, path: %s", displayName, stlPath)
+	pageUrlInfo := pkg.BuildPageUrl(filePath, serverFolder)
 
 	// Render the three.js viewer template
-	viewer := templates.STLViewerHeaderBody(models.STLViewerParams{InstanceID: instanceID, STLPath: stlPath, ConfigFilePath: configPath, InstanceConfig: *targetInstance, ConfigFilePathBase64: encodedConfig})
+	viewer := templates.STLViewerHeaderBody(models.STLViewerParams{
+		InstanceID:  instanceID,
+		STLPath:     stlPath,
+		PageUrlInfo: pageUrlInfo,
+	})
 	viewer.Render(r.Context(), w)
+	return
 }
 
 // handleSTLRequest serves STL files for the 3D viewer
@@ -1034,18 +1092,13 @@ func handleSTLRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Extract instance ID from path
-	path := r.URL.Path[len("/api/stl/"):]
-	if path == "" {
-		http.Error(w, "Missing instance ID", http.StatusBadRequest)
-		return
-	}
-
 	// Get the configPath from the query parameters
-	configPathEncoded := r.URL.Query().Get("config")
-	if configPathEncoded == "" {
-		http.Error(w, "Missing config path", http.StatusBadRequest)
+	filePathEncoded := r.URL.Query().Get("file_path")
+	if filePathEncoded == "" {
+		http.Error(w, "Missing file_path path", http.StatusBadRequest)
 		return
+	} else {
+		log.Printf("handleSTLRequest - filePathEncoded: %s", filePathEncoded)
 	}
 
 	// Decode the base64 encoded config path
@@ -1057,26 +1110,26 @@ func handleSTLRequest(w http.ResponseWriter, r *http.Request) {
 	//configPath := string(configPathBytes)
 
 	// decode base64 path
-	var instancePath string
-	instancePathBytes, err := base64.StdEncoding.DecodeString(path)
+	var filePath string
+	filePathBytes, err := base64.StdEncoding.DecodeString(filePathEncoded)
 	if err != nil {
-		http.Error(w, "Invalid instance ID", http.StatusBadRequest)
+		http.Error(w, "Invalid file_path encoding", http.StatusBadRequest)
 		return
 	} else {
-		instancePath = string(instancePathBytes)
+		filePath = string(filePathBytes)
 	}
 
-	log.Printf("STL handler - instancePath: %s", instancePath)
+	log.Printf("STL handler - filePath: %s", filePath)
 
 	// Check if STL file exists
-	if _, err := os.Stat(instancePath); os.IsNotExist(err) {
-		log.Printf("STL file not found: %s", instancePath)
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		log.Printf("STL file not found: %s", filePath)
 		http.Error(w, "STL file not found", http.StatusNotFound)
 		return
 	}
 
 	// Check file size
-	fileInfo, err := os.Stat(instancePath)
+	fileInfo, err := os.Stat(filePath)
 	if err != nil {
 		log.Printf("Error getting file info: %v", err)
 		http.Error(w, "Error accessing file", http.StatusInternalServerError)
@@ -1091,5 +1144,6 @@ func handleSTLRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	// Serve the STL file
-	http.ServeFile(w, r, instancePath)
+	log.Printf("Serving STL file: %s", filePath)
+	http.ServeFile(w, r, filePath)
 }
