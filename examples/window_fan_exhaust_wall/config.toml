@@ -1,0 +1,25 @@
+[openscadgen]
+name = "window_fan_exhaust_wall"
+description = ""
+
+version = "v0.3"
+
+export_name_format = "{designFileName}_{name}_{hasEndDovetail}_dt-{hasStartDovetail}_hole-{hasFanHole}"
+
+[[openscadgen.input_paths]]
+path = "./window_fan_exhaust_wall.scad"
+
+[[openscadgen.instances]]
+params = {  name="middle", hasFanHole = ["true","false"] }
+
+[[openscadgen.instances]]
+params = { name="end", hasFanHole = ["true","false"],  hasEndDovetail = false  }
+
+[[openscadgen.instances]]
+params = { name="start", hasFanHole = ["true","false"], hasStartDovetail=false }
+
+[[openscadgen.instances]]
+params = { name="side-holder", hasFanHole = "false", hasTopDovetail=false, isOnSide=false }
+
+[[openscadgen.images]]
+name = "nice"

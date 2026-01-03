@@ -444,8 +444,9 @@ handle_offset = 10
 - [ ] Add clean-up option for old versions
 - [ ] (maybe) Add configurable watch mode to automatically re-run the tool when the scad file is changed
 - [ ] Tidy/Improve logging and log handling
-- [ ]Tools to ease handling of openscad directly
+- [ ] Tools to ease handling of openscad directly
 - [ ] Tools to ease handling of common openscad external libraries (i.e. BOSL2 etc)
+- [ ] (Investigate/Fix) Negative number limitation (could be CLI Param handling or openscad CLI limitiation)
 
 - [-] Better handling of params with Spaces in them (i.e. name= "My Name" -> "My-Name.stl")
 - [-] Better handling of params with Spaces in them (i.e. name= "My Name" -> "My-Name.stl")

@@ -1,0 +1,46 @@
+[openscadgen]
+name = "catan_holder_pieces"
+description = ""
+
+version = "v0.4"
+
+export_name_format = "{designFileName}_{renderType}_{dovetailType}_{name}"
+
+
+[[openscadgen.input_paths]]
+path = "./catan_holder_pieces.scad"
+
+
+[[openscadgen.instances]]
+name = "hex"
+description = ""
+params = { renderType = "hex" }
+
+
+[[openscadgen.instances]]
+name = "port"
+description = ""
+params = { renderType = "port", dovetailType = "male,female"}
+
+
+[[openscadgen.instances]]
+name = "port-offset-male-left"
+description = ""
+params = { renderType = "port-offset", dovetailType = "male", slotZRotate = 30, slotMoveX = 3, slotMoveY = -6}
+
+
+[[openscadgen.instances]]
+name = "port-offset-male-right"
+description = ""
+params = { renderType = "port-offset", dovetailType = "male", slotZRotate = -30, slotMoveX = -3, slotMoveY = -6}
+
+
+[[openscadgen.instances]]
+name = "port-offset-female-right"
+description = ""
+params = { renderType = "port-offset", dovetailType = "female", slotZRotate = 30, slotMoveX = 8, slotMoveY = 8}
+
+[[openscadgen.instances]]
+name = "port-offset-female-left"
+description = ""
+params = { renderType = "port-offset", dovetailType = "female", slotZRotate = -30, slotMoveX = -8, slotMoveY = 8}

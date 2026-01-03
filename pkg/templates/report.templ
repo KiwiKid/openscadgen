@@ -105,6 +105,7 @@ func getSortedParamNames(params map[string]interface{}) []string {
 templ RenderParams(params map[string]interface{}) {
     <div class="code-block">
        
+       <div>
         <button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button>
             
             
@@ -131,6 +132,7 @@ templ RenderParams(params map[string]interface{}) {
             </p>
             { children... }
         </details>
+        </div>
 
     </div>
 }
@@ -145,10 +147,10 @@ func formatJson(code string) string {
 }
 
 
-templ CodeBlock(code string, copyButton bool, formatted bool){
+templ CodeBlock(code string, copyButton bool, formatted bool, copyButtonText string){
     <div class="code-block">    
         if copyButton {
-            <button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button>
+            <button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">{ copyButtonText }</button>
         }
         <code style="white-space: pre;">
        
@@ -233,8 +235,10 @@ templ DeleteButton(configFile string, serverFolder string, dryRun bool, cleanOld
 templ ReportInstance(instance models.InstanceConfig, allParamNames []string, outputPath string, instanceIndex int, isOOB bool) {
     <tr id={ fmt.Sprintf("instance-%d", instanceIndex) } class={ getInstanceClassName(instance) } x-show={ fmt.Sprintf(`filters.searchQuery === '' || ('%s %s').toLowerCase().includes(filters.searchQuery.toLowerCase())`, instance.Name, instance.OutputPathV2) } if isOOB { hx-swap-oob="beforeend:#instances-table tbody" }>
         <td>{ instance.AutoName } ({ instance.Name })</td>
-        <td><pre style="white-space: pre-line">{ instance.Description } </pre>
-        
+        <td>
+        if instance.Description != "" {
+            <pre style="white-space: pre-line">{ instance.Description } </pre>
+        }
             @RenderParams(instance.Params)
         </td>
         <td>{ getRelativePath(instance.OutputPathV2, outputPath) }</td>
@@ -280,24 +284,30 @@ templ ReportSTLResult(stlResult models.GenerateSTLResult, outputPath string, res
         if len(stlResult.AppliedParams) > 0 {
             <td> @RenderParams(stlResult.AppliedParams) </td>
         } else {
-            <td>@CodeBlock(fmt.Sprintf("%v", stlResult.InstanceConfig.Params), true, false) </td>
+            <td>@CodeBlock(fmt.Sprintf("%v", stlResult.InstanceConfig.Params), true, false, "Copy Params") </td>
         }
         
         <!-- <td>
             <details>
                 <summary>OpenSCAD Code</summary>
-                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true)
+                @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true, false, "Copy OpenSCAD Code")
             </details>
         </td> -->
         <td x-show="showDebug">
             <details>
                 <summary>Command</summary>
-                @CodeBlock(stlResult.Command, true, false)
+                @CodeBlock(stlResult.Command, true, false, "Copy Command")
             </details>
+            if stlResult.Command != "" {
+                <details>
+                    <summary>Command</summary>
+                    @CodeBlock(stlResult.Command, true, false, "Copy Command")
+                </details>
+            }
             if stlResult.CommandOutput != "" {
                 <details>
                     <summary>Command Output</summary>
-                    @CodeBlock(stlResult.CommandOutput, true, false)
+                    @CodeBlock(stlResult.CommandOutput, true, false, "Copy Command Output")
                 </details>
             }
         </td>
@@ -336,7 +346,6 @@ func buildPreviewSTLURL(instance models.InstanceConfig, reportMeta models.Report
 
 templ InstanceSlimRow(instance models.InstanceConfig, outputPath string, reportMode string, allParamNames []string, reportMeta models.ReportMeta) {
     <div class="is-full-width" id={ fmt.Sprintf("instance-slim-row-%s", instance.UniqueID) }>
-    
         <details>
         <summary class="columns">
             <div class="column is-narrow">
@@ -356,12 +365,15 @@ templ InstanceSlimRow(instance models.InstanceConfig, outputPath string, reportM
             <div class="column is-narrow">
             { instance.ConfigError }
             </div>
+            <div class="column is-narrow">
+                <i class="fas fa-cog"></i>
+            </div>
+            
         </summary>
         <div class="card">
             <div class="card-content">
                     <div class="media">
                         <div class="media-content">
-                            <p class="title is-4">{ instance.AutoName } </p>
                             if instance.SkippedReason != "" {
                                 <p class="has-text-warning"><strong>Skipped:</strong> { instance.SkippedReason }</p>
                             }
@@ -372,19 +384,24 @@ templ InstanceSlimRow(instance models.InstanceConfig, outputPath string, reportM
                                 <p class="has-text-danger"><strong>Error:</strong> { instance.ConfigError }</p>
                             }
                             <div class="columns is-multiline">
-                            if len(instance.STLResults) > 0 {
-                                for _, stlResult := range instance.STLResults {
-                                    <details>
-                                    if stlResult.Error != "" {
-                                        <summary class="has-text-danger">{ stlResult.InstanceConfig.AutoName }: { stlResult.Error }</summary>
-                                    } else {
-                                        <summary class="has-text-success">[{ formatDuration(stlResult.TimeTaken) }] - { stlResult.InstanceConfig.AutoName }   </summary>
-                                    }
-                                        @CodeBlock(stlResult.Command, true, false)
-                                    </details>
-                                }
-                            }
+                            
                             </div>
+
+                            @RenderParams(instance.Params) {
+                                if instance.SkippedReason != "" {
+                                    <p class="has-text-warning"><strong>Skipped:</strong> { instance.SkippedReason }</p>
+                                }
+                                <div class="fixed-grid has-4-cols">
+                                    <div class="grid is-multiline">
+                                            for _, paramName := range allParamNames {
+                                                if value, ok := instance.Params[paramName]; ok {
+                                                    <div class="cell is-one-third"><strong>{ paramName }:</strong> { fmt.Sprintf("%v", value) }</div>
+                                                }
+                                            }
+                                    </div>
+                                </div>
+                            }
+
                             <details>
                             <summary>
                                 Command Output
@@ -392,14 +409,24 @@ templ InstanceSlimRow(instance models.InstanceConfig, outputPath string, reportM
 
                             if instance.STLResults != nil && len(instance.STLResults) > 0 {
                                 for _, stlResult := range instance.STLResults {
-                                    @CodeBlock(stlResult.OutputLog, true, false)
-                                    @RenderParams(stlResult.AppliedParams)
+                                    
+                                /*    @RenderParams(stlResult.AppliedParams)*/
+                                    <details>
+                                    if stlResult.Error != "" {
+                                        <summary class="has-text-danger">{ stlResult.InstanceConfig.AutoName }: { stlResult.Error }</summary>
+                                    } else {
+                                        <summary class="has-text-success">[{ formatDuration(stlResult.TimeTaken) }] - { stlResult.InstanceConfig.AutoName }   </summary>
+                                    }
+                                        @CodeBlock(stlResult.Command, true, false, "Copy Command")
+                                    </details>
+
+                                    @CodeBlock(stlResult.OutputLog, true, false, "Copy Command Output")
                                 }
                             } else {
                                 <p>No STL results</p>
                             }
 
-                            if instance.ImageResults != nil && len(instance.ImageResults) > 0 {
+                            /*if instance.ImageResults != nil && len(instance.ImageResults) > 0 {
 
                                     <div class="columns">
                                 for _, imageResult := range instance.ImageResults {
@@ -422,7 +449,7 @@ templ InstanceSlimRow(instance models.InstanceConfig, outputPath string, reportM
                                 <p class="has-text-warning"><strong>Skipped Image Reason:</strong> { instance.SkippedImageReason }</p>
                             } else {
                                 <p>No image results</p>
-                            }
+                            }*/
                             </details>
                         </div>
                     </div>
@@ -455,9 +482,6 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
             </div>
         </div>
     }*/
-    if instance.IsComplete {
-        @InstanceSlimRow(instance, outputPath, reportMode, allParamNames, reportMeta)
-    }
     <div x-show="showDebug">
         [[InstanceCardV2 - { instance.AutoName }]]
     </div>
@@ -478,7 +502,7 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
     x-show={getInstanceShow(instance)}
     >
         <div class="card">
-        
+       
             <div class="card-content">
                 <div class="media">
                     <div class="media-content">
@@ -499,20 +523,6 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
                     }
                     <p><strong>Output Path:</strong> { getRelativePath(instance.RunOutputPathV3, outputPath) }</p>
 
-                    @RenderParams(instance.Params) {
-                        if instance.SkippedReason != "" {
-                            <p class="has-text-warning"><strong>Skipped:</strong> { instance.SkippedReason }</p>
-                        }
-                        <div class="fixed-grid has-4-cols">
-                            <div class="grid is-multiline">
-                                    for _, paramName := range allParamNames {
-                                        if value, ok := instance.Params[paramName]; ok {
-                                            <div class="cell is-one-third"><strong>{ paramName }:</strong> { fmt.Sprintf("%v", value) }</div>
-                                        }
-                                    }
-                            </div>
-                        </div>
-                    }
                     if instance.ConfigError != "" {
                         <p class="has-text-danger"><strong>Error:</strong> { instance.ConfigError }</p>
                     }
@@ -532,6 +542,9 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
                                 <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(images.RunOutputImagePath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview" />
                             }
                         }
+                    }
+                    if instance.IsComplete {
+                        @InstanceSlimRow(instance, outputPath, reportMode, allParamNames, reportMeta)
                     }
                     if reportMeta.IsServerMode {
                         <p><strong>Output:</strong> <a href={ buildPreviewSTLURL(instance, reportMeta) } target="_blank">Preview STL</a></p>
@@ -1431,7 +1444,9 @@ html, body {
              
                     
                     <div class="container">
-                    <pre style="white-space: pre-line">{ config.Design.Description }</pre>
+                    if len(config.Design.Description) > 0 {
+                        <pre style="white-space: pre-line">{ config.Design.Description }</pre>
+                    }
 
 
                 @Collapsable(fmt.Sprintf("Instances (%d)",  len(instances)), "instances", false, true) {
@@ -1471,23 +1486,23 @@ html, body {
                                                     <p><strong>Output:</strong> <a href={ buildPreviewSTLURL(stlResult.InstanceConfig, reportMeta) } target="_blank">Preview STL</a></p>
                                                   }
                                                 if len(stlResult.AppliedParams) > 0 {
-                                                    <p><strong>Applied Params:</strong></p>
+                                                    <p><strong>Applied Params 1:</strong></p>
                                                     @RenderParams(stlResult.AppliedParams)
                                                 } else {
                                                     <p><strong>Instance Params:</strong></p>
-                                                    @CodeBlock(fmt.Sprintf("%v", stlResult.InstanceConfig.Params), true, false)
+                                                    @CodeBlock(fmt.Sprintf("%v", stlResult.InstanceConfig.Params), true, false, "Copy Params")
                                                 }
                                                 <div x-show="showDebug">
                                                     <details>
                                                         <summary>Debug Info</summary>
                                                         <details>
                                                             <summary>Command</summary>
-                                                            @CodeBlock(stlResult.Command, true, false)
+                                                            @CodeBlock(stlResult.Command, true, false, "Copy Command")
                                                         </details>
                                                         if stlResult.CommandOutput != "" {
                                                             <details>
                                                                 <summary>Command Output</summary>
-                                                                @CodeBlock(stlResult.CommandOutput, true, false)
+                                                                @CodeBlock(stlResult.CommandOutput, true, false, "Copy Command Output")
                                                             </details>
                                                         }
                                                     </details>
@@ -1513,7 +1528,7 @@ html, body {
                         @CodeBlock(`
                         [[openscadgen.instances]]
                         name = "default"
-                        `, false, false)
+                        `, false, false, "Copy Config")
                         </div>
                         </details>
                     }
@@ -1562,12 +1577,12 @@ html, body {
                                                 }
                                                 <details>
                                                     <summary>Command</summary>
-                                                    @CodeBlock(imageResult.Command, true, false)
+                                                    @CodeBlock(imageResult.Command, true, false, "Copy Command")
                                                 </details>
                                                 if imageResult.CommandOutput != "" {
                                                     <details>
                                                         <summary>Command Output</summary>
-                                                        @CodeBlock(imageResult.CommandOutput, true, false)
+                                                        @CodeBlock(imageResult.CommandOutput, true, false, "Copy Command Output")
                                                     </details>
                                                 }
                                             </div>
@@ -1591,7 +1606,7 @@ html, body {
                         [[openscadgen.images]]
                         name = "custom"
                         coord = "0,0,0,90,0,0,600"
-                        `, false, false)
+                        `, false, false, "Copy Config")
                         </div>
                     }
                 }
@@ -1630,7 +1645,7 @@ html, body {
             @ConfigSummary(*config, outputPath, totalTimeTaken)
             </div>
             
-            <!-- Bottom Navigation -->
+            if reportMeta.IsServerMode {
             <nav class="bottom-nav" :class="bottomNavExpanded ? 'expanded' : 'collapsed'">
                 <div class="bottom-nav-header">
                     <div class="columns is-vcentered is-mobile" style="margin: 0;">
@@ -1768,6 +1783,7 @@ html, body {
                     </div>
                 </div>
             </nav>
+            }
     </body>
 </html>
 }
@@ -1797,18 +1813,18 @@ templ AddSTLResult(stlResult models.GenerateSTLResult, outputPath string, result
         if len(stlResult.AppliedParams) > 0 {
             <td> @RenderParams(stlResult.AppliedParams) </td>
         } else {
-            <td>@CodeBlock(fmt.Sprintf("%v", stlResult.InstanceConfig.Params), true, false) </td>
+            <td>@CodeBlock(fmt.Sprintf("%v", stlResult.InstanceConfig.Params), true, false, "Copy Params") </td>
         }
         
         <td>
             <details>
                 <summary>Command</summary>
-                @CodeBlock(stlResult.Command, true, false)
+                @CodeBlock(stlResult.Command, true, false, "Copy Command")
             </details>
             if stlResult.CommandOutput != "" {
                 <details>
                     <summary>Command Output</summary>
-                    @CodeBlock(stlResult.CommandOutput, true, false)
+                    @CodeBlock(stlResult.CommandOutput, true, false, "Copy Command Output")
                 </details>
             }
         </td>
@@ -1858,12 +1874,12 @@ templ AddImageResult(imageResult models.GenerateImageResult, outputPath string, 
         <td>
             <details>
                 <summary>Command</summary>
-                @CodeBlock(imageResult.Command, true, false)
+                @CodeBlock(imageResult.Command, true, false, "Copy Command")
             </details>
             if imageResult.CommandOutput != "" {
                 <details>
                     <summary>Command Output</summary>
-                    @CodeBlock(imageResult.CommandOutput, true, false)
+                    @CodeBlock(imageResult.CommandOutput, true, false, "Copy Command Output")
                 </details>
             }
         </td>
