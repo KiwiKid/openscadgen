@@ -146,7 +146,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.7.33"
+const VERSION = "v2.7.34"
 
 type Version struct {
 	OpenSCADGen string

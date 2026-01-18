@@ -36,7 +36,8 @@ jobs:
       - name: Install OpenSCAD Nightly
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget
+          # AppImage runtime deps (prevents: libEGL.so.1 missing)
+          sudo apt-get install -y wget libegl1 libgl1 libglx0 libopengl0
           
           # Try to get the latest nightly build from OpenSCAD snapshots
           # First, let's see what's available
@@ -58,8 +59,8 @@ jobs:
       - name: Verify OpenSCAD installation
         run: |
           echo "Checking OpenSCAD installation..."
-          which openscad || echo "OpenSCAD not found in PATH"
-          openscad --version || echo "OpenSCAD version check failed"
+          which openscad
+          openscad --version
           echo "PATH: $PATH"
           ls -la /usr/bin/openscad || echo "OpenSCAD not in /usr/bin"
           ls -la /usr/local/bin/openscad || echo "OpenSCAD not in /usr/local/bin"
