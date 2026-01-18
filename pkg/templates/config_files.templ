@@ -268,7 +268,14 @@ html, body {
                 <h2>Config Files</h2>
                 <div class="fixed-grid has-4-cols">
                     for _, configFile := range configFiles {
-                        <div class="cell" title={ configFile.Path }><a class="button" href={ templ.SafeURL(fmt.Sprintf("/?config=%s&server_folder=%s", base64.StdEncoding.EncodeToString([]byte(configFile.Path)), base64.StdEncoding.EncodeToString([]byte(serverFolder)))) }>{ configFile.NiceName }</a></div>
+                        <div class="cell" title={ configFile.Path }>
+                        <a class="is-size-3" href={ templ.SafeURL(fmt.Sprintf("/?config=%s&server_folder=%s", base64.StdEncoding.EncodeToString([]byte(configFile.Path)), base64.StdEncoding.EncodeToString([]byte(serverFolder)))) }>
+                        <img src={ templ.SafeURL(fmt.Sprintf("/images?config_path=%s", []byte(configFile.PrimaryImagePath))) } alt={ configFile.NiceName } class="image-preview" />
+                        { configFile.NiceName }
+                        </a>
+                        
+                        
+                        </div>
                     }
                 </div>
                 <hr/>

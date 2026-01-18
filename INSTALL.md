@@ -98,7 +98,7 @@ scoop install openscadgen
 
 ```bash
 sudo apt-get update -y
-sudo apt-get install -y --no-install-recommends libegl1 libgl1
+sudo apt-get install -y --no-install-recommends libegl1 libgl1 libopengl0 libglx0
 ```
 
 **"File could not be run by the operating system":**

@@ -819,7 +819,8 @@ func handleImageRequest(w http.ResponseWriter, r *http.Request) {
 	case ".webp":
 		w.Header().Set("Content-Type", "image/webp")
 	default:
-		w.Header().Set("Content-Type", "application/octet-stream")
+		warning := templates.Warning("Unsupported image file type: " + ext)
+		warning.Render(r.Context(), w)
 	}
 
 	// Serve the file
