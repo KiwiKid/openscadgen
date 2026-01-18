@@ -1,0 +1,15 @@
+[openscadgen]
+name = "screw_in_wedge"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{renderType}"
+
+global_params = { renderType = "obj,vertSlice,horzSlice,all" }
+
+[[openscadgen.input_paths]]
+path = "./screw_in_wedge.scad"
+
+[[openscadgen.images]]
+name = "nice"

@@ -141,6 +141,7 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 	http.HandleFunc("/api/watcher/ui", handleWatcherUI)
 	http.HandleFunc("/api/preview", handlePreviewRequest)
 	http.HandleFunc("/api/stl", handleSTLRequest)
+	http.HandleFunc("/delete-export-stls", handleDeleteExportSTLs)
 
 	// Check if port is available, and if not specified, try random port
 	portWasSpecified := cmdFlags.ServerPort != 0
@@ -165,7 +166,7 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 		}
 	}
 
-	msg += fmt.Sprintf("\n\n Running at http://localhost%s", port)
+	msg += fmt.Sprintf("\n\n Running. Will soon navigate to http://localhost%s", port)
 	log.Print(msg)
 
 	// Call onStart callback before starting server
@@ -187,6 +188,78 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 	}
 
 	return ServerInfo{Port: port, Address: fmt.Sprintf("http://localhost%s", port)}
+}
+
+func handleDeleteExportSTLs(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		rootDir := r.URL.Query().Get("dir")
+		if rootDir == "" {
+			if globalServerFolder != "" {
+				rootDir = globalServerFolder
+			} else {
+				rootDir = "."
+			}
+		}
+		files, err := pkg.FindExportSTLFiles(rootDir)
+		data := templates.DeleteExportSTLsPageData{
+			RootDir:  rootDir,
+			STLFiles: files,
+		}
+		if err != nil {
+			data.Error = err.Error()
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		templates.DeleteExportSTLsPage(data).Render(r.Context(), w)
+		return
+	case "POST":
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "Failed to parse form: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		rootDir := r.FormValue("dir")
+		if rootDir == "" {
+			if globalServerFolder != "" {
+				rootDir = globalServerFolder
+			} else {
+				rootDir = "."
+			}
+		}
+		performDelete := r.FormValue("performDelete") == "true"
+
+		files, err := pkg.FindExportSTLFiles(rootDir)
+		data := templates.DeleteExportSTLsPageData{
+			RootDir:       rootDir,
+			STLFiles:      files,
+			PerformDelete: performDelete,
+		}
+		if err != nil {
+			data.Error = err.Error()
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			templates.DeleteExportSTLsPage(data).Render(r.Context(), w)
+			return
+		}
+		if performDelete && len(files) > 0 {
+			delRes := pkg.DeleteFiles(files)
+			data.Deleted = delRes.Deleted
+			if len(delRes.Failed) > 0 {
+				data.Failed = map[string]string{}
+				for p, e := range delRes.Failed {
+					data.Failed[p] = e.Error()
+				}
+			}
+			// Refresh list after delete attempt
+			remaining, _ := pkg.FindExportSTLFiles(rootDir)
+			data.STLFiles = remaining
+		}
+
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		templates.DeleteExportSTLsPage(data).Render(r.Context(), w)
+		return
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 }
 
 // handleMainRequest handles the main HTTP requests (GET, POST, PUT)

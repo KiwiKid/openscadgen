@@ -16,13 +16,13 @@ include <BOSL2/joiners.scad>;
 	*/
     // 	renderType = "hex";
     
-	renderType = "port-offset";    
+	renderType = "port"; // "port-offset-reversed";    
     
     
     holderWidth= 6;
     
     floorHeight= 1.5;
-    edgeHolderHeight =4;
+    edgeHolderHeight =5;
     catanPieceSize = 91.5;
     
     innerHoleSize = 80;
@@ -49,14 +49,7 @@ portHolderWidth = 30;
     
     femaleOffset = 3.5;//2.2;//2.9;
     
-designFileName = "catan_holder_pieces";
-dovetailType = "female";
-name = "port-offset-female-left";
-renderType = "port-offset";
-slotMoveX = -8;
-slotMoveY = 8;
-slotZRotate = -30;
-version = "v0.4";
+
 
 
 
@@ -75,17 +68,19 @@ version = "v0.4";
         
         if(dovetailType == "female"){
             rotate([90,0,90])
-           dovetail(dovetailType, slide=100, width=dovetailWidth, height=dovetailHeight, angle=dovetailAngle);
+           dovetail(dovetailType, slide=100, width=dovetailWidth, height=dovetailHeight, angle=dovetailAngle, chamfer=1);
         
         }
+   
         
         //move([holderDepth-holderOffset,0,0])
        // cuboid([holderDepth,portWidth,10]);
         }
          if(dovetailType == "male"){
          rotate([90,0,90])
-            dovetail(dovetailType, slide=floorHeight, width=dovetailWidth, height=dovetailHeight, angle=dovetailAngle);
+            dovetail(dovetailType, slide=floorHeight, width=dovetailWidth, height=dovetailHeight, angle=dovetailAngle, chamfer=1);
             }
+            
 	}
     
 roadLength = 25.4;
@@ -102,17 +97,24 @@ roadLength = 25.4;
         
 //tube(or=(catanPieceSize+holderWidth)/2, ir=catanPieceSize/2, h=2.5, $fn=6, rounding_fn=64, teardrop=true, anchor=CENTER+DOWN);
         
-        main_frame();
+       // main_frame();
         
         linear_extrude(h = edgeHolderHeight)
-		hexagon(d=catanPieceSize+holderWidth, anchor=CENTER);
+		hexagon(d=catanPieceSize+holderWidth, anchor=CENTER, rounding=1);
         }
         
+        cutoutCircleRadius = 10;
+        
+        /*for(i = [0:6]){
+            rotate([90,0,i*60])
+            move([catanPieceSize/2-femaleOffset+5,cutoutCircleRadius+floorHeight+1,0])
+            sphere(r=cutoutCircleRadius);
+        }*/
+        
         up(floorHeight)
-         //cylindrical_extrude(ir=1, or=2)
-
         linear_extrude(h = edgeHolderHeight+10)
         hexagon(d=catanPieceSize,  anchor=CENTER);
+        
         
         
         down(1)
@@ -125,7 +127,6 @@ roadLength = 25.4;
             rotate([0,0,i*60+30])
             move([catanPieceSize/2-femaleOffset,0,0])
         holder_side(dovetailType="female");
-        
         }
         
         up(roadUp)
@@ -150,12 +151,14 @@ roadLength = 25.4;
 	}
     
     portHolderHeight = 3;
-    portOuterWidth = 27;
-    portOuterHeight  = 26.8;
+    portOuterWidth = 28;
+    portOuterHeight  = 27.8;
     portFrameWidth = portOuterWidth-3;
-    portFrameHeight = portOuterHeight-6;
-    portSlotWidth = portOuterWidth - 1;
-portSlotHeight = 1.6;
+    portFrameHeight = portOuterHeight-4;
+    portSlotWidth = portOuterWidth - 2;
+    
+    slotRounding = 0.8;
+portSlotHeight = 2.2;
 portSlotHolderWidth = 12;
 
 slotOffset=2;
@@ -166,7 +169,7 @@ slotOffset=2;
 
         difference(){
         
-               cuboid([portOuterWidth, portOuterHeight, portHolderHeight], anchor=LEFT+BOTTOM);
+               cuboid([portOuterWidth, portOuterHeight, portHolderHeight], anchor=LEFT+BOTTOM, rounding=1);
                 
                
             union(){
@@ -178,14 +181,14 @@ slotOffset=2;
 
                 right(slotOffset+5)
                 up(0.4)
-                cuboid([portSlotWidth, portSlotWidth, portSlotHeight], anchor=LEFT+BOTTOM);
+                cuboid([portSlotWidth, portSlotWidth, portSlotHeight], anchor=LEFT+BOTTOM, rounding=slotRounding);
                 }
                 
                 
           if(dovetailType == "female"){
             rotate([90,0,-90])
          //   move([0,0,femalePortOffset])
-            dovetail(dovetailType, slide=100, width=dovetailWidth, height=dovetailHeight, angle=dovetailAngle, anchor=BOTTOM+FWD);
+            dovetail(dovetailType, slide=100, width=dovetailWidth, height=dovetailHeight, angle=dovetailAngle, anchor=BOTTOM+FWD, chamfer=1);
         
         }
         
@@ -204,25 +207,23 @@ slotOffset=2;
          rotate([90,0,-90])
          
           //  move([0,0,malePortOffset])
-            dovetail(dovetailType, slide=floorHeight, width=dovetailWidth, height=dovetailHeight, angle=dovetailAngle, anchor=BOTTOM+FWD);
+            dovetail(dovetailType, slide=floorHeight, width=dovetailWidth, height=dovetailHeight, angle=dovetailAngle, anchor=BOTTOM+FWD, chamfer=1);
             }
         }
         
         
       
-       module catan_holder_port_offset(dovetailType="male"){
-
+       module catan_holder_port_offset(dovetailType="male", slotZRotate=30, slotMoveX=8, slotMoveY=8){
+        
 
         slotRotate = [0,0,slotZRotate];
-        slotMoveX = 8;
-        slotMoveY = 8;
         slotMove = [slotMoveX,slotMoveY,0];
 
 
         difference(){
                
                union(){
-               cuboid([portOuterWidth-2, portOuterHeight, portHolderHeight], anchor=LEFT+BOTTOM);
+               cuboid([portOuterWidth-2, portOuterHeight, portHolderHeight], anchor=LEFT+BOTTOM, rounding=1);
                
                 move(slotMove)
             rotate(slotRotate)
@@ -244,14 +245,14 @@ slotOffset=2;
 
                 right(slotOffset+6)
                 up(0.4)
-                cuboid([portSlotWidth, portSlotWidth, portSlotHeight], anchor=LEFT+BOTTOM);
+                cuboid([portSlotWidth, portSlotWidth, portSlotHeight], anchor=LEFT+BOTTOM, rounding=slotRounding);
                 }
                 
                 
           if(dovetailType == "female"){
             rotate([90,0,-90])
          //   move([0,0,femalePortOffset])
-            dovetail(dovetailType, slide=100, width=dovetailWidth, height=dovetailHeight, angle=dovetailAngle, anchor=BOTTOM+FWD);
+            dovetail(dovetailType, slide=100, width=dovetailWidth, height=dovetailHeight, angle=dovetailAngle, anchor=BOTTOM+FWD, chamfer=1);
         
         }
         
@@ -269,7 +270,7 @@ slotOffset=2;
          rotate([90,0,-90])
          
           //  move([0,0,malePortOffset])
-            dovetail(dovetailType, slide=floorHeight, width=dovetailWidth, height=dovetailHeight, angle=dovetailAngle, anchor=BOTTOM+FWD);
+            dovetail(dovetailType, slide=floorHeight, width=dovetailWidth, height=dovetailHeight, angle=dovetailAngle, anchor=BOTTOM+FWD, chamfer=1);
             }
         }
 
@@ -295,8 +296,23 @@ slotOffset=2;
                
                
         if(renderType == "port-offset"){
-            catan_holder_port_offset(dovetailType=dovetailType);
+            if(dovetailType == "male"){
+                catan_holder_port_offset(dovetailType=dovetailType, slotZRotate=30, slotMoveX=3, slotMoveY=-8);
+            }else {
+                            catan_holder_port_offset(dovetailType=dovetailType, slotZRotate=30, slotMoveX=7, slotMoveY=-8);
+
+            
+            }
+        } else if(renderType == "port-offset-reversed"){
+            if(dovetailType == "male"){
+                catan_holder_port_offset(dovetailType=dovetailType, slotZRotate=-30, slotMoveX=3, slotMoveY=12);
+            }else {
+                            catan_holder_port_offset(dovetailType=dovetailType, slotZRotate=-30, slotMoveX=5, slotMoveY=13);
+
+            
+            }
         }
+        
     }
        
 

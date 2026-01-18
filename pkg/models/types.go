@@ -106,6 +106,7 @@ type CmdFlags struct {
 	HighQuality                  bool   `json:"high_quality"`
 	LowQuality                   bool   `json:"low_quality"`
 	EnableFileWatcher            bool   `json:"enable_file_watcher"`
+	DeleteExportSTLsDir          string `json:"delete_export_stls_dir"`
 }
 
 type OutputPaths struct {
@@ -291,9 +292,10 @@ func (instance *InstanceConfig) GetInstancePaths(config *Config) *InstancePaths 
 }
 
 type ConfigFile struct {
-	Path         string
-	NiceName     string
-	DateModified time.Time
+	Path             string
+	NiceName         string
+	PrimaryImagePath string
+	DateModified     time.Time
 }
 
 type CleanResult struct {

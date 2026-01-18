@@ -1,0 +1,12 @@
+[openscadgen]
+name = "shopping_list_modula"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{partType}"
+
+global_params = { partType = "main,toggle,connector" }
+
+[[openscadgen.input_paths]]
+path = "./shopping_list_modula.scad"

@@ -152,7 +152,7 @@ templ TOMLEditForm(editFormConfig *models.EditConfigParams) {
 				</div>
 				<div class="buttons">
 					<a href={ templ.SafeURL(fmt.Sprintf("/?config_path=%s&server_folder=%s", editFormConfig.ConfigFilePathEncoded, editFormConfig.ServerFolderEncoded)) } class="button is-alert">Cancel</a>
-					<button type="submit" class="button is-success">Save Changes</button>
+					<button type="submit" class="button is-success" disabled>Save Changes (not yet implemented)</button>
 				</div>
 				<textarea id="editarea" style="height: 350px; width: 100%;" id="content" name="content">{ editFormConfig.Content }</textarea>
 			</form>

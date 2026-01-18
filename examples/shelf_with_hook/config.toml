@@ -1,0 +1,16 @@
+[openscadgen]
+name = "shelf_with_hook"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{renderType}"
+
+global_params = { renderType = "obj,vertSlice,horzSlice,all" }
+
+[[openscadgen.input_paths]]
+path = "./shelf_with_hook.scad"
+
+[[openscadgen.images]]
+name = "nice"
+param_filter = { renderType= "obj,vertSlice,horzSlice"}

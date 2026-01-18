@@ -1,0 +1,19 @@
+[openscadgen]
+name = "catan_port_holder"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{dovetailType}"
+
+[[openscadgen.instances]]
+params = { dovetailType = "female", holderOffset = 0 }
+
+[[openscadgen.instances]]
+params = { dovetailType = "male", holderOffset = 5 }
+
+[[openscadgen.input_paths]]
+path = "./catan_port_holder.scad"
+
+[[openscadgen.images]]
+name = "nice"

@@ -1,0 +1,16 @@
+[openscadgen]
+name = "jug_button_cover"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{renderType}"
+
+global_params = { renderType = "obj,vertSlice,horzSlice,all" }
+
+[[openscadgen.input_paths]]
+path = "./jug_button_cover.scad"
+
+[[openscadgen.images]]
+name = "nice"
+param_filter = { renderType= "obj,vertSlice,horzSlice"}

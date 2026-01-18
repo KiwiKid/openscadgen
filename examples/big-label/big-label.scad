@@ -2,23 +2,35 @@
 
 	include <BOSL2/std.scad>;
 
+	include <BOSL2/joiners.scad>;
 	$fa = .01;
 	$fs = $preview ? 5 : 1;
 	$fn = 200;
 
 
+isSizer = "true";
+sizerLength = 200;
+sizerCount = 5;
+
+
+sizerHeight = 4;
+onlySection = "3";
+
 	module big_label(){
     
-    name = "Diddy's";
+    name = "DIDDYS";
  text_angle = 10;
  base_width = !is_undef(base_width) ? base_width : 130 ;
 base_size = [base_width, 30, 20];
 
-text_size = 72;
-text_height = 10;
+text_size = 180;
+text_height = 2;
+
 include_base = "false";
-include_connector = "true";
+include_connector = "false";
 connector_size = [300, 3,3];
+
+
 
 
 
@@ -29,6 +41,7 @@ connector_size = [300, 3,3];
 
           //  rotate([-text_angle,0,0])
           //  cylindrical_extrude(or=140, ir=110)
+          rotate([0,0,180])
           linear_extrude(height = text_height)
             text(text=name, size=text_size, halign="center", valign="center", font="Baskerville");
             
@@ -80,8 +93,48 @@ connector_size = [300, 3,3];
 	}
     }
 
+    
+    module sizerSection(){
+    
+    if(onlySection == str(sizerCount-$idx) || onlySection == "all"){
+        difference(){
 
+        
+       diff("remove")
+       down(sizerHeight/2-1)
+       rotate([0,0,90])
+        cuboid([50,sizerLength,sizerHeight], anchor=CENTER){
+            attach(BACK) dovetail("male", slide=sizerHeight, width=25, height=25, radius=0.5, round=true);
+            tag("remove")attach(FRONT) dovetail("female", slide=sizerHeight, width=25, height=25, radius=0.5, round=true);
+            
+            
+            
+        }
+        
+        move([8,12,0])
+        rotate([0,0,180])
+        text3d(str(sizerCount-$idx), h=30, size=30);
+        }
+        }
+    }
+
+    if(isSizer == "true"){
+    
+  difference(){
+   
+    up(3)
+    xcopies(sizerLength, n=sizerCount){
+    
+        sizerSection();
+    }
+    #big_label();
+    }
+ 
+ } else{ 
+    
  big_label();
+ }
+ 
     
        
 

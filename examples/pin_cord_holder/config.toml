@@ -1,0 +1,19 @@
+[openscadgen]
+name = "pin_cord_holder"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{renderType}_{partType}"
+
+[[openscadgen.instances]]
+params = { partType = "screws" }
+
+[[openscadgen.instances]]
+params = { partType = "box", renderType = "obj,vertSlice,horzSlice,all" }
+
+[[openscadgen.input_paths]]
+path = "./pin_cord_holder.scad"
+
+[[openscadgen.images]]
+name = "nice"

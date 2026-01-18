@@ -1,0 +1,15 @@
+[openscadgen]
+name = "circular_holder"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{renderType}"
+
+global_params = { renderType = "obj,vertSlice,horzSlice,all" }
+
+[[openscadgen.input_paths]]
+path = "./circular_holder.scad"
+
+[[openscadgen.images]]
+name = "nice"

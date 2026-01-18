@@ -1,0 +1,27 @@
+[openscadgen]
+name = "plane_holder"
+description = ""
+
+version = "v0.2"
+
+export_name_format = "{designFileName}_{partType}"
+
+
+[[openscadgen.input_paths]]
+path = "./plane_holder.scad"
+
+[[openscadgen.instances]]
+params = { partType = "slot"}
+
+
+[[openscadgen.instances]]
+params = { partType = "rail"}
+
+
+[[openscadgen.instances]]
+params = { partType = "all"}
+
+
+[[openscadgen.images]]
+name = "nice"
+param_filter = { renderType= "obj,vertSlice,horzSlice"}

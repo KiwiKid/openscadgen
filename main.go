@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/cli/browser"
 	"github.com/kiwikid/openscadgen/cmd"
@@ -50,6 +52,42 @@ func main() {
 
 	if cmdFlags.ShowMan {
 		pkg.ShowMan()
+		return
+	}
+
+	if cmdFlags.DeleteExportSTLsDir != "" {
+		files, err := pkg.FindExportSTLFiles(cmdFlags.DeleteExportSTLsDir)
+		if err != nil {
+			log.Fatalf("FindExportSTLFiles Error: %v", err)
+		}
+		if len(files) == 0 {
+			log.Printf("No export/*.stl files found under: %s", cmdFlags.DeleteExportSTLsDir)
+			return
+		}
+
+		fmt.Printf("Found %d .stl files under export/ folders in: %s\n\n", len(files), cmdFlags.DeleteExportSTLsDir)
+		for _, f := range files {
+			fmt.Printf("- %s\n", f)
+		}
+		fmt.Printf("\nDelete these files? [y/N]: ")
+		reader := bufio.NewReader(os.Stdin)
+		line, _ := reader.ReadString('\n')
+		line = strings.TrimSpace(line)
+		if strings.ToLower(line) != "y" {
+			log.Printf("Aborted (no delete performed).")
+			return
+		}
+
+		res := pkg.DeleteFiles(files)
+		if len(res.Failed) > 0 {
+			log.Printf("Deleted %d files; %d failed:", len(res.Deleted), len(res.Failed))
+			for p, e := range res.Failed {
+				log.Printf("  - %s: %v", p, e)
+			}
+			os.Exit(1)
+			return
+		}
+		log.Printf("Deleted %d files.", len(res.Deleted))
 		return
 	}
 

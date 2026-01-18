@@ -567,12 +567,54 @@ func GetNiceName(path string) string {
 	return filepath.Base(dir)
 }
 
+func isImageFileExt(ext string) bool {
+	switch strings.ToLower(ext) {
+	case ".png", ".jpg", ".jpeg", ".gif", ".webp":
+		return true
+	default:
+		return false
+	}
+}
+
+func findPrimaryImageInExportDir(exportDir string) string {
+	var images []string
+	_ = filepath.Walk(exportDir, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return nil
+		}
+		if info == nil || info.IsDir() {
+			return nil
+		}
+		if !isImageFileExt(filepath.Ext(info.Name())) {
+			return nil
+		}
+		images = append(images, p)
+		return nil
+	})
+
+	if len(images) == 0 {
+		return ""
+	}
+
+	sort.Strings(images)
+
+	// Prefer "nice" (case-insensitive) in the filename.
+	for _, p := range images {
+		if strings.Contains(strings.ToLower(filepath.Base(p)), "nice") {
+			return p
+		}
+	}
+
+	// Fallback: first image (sorted for determinism).
+	return images[0]
+}
+
 func ScanFolderForConfigFiles(folder string) ([]models.ConfigFile, error) {
 	log.Printf("Scanning folder for config.toml files: %s", folder)
 	var configFiles []models.ConfigFile
 	maxSize := int64(2 * 1024 * 1024) // 2MB
 
-	err := filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(folder, func(filePath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -587,11 +629,11 @@ func ScanFolderForConfigFiles(folder string) ([]models.ConfigFile, error) {
 		}
 
 		// Skip files in export folders
-		if strings.Contains(path, "/export/") || strings.Contains(path, "\\export\\") {
+		if strings.Contains(filePath, "/export/") || strings.Contains(filePath, "\\export\\") {
 			return nil
 		}
 
-		f, err := os.Open(path)
+		f, err := os.Open(filePath)
 		if err != nil {
 			return nil // skip unreadable files
 		}
@@ -607,17 +649,39 @@ func ScanFolderForConfigFiles(folder string) ([]models.ConfigFile, error) {
 			return nil
 		}
 
-		subPath, err := filepath.Rel(folder, path)
+		subPath, err := filepath.Rel(folder, filePath)
 		if err != nil {
 			return err
 		}
 
-		dateModified, err := os.Stat(path)
+		dateModified, err := os.Stat(filePath)
 		if err != nil {
 			return err
 		}
 
-		configFiles = append(configFiles, models.ConfigFile{Path: subPath, NiceName: GetNiceName(subPath), DateModified: dateModified.ModTime()})
+		primaryImagePath := ""
+		{
+			configDir := filepath.Dir(filePath)
+			exportDir := filepath.Join(configDir, "export")
+			if st, err := os.Stat(exportDir); err == nil && st.IsDir() {
+				primaryAbs := findPrimaryImageInExportDir(exportDir)
+				if primaryAbs != "" {
+					if rel, err := filepath.Rel(folder, primaryAbs); err == nil {
+						primaryImagePath = filepath.ToSlash(rel)
+					} else {
+						// Best-effort fallback: absolute path (still servable by /images).
+						primaryImagePath = filepath.ToSlash(primaryAbs)
+					}
+				}
+			}
+		}
+
+		configFiles = append(configFiles, models.ConfigFile{
+			Path:             subPath,
+			NiceName:         GetNiceName(subPath),
+			PrimaryImagePath: primaryImagePath,
+			DateModified:     dateModified.ModTime(),
+		})
 		return nil
 	})
 	if err != nil {
@@ -942,6 +1006,102 @@ func MakeExportImage(instance *models.InstanceConfig, camera models.ExportCamera
 	}
 }
 
+func interfaceToFloat64(v interface{}) (float64, bool) {
+	switch n := v.(type) {
+	case int:
+		return float64(n), true
+	case int64:
+		return float64(n), true
+	case float64:
+		return n, true
+	case float32:
+		return float64(n), true
+	default:
+		return 0, false
+	}
+}
+
+func interfaceToBool(v interface{}) (bool, bool) {
+	switch b := v.(type) {
+	case bool:
+		return b, true
+	default:
+		return false, false
+	}
+}
+
+func interfaceToStringList(v interface{}) []string {
+	switch t := v.(type) {
+	case string:
+		parts := strings.Split(t, ",")
+		out := make([]string, 0, len(parts))
+		for _, p := range parts {
+			p = strings.TrimSpace(p)
+			if p == "" {
+				continue
+			}
+			out = append(out, p)
+		}
+		if len(out) == 0 {
+			return []string{strings.TrimSpace(t)}
+		}
+		return out
+	case []interface{}:
+		out := make([]string, 0, len(t))
+		for _, el := range t {
+			out = append(out, interfaceToStringList(el)...)
+		}
+		return out
+	default:
+		return []string{strings.TrimSpace(fmt.Sprintf("%v", v))}
+	}
+}
+
+func paramFilterValueMatches(filterVal interface{}, instanceVal interface{}) bool {
+	if filterVal == nil {
+		return true
+	}
+	// Strong-typed matches first (avoid "1" vs "1.0" issues).
+	if fNum, ok := interfaceToFloat64(filterVal); ok {
+		if iNum, ok2 := interfaceToFloat64(instanceVal); ok2 {
+			return fNum == iNum
+		}
+	}
+	if fBool, ok := interfaceToBool(filterVal); ok {
+		if iBool, ok2 := interfaceToBool(instanceVal); ok2 {
+			return fBool == iBool
+		}
+	}
+
+	// Fallback: string/list matching (supports comma-delimited strings).
+	filterVals := interfaceToStringList(filterVal)
+	instanceVals := interfaceToStringList(instanceVal)
+	for _, fv := range filterVals {
+		for _, iv := range instanceVals {
+			if fv == iv {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func paramFilterMatchesAll(filter map[string]interface{}, instanceParams map[string]interface{}) (bool, string) {
+	if filter == nil {
+		return true, ""
+	}
+	for k, v := range filter {
+		instanceVal, ok := instanceParams[k]
+		if !ok {
+			return false, fmt.Sprintf("Skipping image because param %s is not set", k)
+		}
+		if !paramFilterValueMatches(v, instanceVal) {
+			return false, fmt.Sprintf("Skipping image because param %s does not match %v", k, v)
+		}
+	}
+	return true, ""
+}
+
 func populateExportImages(config *models.Config, instances []models.InstanceConfig) ([]models.InstanceConfig, error) {
 	if config.Debug {
 		log.Printf("populateExportImages")
@@ -952,6 +1112,7 @@ func populateExportImages(config *models.Config, instances []models.InstanceConf
 
 	for i := range instances {
 		allExportImages := []models.ExportCameraCoordinates{}
+		skippedReasons := []string{}
 
 		if instances[i].SkipImages {
 			if config.Debug {
@@ -961,20 +1122,16 @@ func populateExportImages(config *models.Config, instances []models.InstanceConf
 			continue
 		}
 
-		for _, instance := range config.Design.ExportImages {
-			if instance.ParamFilter != nil {
-				for k, v := range instance.ParamFilter {
-					if v != instances[i].Params[k] {
-						if config.Debug {
-							logSkip(fmt.Sprintf("Skipping image for instance %s because param %s does not match %s", instances[i].AutoName, k, v))
-						}
-						instances[i].SkippedImageReason = fmt.Sprintf("Skipping image for instance %s because param %s does not match %s", instances[i].AutoName, k, v)
-						continue
-					}
+		for _, exportImage := range config.Design.ExportImages {
+			if ok, reason := paramFilterMatchesAll(exportImage.ParamFilter, instances[i].Params); !ok {
+				if config.Debug {
+					logSkip(fmt.Sprintf("Skipping image for instance %s: %s", instances[i].AutoName, reason))
 				}
-
+				skippedReasons = append(skippedReasons, fmt.Sprintf("Skipping image for instance %s: %s", instances[i].AutoName, reason))
+				continue
 			}
-			exportImages := makePresetReplacement(instances[i].RunOutputPathV3, instance)
+
+			exportImages := makePresetReplacement(instances[i].RunOutputPathV3, exportImage)
 			if len(exportImages) > 0 {
 				allExportImages = append(allExportImages, exportImages...)
 			}
@@ -988,6 +1145,10 @@ func populateExportImages(config *models.Config, instances []models.InstanceConf
 		}
 
 		instances[i].ExportImages = allExportImages
+		if len(allExportImages) == 0 && instances[i].SkippedImageReason == "" && len(skippedReasons) > 0 {
+			// Only show a skip reason when we actually ended up with zero images.
+			instances[i].SkippedImageReason = skippedReasons[0]
+		}
 	}
 
 	return instances, nil
@@ -1026,7 +1187,6 @@ var cameraDistances = map[string]CameraDistance{
 
 // parseCameraName parses a camera name to extract direction and distance
 func parseCameraName(cameraName string) (string, string) {
-	log.Printf("parseCameraName: %s", cameraName)
 	parts := strings.Split(cameraName, "-")
 
 	if len(parts) == 1 {

@@ -2,7 +2,7 @@
 name = "catan_holder_pieces"
 description = ""
 
-version = "v0.4"
+version = "v0.1"
 
 export_name_format = "{designFileName}_{renderType}_{dovetailType}_{name}"
 
@@ -24,23 +24,14 @@ params = { renderType = "port", dovetailType = "male,female"}
 
 
 [[openscadgen.instances]]
-name = "port-offset-male-left"
+name = "port-offset"
 description = ""
-params = { renderType = "port-offset", dovetailType = "male", slotZRotate = 30, slotMoveX = 3, slotMoveY = -6}
-
+params = { renderType = "port-offset", dovetailType ="male,female" }
 
 [[openscadgen.instances]]
-name = "port-offset-male-right"
+name = "port-reversed"
 description = ""
-params = { renderType = "port-offset", dovetailType = "male", slotZRotate = -30, slotMoveX = -3, slotMoveY = -6}
+params = { renderType = "port-offset-reversed", dovetailType ="male,female" }
 
-
-[[openscadgen.instances]]
-name = "port-offset-female-right"
-description = ""
-params = { renderType = "port-offset", dovetailType = "female", slotZRotate = 30, slotMoveX = 8, slotMoveY = 8}
-
-[[openscadgen.instances]]
-name = "port-offset-female-left"
-description = ""
-params = { renderType = "port-offset", dovetailType = "female", slotZRotate = -30, slotMoveX = -8, slotMoveY = 8}
+[[openscadgen.images]]
+name = "nice"

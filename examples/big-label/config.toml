@@ -4,7 +4,7 @@ description = ""
 
 version = "v0.1"
 
-export_name_format = "/{designFileName}"
+export_name_format = "/{designFileName}_{onlySection}"
 
 # export_name_format = "custom-export-name-for-this-file/{designFileName}-{instanceName}"
 
@@ -16,6 +16,13 @@ name = "front"
 
 [[openscadgen.images]]
 name = "back"
+
+
+[[openscadgen.instances]]
+params = { onlySection = "none" }
+
+[[openscadgen.instances]]
+params = { onlySection = "1,2,3,4,5,6,all" }
 
 # [[openscadgen.input_paths]]
 # path = "./a-second-related-openscad-file.scad"

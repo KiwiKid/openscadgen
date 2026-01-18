@@ -31,10 +31,27 @@ templ EnterConfigPage(configFiles []models.ConfigFile, serverFolder string) {
             </script>
             <script data-server-folder={ serverFolder }>
                 function setServerFolderOptions() {
-                    const serverFolder = document.querySelector('[data-server-folder]').getAttribute('data-server-folder');
-                    const currentOptions = JSON.parse(localStorage.getItem('opensacdgen-serverFolder') || '[]');
+                    const serverFolder = (document.querySelector('[data-server-folder]').getAttribute('data-server-folder') || '').trim();
+                    if (!serverFolder) {
+                        return;
+                    }
+
+                    let currentOptions;
+                    try {
+                        currentOptions = JSON.parse(localStorage.getItem('opensacdgen-serverFolder') || '[]');
+                    } catch (e) {
+                        currentOptions = [];
+                    }
+                    if (!Array.isArray(currentOptions)) {
+                        currentOptions = [];
+                    }
+
                     currentOptions.unshift(serverFolder);
-                    currentOptions = currentOptions.slice(0, 20);
+                    // de-dupe and clamp list
+                    currentOptions = currentOptions.filter((value, index, self) => {
+                        return value && self.indexOf(value) === index;
+                    }).slice(0, 20);
+
                     localStorage.setItem('opensacdgen-serverFolder', JSON.stringify(currentOptions));
                 }
 
@@ -240,6 +257,7 @@ html, body {
 
         <body>
             <div class="container">
+            <a href="/" class="button">Home</a>
                 <h1>OpenSCAD Generator</h1>
                 
                 <!-- Watcher UI will be loaded here -->
@@ -387,6 +405,21 @@ templ ProjectFolderForm(warning templ.Component){
             const fullPathInput = document.getElementById('fullPathInput');
             const errorMessage = document.getElementById('errorMessage');
             const successMessage = document.getElementById('successMessage');
+
+            function base64EncodeUtf8(str) {
+                const bytes = new TextEncoder().encode(str);
+                let binary = '';
+                for (const b of bytes) {
+                    binary += String.fromCharCode(b);
+                }
+                return btoa(binary);
+            }
+
+            function navigateToFolder(fullPath) {
+                const encodedPath = base64EncodeUtf8(fullPath);
+                const url = `/?server_folder=${encodeURIComponent(encodedPath)}`;
+                window.location.href = url;
+            }
             
             // Prefill from last-used folder if available
             try {
@@ -413,28 +446,29 @@ templ ProjectFolderForm(warning templ.Component){
                 }
                 
                 try {
-                    const encodedPath = btoa(fullPath);
-                    const url = `/?server_folder=${encodeURIComponent(encodedPath)}`;
-                    
                     showSuccess('Navigating to server folder...');
-                    
-                    // Navigate to the URL
-                    window.location.href = url;
+                    navigateToFolder(fullPath);
                 } catch (error) {
                     console.error('Error encoding folder path:', error);
                     showError('Error processing folder path');
                 }
             });
 
-            // When a recent folder radio is picked, sync it into the input
-            document.addEventListener('change', function(event) {
-                const target = event.target;
-                if (!target) {
+            // When a recent folder button is clicked, navigate immediately
+            document.addEventListener('server-folder-selected', function(event) {
+                const serverFolder = event && event.detail && event.detail.serverFolder;
+                if (!serverFolder) {
                     return;
                 }
-                if (target.matches('server-folder-options input[type="radio"][name="serverFolder"]')) {
-                    fullPathInput.value = target.value;
-                    showSuccess('Using previously used folder');
+
+                fullPathInput.value = serverFolder;
+                showSuccess('Navigating to previously used folder...');
+
+                try {
+                    navigateToFolder(serverFolder);
+                } catch (error) {
+                    console.error('Error encoding folder path:', error);
+                    showError('Error processing folder path');
                 }
             });
             

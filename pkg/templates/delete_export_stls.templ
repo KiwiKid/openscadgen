@@ -1,0 +1,97 @@
+package templates
+
+import (
+	"fmt"
+	"net/url"
+	"sort"
+)
+
+type DeleteExportSTLsPageData struct {
+	RootDir      string
+	STLFiles     []string
+	PerformDelete bool
+	Deleted      []string
+	Failed       map[string]string
+	Error        string
+}
+
+func sortedKeys(m map[string]string) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+templ DeleteExportSTLsPage(data DeleteExportSTLsPageData) {
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Delete export STLs</title>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
+	</head>
+	<body>
+	<section class="section">
+		<div class="container">
+			<h1 class="title">Delete <code>export/</code> STL files</h1>
+
+			<div class="content">
+				<p><strong>Root:</strong> <code>{ data.RootDir }</code></p>
+			</div>
+
+			if data.Error != "" {
+				<div class="notification is-danger">
+					<strong>{ data.Error }</strong>
+				</div>
+			}
+
+			if len(data.Deleted) > 0 {
+				<div class="notification is-success">
+					<strong>Deleted { fmt.Sprintf("%d", len(data.Deleted)) } files.</strong>
+				</div>
+			}
+
+			if len(data.Failed) > 0 {
+				<div class="notification is-warning">
+					<strong>Failed to delete { fmt.Sprintf("%d", len(data.Failed)) } files.</strong>
+					<ul>
+						for _, k := range sortedKeys(data.Failed) {
+							<li><code>{ k }</code>: { data.Failed[k] }</li>
+						}
+					</ul>
+				</div>
+			}
+
+			<div class="box">
+				<p class="mb-3"><strong>Found:</strong> { fmt.Sprintf("%d", len(data.STLFiles)) } STL files under <code>export/</code> folders</p>
+
+				if len(data.STLFiles) == 0 {
+					<p class="has-text-grey">Nothing to delete.</p>
+				} else {
+					<form method="POST" action="/delete-export-stls">
+						<input type="hidden" name="dir" value={ data.RootDir }/>
+						<input type="hidden" name="performDelete" value="true"/>
+						<div class="buttons">
+							<button class="button is-danger" type="submit">Delete these files</button>
+							<a class="button" href={ fmt.Sprintf("/delete-export-stls?dir=%s", url.QueryEscape(data.RootDir)) }>Refresh</a>
+						</div>
+					</form>
+
+					<hr/>
+
+					<ul>
+						for _, f := range data.STLFiles {
+							<li><code>{ f }</code></li>
+						}
+					</ul>
+				}
+			</div>
+		</div>
+	</section>
+	</body>
+	</html>
+}
+

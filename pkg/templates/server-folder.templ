@@ -5,6 +5,7 @@ templ SaveServerFolder(serverFolder string) {
     <script data-server-folder={ serverFolder }>
         (function () {
             const key = 'opensacdgen-serverFolder';
+            const lastKey = 'opensacdgen-serverFolder-lastNavigated';
 
             function setServerFolderOptions() {
                 const el = document.querySelector('[data-server-folder]');
@@ -16,6 +17,9 @@ templ SaveServerFolder(serverFolder string) {
                 if (!serverFolder) {
                     return;
                 }
+
+                // Track the most recent server folder the user actually navigated to.
+                localStorage.setItem(lastKey, serverFolder);
 
                 let currentOptions;
                 try {
@@ -43,6 +47,7 @@ templ ServerFolderOptionsComponent() {
     <script>
         (function () {
             const KEY = 'opensacdgen-serverFolder';
+            const LAST_KEY = 'opensacdgen-serverFolder-lastNavigated';
 
             class ServerFolderOptionsElement extends HTMLElement {
                 connectedCallback() {
@@ -59,6 +64,15 @@ templ ServerFolderOptionsComponent() {
                         return;
                     }
 
+                    const lastNavigated = localStorage.getItem(LAST_KEY) || '';
+                    if (lastNavigated) {
+                        // Ensure the last navigated folder is first (even if the list got out of order).
+                        options = [
+                            lastNavigated,
+                            ...options.filter((v) => v && v !== lastNavigated),
+                        ];
+                    }
+
                     const frag = document.createDocumentFragment();
 
                     for (const serverFolder of options) {
@@ -68,17 +82,29 @@ templ ServerFolderOptionsComponent() {
                         const control = document.createElement('div');
                         control.className = 'control';
 
-                        const label = document.createElement('label');
-                        label.className = 'checkbox';
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'button is-small is-fullwidth';
+                        btn.dataset.serverFolder = serverFolder;
+                        btn.appendChild(document.createTextNode(serverFolder));
 
-                        const input = document.createElement('input');
-                        input.type = 'radio';
-                        input.name = 'serverFolder';
-                        input.value = serverFolder;
+                        if (lastNavigated && serverFolder === lastNavigated) {
+                            btn.classList.add('is-primary');
+                            btn.setAttribute('aria-current', 'true');
+                            btn.appendChild(document.createTextNode(' (last)'));
+                        } else {
+                            btn.classList.add('is-light');
+                        }
 
-                        label.appendChild(input);
-                        label.appendChild(document.createTextNode(' ' + serverFolder));
-                        control.appendChild(label);
+                        btn.addEventListener('click', () => {
+                            // Bubble an event so the host page can decide how to handle selection.
+                            this.dispatchEvent(new CustomEvent('server-folder-selected', {
+                                bubbles: true,
+                                detail: { serverFolder },
+                            }));
+                        });
+
+                        control.appendChild(btn);
                         field.appendChild(control);
                         frag.appendChild(field);
                     }

@@ -35,7 +35,11 @@ func ParseFlags() models.CmdFlags {
 	flag.BoolVar(&cmdFlags.NoProcessing, "np", false, "Alias for -no-processing")
 
 	flag.BoolVar(&cmdFlags.Debug, "debug", false, "debug mode, more output")
-	flag.BoolVar(&cmdFlags.Debug, "d", false, "Alias for -debug")
+	flag.BoolVar(&cmdFlags.Debug, "D", false, "Alias for -debug (note: -d is used for delete-export-stls-dir)")
+
+	deleteDirDesc := "Directory to scan for export/ folders and list .stl files for deletion (confirm required)"
+	flag.StringVar(&cmdFlags.DeleteExportSTLsDir, "delete-export-stls-dir", "", deleteDirDesc)
+	flag.StringVar(&cmdFlags.DeleteExportSTLsDir, "d", "", "Alias for -delete-export-stls-dir")
 
 	flag.BoolVar(&cmdFlags.Version, "version", false, "just output the openscadgen and openscad version number")
 	flag.BoolVar(&cmdFlags.Version, "v", false, "Alias for -version")
@@ -79,7 +83,7 @@ func ParseFlags() models.CmdFlags {
 
 	flag.StringVar(&cmdFlags.ProcessFolder, "cf", "", "Process a folder of config files. Will search for config.toml files and process them all")
 
-	flag.BoolVar(&cmdFlags.EnableFileWatcher, "enable-file-watcher", false, "Enable file watchers to automatically regenerate on changes (default false)")
+	flag.BoolVar(&cmdFlags.EnableFileWatcher, "enable-file-watcher", false, "[NOT YET IMPLEMENTED] sEnable file watchers to automatically regenerate on changes (default false)")
 	flag.BoolVar(&cmdFlags.EnableFileWatcher, "efw", false, "Alias for -enable-file-watcher")
 
 	flag.Parse()

@@ -2066,6 +2066,80 @@ func TestParseCameraNameValidDirections(t *testing.T) {
 	}
 }
 
+func TestPopulateExportImages_ParamFilterCommaList(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Minimal config: global renderType creates 2 instances, image filter should match only "obj".
+	configContent := `[openscadgen]
+name = "test_design"
+version = "v1.0"
+export_name_format = "{designFileName}_{renderType}"
+global_params = { renderType = "obj,all" }
+
+[[openscadgen.input_paths]]
+path = "./design.scad"
+
+[[openscadgen.instances]]
+name = "default"
+
+[[openscadgen.images]]
+name = "nice"
+param_filter = { renderType = "obj,vertSlice" }
+`
+
+	configPath := filepath.Join(tmpDir, "config.toml")
+	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		t.Fatalf("Failed to write config.toml: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(tmpDir, "design.scad"), []byte("cube(1);"), 0644); err != nil {
+		t.Fatalf("Failed to write design.scad: %v", err)
+	}
+
+	config, err, _ := LoadConfigFromFile(models.CmdFlags{ConfigFile: configPath})
+	if err != nil {
+		t.Fatalf("Failed to load config: %v", err)
+	}
+
+	instances, _, err := GenerateInstances(config, config.Design.ConfiguredInstanceConfig[0], config.Design.InputPaths[0])
+	if err != nil {
+		t.Fatalf("Failed to generate instances: %v", err)
+	}
+	if len(instances) != 2 {
+		t.Fatalf("Expected 2 instances (obj, all), got %d", len(instances))
+	}
+
+	instances, err = populateExportImages(config, instances)
+	if err != nil {
+		t.Fatalf("populateExportImages error: %v", err)
+	}
+
+	var objFound, allFound bool
+	for _, inst := range instances {
+		rt, _ := inst.Params["renderType"].(string)
+		switch rt {
+		case "obj":
+			objFound = true
+			if len(inst.ExportImages) == 0 {
+				t.Fatalf("Expected obj instance to have export images")
+			}
+			if inst.SkippedImageReason != "" {
+				t.Fatalf("Did not expect SkippedImageReason for obj instance, got: %s", inst.SkippedImageReason)
+			}
+		case "all":
+			allFound = true
+			if len(inst.ExportImages) != 0 {
+				t.Fatalf("Expected all instance to have 0 export images due to param_filter")
+			}
+			if inst.SkippedImageReason == "" {
+				t.Fatalf("Expected SkippedImageReason for all instance")
+			}
+		}
+	}
+	if !objFound || !allFound {
+		t.Fatalf("Did not find both obj and all instances")
+	}
+}
+
 func TestHTMLProgressReport(t *testing.T) {
 	// Save and restore original logger after test
 	originalLogger := logger

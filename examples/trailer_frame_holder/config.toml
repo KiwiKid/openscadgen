@@ -1,0 +1,28 @@
+[openscadgen]
+name = "trailer_frame_holder"
+description = ""
+
+version = "v0.3"
+
+export_name_format = "{designFileName}_{holderDepth}_{partType}_includeBlockers_{blockers}_tralierBarHeight_{tralierBarHeight}"
+
+global_params = { tralierBarHeight = "102,105" }
+
+[[openscadgen.instances]]
+params = { holderDepth = "30", partType = "obj",  blockers="includeBlockers" }
+
+[[openscadgen.instances]]
+params = { holderDepth = "30", partType = "obj",  blockers="noBlockers" }
+
+
+[[openscadgen.instances]]
+params = { partType = "end" }
+
+[[openscadgen.instances]]
+params = { partType = "obj" }
+
+[[openscadgen.input_paths]]
+path = "./trailer_frame_holder.scad"
+
+[[openscadgen.images]]
+name = "nice"

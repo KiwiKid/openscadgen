@@ -1,0 +1,19 @@
+[openscadgen]
+name = "oil_counter"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{onlySection}"
+
+
+[[openscadgen.input_paths]]
+path = "./oil_counter.scad"
+
+[[openscadgen.images]]
+name = "nice"
+param_filter = { onlySection= "1,2"}
+
+
+[[openscadgen.instances]]
+params = { onlySection = "1,2" }
