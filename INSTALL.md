@@ -93,6 +93,14 @@ scoop install openscadgen
 - Ensure OpenSCAD is installed and in your system PATH
 - Test with: `openscad --version`
 
+**OpenSCAD fails to start on Linux CI with `libEGL.so.1` missing:**
+- Install EGL/OpenGL runtime libs (Ubuntu/Debian):
+
+```bash
+sudo apt-get update -y
+sudo apt-get install -y --no-install-recommends libegl1 libgl1
+```
+
 **"File could not be run by the operating system":**
 - Ensure you downloaded the correct architecture version for your system
 
