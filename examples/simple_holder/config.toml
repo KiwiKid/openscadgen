@@ -1,0 +1,16 @@
+[openscadgen]
+name = "simple_holder"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{mountScale}/{mount}/{designFileName}_{renderType}_{partType}"
+
+global_params = {  partType = "all,left,right", mountScale = "2,3,4,5", mount = "small-square,large-square,very-large-square" }
+
+[[openscadgen.input_paths]]
+path = "./simple_holder.scad"
+
+[[openscadgen.images]]
+name = "nice"
+param_filter = { renderType= "obj,vertSlice,horzSlice"}

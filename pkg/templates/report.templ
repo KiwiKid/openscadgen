@@ -314,8 +314,20 @@ templ ReportSTLResult(stlResult models.GenerateSTLResult, outputPath string, res
     </tr>
 }
 
+// ogInstanceClass labels each instance for the exported report layout filter (uses param renderType when set).
+func ogInstanceClass(instance models.InstanceConfig) string {
+	if v, ok := instance.Params["renderType"]; ok {
+		s := strings.TrimSpace(fmt.Sprintf("%v", v))
+		if s != "" {
+			return s
+		}
+	}
+	return "default"
+}
+
 func getInstanceShow(instance models.InstanceConfig) string {
-    return fmt.Sprintf(`filters.searchQuery === '' || ('%s %s %s').toLowerCase().includes(filters.searchQuery.toLowerCase()) &&
+	cls, _ := json.Marshal(ogInstanceClass(instance))
+	return fmt.Sprintf(`filters.searchQuery === '' || ('%s %s %s').toLowerCase().includes(filters.searchQuery.toLowerCase()) &&
         (filters.namePattern === '' || '%s'.toLowerCase().includes(filters.namePattern.toLowerCase())) &&
         (filters.descriptionPattern === '' || '%s'.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &&
         (filters.outputPathPattern === '' || '%s'.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &&
@@ -323,21 +335,23 @@ func getInstanceShow(instance models.InstanceConfig) string {
         (!filters.showInstancesWithoutImages || (%d === 0 && %d === 0)) &&
         (!filters.showOnlyWithErrors || '%s' !== '') &&
         (!filters.showOnlySkipped || '%s' !== '') &&
-        (!filters.showOnlySuccessful || ('%s' === '' && '%s' === ''))`,
-        instance.Name, 
-        instance.Description, 
-        instance.RunOutputPathV3,
-        instance.Name,
-        instance.Description,
-        instance.RunOutputPathV3,
-        len(instance.ImageResults),
-        len(instance.ExportImages),
-        len(instance.ImageResults),
-        len(instance.ExportImages),
-        instance.ConfigError,
-        instance.SkippedReason,
-        instance.ConfigError,
-        instance.SkippedReason)
+        (!filters.showOnlySuccessful || ('%s' === '' && '%s' === '')) &&
+        (instanceClassFilter === 'all' || instanceClassFilter === %s)`,
+		instance.Name,
+		instance.Description,
+		instance.RunOutputPathV3,
+		instance.Name,
+		instance.Description,
+		instance.RunOutputPathV3,
+		len(instance.ImageResults),
+		len(instance.ExportImages),
+		len(instance.ImageResults),
+		len(instance.ExportImages),
+		instance.ConfigError,
+		instance.SkippedReason,
+		instance.ConfigError,
+		instance.SkippedReason,
+		string(cls))
 }
 
 func buildPreviewSTLURL(instance models.InstanceConfig, reportMeta models.ReportMeta) templ.SafeURL {
@@ -499,38 +513,42 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
     </div>
 
     <div class="column is-full" id={ fmt.Sprintf("instance-%s", instance.UniqueID) } hx-swap-oob="true"
+    data-og-class={ ogInstanceClass(instance) }
     x-show={getInstanceShow(instance)}
     >
-        <div class="card">
-       
-            <div class="card-content">
-                <div class="media">
-                    <div class="media-content">
-                        <p class="title is-4">{ instance.AutoName } </p>
-                        <p class="subtitle is-6">{ instance.Description }</p>
+        <div class="card instance-card-v2">
+            <div class="card-content instance-card-v2__inner">
+                <div class="instance-card-v2__body">
+                    <div class="media instance-card-v2__head">
+                        <div class="media-content">
+                            <p class="title is-4">{ instance.AutoName } </p>
+                            if instance.Description != "" {
+                                <p class="subtitle is-6">{ instance.Description }</p>
+                            }
+                        </div>
+                    </div>
+                    <div class="content instance-card-v2__meta">
+                        if instance.IsComplete {
+                            <p class="has-text-success instance-card-v2__line"><i class="fas fa-check-circle"></i> { instance.CompletedAt.Format("15:04") } { instance.CompletedAt.Format("2006-01-02") }</p>
+                        }
+                        if instance.SkippedReason != "" {
+                            <p class="has-text-warning instance-card-v2__line"><strong>Skipped:</strong> { instance.SkippedReason }</p>
+                        }
+                        if instance.SkippedImageReason != "" {
+                            <p class="has-text-warning instance-card-v2__line"><strong>Image:</strong> { instance.SkippedImageReason }</p>
+                        }
+                        <p class="instance-card-v2__line instance-card-v2__path"><span class="has-text-weight-semibold">Output:</span> { getRelativePath(instance.RunOutputPathV3, outputPath) }</p>
+                        if instance.ConfigError != "" {
+                            <p class="has-text-danger instance-card-v2__line"><strong>Error:</strong> { instance.ConfigError }</p>
+                        }
                     </div>
                 </div>
-                <div class="content">
-                    
-                    if instance.IsComplete {
-                        <p class="has-text-success"><i class="fas fa-check-circle"> Completed at { instance.CompletedAt.Format("15:04") } ({ instance.CompletedAt.Format("2006-01-02") })</i></p>
-                    }
-                    if instance.SkippedReason != "" {
-                        <p class="has-text-warning"><strong>Skipped:</strong> { instance.SkippedReason }</p>
-                    }
-                    if instance.SkippedImageReason != "" {
-                        <p class="has-text-warning"><strong>Skipped Image Reason:</strong> { instance.SkippedImageReason }</p>
-                    }
-                    <p><strong>Output Path:</strong> { getRelativePath(instance.RunOutputPathV3, outputPath) }</p>
-
-                    if instance.ConfigError != "" {
-                        <p class="has-text-danger"><strong>Error:</strong> { instance.ConfigError }</p>
-                    }
+                <div class="instance-card-v2__thumb">
                     if len(instance.ImageResults) > 0 {
                         for _, images := range instance.ImageResults {
                             if reportMeta.IsServerMode {
                                 <img src={ fmt.Sprintf("/images?config_path=/%s", getRelativeImagePath(images.OutputPath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview" />
-                            }else {
+                            } else {
                                 <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(images.OutputPath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview" />
                             }
                         }
@@ -538,19 +556,23 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
                         for _, images := range instance.ExportImages {
                             if reportMeta.IsServerMode {
                                 <img src={ fmt.Sprintf("/images?config_path=/%s", getRelativeImagePath(images.RunOutputImagePath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview" />
-                            }else {
+                            } else {
                                 <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(images.RunOutputImagePath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview" />
                             }
                         }
                     }
-                    if instance.IsComplete {
+                </div>
+                if instance.IsComplete {
+                    <div class="instance-card-v2__extras">
                         @InstanceSlimRow(instance, outputPath, reportMode, allParamNames, reportMeta)
+                    </div>
+                }
+                <div class="instance-card-v2__actions">
+                    if reportMeta.IsServerMode {
+                        <a class="button is-small is-light" href={ buildPreviewSTLURL(instance, reportMeta) } target="_blank">Preview STL</a>
                     }
                     if reportMeta.IsServerMode {
-                        <p><strong>Output:</strong> <a href={ buildPreviewSTLURL(instance, reportMeta) } target="_blank">Preview STL</a></p>
-                    }
-                    if reportMeta.IsServerMode {
-                        <button class="button is-large" id="process-btn" type="button" data-instance-name={ instance.AutoName } @click="processInstance($event.target.getAttribute('data-instance-name'))">Process { instance.AutoName }</button>
+                        <button class="button is-small" type="button" data-instance-name={ instance.AutoName } @click="processInstance($event.target.getAttribute('data-instance-name'))">Process</button>
                     }
                 </div>
             </div>
@@ -704,6 +726,9 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
                 navSelected: "instances",
                 searchQuery: '',
                 bottomNavExpanded: false,
+                instanceClassFilter: (function () { try { return localStorage.getItem('og-report-instance-class') || 'all'; } catch (e) { return 'all'; } })(),
+                instanceLayout: (function () { try { var v = localStorage.getItem('og-report-instance-layout'); if (v === 'list' || v === 'grid' || v === 'large') return v; } catch (e) {} return 'grid'; })(),
+                instanceClassOptions: [],
                 // Advanced filtering options
                 filters: {
                     searchQuery: '',
@@ -860,6 +885,25 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
                         (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
                     this.showDebug = localStorage.getItem('showDebug') === 'true';
+                    this.$watch('instanceClassFilter', function (value) {
+                        try { localStorage.setItem('og-report-instance-class', value); } catch (e) { /* ignore */ }
+                    });
+                    this.$watch('instanceLayout', function (value) {
+                        try { localStorage.setItem('og-report-instance-layout', value); } catch (e) { /* ignore */ }
+                    });
+                    this.$nextTick(() => {
+                        const root = document.getElementById('instances-grid');
+                        if (!root) return;
+                        const s = {};
+                        root.querySelectorAll('[data-og-class]').forEach((el) => {
+                            const c = el.getAttribute('data-og-class') || 'default';
+                            s[c] = true;
+                        });
+                        this.instanceClassOptions = Object.keys(s).sort();
+                        if (this.instanceClassFilter !== 'all' && this.instanceClassOptions.indexOf(this.instanceClassFilter) < 0) {
+                            this.instanceClassFilter = 'all';
+                        }
+                    });
                     // Initial config file setup
                     this.configFile = '{{ config.ConfigFile }}'; // or whatever templating you use
                     if (this.configFile) {
@@ -1087,6 +1131,123 @@ html, body {
                     border-radius: 4px;
                     object-fit: contain;
                 }
+                /* Instance layout modes (static export + server): toggled via og-layout--* on #instances-grid */
+                #instances-grid.og-layout--grid.columns.is-multiline {
+                    display: flex;
+                    flex-wrap: wrap;
+                    align-items: stretch;
+                    margin-left: -0.5rem;
+                    margin-right: -0.5rem;
+                }
+                /* InstanceCardV2 uses .column.is-full — override Bulma so several tiles fit per row */
+                #instances-grid.og-layout--grid.columns.is-multiline > .column.is-full {
+                    flex: 1 1 280px;
+                    width: auto !important;
+                    min-width: 0;
+                    max-width: min(420px, 100%);
+                    padding-left: 0.5rem;
+                    padding-right: 0.5rem;
+                }
+                #instances-grid.og-layout--list > .column {
+                    flex: none;
+                    width: 100%;
+                }
+                /* Slim horizontal row: thumb | title/meta | actions (extras hidden) */
+                .instance-card-v2__inner {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.65rem;
+                }
+                .instance-card-v2__body {
+                    min-width: 0;
+                }
+                .instance-card-v2__thumb {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.35rem;
+                    align-items: center;
+                }
+                .instance-card-v2__actions {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.45rem;
+                    align-items: center;
+                }
+                #instances-grid.og-layout--list .instance-card-v2 {
+                    margin-bottom: 0.4rem;
+                }
+                #instances-grid.og-layout--list .instance-card-v2 .card-content {
+                    padding: 0.4rem 0.55rem !important;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__inner {
+                    flex-direction: row;
+                    align-items: center;
+                    gap: 0.65rem;
+                    padding: 0;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__thumb {
+                    order: 1;
+                    flex: 0 0 auto;
+                    margin: 0 !important;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__body {
+                    order: 2;
+                    flex: 1 1 auto;
+                    min-width: 0;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.08rem;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__actions {
+                    order: 3;
+                    flex: 0 0 auto;
+                    flex-direction: column;
+                    align-items: stretch;
+                    gap: 0.28rem;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__extras {
+                    display: none !important;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__head.media {
+                    margin-bottom: 0 !important;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__head .title.is-4 {
+                    font-size: 1rem !important;
+                    margin-bottom: 0.05rem !important;
+                    line-height: 1.2 !important;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__head .subtitle.is-6 {
+                    font-size: 0.72rem !important;
+                    margin-top: 0 !important;
+                    line-height: 1.25 !important;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__meta {
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__meta .instance-card-v2__line {
+                    margin: 0 !important;
+                    font-size: 0.78rem !important;
+                    line-height: 1.28 !important;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__path {
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    max-width: 100%;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__thumb .image-preview {
+                    max-width: 52px !important;
+                    max-height: 52px !important;
+                }
+                #instances-grid.og-layout--large > .column {
+                    flex: none;
+                    width: 100%;
+                }
+                #instances-grid.og-layout--large .image-preview {
+                    max-width: 100%;
+                    max-height: min(75vh, 720px);
+                }
                 .image-error {
                     color: var(--text-color);
                     font-style: italic;
@@ -1094,7 +1255,7 @@ html, body {
                 }
                 .button {
                     color: var(--text-color) !important;
-                    background-color: var(--card-bg) !important;
+                //    background-color: var(--card-bg) !important;
                     border: 1px solid var(--border-color) !important;
                 }
                 pre, code {
@@ -1451,7 +1612,28 @@ html, body {
 
                 @Collapsable(fmt.Sprintf("Instances (%d)",  len(instances)), "instances", false, true) {
                     if len(instances) > 0 {
-                        <div id="instances-grid" class="columns is-multiline">
+                        <div class="field is-grouped is-grouped-multiline mb-3 og-instance-toolbar" style="align-items: flex-end;">
+                            <div class="control">
+                                <label class="label" for="og-instance-class-filter">Class (renderType)</label>
+                                <div class="select">
+                                    <select id="og-instance-class-filter" x-model="instanceClassFilter">
+                                        <option value="all">All</option>
+                                        <template x-for="c in instanceClassOptions" :key="c">
+                                            <option :value="c" x-text="c"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="control">
+                                <label class="label">Layout</label>
+                                <div class="buttons has-addons">
+                                    <button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'list'}" @click="instanceLayout = 'list'">List</button>
+                                    <button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'grid'}" @click="instanceLayout = 'grid'">Grid</button>
+                                    <button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'large'}" @click="instanceLayout = 'large'">Large</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="instances-grid" class="columns is-multiline" :class="'og-layout--' + instanceLayout">
                             for _, instance := range instances {
                                 @InstanceCardV2(instance, outputPath, reportMode, allParamNames, reportMeta)
                             }

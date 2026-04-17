@@ -22,13 +22,13 @@ name = "back"
 params = { onlySection = "none" }
 
 [[openscadgen.instances]]
-params = { onlySection = "1,2,3,4,5,6,all" }
+params = { onlySection = "1,2,3,4,5,6" }
 
 # [[openscadgen.input_paths]]
 # path = "./a-second-related-openscad-file.scad"
 
 # [[openscadgen.instances]]
-# params = {renderType = "horzSlice,vertSlice,all", param1 = "a-custom-value" }
+# params = {renderType = "horzSlice,vertSlice", param1 = "a-custom-value" }
 
 # [[openscadgen.instances]]
-# params = { renderType = "horzSlice,vertSlice,all", param1 = "a-diff-custom-value" }
+# params = { renderType = "horzSlice,vertSlice", param1 = "a-diff-custom-value" }

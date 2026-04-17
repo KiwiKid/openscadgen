@@ -10,7 +10,7 @@ export_name_format = "{designFileName}_{renderType}_{partType}"
 params = { partType = "screws" }
 
 [[openscadgen.instances]]
-params = { partType = "box", renderType = "obj,vertSlice,horzSlice,all" }
+params = { partType = "box", renderType = "obj,vertSlice,horzSlice" }
 
 [[openscadgen.input_paths]]
 path = "./pin_cord_holder.scad"

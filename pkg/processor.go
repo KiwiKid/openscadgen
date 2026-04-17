@@ -121,6 +121,46 @@ var logToMemory bool
 
 var invalidChars = "?'\""
 
+// BurntSushi/toml decode errors include "line N".
+var tomlDecodeLineRE = regexp.MustCompile(`line (\d+)`)
+
+// tomlDecodeErrorSnippet returns numbered source lines around the line mentioned in a TOML decode error.
+func tomlDecodeErrorSnippet(configData string, decodeErr error) string {
+	if decodeErr == nil {
+		return ""
+	}
+	m := tomlDecodeLineRE.FindStringSubmatch(decodeErr.Error())
+	if len(m) < 2 {
+		return ""
+	}
+	lineNum, aerr := strconv.Atoi(m[1])
+	if aerr != nil || lineNum < 1 {
+		return ""
+	}
+	lines := strings.Split(configData, "\n")
+	if lineNum > len(lines) {
+		return ""
+	}
+	const radius = 3
+	start := lineNum - radius
+	if start < 1 {
+		start = 1
+	}
+	end := lineNum + radius
+	if end > len(lines) {
+		end = len(lines)
+	}
+	var b strings.Builder
+	for i := start; i <= end; i++ {
+		marker := " "
+		if i == lineNum {
+			marker = ">"
+		}
+		fmt.Fprintf(&b, "%s %4d | %s\n", marker, i, lines[i-1])
+	}
+	return strings.TrimSuffix(b.String(), "\n")
+}
+
 const (
 	colorReset  = "\033[0m"
 	colorOrange = "\033[38;5;208m"
@@ -146,7 +186,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.7.34"
+const VERSION = "v2.7.35"
 
 type Version struct {
 	OpenSCADGen string
@@ -181,6 +221,9 @@ func GetVersion() Version {
 }
 
 func GenerateInstanceConfigs(config *models.Config) ([]models.InstanceConfig, error) {
+	if config == nil {
+		return nil, fmt.Errorf("GenerateInstanceConfigs: config is nil")
+	}
 	if len(config.Design.ConfiguredInstanceConfig) == 0 {
 		config.Design.ConfiguredInstanceConfig = []models.ConfiguredInstanceConfig{
 			{
@@ -576,7 +619,8 @@ func isImageFileExt(ext string) bool {
 	}
 }
 
-func findPrimaryImageInExportDir(exportDir string) string {
+// listSortedImageAbsPathsInExportDir returns absolute paths to all image files under exportDir (recursive), sorted.
+func listSortedImageAbsPathsInExportDir(exportDir string) []string {
 	var images []string
 	_ = filepath.Walk(exportDir, func(p string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -591,21 +635,20 @@ func findPrimaryImageInExportDir(exportDir string) string {
 		images = append(images, p)
 		return nil
 	})
+	sort.Strings(images)
+	return images
+}
 
+func findPrimaryImageInExportDir(exportDir string) string {
+	images := listSortedImageAbsPathsInExportDir(exportDir)
 	if len(images) == 0 {
 		return ""
 	}
-
-	sort.Strings(images)
-
-	// Prefer "nice" (case-insensitive) in the filename.
 	for _, p := range images {
 		if strings.Contains(strings.ToLower(filepath.Base(p)), "nice") {
 			return p
 		}
 	}
-
-	// Fallback: first image (sorted for determinism).
 	return images[0]
 }
 
@@ -1399,7 +1442,9 @@ This software is under active development - feedback welcome at https://github.c
 ` + colorReset)
 }
 
-// LoadConfigFromFile reads the configuration file and populates the Config struct
+// LoadConfigFromFile reads the configuration file and populates the Config struct.
+// Return order is (config, warning, err). If err != nil, config is always nil.
+// warning is non-fatal (e.g. unrecognised export image camera) when err is nil.
 func LoadConfigFromFile(flags models.CmdFlags) (*models.Config, error, error) {
 	if flags.ConfigFile == "" {
 		log.Printf(colorRed + "Run directly with a config file use '-c' like '-c you-project/config.toml'\n\nUse -s to run in Server mode\n\n Or Server Folder Scan mode:  -sf parent-project-folder " + colorReset)
@@ -1452,7 +1497,8 @@ func LoadConfigFromFile(flags models.CmdFlags) (*models.Config, error, error) {
 	return LoadConfig(string(data), flags, configPath)
 }
 
-// LoadConfig parses and validates a configuration string and populates the Config struct
+// LoadConfig parses and validates a configuration string and populates the Config struct.
+// Return order is (config, warning, err). If err != nil, config is always nil.
 func LoadConfig(configData string, flags models.CmdFlags, configPath string) (*models.Config, error, error) {
 	var conf models.Config
 
@@ -1460,9 +1506,11 @@ func LoadConfig(configData string, flags models.CmdFlags, configPath string) (*m
 	var metadata toml.MetaData
 	metadata, err := toml.Decode(configData, &conf)
 	if err != nil {
-		LogKeyValuePair("Config file", configData)
-		log.Printf(colorRed+"Config file is not valid toml: %v", err)
-		return nil, err, nil
+		log.Printf(colorRed+"Config file is not valid toml [%s]: %v"+colorReset, configPath, err)
+		if snip := tomlDecodeErrorSnippet(configData, err); snip != "" {
+			log.Printf(colorRed + "Source context near TOML error:\n" + snip + colorReset)
+		}
+		return nil, nil, fmt.Errorf("config file is not valid toml [%s]: %w", configPath, err)
 	}
 
 	// Check for undecoded keys
@@ -1475,7 +1523,7 @@ func LoadConfig(configData string, flags models.CmdFlags, configPath string) (*m
 		if flags.StopOnError {
 			log.Printf(colorYellow + "Continuing on error" + colorReset)
 		} else {
-			return nil, fmt.Errorf("invalid fields in config: %v", undecoded), nil
+			return nil, nil, fmt.Errorf("invalid fields in config file [%s]: %v", configPath, undecoded)
 		}
 	}
 
@@ -1483,8 +1531,8 @@ func LoadConfig(configData string, flags models.CmdFlags, configPath string) (*m
 	validate := validator.New()
 	err = validate.Struct(conf)
 	if err != nil {
-		log.Printf(colorRed+"Failed to validate config: %v", err)
-		return nil, err, nil
+		log.Printf(colorRed+"Failed to validate config [%s]: %v"+colorReset, configPath, err)
+		return nil, nil, fmt.Errorf("failed to validate config file [%s]: %w", configPath, err)
 	}
 
 	var warning error
@@ -2120,6 +2168,35 @@ func getAllParams(dynamicInstance models.ConfiguredInstanceConfig, globalParams 
 				globalParamsMap[key] = []interface{}{v}
 			case bool:
 				globalParamsMap[key] = []interface{}{v}
+			case []string:
+				sl := make([]interface{}, len(v))
+				for i, s := range v {
+					sl[i] = s
+				}
+				globalParamsMap[key] = sl
+			case []interface{}:
+				out := make([]interface{}, 0, len(v))
+				for _, el := range v {
+					switch e := el.(type) {
+					case int:
+						out = append(out, float64(e))
+					case float64:
+						out = append(out, e)
+					case bool:
+						out = append(out, e)
+					case string:
+						if num, err := strconv.ParseFloat(e, 64); err == nil {
+							out = append(out, num)
+						} else if e == "true" || e == "false" {
+							out = append(out, e == "true")
+						} else {
+							out = append(out, e)
+						}
+					default:
+						out = append(out, el)
+					}
+				}
+				globalParamsMap[key] = out
 			case string:
 				if num, err := strconv.ParseFloat(v, 64); err == nil {
 					globalParamsMap[key] = []interface{}{num}
@@ -3125,7 +3202,7 @@ version = "v0.1"
 
 export_name_format = "{designFileName}_{renderType}"
 
-global_params = { renderType = "obj,vertSlice,horzSlice,all" }
+global_params = { renderType = "obj,vertSlice,horzSlice" }
 
 [[openscadgen.input_paths]]
 path = "./{{projectName}}.scad"
@@ -3243,7 +3320,10 @@ $fn = 200;
 module %s(){
 	cuboid([10,10,10]);
 }
-`, projectNameUnderLined)
+
+
+%s();
+`, projectNameUnderLined, projectNameUnderLined)
 }
 
 func InitConfig(projectPathRaw string, extended bool) error {
@@ -4237,7 +4317,7 @@ func generateImage(instance *models.InstanceConfig, config *models.Config, camer
 	args := []string{
 		"-o", outputImgPath,
 		"--imgsize", imageSize,
-		"--projection", "perspective",
+		"--projection", "perspective", //ortho
 		"--camera", camera.CameraCoordinates,
 		"--preview",
 	}

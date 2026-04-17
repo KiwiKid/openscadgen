@@ -1,0 +1,12 @@
+[openscadgen]
+name = "plastic_bag_holder"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{renderType}_{partType}"
+
+global_params = { renderType = "obj", partType = "base,lid" }
+
+[[openscadgen.input_paths]]
+path = "./plastic_bag_holder.scad"

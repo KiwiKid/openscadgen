@@ -22,4 +22,4 @@ version = "v0.1"
 path = "./coffee-cup-holder-v2.scad"
 
 [[openscadgen.instances]]
-params = { renderType = "horz-slice,vert-slice,all"}
+params = { renderType = "horz-slice,vert-slice"}

@@ -37,7 +37,7 @@ name = "nice-near"
 # ignore_param_when_processing = "param3" # dont process param3 when generating instances for this file 
 
 # [[openscadgen.instances]]
-# params = {renderType = "horzSlice,vertSlice,all", param1 = "a-custom-value" }
+# params = {renderType = "horzSlice,vertSlice", param1 = "a-custom-value" }
 
 # [[openscadgen.instances]]
-# params = { renderType = "horzSlice,vertSlice,all", param1 = "a-diff-custom-value" }
+# params = { renderType = "horzSlice,vertSlice", param1 = "a-diff-custom-value" }

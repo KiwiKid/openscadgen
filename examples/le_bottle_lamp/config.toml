@@ -6,11 +6,11 @@ version = "v0.1"
 
 export_name_format = "{designFileName}_{renderType}"
 
-global_params = { renderType = "obj,vertSlice,horzSlice,all" }
+global_params = { renderType = "obj,vertSlice,horzSlice" }
 
 [[openscadgen.input_paths]]
 path = "./le_bottle_lamp.scad"
 
 [[openscadgen.images]]
 name = "nice"
-param_filter = { renderType= "obj,vertSlice,horzSlice,all"}
+param_filter = { renderType= "obj,vertSlice,horzSlice"}

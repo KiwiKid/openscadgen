@@ -287,13 +287,9 @@ func handleGETRequest(w http.ResponseWriter, r *http.Request) {
 		log.Printf("QueryUnescape Error: %v", err)
 	}
 
-	var serverFolder string
 	serverFolderEncoded := r.URL.Query().Get("server_folder")
-	if globalServerFolder != "" {
-		log.Printf("(cmd line) globalServerFolder: %s", globalServerFolder)
-		serverFolder = globalServerFolder
-	} else if serverFolderEncoded != "" {
-		log.Printf("(url) serverFolderEncoded: %s", serverFolderEncoded)
+	if serverFolderEncoded != "" {
+		log.Printf("(url) server_folder query: %s", serverFolderEncoded)
 		serverFolderBytes, err := base64.StdEncoding.DecodeString(serverFolderEncoded)
 		if err != nil {
 			warning := templates.Warning(fmt.Sprintf("Error decoding server folder: %v", err))
@@ -301,17 +297,38 @@ func handleGETRequest(w http.ResponseWriter, r *http.Request) {
 			projectFolderForm.Render(context.Background(), w)
 			return
 		}
-		serverFolder = string(serverFolderBytes)
-		globalServerFolder = serverFolder
-
-		configFiles, err = pkg.ScanFolderForConfigFiles(serverFolder)
+		decoded := string(serverFolderBytes)
+		scanned, err := pkg.ScanFolderForConfigFiles(decoded)
 		if err != nil {
-			warning := templates.Warning(fmt.Sprintf("Could not find any config.toml filesin the scanned folder %s: %v", serverFolder, err))
+			warning := templates.Warning(fmt.Sprintf("Could not find any config.toml files in the scanned folder %s: %v", decoded, err))
 			projectFolderForm := templates.ProjectFolderForm(warning)
 			projectFolderForm.Render(context.Background(), w)
 			return
 		}
-		log.Printf("Found %d config files in %s", len(configFiles), serverFolder)
+		prev := globalServerFolder
+		globalServerFolder = decoded
+		configFiles = scanned
+		log.Printf("Found %d config files in %s (server_folder query overrides default)", len(configFiles), decoded)
+
+		if fileWatcherEnabled && fileWatcher != nil && prev != decoded {
+			if fileWatcher.IsWatching() {
+				fileWatcher.StopWatching()
+				nw, werr := NewFileWatcher()
+				if werr != nil {
+					log.Printf("Warning: could not recreate file watcher: %v", werr)
+					fileWatcher = nil
+				} else {
+					fileWatcher = nw
+				}
+			}
+			if fileWatcher != nil && !fileWatcher.IsWatching() {
+				if err := fileWatcher.StartWatching(decoded); err != nil {
+					log.Printf("Warning: could not start file watching on %s: %v", decoded, err)
+				}
+			}
+		}
+	} else if globalServerFolder != "" {
+		log.Printf("globalServerFolder: %s", globalServerFolder)
 	}
 
 	// If no server_folder is provided and no config is specified, show the server folder selector

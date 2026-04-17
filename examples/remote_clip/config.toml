@@ -1,0 +1,22 @@
+[openscadgen]
+name = "remote_clip"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{renderType}_{partType}_remoteHolderHeight-{remoteHolderHeight}_remoteControlWidth-{remoteControlWidth}_remoteControlDepth-{remoteControlDepth}"
+
+global_params = { renderType = "obj" }
+
+[[openscadgen.input_paths]]
+path = "./remote_clip.scad"
+
+[[openscadgen.instances]]
+params = { partType = "base" }
+
+[[openscadgen.instances]]
+params = { partType = "clip", remoteHolderHeight=[3,5,7,10,15,20], remoteControlWidth=[52,54,56,58,60], remoteControlDepth=[26,28,30,32,34] }
+
+[[openscadgen.images]]
+name = "nice"
+param_filter = { renderType= "obj" }

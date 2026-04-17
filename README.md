@@ -22,27 +22,6 @@ openscadgen includes two main modes of operation:
 ./openscadgen -sf ./examples/ -p 6767
 ```
 
-## Development
-
-For development with live reloading:
-
-```bash
-# Install air for live reloading
-go install 
-
-# Live reload both templ and go files
-just air
-
-# Live reload only templ files
-just air-templ
-
-# Live reload only go files (after templ is generated)
-just air-go
-
-# Clean and start fresh
-just dev-clean
-```
-
 ## Prerequisites
 
 Before using openscadgen, you need:
@@ -457,6 +436,29 @@ handle_offset = 10
 - [-] Add config file generation quickstart command (to initialize a openscadgen config file from a scad file) (`openscadgen i new-project-name`)
 - [-] Configure option (-ie) to automatically create a horizontal and/or vertical cross-sectional slice of the part
 - [-] Allow for exporting a set of images
+
+
+
+## Development
+
+For development with live reloading:
+
+```bash
+# Install air for live reloading
+go install 
+
+# Live reload both templ and go files
+just air
+
+# Live reload only templ files
+just air-templ
+
+# Live reload only go files (after templ is generated)
+just air-go
+
+# Clean and start fresh
+just dev-clean
+```
 
 
 If you have any ideas/bugs/etc, please let me know and i'll try and fix them where possible. I do want to keep the goals of the project simple and specific

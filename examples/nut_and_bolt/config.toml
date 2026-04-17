@@ -1,0 +1,16 @@
+[openscadgen]
+name = "nut_and_bolt"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{partType}"
+
+global_params = {  partType = "bolt,nut" }
+
+[[openscadgen.input_paths]]
+path = "./nut_and_bolt.scad"
+
+[[openscadgen.images]]
+name = "nice"
+param_filter = { partType = "bolt"}

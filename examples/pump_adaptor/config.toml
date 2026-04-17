@@ -1,0 +1,16 @@
+[openscadgen]
+name = "pump_adaptor"
+description = ""
+
+version = "v0.2"
+
+export_name_format = "{designFileName}"
+
+global_params = { renderType = "obj" }
+
+[[openscadgen.input_paths]]
+path = "./pump_adaptor.scad"
+
+[[openscadgen.images]]
+name = "nice"
+param_filter = { renderType= "obj"}

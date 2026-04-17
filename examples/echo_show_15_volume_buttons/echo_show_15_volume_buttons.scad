@@ -65,18 +65,17 @@ union(){
                right(plusOffset)
                translate([0, textWidthOffset, holderHeight-8.5])  
                linear_extrude(height=3)
-               text("+", size=26, halign="center", valign="bottom", font="Courier");
+               text("↑", size=26, halign="center", valign="bottom");
                
                right(minusOffset)
                translate([0, 10+textWidthOffset, holderHeight-8.5])
                linear_extrude(height=3)
-               text("-", size=26, halign="center", valign="bottom", font="Courier");
+               text("↓", size=26, halign="center", valign="bottom");
            }
        }    
         
-        module swing_text_up(text_str) {
+        module swing_text_up(text_str, textSize=20) {
     // Parameters
-    text_size = 20;
     text_height = 1;
 
             for (a = [-14 : 0.5 : 90]) {
@@ -85,10 +84,9 @@ union(){
                     rotate([a, 0, 0])
                         translate([0, 0, 0])  // pivot point at bottom edge
                             linear_extrude(height=text_height)
-                                text(text_str, size=text_size, halign="center", valign="bottom");
+                                text(text_str, size=textSize, halign="center", valign="bottom");
             }
         }
-
         
         difference(){
         right(2.5)
@@ -96,9 +94,15 @@ union(){
                 up(6)
                 union(){
                 right(30)
-            swing_text_up("ALEXA");
-            left(55)
-             swing_text_up("– +");
+            swing_text_up("ALEXA", textSize=28);
+            fwd(3)
+            left(70.5)
+             swing_text_up(" ▼", textSize=27);
+             
+             fwd(3)
+                         left(50)
+                          swing_text_up(" ▲", textSize=27);
+
              
                                   
              

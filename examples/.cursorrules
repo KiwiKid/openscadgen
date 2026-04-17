@@ -61,7 +61,7 @@ export_name_format = "{designFileName}"
 ```toml
 # Test instance for development
 [[openscadgen.instances]]
-params = { renderType = "horzSlice,vertSlice,all", param1 = "test-value" }
+params = { renderType = "horzSlice,vertSlice", param1 = "test-value" }
 
 # Production instances
 [[openscadgen.instances]]
@@ -87,7 +87,7 @@ export_name_format = "{designFileName}-{param1}-{param2}"
 path = "./my-design.scad"
 
 [[openscadgen.instances]]
-params = { renderType = "horzSlice,vertSlice,all", param1 = "test" }
+params = { renderType = "horzSlice,vertSlice", param1 = "test" }
 ```
 
 ### Multi-Part Design
@@ -110,7 +110,7 @@ path = "./part1.scad"
 path = "./part2.scad"
 
 [[openscadgen.instances]]
-params = { renderType = "horzSlice,vertSlice,all" }
+params = { renderType = "horzSlice,vertSlice" }
 ```
 
 ### Size Variant Design
@@ -129,7 +129,7 @@ export_name_format = "{designFileName}-{size}"
 path = "./design.scad"
 
 [[openscadgen.instances]]
-params = { size = "small,medium,large", renderType = "horzSlice,vertSlice,all" }
+params = { size = "small,medium,large", renderType = "horzSlice,vertSlice" }
 ```
 
 ## Development Workflow
@@ -138,7 +138,7 @@ params = { size = "small,medium,large", renderType = "horzSlice,vertSlice,all" }
 1. Always add a test instance to config.toml:
 ```toml
 [[openscadgen.instances]]
-params = { renderType = "horzSlice,vertSlice,all", param1 = "a-custom-value" }
+params = { renderType = "horzSlice,vertSlice", param1 = "a-custom-value" }
 ```
 
 2. Use horizontal slices to verify dimensions

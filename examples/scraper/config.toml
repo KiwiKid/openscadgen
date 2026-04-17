@@ -1,0 +1,16 @@
+[openscadgen]
+name = "scraper"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}"
+
+global_params = { renderType = "obj" }
+
+[[openscadgen.input_paths]]
+path = "./scraper.scad"
+
+[[openscadgen.images]]
+name = "nice"
+param_filter = { renderType= "obj"}

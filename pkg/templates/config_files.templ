@@ -3,6 +3,13 @@ package templates
 import "github.com/kiwikid/openscadgen/pkg/models"
 import "fmt"
 import "encoding/base64"
+import "net/url"
+
+func configPickerPageURL(configFile models.ConfigFile, serverFolder string) string {
+	return fmt.Sprintf("/?config=%s&server_folder=%s",
+		base64.StdEncoding.EncodeToString([]byte(configFile.Path)),
+		base64.StdEncoding.EncodeToString([]byte(serverFolder)))
+}
 
 templ EnterConfigPage(configFiles []models.ConfigFile, serverFolder string) {
      <head>
@@ -252,7 +259,171 @@ html, body {
                     color: var(--text-color) !important;
                     background-color: var(--card-bg) !important;
                 }
+                .config-desktop-toolbar {
+                    display: flex;
+                    flex-wrap: wrap;
+                    align-items: flex-end;
+                    gap: 1rem 1.5rem;
+                    margin-bottom: 1.25rem;
+                }
+                .config-desktop-toolbar .label {
+                    color: var(--text-color);
+                    margin-bottom: 0.25rem;
+                }
+                .config-files-wrap {
+                    align-items: stretch;
+                }
+                .config-files-wrap.fixed-grid .config-file-card__link {
+                    flex-direction: column;
+                    align-items: center;
+                    text-align: center;
+                    text-decoration: none;
+                    color: inherit;
+                }
+                .config-files-wrap.fixed-grid .config-file-card__thumb {
+                    max-width: 200px;
+                    max-height: 200px;
+                }
+                .config-files-wrap--list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.65rem;
+                }
+                .config-files-wrap--list .config-file-card {
+                    width: 100%;
+                    max-width: none;
+                }
+                .config-files-wrap--list .config-file-card__link {
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    gap: 1rem;
+                    text-decoration: none;
+                    color: inherit;
+                }
+                .config-files-wrap--list .config-file-card__thumb {
+                    max-width: 72px;
+                    max-height: 72px;
+                    flex-shrink: 0;
+                }
+                .config-files-wrap--large {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1.25rem;
+                }
+                .config-files-wrap--large .config-file-card {
+                    width: 100%;
+                    max-width: none;
+                    border: 1px solid var(--border-color);
+                    border-radius: 8px;
+                    padding: 1rem;
+                    background: var(--card-bg);
+                }
+                .config-files-wrap--large .config-file-card__link {
+                    display: flex;
+                    flex-direction: row;
+                    align-items: flex-start;
+                    gap: 1rem;
+                    text-decoration: none;
+                    color: inherit;
+                    margin-bottom: 0.35rem;
+                }
+                .config-files-wrap--large .config-file-card__thumb {
+                    max-width: min(100%, 420px);
+                    max-height: min(70vh, 520px);
+                }
+                .config-file-card__no-img {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-width: 4rem;
+                    min-height: 3rem;
+                    padding: 0.35rem;
+                    font-size: 0.75rem;
+                    color: var(--text-color);
+                    opacity: 0.65;
+                    border: 1px dashed var(--border-color);
+                    border-radius: 4px;
+                }
+                .config-file-card__path {
+                    font-size: 0.8rem;
+                    opacity: 0.75;
+                    word-break: break-all;
+                }
             </style>
+            <script>
+            (function () {
+                function topFolderFromPath(p) {
+                    if (!p) return 'root';
+                    var s = p.replace(/\\/g, '/');
+                    var i = s.indexOf('/');
+                    return i === -1 ? 'root' : s.slice(0, i);
+                }
+                function applyConfigPickerState() {
+                    var wrap = document.getElementById('config-files-wrap');
+                    if (!wrap) return;
+                    var layout = localStorage.getItem('openscadgen-configDesktop-layout') || 'grid';
+                    if (layout !== 'list' && layout !== 'grid' && layout !== 'large') layout = 'grid';
+                    wrap.classList.remove('config-files-wrap--list', 'config-files-wrap--large', 'fixed-grid', 'has-4-cols');
+                    if (layout === 'grid') {
+                        wrap.classList.add('fixed-grid', 'has-4-cols');
+                    } else if (layout === 'list') {
+                        wrap.classList.add('config-files-wrap--list');
+                    } else {
+                        wrap.classList.add('config-files-wrap--large');
+                    }
+                    var sel = document.getElementById('config-picker-group');
+                    var gf = sel ? sel.value : 'all';
+                    wrap.querySelectorAll('.config-file-card').forEach(function (card) {
+                        var g = card.getAttribute('data-top-folder') || 'root';
+                        card.style.display = (gf === 'all' || gf === g) ? '' : 'none';
+                    });
+                    ['list', 'grid', 'large'].forEach(function (m) {
+                        var btn = document.getElementById('cfg-layout-' + m);
+                        if (btn) btn.classList.toggle('is-info', m === layout);
+                    });
+                }
+                document.addEventListener('DOMContentLoaded', function () {
+                    var wrap = document.getElementById('config-files-wrap');
+                    var sel = document.getElementById('config-picker-group');
+                    if (!wrap) return;
+                    wrap.querySelectorAll('.config-file-card').forEach(function (card) {
+                        var p = card.getAttribute('data-config-path') || '';
+                        card.setAttribute('data-top-folder', topFolderFromPath(p));
+                    });
+                    if (sel) {
+                        var seen = {};
+                        var groups = [];
+                        wrap.querySelectorAll('.config-file-card').forEach(function (card) {
+                            var g = card.getAttribute('data-top-folder') || 'root';
+                            if (!seen[g]) { seen[g] = true; groups.push(g); }
+                        });
+                        groups.sort();
+                        var saved = 'all';
+                        try { saved = localStorage.getItem('openscadgen-configDesktop-group') || 'all'; } catch (e) { /* ignore */ }
+                        groups.forEach(function (g) {
+                            var opt = document.createElement('option');
+                            opt.value = g;
+                            opt.textContent = g;
+                            sel.appendChild(opt);
+                        });
+                        sel.value = Array.prototype.some.call(sel.options, function (o) { return o.value === saved; }) ? saved : 'all';
+                        sel.addEventListener('change', function () {
+                            try { localStorage.setItem('openscadgen-configDesktop-group', sel.value); } catch (e) { /* ignore */ }
+                            applyConfigPickerState();
+                        });
+                    }
+                    ['list', 'grid', 'large'].forEach(function (m) {
+                        var btn = document.getElementById('cfg-layout-' + m);
+                        if (btn) btn.addEventListener('click', function () {
+                            try { localStorage.setItem('openscadgen-configDesktop-layout', m); } catch (e) { /* ignore */ }
+                            applyConfigPickerState();
+                        });
+                    });
+                    applyConfigPickerState();
+                });
+            })();
+            </script>
         </head>
 
         <body>
@@ -266,17 +437,51 @@ html, body {
                 <hr/>
                 
                 <h2>Config Files</h2>
-                <div class="fixed-grid has-4-cols">
-                    for _, configFile := range configFiles {
-                        <div class="cell" title={ configFile.Path }>
-                        <a class="is-size-3" href={ templ.SafeURL(fmt.Sprintf("/?config=%s&server_folder=%s", base64.StdEncoding.EncodeToString([]byte(configFile.Path)), base64.StdEncoding.EncodeToString([]byte(serverFolder)))) }>
-                        <img src={ templ.SafeURL(fmt.Sprintf("/images?config_path=%s", []byte(configFile.PrimaryImagePath))) } alt={ configFile.NiceName } class="image-preview" />
-                        { configFile.NiceName }
-                        </a>
-                        
-                        
+                <div id="config-picker-root">
+                    <div class="config-desktop-toolbar">
+                        <div class="field mb-0">
+                            <label class="label" for="config-picker-group">Top-level folder</label>
+                            <div class="control">
+                                <div class="select">
+                                    <select id="config-picker-group" title="First path segment under the scanned folder">
+                                        <option value="all">All</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                    }
+                        <div class="field mb-0">
+                            <label class="label">Layout</label>
+                            <div class="control">
+                                <div class="buttons has-addons">
+                                    <button type="button" class="button is-small" id="cfg-layout-list">List</button>
+                                    <button type="button" class="button is-small" id="cfg-layout-grid">Grid</button>
+                                    <button type="button" class="button is-small" id="cfg-layout-large">Large</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="config-files-wrap" class="config-files-wrap fixed-grid has-4-cols">
+                        for _, configFile := range configFiles {
+                            <article class="config-file-card cell" data-config-path={ configFile.Path } title={ configFile.Path }>
+                                <a class="config-file-card__link is-size-6" href={ templ.SafeURL(configPickerPageURL(configFile, serverFolder)) }>
+                                    if configFile.PrimaryImagePath != "" {
+                                        <img
+                                            src={ templ.SafeURL(fmt.Sprintf("/images?config_path=%s", url.QueryEscape(configFile.PrimaryImagePath))) }
+                                            alt={ configFile.NiceName }
+                                            class="image-preview config-file-card__thumb"
+                                            loading="lazy"
+                                        />
+                                    } else {
+                                        <span class="config-file-card__no-img">No preview</span>
+                                    }
+                                    <div>
+                                        <div class="has-text-weight-semibold">{ configFile.NiceName }</div>
+                                        <div class="config-file-card__path">{ configFile.Path }</div>
+                                    </div>
+                                </a>
+                            </article>
+                        }
+                    </div>
                 </div>
                 <hr/>
                 
@@ -398,7 +603,7 @@ templ ProjectFolderForm(warning templ.Component){
 
                     <div class="recent-folders">
                         <h2 class="subtitle is-6">Recent folders</h2>
-                        <p class="help">Pick one of the folders you’ve used before, or paste a new path above.</p>
+                        <p class="help">Pick one of the folders you’ve used before, or paste a new path above. Use × to drop a path from this list.</p>
                         @ServerFolderOptionsComponent()
                         <server-folder-options class="recent-folders-list"></server-folder-options>
                     </div>

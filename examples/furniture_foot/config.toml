@@ -15,7 +15,7 @@ path = "./furniture_foot.scad"
 # path = "./a-second-related-openscad-file.scad"
 
 # [[openscadgen.instances]]
-# params = {renderType = "horzSlice,vertSlice,all", param1 = "a-custom-value" }
+# params = {renderType = "horzSlice,vertSlice", param1 = "a-custom-value" }
 
 # [[openscadgen.instances]]
-# params = { renderType = "horzSlice,vertSlice,all", param1 = "a-diff-custom-value" }
+# params = { renderType = "horzSlice,vertSlice", param1 = "a-diff-custom-value" }

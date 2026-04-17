@@ -92,4 +92,3 @@ func TestScanFolderForConfigFiles_PrimaryImagePathFallsBackToFirstImage(t *testi
 		t.Fatalf("PrimaryImagePath mismatch: got %q want %q", got, want)
 	}
 }
-

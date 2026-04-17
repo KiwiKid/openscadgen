@@ -1,0 +1,16 @@
+[openscadgen]
+name = "folding_airplane_stand_screw_mount"
+description = ""
+
+version = "v0.2"
+
+export_name_format = "{designFileName}_{title}"
+
+global_params = { renderType = "obj", title = [" Choose Happy", ""] }
+
+[[openscadgen.input_paths]]
+path = "./folding_airplane_stand_screw_mount.scad"
+
+[[openscadgen.images]]
+name = "nice"
+param_filter = { renderType= "obj"}

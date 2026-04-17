@@ -26,7 +26,7 @@ params = { height = 120, wall_bump_rate = 200 }
 # path = "./a-second-related-openscad-file.scad"
 
 # [[openscadgen.instances]]
-# params = {renderType = "horzSlice,vertSlice,all", param1 = "a-custom-value" }
+# params = {renderType = "horzSlice,vertSlice", param1 = "a-custom-value" }
 
 # [[openscadgen.instances]]
-# params = { renderType = "horzSlice,vertSlice,all", param1 = "a-diff-custom-value" }
+# params = { renderType = "horzSlice,vertSlice", param1 = "a-diff-custom-value" }

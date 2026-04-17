@@ -15,7 +15,7 @@ path = "./anko_usb_light_cover.scad"
 name = "nice-near"
 
 [[openscadgen.instances]]
-params = {  renderType="obj,vertSlice,horzSlice,all" }
+params = {  renderType="obj,vertSlice,horzSlice" }
 
 [[openscadgen.instances]]
 params = {  letter="G,K,ML,S,ON" }

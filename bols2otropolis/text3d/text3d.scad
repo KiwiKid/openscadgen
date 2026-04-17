@@ -1,7 +1,7 @@
 
 
 	include <BOSL2/std.scad>;
-
+$vpf = 45;
 	$fa = .01;
 	$fs = $preview ? 5 : 1;
 	$fn = 200;
@@ -15,9 +15,20 @@
 	*/
 	renderType = "obj";
 
+test_font = "Liberation Sans";
+
+textSize = 12;
 
 	module text3d(){
-		cuboid([100,100,100]);
+                linear_extrude(height = 10) {
+
+                
+                text("the quick brown", size = textSize, halign = "center", valign = "center", font = test_font);
+            fwd(20)
+            text("fox jumps over", size = textSize, halign = "center", valign = "center", font = test_font);
+            fwd(40)
+            text(" the lazy dog", size = textSize, halign = "center", valign = "center", font = test_font);
+                }
 	}
 
 

@@ -306,6 +306,48 @@ func TestGetOutputPaths(t *testing.T) {
 	}
 }
 
+func TestLoadConfigFromFile_InvalidToml_ReturnsFatalErrThird(t *testing.T) {
+	tmpDir := t.TempDir()
+	path := filepath.Join(tmpDir, "config.toml")
+	// Unclosed table header — typical "expected '='" style decode failure
+	content := "l1\nl2\nl3\nl4\nl5\nl6\n[openscadgen"
+	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+	cfg, warn, err := LoadConfigFromFile(models.CmdFlags{ConfigFile: path})
+	if cfg != nil {
+		t.Fatalf("expected nil config, got %+v", cfg)
+	}
+	if warn != nil {
+		t.Fatalf("expected nil warning for fatal load, got %v", warn)
+	}
+	if err == nil {
+		t.Fatal("expected fatal error")
+	}
+	if !strings.Contains(err.Error(), "not valid toml") {
+		t.Fatalf("error should mention toml: %v", err)
+	}
+	if !strings.Contains(err.Error(), path) {
+		t.Fatalf("error should include path: %v", err)
+	}
+}
+
+func TestTomlDecodeErrorSnippet(t *testing.T) {
+	data := "a\nb\nc\nd\ne\nf\ng\n"
+	decodeErr := fmt.Errorf(`toml: line 4 (last key "x"): bogus`)
+	snip := tomlDecodeErrorSnippet(data, decodeErr)
+	if !strings.Contains(snip, "   4 |") || !strings.Contains(snip, ">") {
+		t.Fatalf("expected numbered context with marker, got:\n%s", snip)
+	}
+}
+
+func TestGenerateInstanceConfigs_NilConfig(t *testing.T) {
+	_, err := GenerateInstanceConfigs(nil)
+	if err == nil || !strings.Contains(err.Error(), "nil") {
+		t.Fatalf("expected nil config error, got %v", err)
+	}
+}
+
 func TestGenerateDynamicInstances(t *testing.T) {
 	t.Skip("Skipping unit tests - implementation details have changed, E2E tests cover functionality")
 	// Initialize logger for testing
@@ -1431,7 +1473,7 @@ coord = "0,0,0,90,0,0,600"
 			}
 
 			// Load config
-			config, err, _ := LoadConfigFromFile(models.CmdFlags{
+			config, _, err := LoadConfigFromFile(models.CmdFlags{
 				ConfigFile: tc.configPath,
 			})
 			if err != nil {
@@ -1788,6 +1830,24 @@ func TestGetAllParams(t *testing.T) {
 			},
 		},
 		{
+			name: "global params as array (TOML slice)",
+			input: Input{
+				dynamicInstance: models.ConfiguredInstanceConfig{},
+				globalParams: map[string]interface{}{
+					"fonts": []interface{}{"Liberation Mono", "Liberation Sans"},
+				},
+				paramSets: []models.ParamSet{},
+				inputPath: models.InputPath{},
+			},
+			output: Output{
+				params: map[string]interface{}{},
+				globalParamsMap: map[string][]interface{}{
+					"fonts": {"Liberation Mono", "Liberation Sans"},
+				},
+				ignoredKeys: nil,
+			},
+		},
+		{
 			name: "param_numberation_keys creates numbered keys",
 			input: Input{
 				dynamicInstance: models.ConfiguredInstanceConfig{
@@ -1987,7 +2047,7 @@ name = "nice"
 		cube(10);
 		`), 0644)
 
-	config, err, _ := LoadConfigFromFile(models.CmdFlags{
+	config, _, err := LoadConfigFromFile(models.CmdFlags{
 		ConfigFile: validConfigPath,
 	})
 	if err != nil {
@@ -2074,7 +2134,7 @@ func TestPopulateExportImages_ParamFilterCommaList(t *testing.T) {
 name = "test_design"
 version = "v1.0"
 export_name_format = "{designFileName}_{renderType}"
-global_params = { renderType = "obj,all" }
+global_params = { renderType = "obj" }
 
 [[openscadgen.input_paths]]
 path = "./design.scad"
@@ -2095,7 +2155,7 @@ param_filter = { renderType = "obj,vertSlice" }
 		t.Fatalf("Failed to write design.scad: %v", err)
 	}
 
-	config, err, _ := LoadConfigFromFile(models.CmdFlags{ConfigFile: configPath})
+	config, _, err := LoadConfigFromFile(models.CmdFlags{ConfigFile: configPath})
 	if err != nil {
 		t.Fatalf("Failed to load config: %v", err)
 	}

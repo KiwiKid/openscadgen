@@ -1,0 +1,20 @@
+[openscadgen]
+name = "spin_clicker"
+description = ""
+
+version = "v0.2"
+
+export_name_format = "{designFileName}/{partType}_{renderType}"
+
+global_params = { renderType = "obj" }
+
+[[openscadgen.input_paths]]
+path = "./spin_clicker.scad"
+
+[[openscadgen.input_paths]]
+params = { partType = "frame,plug" }
+path = "./spin_clicker-zip-tie.scad"
+
+
+[[openscadgen.images]]
+name = "nice"

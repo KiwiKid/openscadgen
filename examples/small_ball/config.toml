@@ -1,0 +1,16 @@
+[openscadgen]
+name = "small_ball"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{ballRadius}"
+
+global_params = { renderType = "obj", ballRadius = [3, 4, 5, 6, 7, 8, 10, 15, 20, 25, 30] }
+
+[[openscadgen.input_paths]]
+path = "./small_ball.scad"
+
+[[openscadgen.images]]
+name = "nice"
+param_filter = { renderType= "obj,vertSlice,horzSlice"}

@@ -15,25 +15,30 @@
 	*/
 	renderType = "obj";
     
+    
+    bottomShelf = "includeBottomShelf";
     phoneHolderWidth = 40;
     phoneHolderHeight = 95;
     phoneSize = [phoneHolderHeight, phoneHolderWidth, 70];
     
     phoneCutoutHeight = 190;
-    phoneCutoutSize = [92, 30, phoneCutoutHeight];
+    phoneCutoutSize = [92, 28, phoneCutoutHeight];
     
     horzPhoneCutoutMove = [-phoneHolderHeight/2,0,0];
     
     
-    phoneCutout2Size = [80, 32, 80];
+    phoneCutout2Size = [75, 32, 80];
     cutoutMove = [0,2,8];
     
     wallSize = 2;
     phoneRotate = [-15,0,-20];
     
-    holderCubeSize = [65, 90, 30];
+    holderCubeHeight = 90;
+    holderCubeDepth = 30;
+    holderCubeSize = [65, holderCubeHeight, holderCubeDepth];
     
     phoneHolderCubeMove = [-30,phoneHolderWidth/2+35,0];
+    
 
 	module rav4_phone_holder(){
 		move([0,-20,0])
@@ -44,14 +49,19 @@
         rotate(phoneRotate)
         cuboid(phoneSize, rounding=8);
         
-        move(phoneHolderCubeMove)
-        difference(){
-        cuboid(holderCubeSize, rounding=10);
         
-        back(38)
-        scale([0.85,1.2, 0.8])
+            shelfHeight = 35;
+            
+             if(bottomShelf == "includeBottomShelf"){
+                rotate(phoneRotate)
+                move(cutoutMove-[0,-5,holderCubeHeight/2+3])
+                fwd(10)
+                cuboid([95,35,shelfHeight], rounding=3);
+            }
+        
+        move(phoneHolderCubeMove)
+        
         cuboid(holderCubeSize, rounding=10);
-        }
         }
         
           
@@ -61,6 +71,8 @@
 		cuboid(phoneCutoutSize, rounding=3);
         
         
+        
+        // Side phone cutout
      rotate(phoneRotate)
        rotate([0,90,0])
         move(horzPhoneCutoutMove)
@@ -74,14 +86,28 @@
 		cuboid(phoneCutout2Size, rounding=3);
         
         
+        // Shorten the middle holder struct
+        rotate(phoneRotate)
+        move(cutoutMove-[40,10,-30])
+        fwd(10)
+		cuboid([20,30,60], rounding=3);
+        
+        
           rotate(phoneRotate)
      //   move(cutoutMove)
         fwd(10)
-		cuboid([40,25,100], rounding=2);
+		cuboid([40,25,120], rounding=2);
         
-        
+        if (bottomShelf == "includeBottomShelf"){
+        // shelf cutout
+            rotate(phoneRotate+[-8,0,0])
+            move(cutoutMove-[0,-7,holderCubeHeight/2+8])
+            fwd(10)
+            cuboid([100,30,20], rounding=3);
         
         }
+        }
+        
         
       /*  move([0,phoneHolderWidth/2,0])
         rotate([0,90,90])

@@ -6,7 +6,7 @@ version = "v0.1"
 
 export_name_format = "{designFileName}_{renderType}"
 
-global_params = { renderType = "obj,vertSlice,horzSlice,all" }
+global_params = { renderType = "obj,vertSlice,horzSlice" }
 
 [[openscadgen.input_paths]]
 path = "./shelf_with_hook.scad"

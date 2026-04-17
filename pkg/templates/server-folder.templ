@@ -51,8 +51,28 @@ templ ServerFolderOptionsComponent() {
 
             class ServerFolderOptionsElement extends HTMLElement {
                 connectedCallback() {
+                    this.render();
+                }
+
+                removeFolder(serverFolder) {
+                    let options;
+                    try {
+                        options = JSON.parse(localStorage.getItem(KEY) || '[]');
+                    } catch (e) {
+                        options = [];
+                    }
+                    options = options.filter((v) => v !== serverFolder);
+                    localStorage.setItem(KEY, JSON.stringify(options));
+                    if ((localStorage.getItem(LAST_KEY) || '') === serverFolder) {
+                        localStorage.removeItem(LAST_KEY);
+                    }
+                    this.render();
+                }
+
+                render() {
                     const raw = localStorage.getItem(KEY);
                     if (!raw) {
+                        this.replaceChildren();
                         return;
                     }
 
@@ -61,6 +81,7 @@ templ ServerFolderOptionsComponent() {
                         options = JSON.parse(raw) || [];
                     } catch (e) {
                         console.error('Invalid serverFolder options in localStorage', e);
+                        this.replaceChildren();
                         return;
                     }
 
@@ -76,15 +97,26 @@ templ ServerFolderOptionsComponent() {
                     const frag = document.createDocumentFragment();
 
                     for (const serverFolder of options) {
+                        if (!serverFolder) {
+                            continue;
+                        }
                         const field = document.createElement('div');
                         field.className = 'field';
 
                         const control = document.createElement('div');
                         control.className = 'control';
+                        control.style.display = 'flex';
+                        control.style.gap = '0.5rem';
+                        control.style.alignItems = 'center';
 
                         const btn = document.createElement('button');
                         btn.type = 'button';
-                        btn.className = 'button is-large is-fullwidth';
+                        btn.className = 'button is-large';
+                        btn.style.flex = '1 1 auto';
+                        btn.style.minWidth = '0';
+                        btn.style.overflow = 'hidden';
+                        btn.style.textOverflow = 'ellipsis';
+                        btn.style.whiteSpace = 'nowrap';
                         btn.dataset.serverFolder = serverFolder;
                         btn.appendChild(document.createTextNode(serverFolder));
 
@@ -104,7 +136,19 @@ templ ServerFolderOptionsComponent() {
                             }));
                         });
 
+                        const removeBtn = document.createElement('button');
+                        removeBtn.type = 'button';
+                        removeBtn.className = 'button is-danger is-outlined';
+                        removeBtn.textContent = '×';
+                        removeBtn.setAttribute('aria-label', 'Remove from recent folders');
+                        removeBtn.title = 'Remove from recent';
+                        removeBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            this.removeFolder(serverFolder);
+                        });
+
                         control.appendChild(btn);
+                        control.appendChild(removeBtn);
                         field.appendChild(control);
                         frag.appendChild(field);
                     }
