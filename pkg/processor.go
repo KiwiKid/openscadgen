@@ -346,7 +346,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 	if len(errors) > 0 {
 		logError("Validation of generated instances failed:")
 		for _, error := range errors {
-			logError(runErrorCodeName[error.ErrorCode] + "\n" + error.Message)
+			logError(fmt.Sprintf("%d: %s\n%s", error.ErrorCode, runErrorCodeName[error.ErrorCode], error.Message))
 			for k, v := range error.KVPs {
 				LogKeyValuePair(k, v)
 			}
@@ -3187,8 +3187,12 @@ version = "v0.1"
 
 export_name_format = "{designFileName}"
 
+# These params will be passed into all the generated designs
+global_params = { }
+
 [[openscadgen.input_paths]]
 path = "./{{projectName}}.scad"
+params = { }
 
 [[openscadgen.images]]
 name = "nice"
@@ -3326,88 +3330,15 @@ module %s(){
 `, projectNameUnderLined, projectNameUnderLined)
 }
 
+// InitConfig creates a project from a path-shaped argument: relative or absolute "parent/leaf" or "leaf".
+// Only the basename is sanitized; see InitConfigInParent for explicit parent + name.
 func InitConfig(projectPathRaw string, extended bool) error {
-
-	replacements := map[string]string{
-		" ":  "_",
-		"-":  "_",
-		".":  "_",
-		"__": "_",
+	parent := filepath.Dir(projectPathRaw)
+	leaf := filepath.Base(projectPathRaw)
+	if parent == "" || parent == "." {
+		parent = "."
 	}
-
-	projectPath := projectPathRaw
-	for old, new := range replacements {
-		projectPath = strings.ReplaceAll(projectPath, old, new)
-	}
-	projectPath = filepath.Clean(projectPath)
-
-	// check if the project name is already taken
-	if _, err := os.Stat(projectPath); os.IsNotExist(err) {
-		os.Mkdir(projectPath, 0755)
-	} else {
-		logError(fmt.Sprintf("Project name already taken: %s", projectPath))
-		return fmt.Errorf("project name already taken")
-	}
-
-	projectName := filepath.Base(projectPath)
-	projectNameLocation := filepath.Dir(projectPath)
-	projectNameUnderLined := strings.NewReplacer(
-		" ", "_",
-	).Replace(projectName)
-
-	var configTemplate string
-	if extended {
-		configTemplate = configTemplateExtended
-	} else {
-		configTemplate = configTemplate
-	}
-
-	configTemplate = strings.ReplaceAll(configTemplate, "{{projectName}}", projectNameUnderLined)
-
-	configPath := filepath.Join(projectNameLocation, projectNameUnderLined, "config.toml")
-	configFile, err := os.Create(configPath)
-	if err != nil {
-		logError(fmt.Sprintf("Failed to create config file: %s", err))
-	} else {
-		logCreation(fmt.Sprintf("Created config file: %s", configPath))
-	}
-	defer configFile.Close()
-	_, err = configFile.WriteString(configTemplate)
-	if err != nil {
-		logError(fmt.Sprintf("Failed to write template to config file: %s", err))
-	} else {
-		logCreation(fmt.Sprintf("Wrote template to config file: %s", configPath))
-	}
-
-	scadPath := filepath.Join(projectNameLocation, projectNameUnderLined, projectNameUnderLined+".scad")
-	scadFile, err := os.Create(scadPath)
-	if err != nil {
-		logError(fmt.Sprintf("Failed to create scad file: %s", err))
-	}
-	defer scadFile.Close()
-
-	if extended {
-		_, err = scadFile.WriteString(openScadTemplateExtended(projectNameUnderLined))
-		if err != nil {
-			logError(fmt.Sprintf("Failed to write template to scad file: %s", err))
-		} else {
-			logCreation(fmt.Sprintf("Wrote template to scad file: %s", scadPath))
-		}
-
-	} else {
-		_, err = scadFile.WriteString(openScadTemplate(projectNameUnderLined))
-		if err != nil {
-			logError(fmt.Sprintf("Failed to write template to scad file: %s", err))
-		} else {
-			logCreation(fmt.Sprintf("Wrote template to scad file: %s", scadPath))
-		}
-
-	}
-
-	logCreation(fmt.Sprintf("Project Successfully Initialized: %s", projectName))
-	LogKeyValuePair("Project Path", projectPath)
-	logCreation("\nUse the command:\n\n\topenscadgen -c ./" + projectPath + "/config.toml\n\nto generate the STL files")
-	return nil
+	return InitConfigInParent(parent, leaf, extended)
 }
 
 func LogKeys(flags models.CmdFlags) {

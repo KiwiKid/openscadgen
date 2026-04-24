@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/cli/browser"
@@ -32,14 +33,37 @@ func main() {
 
 	if cmdFlags.InitProjectName != "" {
 		log.Printf("Initializing project: %s", cmdFlags.InitProjectName)
-		pkg.InitConfig(cmdFlags.InitProjectName, false)
-		return
-	}
-
-	if cmdFlags.InitProjectNameExtended != "" {
+		name := strings.TrimSpace(cmdFlags.InitProjectName)
+		parent := pkg.ResolveInitParentDir(cmdFlags)
+		var err error
+		if filepath.IsAbs(name) {
+			// Preserve prior behaviour: absolute -i is treated as a leaf under -init-dir / -sf.
+			err = pkg.InitConfigInParent(parent, filepath.Base(name), false)
+		} else {
+			err = pkg.InitConfigInParent(parent, name, false)
+		}
+		if err != nil {
+			log.Fatalf("init project: %v", err)
+		}
+		if !cmdFlags.Server && cmdFlags.ServerFolder == "" {
+			return
+		}
+	} else if cmdFlags.InitProjectNameExtended != "" {
 		log.Printf("Initializing extended project: %s", cmdFlags.InitProjectNameExtended)
-		pkg.InitConfig(cmdFlags.InitProjectNameExtended, true)
-		return
+		name := strings.TrimSpace(cmdFlags.InitProjectNameExtended)
+		parent := pkg.ResolveInitParentDir(cmdFlags)
+		var err error
+		if filepath.IsAbs(name) {
+			err = pkg.InitConfigInParent(parent, filepath.Base(name), true)
+		} else {
+			err = pkg.InitConfigInParent(parent, name, true)
+		}
+		if err != nil {
+			log.Fatalf("init project: %v", err)
+		}
+		if !cmdFlags.Server && cmdFlags.ServerFolder == "" {
+			return
+		}
 	}
 
 	if cmdFlags.Debug {

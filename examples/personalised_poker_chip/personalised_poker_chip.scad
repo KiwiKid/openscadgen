@@ -16,40 +16,40 @@
 	renderType = "obj";
 chipRadius = 19;
 chipInnerRadius = 15;
-chipInnerRadiusOuter = 10.5;
-chipInnerRadiusInner = 9;
+chipInnerRadiusOuter = 9.5;
+chipInnerRadiusInner = 8;
 //chipHeight = .5;
 //chipInnerHeight = 1.2;
 
 chipHeight = 1.5;
-chipInnerHeight = 0.7;
-innerSlotUp = 0.7;
+chipInnerHeight = 0.9;
+innerSlotUp = 0.8;
 
 
 
  
-textUp = chipHeight+0.10;
+textUp = chipHeight+0.2;
+textDown = 0.20;
 
 centerText = "4";
 centerTextSize = 14;
 centerTextHeight = 0.8;
 
 
-bottomText = "Peg";
-bottomTextSize = 5.8;
- roundLetterSize  = 5.8;
+bottomText = "PEG";
+bottomTextSize = 6;
+ roundLetterSize  = 7.5;
  bottomTitleAngleStart = 180;
  textBottomRadius = 16.5;
 
-topText = "Baily Boys";
-textRadius = 12.3;
-topRoundLetter = 4.6;
-topRoundLetterSize = 5.5;
+topText = "BAILEY BOYS";
+textRadius = 12.0;
+topRoundLetter = 4.0;
+topRoundLetterSize = 4;
  topTitleAngleStart = -200;
  
 underSideText = "2026";//"Got your chip?";
 underSideTextSize = 6;
-textDown = 0.4;
 underSideTextLettersize = 6;
 textUndersideRadius = 10.2;
 
@@ -87,7 +87,9 @@ module bottomDecoration(){
      for (a = [0  : 30 : 360]) {
     rotate([0, 0,a])
       // translate([0, a+outerToothOffset, 1])
-            cuboid([18,0.1,0.5]);
+      
+     translate([4.5,0,0.0])
+            cuboid([7,0.5,0.8], chamfer=0.4, edges="Y");
     }
 }
 
@@ -107,7 +109,7 @@ module bottomDecoration(){
           
           bottomDecoration();
         //[220, -40]
-             path = path3d(arc(80, r=textRadius, angle=[200, -20]));
+             path = path3d(arc(80, r=textRadius, angle=[220, -40]));
 
                 
         //     up(textUp)
@@ -129,8 +131,11 @@ module bottomDecoration(){
         
         
        path2 = path3d(arc(120,r=textBottomRadius, angle=[bottomTitleAngleStart, 360]), );
+    //   up(10)
+       
       //   color("red")
-    //     stroke(path, width=0.5);
+       //  #stroke(path2, width=0.5);
+         
         up(textUp)
        path_text(path2, bottomText, size=bottomTextSize, font=font, lettersize = roundLetterSize, normal=UP, center=true);
         
@@ -148,9 +153,48 @@ module bottomDecoration(){
 }
 	}
     
+    alignBlockSize = [1,10,1];
+    alignOffset = 10;
+    module alignBlock(){
+        left(alignOffset)
+        cuboid(alignBlockSize, anchor=CENTER);
+        
+        right(alignOffset)
+        cuboid(alignBlockSize, anchor=CENTER);
+        }
     
     
+    if(renderType == "obj"){
         personalised_poker_chip();
+    }
+    if(renderType == "backHalf"){
+        difference(){
+        
+        bottom_half()
+        down(chipHeight/2)
+            personalised_poker_chip();
+            alignBlock();
+            }
+            
+            
+
+    }
+    if(renderType == "frontHalf"){
+    
+            difference(){
+        
+        top_half()
+        down(chipHeight/2)
+            personalised_poker_chip();
+            alignBlock();
+            }
+
+    }
+    
+    if(renderType == "alignBlock"){
+        alignBlock();
+        }
+    
     
        
 

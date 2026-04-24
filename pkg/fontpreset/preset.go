@@ -6,6 +6,14 @@ import (
 	"strings"
 )
 
+// Placeholder strings for TOML params: ExpandSentinelsInPlace replaces them with font lists.
+// Fontconfig sentinels resolve to the same hardcoded pool here (no fc-list at runtime).
+const (
+	SentinelHardcodedFaces     = "__openscadgen_hardcoded_font_faces__"
+	SentinelFontconfigFaces    = "__openscadgen_fontconfig_font_faces__"
+	SentinelFontconfigFamilies = "__openscadgen_fontconfig_font_families__"
+)
+
 // HardcodedFontFaces is the canonical list: either "Family:style=Style" or a bare family name.
 // Edit this slice when you want more coverage.
 var HardcodedFontFaces = []string{

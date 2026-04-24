@@ -1,0 +1,1401 @@
+<!doctype html><html lang="en" x-data="alpineReportData()" x-init="init()"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><base href="."><title>vape_lock_clip - OpenSCAD Generation Report</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script><script src="/static/js/utils.js"></script><script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script><script>
+        function alpineReportData() {
+            return {
+                darkMode: true,
+                showDebug: false,
+                showProcessForm: false,
+                showInstancesWithoutImages: false,
+                navSelected: "instances",
+                searchQuery: '',
+                bottomNavExpanded: false,
+                instanceClassFilter: (function () { try { return localStorage.getItem('og-report-instance-class') || 'all'; } catch (e) { return 'all'; } })(),
+                instanceLayout: (function () { try { var v = localStorage.getItem('og-report-instance-layout'); if (v === 'list' || v === 'grid' || v === 'large') return v; } catch (e) {} return 'grid'; })(),
+                instanceClassOptions: [],
+                // Advanced filtering options
+                filters: {
+                    searchQuery: '',
+                    showInstancesWithoutImages: false,
+                    showOnlyWithImages: true,
+                    showOnlyWithErrors: false,
+                    showOnlySkipped: false,
+                    showOnlySuccessful: false,
+                    paramFilters: {},
+                    namePattern: '',
+                    descriptionPattern: '',
+                    outputPathPattern: ''
+                },
+                configHistory: JSON.parse(localStorage.getItem('configHistory') || '[]'),
+                configFile: '',
+                savedConfigFile: localStorage.getItem('savedConfigFile') || '',
+                searchHistory: JSON.parse(localStorage.getItem('searchHistory') || '[]'),
+                saveConfigFile(path) {
+                    if (path && !this.configHistory.includes(path)) {
+                        this.configHistory.unshift(path);
+                        localStorage.setItem('configHistory', JSON.stringify(this.configHistory));
+                    }
+                    this.savedConfigFile = path;
+                    localStorage.setItem('savedConfigFile', path);
+                },
+                // Filtering methods
+                matchesSearch(instance) {
+                    const search = this.filters.searchQuery.toLowerCase();
+                    if (!search) return true;
+                    const searchText = `${instance.Name} ${instance.Description} ${instance.RunOutputPathV3}`.toLowerCase();
+                    return searchText.includes(search);
+                },
+                matchesNamePattern(instance) {
+                    if (!this.filters.namePattern) return true;
+                    try {
+                        const pattern = new RegExp(this.filters.namePattern, 'i');
+                        return pattern.test(instance.Name);
+                    } catch (e) {
+                        return true; // Invalid regex, don't filter
+                    }
+                },
+                matchesDescriptionPattern(instance) {
+                    if (!this.filters.descriptionPattern) return true;
+                    try {
+                        const pattern = new RegExp(this.filters.descriptionPattern, 'i');
+                        return pattern.test(instance.Description);
+                    } catch (e) {
+                        return true; // Invalid regex, don't filter
+                    }
+                },
+                matchesOutputPathPattern(instance) {
+                    if (!this.filters.outputPathPattern) return true;
+                    try {
+                        const pattern = new RegExp(this.filters.outputPathPattern, 'i');
+                        return pattern.test(instance.RunOutputPathV3);
+                    } catch (e) {
+                        return true; // Invalid regex, don't filter
+                    }
+                },
+                matchesImageFilter(instance) {
+                    const hasImages = (instance.ImageResults && instance.ImageResults > 0) || 
+                                     (instance.ExportImages && instance.ExportImages > 0);
+                    
+                    if (this.filters.showInstancesWithoutImages) return !hasImages;
+                    return true;
+                },
+                matchesErrorFilter(instance) {
+                    if (this.filters.showOnlyWithErrors) return instance.ConfigError !== '';
+                    if (this.filters.showOnlySkipped) return instance.SkippedReason !== '';
+                    if (this.filters.showOnlySuccessful) return instance.ConfigError === '' && instance.SkippedReason === '';
+                    return true;
+                },
+                matchesParamFilters(instance) {
+                    for (const [paramName, paramValue] of Object.entries(this.filters.paramFilters)) {
+                        if (!paramValue) continue;
+                        const instanceValue = instance.Params[paramName];
+                        if (instanceValue === undefined) return false;
+                        
+                        // Support different comparison types
+                        if (typeof paramValue === 'string') {
+                            if (!String(instanceValue).toLowerCase().includes(paramValue.toLowerCase())) {
+                                return false;
+                            }
+                        } else if (instanceValue !== paramValue) {
+                            return false;
+                        }
+                    }
+                    return true;
+                },
+                shouldShowInstance(instance) {
+                    return this.matchesSearch(instance) &&
+                           this.matchesNamePattern(instance) &&
+                           this.matchesDescriptionPattern(instance) &&
+                           this.matchesOutputPathPattern(instance) &&
+                           this.matchesImageFilter(instance) &&
+                           this.matchesErrorFilter(instance) &&
+                           this.matchesParamFilters(instance);
+                },
+                clearAllFilters() {
+                    this.filters = {
+                        searchQuery: '',
+                        showInstancesWithoutImages: false,
+                        showOnlyWithImages: false,
+                        showOnlyWithErrors: false,
+                        showOnlySkipped: false,
+                        showOnlySuccessful: false,
+                        paramFilters: {},
+                        namePattern: '',
+                        descriptionPattern: '',
+                        outputPathPattern: ''
+                    };
+                },
+                // Debug methods for filter conditions
+                debugMatchesSearch(instance) {
+                    return this.matchesSearch(instance);
+                },
+                debugMatchesNamePattern(instance) {
+                    return this.matchesNamePattern(instance);
+                },
+                debugMatchesDescriptionPattern(instance) {
+                    return this.matchesDescriptionPattern(instance);
+                },
+                debugMatchesOutputPathPattern(instance) {
+                    return this.matchesOutputPathPattern(instance);
+                },
+                debugMatchesImageFilter(instance) {
+                    return this.matchesImageFilter(instance);
+                },
+                debugMatchesErrorFilter(instance) {
+                    return this.matchesErrorFilter(instance);
+                },
+                debugMatchesParamFilters(instance) {
+                    return this.matchesParamFilters(instance);
+                },
+                init() {
+                    // Watchers
+                    this.$watch('darkMode', value => {
+                        localStorage.setItem('darkMode', value);
+                        document.documentElement.classList.toggle('dark', value);
+                    });
+                    this.$watch('showDebug', value => {
+                        localStorage.setItem('showDebug', value);
+                    });
+                    this.$watch('filters.searchQuery', value => {
+                        if (value && !this.searchHistory.includes(value)) {
+                            this.searchHistory.unshift(value);
+                            this.searchHistory = this.searchHistory.slice(0, 20);
+                            localStorage.setItem('searchHistory', JSON.stringify(this.searchHistory));
+                        }
+                    });
+
+                    // Initial dark mode setup
+                    this.darkMode = localStorage.getItem('darkMode') === 'true' ||
+                        (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+                    this.showDebug = localStorage.getItem('showDebug') === 'true';
+                    this.$watch('instanceClassFilter', function (value) {
+                        try { localStorage.setItem('og-report-instance-class', value); } catch (e) { /* ignore */ }
+                    });
+                    this.$watch('instanceLayout', function (value) {
+                        try { localStorage.setItem('og-report-instance-layout', value); } catch (e) { /* ignore */ }
+                    });
+                    this.$nextTick(() => {
+                        const root = document.getElementById('instances-grid');
+                        if (!root) return;
+                        const s = {};
+                        root.querySelectorAll('[data-og-class]').forEach((el) => {
+                            const c = el.getAttribute('data-og-class') || 'default';
+                            s[c] = true;
+                        });
+                        this.instanceClassOptions = Object.keys(s).sort();
+                        if (this.instanceClassFilter !== 'all' && this.instanceClassOptions.indexOf(this.instanceClassFilter) < 0) {
+                            this.instanceClassFilter = 'all';
+                        }
+                    });
+                    // Initial config file setup
+                    this.configFile = '\/Users\/gregc\/mine\/making\/3d-printing\/openSCAD\/openscadgen\/examples\/vape_lock_clip\/config.toml'; // or whatever templating you use
+                    if (this.configFile) {
+                        this.saveConfigFile(this.configFile);
+                    }
+                }
+            }
+        }
+        
+        function processInstance(autoName) {
+            // populate the regex with the auto-name, then trigger a click on the process button
+            const regex = document.querySelector('input[name="regex"]');
+            regex.value = autoName;
+            const processButton = document.querySelector('button[type="submit"]');
+            processButton.click();
+        }
+
+        </script><script>
+                (function() {
+                    var darkMode = localStorage.getItem('darkMode');
+                    if (darkMode === null) {
+                        darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    } else {
+                        darkMode = darkMode === 'true';
+                    }
+                    if (darkMode) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                })();
+            </script><script>
+                function copyDetailsContent() {
+                    const button = $el.querySelector('button');
+                    const codeBlock = $el.querySelector('pre code');
+                    const content = codeBlock.textContent;
+                    navigator.clipboard.writeText(content).then(() => {
+                        const originalText = button.textContent;
+                        button.textContent = 'Copied!';
+                        setTimeout(() => {
+                            button.textContent = originalText;
+                        }, 1000);
+                    });
+                }
+            </script><style>
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .fas.fa-spinner {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+                :root {
+                    --bg-color: #ffffff;
+                    --text-color: #333333;
+                    --card-bg: #ffffff;
+                    --border-color: #eee;
+                    --accent-color: #0066cc;
+                    --hover-bg: #f5f5f5;
+                    --error-color: #b00020;
+                    --success-color: #007e33;
+                    
+                }
+
+html, body {
+    min-height: 100vh;
+}
+               
+                .dark {
+                    --bg-color: #1a1a1a;
+                    --text-color: #f5f5f5 !important;
+                    --card-bg: #2d2d2d;
+                    --border-color: #404040;
+                    --accent-color: #66aaff;
+                    --hover-bg: #23272e;
+                    --error-color: #ff6f6f;
+                    --success-color: #4caf50;
+                    color: var(--text-color) !important;
+                }
+
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    background-color: var(--bg-color);
+                    color: var(--text-color);
+                    padding: 3rem;
+                    padding-bottom: 80px; /* Space for bottom nav when collapsed */
+                    transition: padding-bottom 0.3s ease-in-out;
+                }
+                
+                body.bottom-nav-expanded {
+                    padding-bottom: 0;
+                }
+                .container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 20px;
+                    background-color: var(--bg-color);
+                    color: var(--text-color);
+                }
+                .global-header {
+                    position: sticky;
+                    top: 0;
+                    background-color: var(--bg-color);
+                    z-index: 1000;
+                    padding: 1rem;
+                    border-bottom: 1px solid var(--border-color);
+                    margin-bottom: 2rem;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+                .global-header .container {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 0;
+                }
+                .search-box {
+                    flex: 1;
+                    max-width: 400px;
+                    margin: 0 1rem;
+                }
+                .table-container {
+                    margin: 20px 0;
+                    overflow-x: auto;
+                    position: relative;
+                }
+                .table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 20px 0;
+                    background-color: var(--card-bg);
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+                }
+                .table thead {
+                    position: sticky;
+                    top: 0;
+                    z-index: 10;
+                }
+                .table th, .table td {
+                    padding: 12px;
+                    text-align: left;
+                    border-bottom: 1px solid #ddd;
+                    color: var(--text-color);
+                }
+                .table thead th, .table thead td {
+                    color: var(--text-color) !important;
+                }
+                h1 {
+                    color: var(--text-color);
+                    border-bottom: 2px solid var(--text-color);
+                    padding-bottom: 10px;
+                }
+                h2, h3 {
+                    color: var(--text-color);
+                }
+                .header {
+                    margin-bottom: 30px;
+                    position: sticky;
+                    top: 0;
+                    background-color: var(--bg-color);
+                    z-index: 100;
+                    padding: 1rem 0;
+                    border-bottom: 1px solid var(--border-color);
+                }
+                .header .level {
+                    margin-bottom: 0;
+                }
+                /*.params {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                    gap: 10px;
+                    margin-top: 10px;
+                }
+                .param {
+                    background: var(--card-bg);
+                    padding: 10px;
+                    border-radius: 4px;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                    color: var(--text-color);
+                }*/
+
+                
+       
+                tr:hover {
+                    background-color: var(--hover-bg);
+                }
+                .error {
+                    color: var(--error-color);
+                }
+                .success {
+                    color: var(--success-color);
+                }
+                .camera-coords {
+                    background-color: var(--card-bg);
+                    padding: 10px;
+                    border-radius: 4px;
+                    margin: 5px 0;
+                    color: var(--text-color);
+                }
+                .camera-coords ul {
+                    margin: 5px 0;
+                    padding-left: 20px;
+                }
+                .camera-coords p {
+                    margin: 5px 0;
+                }
+                details {
+                    cursor: pointer;
+                }
+                details summary {
+                    color: var(--accent-color);
+                }
+                details summary:hover {
+                    text-decoration: underline;
+                }
+                .image-preview {
+                    max-width: 200px;
+                    max-height: 200px;
+                    border: 1px solid var(--border-color);
+                    border-radius: 4px;
+                    object-fit: contain;
+                }
+                /* Instance layout modes (static export + server): toggled via og-layout--* on #instances-grid */
+                #instances-grid.og-layout--grid.columns.is-multiline {
+                    display: flex;
+                    flex-wrap: wrap;
+                    align-items: stretch;
+                    margin-left: -0.5rem;
+                    margin-right: -0.5rem;
+                }
+                /* InstanceCardV2 uses .column.is-full — override Bulma so several tiles fit per row */
+                #instances-grid.og-layout--grid.columns.is-multiline > .column.is-full {
+                    flex: 1 1 280px;
+                    width: auto !important;
+                    min-width: 0;
+                    max-width: min(420px, 100%);
+                    padding-left: 0.5rem;
+                    padding-right: 0.5rem;
+                }
+                #instances-grid.og-layout--list > .column {
+                    flex: none;
+                    width: 100%;
+                }
+                /* Slim horizontal row: thumb | title/meta | actions (extras hidden) */
+                .instance-card-v2__inner {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.65rem;
+                }
+                .instance-card-v2__body {
+                    min-width: 0;
+                }
+                .instance-card-v2__thumb {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.35rem;
+                    align-items: center;
+                }
+                .instance-card-v2__actions {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.45rem;
+                    align-items: center;
+                }
+                #instances-grid.og-layout--list .instance-card-v2 {
+                    margin-bottom: 0.4rem;
+                }
+                #instances-grid.og-layout--list .instance-card-v2 .card-content {
+                    padding: 0.4rem 0.55rem !important;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__inner {
+                    flex-direction: row;
+                    align-items: center;
+                    gap: 0.65rem;
+                    padding: 0;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__thumb {
+                    order: 1;
+                    flex: 0 0 auto;
+                    margin: 0 !important;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__body {
+                    order: 2;
+                    flex: 1 1 auto;
+                    min-width: 0;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.08rem;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__actions {
+                    order: 3;
+                    flex: 0 0 auto;
+                    flex-direction: column;
+                    align-items: stretch;
+                    gap: 0.28rem;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__extras {
+                    display: none !important;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__head.media {
+                    margin-bottom: 0 !important;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__head .title.is-4 {
+                    font-size: 1rem !important;
+                    margin-bottom: 0.05rem !important;
+                    line-height: 1.2 !important;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__head .subtitle.is-6 {
+                    font-size: 0.72rem !important;
+                    margin-top: 0 !important;
+                    line-height: 1.25 !important;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__meta {
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__meta .instance-card-v2__line {
+                    margin: 0 !important;
+                    font-size: 0.78rem !important;
+                    line-height: 1.28 !important;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__path {
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    max-width: 100%;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__thumb .image-preview {
+                    max-width: 52px !important;
+                    max-height: 52px !important;
+                }
+                #instances-grid.og-layout--large > .column {
+                    flex: none;
+                    width: 100%;
+                }
+                #instances-grid.og-layout--large .image-preview {
+                    max-width: 100%;
+                    max-height: min(75vh, 720px);
+                }
+                .image-error {
+                    color: var(--text-color);
+                    font-style: italic;
+                    font-size: 0.9em;
+                }
+                .button {
+                    color: var(--text-color) !important;
+                //    background-color: var(--card-bg) !important;
+                    border: 1px solid var(--border-color) !important;
+                }
+                pre, code {
+                    color: var(--text-color) !important;
+                    background-color: var(--card-bg) !important;
+                }
+                
+                /* Side Navigation Styles */
+                .menu-item {
+                    color: var(--text-color) !important;
+                    text-decoration: none;
+                    display: block;
+                    padding: 0.5rem;
+                    border-radius: 4px;
+                    transition: background-color 0.2s;
+                }
+                
+                .menu-item:hover {
+                    background-color: var(--hover-bg);
+                    color: var(--text-color) !important;
+                }
+                
+                .menu-item:active {
+                    background-color: var(--accent-color);
+                    color: white !important;
+                }
+                
+                .menu-list {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                }
+                
+                .menu-list li {
+                    margin-bottom: 0.5rem;
+                }
+                
+                .media {
+                    display: flex;
+                    align-items: center;
+                }
+                
+                .media-left {
+                    margin-right: 0.75rem;
+                }
+                
+                .media-content {
+                    flex: 1;
+                }
+                
+                .p-4 {
+                    padding: 1rem;
+                }
+                
+                .mb-1 {
+                    margin-bottom: 0.25rem;
+                }
+                
+                .mb-4 {
+                    margin-bottom: 1rem;
+                }
+                
+                .mt-2 {
+                    margin-top: 0.5rem;
+                }
+                
+                .has-text-grey {
+                    color: #6b7280 !important;
+                }
+                
+                .is-rounded {
+                    border-radius: 50%;
+                }
+                
+                /* Dark mode card styling */
+                .dark .card {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .card-content {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .card .title,
+                .dark .card .subtitle,
+                .dark .card-header-title {
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .card .content {
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .card .content strong {
+                    color: var(--text-color) !important;
+                }
+                
+                /* Dark mode navbar styling */
+                .dark .navbar {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .navbar-light {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .bg-light {
+                    background-color: var(--card-bg) !important;
+                }
+                
+                .dark .navbar-brand {
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .nav-link {
+                    color: var(--text-color) !important;
+                }
+                
+                .dark .nav-link:hover {
+                    color: var(--accent-color) !important;
+                }
+                
+                .dark .navbar-nav .nav-item.active .nav-link {
+                    color: var(--accent-color) !important;
+                }
+                
+                .dark .form-control {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                    border-color: var(--border-color) !important;
+                }
+                
+                .dark .btn {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                    border-color: var(--border-color) !important;
+                }
+                
+                .dark .btn:hover {
+                    background-color: var(--hover-bg) !important;
+                    color: var(--text-color) !important;
+                }
+                
+                /* Bottom Navigation Styles */
+                .bottom-nav {
+                    position: fixed;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    width: 100%;
+                    background-color: var(--card-bg);
+                    border-top: 2px solid var(--border-color);
+                    z-index: 1000;
+                    transition: all 0.3s ease-in-out;
+                    box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+                }
+                
+                .bottom-nav.collapsed {
+                    height: 100px;
+                    max-height: 100px;
+                    overflow: hidden;
+                }
+                
+                .bottom-nav.expanded {
+                    height: calc(100vh - 40px);
+                    max-height: calc(100vh - 40px);
+                }
+                
+                .bottom-nav-header {
+                    padding: 0.75rem 1rem;
+                    min-height: 100px;
+                    border-bottom: 1px solid var(--border-color);
+                }
+                
+                .bottom-nav-header .columns {
+                    align-items: center;
+                }
+                
+                #progress-summary {
+                    font-size: 0.875rem;
+                    word-wrap: break-word;
+                    overflow-wrap: break-word;
+                }
+                
+                .bottom-nav-content {
+                    padding: 1.5rem;
+                    overflow-y: auto;
+                    height: calc(100% - 60px);
+                }
+                
+                .bottom-nav-toggle {
+                    background: none;
+                    border: none;
+                    color: var(--text-color);
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                    padding: 0.5rem;
+                    transition: transform 0.3s ease;
+                }
+                
+                .bottom-nav-toggle:hover {
+                    transform: scale(1.1);
+                }
+                
+                .bottom-nav-toggle .icon {
+                    transition: transform 0.3s ease;
+                }
+                
+                .bottom-nav.expanded .bottom-nav-toggle .icon {
+                    transform: rotate(180deg);
+                }
+            </style></head><body :class="{ 'bottom-nav-expanded': bottomNavExpanded }"><div x-show="showDebug">Show DEBUG ON</div><div class="global-header fixed-grid"><nav class="navbar navbar-expand-lg navbar-light bg-light"><div><a class="navbar-brand">vape_lock_clip</a> <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button> </div><div class="collapse navbar-collapse" id="navbarSupportedContent"><ul class="navbar-nav mr-auto"><li class="nav-item" :class="{ active: navSelected === 'instances' }"><a class="nav-link" @click="navSelected = 'instances'">Instances (1)</a></li><li class="nav-item" :class="{ active: navSelected === 'stlResults' }"><a class="nav-link" @click="navSelected = 'stlResults'">STLs (1)</a></li><li class="nav-item" :class="{ active: navSelected === 'images' }"><a class="nav-link" @click="navSelected = 'images'">Images (1)</a></li></ul></div><div class="mb-3"><label class="form-label">Search Query</label> <input type="text" class="form-control" x-model="filters.searchQuery" placeholder="Search instances..."></div><div class="dropdown"><button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">🔍 Filters</button><ul class="dropdown-menu dropdown-menu-end" style="min-width: 400px; padding: 1rem;"><li><div class="mb-3"><label class="form-label">Name Pattern (Regex)</label> <input type="text" class="form-control" x-model="filters.namePattern" placeholder="e.g., ^test.*"></div></li><li><div class="mb-3"><label class="form-label">Description Pattern (Regex)</label> <input type="text" class="form-control" x-model="filters.descriptionPattern" placeholder="e.g., .*large.*"></div></li><li><div class="mb-3"><label class="form-label">Output Path Pattern (Regex)</label> <input type="text" class="form-control" x-model="filters.outputPathPattern" placeholder="e.g., .*\.stl$"></div></li><li><div class="mb-3"><div class="form-check"><input class="form-check-input" type="checkbox" x-model="filters.showOnlyWithImages" id="showOnlyWithImages"> <label class="form-check-label" for="showOnlyWithImages">Only with images</label></div><div class="form-check"><input class="form-check-input" type="checkbox" x-model="filters.showInstancesWithoutImages" id="showInstancesWithoutImages"> <label class="form-check-label" for="showInstancesWithoutImages">Only without images</label></div><div class="form-check"><input class="form-check-input" type="checkbox" x-model="filters.showOnlyWithErrors" id="showOnlyWithErrors"> <label class="form-check-label" for="showOnlyWithErrors">Only with errors</label></div><div class="form-check"><input class="form-check-input" type="checkbox" x-model="filters.showOnlySkipped" id="showOnlySkipped"> <label class="form-check-label" for="showOnlySkipped">Only skipped</label></div><div class="form-check"><input class="form-check-input" type="checkbox" x-model="filters.showOnlySuccessful" id="showOnlySuccessful"> <label class="form-check-label" for="showOnlySuccessful">Only successful</label></div></div></li><li><div class="d-flex gap-2"><button class="btn btn-outline-secondary btn-sm" @click="clearAllFilters()">Clear All</button> <button class="btn btn-outline-primary btn-sm" @click="$el.closest('.dropdown').querySelector('.dropdown-toggle').click()">Apply</button></div></li></ul></div><div class="ml-2"><button class="btn btn-outline-secondary" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button> <button class="btn btn-outline-secondary ml-1" @click="showDebug = !showDebug"><span x-show="!showDebug">🐛</span> <span x-show="showDebug">🐛</span> <span x-show="showDebug" style="text-decoration: underline;">Debug</span></button></div></nav></div><div class="container-fluid" id="main-content"><!-- Main Content --><div class="container"><div><div x-show="navSelected === &#39;instances&#39;"><h3>Instances (1)</h3></div><div x-show="navSelected === &#39;instances&#39;"><div class="field is-grouped is-grouped-multiline mb-3 og-instance-toolbar" style="align-items: flex-end;"><div class="control"><label class="label" for="og-instance-class-filter">Class (renderType)</label><div class="select"><select id="og-instance-class-filter" x-model="instanceClassFilter"><option value="all">All</option><template x-for="c in instanceClassOptions" :key="c"><option :value="c" x-text="c"></option></template></select></div></div><div class="control"><label class="label">Layout</label><div class="buttons has-addons"><button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'list'}" @click="instanceLayout = 'list'">List</button> <button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'grid'}" @click="instanceLayout = 'grid'">Grid</button> <button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'large'}" @click="instanceLayout = 'large'">Large</button></div></div></div><div id="instances-grid" class="columns is-multiline" :class="'og-layout--' + instanceLayout"><style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">Instance vape_lock_clip</summary><div class="json-viewer-content"><pre class="json-pretty">{
+  &#34;ID&#34;: &#34;vape_lock_clip&#34;,
+  &#34;Name&#34;: &#34;default&#34;,
+  &#34;AutoName&#34;: &#34;vape_lock_clip&#34;,
+  &#34;Description&#34;: &#34;&#34;,
+  &#34;ExportNameFormat&#34;: &#34;&#34;,
+  &#34;InputPath&#34;: {
+    &#34;Path&#34;: &#34;./vape_lock_clip.scad&#34;,
+    &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+    &#34;RawOpenSCADFileName&#34;: &#34;vape_lock_clip&#34;,
+    &#34;ExportNameFormat&#34;: &#34;&#34;,
+    &#34;ParamSets&#34;: &#34;&#34;,
+    &#34;Params&#34;: {},
+    &#34;SkipImages&#34;: false,
+    &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+  },
+  &#34;Params&#34;: {
+    &#34;designFileName&#34;: &#34;vape_lock_clip&#34;,
+    &#34;name&#34;: &#34;default&#34;,
+    &#34;version&#34;: &#34;v0.1&#34;
+  },
+  &#34;PartIDLetter&#34;: &#34;A&#34;,
+  &#34;UniqueID&#34;: &#34;vape_lock_clip&#34;,
+  &#34;ConfigError&#34;: &#34;&#34;,
+  &#34;OutputPathV2&#34;: &#34;&#34;,
+  &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl&#34;,
+  &#34;RunOutputPathRelative&#34;: &#34;../export/v0.1/vape_lock_clip.stl&#34;,
+  &#34;IgnoredParams&#34;: null,
+  &#34;ImageResults&#34;: [
+    {
+      &#34;InstanceConfig&#34;: {
+        &#34;ID&#34;: &#34;vape_lock_clip&#34;,
+        &#34;Name&#34;: &#34;default&#34;,
+        &#34;AutoName&#34;: &#34;vape_lock_clip&#34;,
+        &#34;Description&#34;: &#34;&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;InputPath&#34;: {
+          &#34;Path&#34;: &#34;./vape_lock_clip.scad&#34;,
+          &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+          &#34;RawOpenSCADFileName&#34;: &#34;vape_lock_clip&#34;,
+          &#34;ExportNameFormat&#34;: &#34;&#34;,
+          &#34;ParamSets&#34;: &#34;&#34;,
+          &#34;Params&#34;: {},
+          &#34;SkipImages&#34;: false,
+          &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+        },
+        &#34;Params&#34;: {
+          &#34;designFileName&#34;: &#34;vape_lock_clip&#34;,
+          &#34;name&#34;: &#34;default&#34;,
+          &#34;version&#34;: &#34;v0.1&#34;
+        },
+        &#34;PartIDLetter&#34;: &#34;A&#34;,
+        &#34;UniqueID&#34;: &#34;vape_lock_clip&#34;,
+        &#34;ConfigError&#34;: &#34;&#34;,
+        &#34;OutputPathV2&#34;: &#34;&#34;,
+        &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl&#34;,
+        &#34;RunOutputPathRelative&#34;: &#34;../export/v0.1/vape_lock_clip.stl&#34;,
+        &#34;IgnoredParams&#34;: null,
+        &#34;ImageResults&#34;: [],
+        &#34;ExportImages&#34;: [
+          {
+            &#34;CameraName&#34;: &#34;nice&#34;,
+            &#34;CameraCoordinates&#34;: &#34;0,0,0,45,0,45,350&#34;,
+            &#34;ImageSize&#34;: &#34;&#34;,
+            &#34;ParamFilter&#34;: null,
+            &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip-nice.png&#34;
+          }
+        ],
+        &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip&#34;,
+        &#34;InputConfigFilePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/config.toml&#34;,
+        &#34;InputConfigFilePathRelative&#34;: &#34;vape_lock_clip/config.toml&#34;,
+        &#34;SkipImages&#34;: false,
+        &#34;SkippedReason&#34;: &#34;&#34;,
+        &#34;SkippedImageReason&#34;: &#34;&#34;,
+        &#34;IsComplete&#34;: false,
+        &#34;IsSuccessful&#34;: true,
+        &#34;CompletedAt&#34;: &#34;0001-01-01T00:00:00Z&#34;,
+        &#34;STLResults&#34;: [
+          {
+            &#34;InstanceConfig&#34;: {
+              &#34;ID&#34;: &#34;vape_lock_clip&#34;,
+              &#34;Name&#34;: &#34;default&#34;,
+              &#34;AutoName&#34;: &#34;vape_lock_clip&#34;,
+              &#34;Description&#34;: &#34;&#34;,
+              &#34;ExportNameFormat&#34;: &#34;&#34;,
+              &#34;InputPath&#34;: {
+                &#34;Path&#34;: &#34;./vape_lock_clip.scad&#34;,
+                &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+                &#34;RawOpenSCADFileName&#34;: &#34;vape_lock_clip&#34;,
+                &#34;ExportNameFormat&#34;: &#34;&#34;,
+                &#34;ParamSets&#34;: &#34;&#34;,
+                &#34;Params&#34;: {},
+                &#34;SkipImages&#34;: false,
+                &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+              },
+              &#34;Params&#34;: {
+                &#34;designFileName&#34;: &#34;vape_lock_clip&#34;,
+                &#34;name&#34;: &#34;default&#34;,
+                &#34;version&#34;: &#34;v0.1&#34;
+              },
+              &#34;PartIDLetter&#34;: &#34;A&#34;,
+              &#34;UniqueID&#34;: &#34;vape_lock_clip&#34;,
+              &#34;ConfigError&#34;: &#34;&#34;,
+              &#34;OutputPathV2&#34;: &#34;&#34;,
+              &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl&#34;,
+              &#34;RunOutputPathRelative&#34;: &#34;../export/v0.1/vape_lock_clip.stl&#34;,
+              &#34;IgnoredParams&#34;: null,
+              &#34;ImageResults&#34;: [],
+              &#34;ExportImages&#34;: [
+                {
+                  &#34;CameraName&#34;: &#34;nice&#34;,
+                  &#34;CameraCoordinates&#34;: &#34;0,0,0,45,0,45,350&#34;,
+                  &#34;ImageSize&#34;: &#34;&#34;,
+                  &#34;ParamFilter&#34;: null,
+                  &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip-nice.png&#34;
+                }
+              ],
+              &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip&#34;,
+              &#34;InputConfigFilePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/config.toml&#34;,
+              &#34;InputConfigFilePathRelative&#34;: &#34;vape_lock_clip/config.toml&#34;,
+              &#34;SkipImages&#34;: false,
+              &#34;SkippedReason&#34;: &#34;&#34;,
+              &#34;SkippedImageReason&#34;: &#34;&#34;,
+              &#34;IsComplete&#34;: false,
+              &#34;IsSuccessful&#34;: false,
+              &#34;CompletedAt&#34;: &#34;0001-01-01T00:00:00Z&#34;,
+              &#34;STLResults&#34;: null
+            },
+            &#34;OutputPath&#34;: &#34;&#34;,
+            &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl&#39; --render -D &#39;designFileName=\&#34;vape_lock_clip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/vape_lock_clip.scad&#34;,
+            &#34;CommandOutput&#34;: &#34;Geometries in cache: 29\nGeometry cache size in bytes: 580520\nCGAL Polyhedrons in cache: 43\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.173\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:      960\n   Facets:       1916\n&#34;,
+            &#34;Error&#34;: &#34;&#34;,
+            &#34;AppliedParams&#34;: {
+              &#34;designFileName&#34;: &#34;vape_lock_clip&#34;,
+              &#34;name&#34;: &#34;default&#34;,
+              &#34;version&#34;: &#34;v0.1&#34;
+            },
+            &#34;TimeTaken&#34;: 498556042,
+            &#34;OutputLog&#34;: &#34;Geometries in cache: 29\nGeometry cache size in bytes: 580520\nCGAL Polyhedrons in cache: 43\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.173\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:      960\n   Facets:       1916\n&#34;,
+            &#34;Skipped&#34;: false,
+            &#34;LowQuality&#34;: false,
+            &#34;SkippedReason&#34;: &#34;&#34;,
+            &#34;GenerateImageResult&#34;: null
+          }
+        ]
+      },
+      &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip-nice.png&#34;,
+      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;designFileName=\&#34;vape_lock_clip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/vape_lock_clip.scad&#34;,
+      &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file vape_lock_clip.scad, line 36\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 3 elements\nGeometries in cache: 26\nGeometry cache size in bytes: 462608\nCGAL Polyhedrons in cache: 36\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.243\n&#34;,
+      &#34;Error&#34;: &#34;&#34;,
+      &#34;AppliedParams&#34;: {
+        &#34;designFileName&#34;: &#34;vape_lock_clip&#34;,
+        &#34;name&#34;: &#34;default&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;TimeTaken&#34;: 537486958,
+      &#34;Skipped&#34;: false,
+      &#34;CameraName&#34;: &#34;nice&#34;,
+      &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
+    }
+  ],
+  &#34;ExportImages&#34;: [
+    {
+      &#34;CameraName&#34;: &#34;nice&#34;,
+      &#34;CameraCoordinates&#34;: &#34;0,0,0,45,0,45,350&#34;,
+      &#34;ImageSize&#34;: &#34;&#34;,
+      &#34;ParamFilter&#34;: null,
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip-nice.png&#34;
+    }
+  ],
+  &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip&#34;,
+  &#34;InputConfigFilePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/config.toml&#34;,
+  &#34;InputConfigFilePathRelative&#34;: &#34;vape_lock_clip/config.toml&#34;,
+  &#34;SkipImages&#34;: false,
+  &#34;SkippedReason&#34;: &#34;&#34;,
+  &#34;SkippedImageReason&#34;: &#34;&#34;,
+  &#34;IsComplete&#34;: true,
+  &#34;IsSuccessful&#34;: true,
+  &#34;CompletedAt&#34;: &#34;2026-04-19T18:57:55.304673+12:00&#34;,
+  &#34;STLResults&#34;: [
+    {
+      &#34;InstanceConfig&#34;: {
+        &#34;ID&#34;: &#34;vape_lock_clip&#34;,
+        &#34;Name&#34;: &#34;default&#34;,
+        &#34;AutoName&#34;: &#34;vape_lock_clip&#34;,
+        &#34;Description&#34;: &#34;&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;InputPath&#34;: {
+          &#34;Path&#34;: &#34;./vape_lock_clip.scad&#34;,
+          &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+          &#34;RawOpenSCADFileName&#34;: &#34;vape_lock_clip&#34;,
+          &#34;ExportNameFormat&#34;: &#34;&#34;,
+          &#34;ParamSets&#34;: &#34;&#34;,
+          &#34;Params&#34;: {},
+          &#34;SkipImages&#34;: false,
+          &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+        },
+        &#34;Params&#34;: {
+          &#34;designFileName&#34;: &#34;vape_lock_clip&#34;,
+          &#34;name&#34;: &#34;default&#34;,
+          &#34;version&#34;: &#34;v0.1&#34;
+        },
+        &#34;PartIDLetter&#34;: &#34;A&#34;,
+        &#34;UniqueID&#34;: &#34;vape_lock_clip&#34;,
+        &#34;ConfigError&#34;: &#34;&#34;,
+        &#34;OutputPathV2&#34;: &#34;&#34;,
+        &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl&#34;,
+        &#34;RunOutputPathRelative&#34;: &#34;../export/v0.1/vape_lock_clip.stl&#34;,
+        &#34;IgnoredParams&#34;: null,
+        &#34;ImageResults&#34;: [],
+        &#34;ExportImages&#34;: [
+          {
+            &#34;CameraName&#34;: &#34;nice&#34;,
+            &#34;CameraCoordinates&#34;: &#34;0,0,0,45,0,45,350&#34;,
+            &#34;ImageSize&#34;: &#34;&#34;,
+            &#34;ParamFilter&#34;: null,
+            &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip-nice.png&#34;
+          }
+        ],
+        &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip&#34;,
+        &#34;InputConfigFilePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/config.toml&#34;,
+        &#34;InputConfigFilePathRelative&#34;: &#34;vape_lock_clip/config.toml&#34;,
+        &#34;SkipImages&#34;: false,
+        &#34;SkippedReason&#34;: &#34;&#34;,
+        &#34;SkippedImageReason&#34;: &#34;&#34;,
+        &#34;IsComplete&#34;: false,
+        &#34;IsSuccessful&#34;: false,
+        &#34;CompletedAt&#34;: &#34;0001-01-01T00:00:00Z&#34;,
+        &#34;STLResults&#34;: null
+      },
+      &#34;OutputPath&#34;: &#34;&#34;,
+      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl&#39; --render -D &#39;designFileName=\&#34;vape_lock_clip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/vape_lock_clip.scad&#34;,
+      &#34;CommandOutput&#34;: &#34;Geometries in cache: 29\nGeometry cache size in bytes: 580520\nCGAL Polyhedrons in cache: 43\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.173\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:      960\n   Facets:       1916\n&#34;,
+      &#34;Error&#34;: &#34;&#34;,
+      &#34;AppliedParams&#34;: {
+        &#34;designFileName&#34;: &#34;vape_lock_clip&#34;,
+        &#34;name&#34;: &#34;default&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;TimeTaken&#34;: 498556042,
+      &#34;OutputLog&#34;: &#34;Geometries in cache: 29\nGeometry cache size in bytes: 580520\nCGAL Polyhedrons in cache: 43\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.173\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:      960\n   Facets:       1916\n&#34;,
+      &#34;Skipped&#34;: false,
+      &#34;LowQuality&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;GenerateImageResult&#34;: null
+    }
+  ]
+}</pre></div></details><div x-show="showDebug">[[InstanceCardV2 - vape_lock_clip]]</div><div x-show="showDebug" class="debug-filter-status" style="border-radius: 4px; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px;"><details><summary tyle="font-weight: bold; margin-bottom: 8px;">🔍 Filter Debug for vape_lock_clip</summary><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(showDebug)"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(showDebug)"></i></span> <span style="margin-left: 8px;">showDebug: showDebug</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.showOnlyWithImages)"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.showOnlyWithImages)"></i></span> <span style="margin-left: 8px;">filters.showOnlyWithImages: filters.showOnlyWithImages</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.showOnlyWithImages || (1 &gt; 0 || 1 &gt; 0))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.showOnlyWithImages || (1 &gt; 0 || 1 &gt; 0))"></i></span> <span style="margin-left: 8px;">showOnlyWithImages: filters.showOnlyWithImages || (1 &gt; 0 || 1 &gt; 0)</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.searchQuery === &#39;&#39; || (&#39;%s %s %s&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.searchQuery === &#39;&#39; || (&#39;%s %s %s&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()))"></i></span> <span style="margin-left: 8px;">Search: &#39;vape_lock_clip&#39;: filters.searchQuery === &#39;&#39; || (&#39;%s %s %s&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.namePattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.namePattern.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.namePattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.namePattern.toLowerCase()))"></i></span> <span style="margin-left: 8px;">vape_lock_clip: filters.namePattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.descriptionPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.descriptionPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase()))"></i></span> <span style="margin-left: 8px;">: filters.descriptionPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.outputPathPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.outputPathPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase()))"></i></span> <span style="margin-left: 8px;">/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl: filters.outputPathPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.searchQuery === &#39;&#39; || (&#39;default  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;default&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;)) &amp;&amp;
+        (instanceClassFilter === &#39;all&#39; || instanceClassFilter === &#34;default&#34;))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.searchQuery === &#39;&#39; || (&#39;default  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;default&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;)) &amp;&amp;
+        (instanceClassFilter === &#39;all&#39; || instanceClassFilter === &#34;default&#34;))"></i></span> <span style="margin-left: 8px;">FINAL RESULT: filters.searchQuery === &#39;&#39; || (&#39;default  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;default&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;)) &amp;&amp;
+        (instanceClassFilter === &#39;all&#39; || instanceClassFilter === &#34;default&#34;)</span></div></details></div><div class="column is-full" id="instance-vape_lock_clip" hx-swap-oob="true" data-og-class="default" x-show="filters.searchQuery === &#39;&#39; || (&#39;default  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
+        (filters.namePattern === &#39;&#39; || &#39;default&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
+        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
+        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
+        (!filters.showOnlyWithImages || 1 &gt; 0 || 1 &gt; 0) &amp;&amp;
+        (!filters.showInstancesWithoutImages || (1 === 0 &amp;&amp; 1 === 0)) &amp;&amp;
+        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
+        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;)) &amp;&amp;
+        (instanceClassFilter === &#39;all&#39; || instanceClassFilter === &#34;default&#34;)"><div class="card instance-card-v2"><div class="card-content instance-card-v2__inner"><div class="instance-card-v2__body"><div class="media instance-card-v2__head"><div class="media-content"><p class="title is-4">vape_lock_clip</p></div></div><div class="content instance-card-v2__meta"><p class="has-text-success instance-card-v2__line"><i class="fas fa-check-circle"></i> 18:57 2026-04-19</p><p class="instance-card-v2__line instance-card-v2__path"><span class="has-text-weight-semibold">Output:</span> ../vape_lock_clip.stl</p></div></div><div class="instance-card-v2__thumb"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip-nice.png" alt="Preview of default from nice" class="image-preview"></div><div class="instance-card-v2__extras"><div class="is-full-width" id="instance-slim-row-vape_lock_clip"><details><summary class="columns"><div class="column is-narrow">vape_lock_clip</div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"><i class="fas fa-cog"></i></div></summary><div class="card"><div class="card-content"><div class="media"><div class="media-content"><div class="columns is-multiline"></div><div class="code-block"><div><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;vape_lock_clip&#34;;
+name = &#34;default&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>designFileName:</strong> vape_lock_clip</div><div class="cell is-one-third"><strong>name:</strong> default</div><div class="cell is-one-third"><strong>version:</strong> v0.1</div></div></div></details></div></div><details><summary>Command Output</summary>  <details><summary class="has-text-success">[498.56ms] - vape_lock_clip</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl&#39; --render -D &#39;designFileName=&#34;vape_lock_clip&#34;&#39; -D &#39;name=&#34;default&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/vape_lock_clip.scad</pre></code></div></details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>Geometries in cache: 29
+Geometry cache size in bytes: 580520
+CGAL Polyhedrons in cache: 43
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.173
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      0
+   Vertices:      960
+   Facets:       1916
+</pre></code></div></details></div></div></div></div></details></div></div><div class="instance-card-v2__actions"></div></div></div></div></div> <div class="my-2"></div></div></div><div><div x-show="navSelected === &#39;stlResults&#39;"><h3>STLs (1)</h3></div><div x-show="navSelected === &#39;stlResults&#39;"><style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">STLs</summary><div class="json-viewer-content"><pre class="json-pretty">[
+  {
+    &#34;InstanceConfig&#34;: {
+      &#34;ID&#34;: &#34;vape_lock_clip&#34;,
+      &#34;Name&#34;: &#34;default&#34;,
+      &#34;AutoName&#34;: &#34;vape_lock_clip&#34;,
+      &#34;Description&#34;: &#34;&#34;,
+      &#34;ExportNameFormat&#34;: &#34;&#34;,
+      &#34;InputPath&#34;: {
+        &#34;Path&#34;: &#34;./vape_lock_clip.scad&#34;,
+        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+        &#34;RawOpenSCADFileName&#34;: &#34;vape_lock_clip&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;ParamSets&#34;: &#34;&#34;,
+        &#34;Params&#34;: {},
+        &#34;SkipImages&#34;: false,
+        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+      },
+      &#34;Params&#34;: {
+        &#34;designFileName&#34;: &#34;vape_lock_clip&#34;,
+        &#34;name&#34;: &#34;default&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;PartIDLetter&#34;: &#34;A&#34;,
+      &#34;UniqueID&#34;: &#34;vape_lock_clip&#34;,
+      &#34;ConfigError&#34;: &#34;&#34;,
+      &#34;OutputPathV2&#34;: &#34;&#34;,
+      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl&#34;,
+      &#34;RunOutputPathRelative&#34;: &#34;../export/v0.1/vape_lock_clip.stl&#34;,
+      &#34;IgnoredParams&#34;: null,
+      &#34;ImageResults&#34;: [],
+      &#34;ExportImages&#34;: [
+        {
+          &#34;CameraName&#34;: &#34;nice&#34;,
+          &#34;CameraCoordinates&#34;: &#34;0,0,0,45,0,45,350&#34;,
+          &#34;ImageSize&#34;: &#34;&#34;,
+          &#34;ParamFilter&#34;: null,
+          &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip-nice.png&#34;
+        }
+      ],
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip&#34;,
+      &#34;InputConfigFilePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/config.toml&#34;,
+      &#34;InputConfigFilePathRelative&#34;: &#34;vape_lock_clip/config.toml&#34;,
+      &#34;SkipImages&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;SkippedImageReason&#34;: &#34;&#34;,
+      &#34;IsComplete&#34;: false,
+      &#34;IsSuccessful&#34;: false,
+      &#34;CompletedAt&#34;: &#34;0001-01-01T00:00:00Z&#34;,
+      &#34;STLResults&#34;: null
+    },
+    &#34;OutputPath&#34;: &#34;&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl&#39; --render -D &#39;designFileName=\&#34;vape_lock_clip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/vape_lock_clip.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;Geometries in cache: 29\nGeometry cache size in bytes: 580520\nCGAL Polyhedrons in cache: 43\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.173\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:      960\n   Facets:       1916\n&#34;,
+    &#34;Error&#34;: &#34;&#34;,
+    &#34;AppliedParams&#34;: {
+      &#34;designFileName&#34;: &#34;vape_lock_clip&#34;,
+      &#34;name&#34;: &#34;default&#34;,
+      &#34;version&#34;: &#34;v0.1&#34;
+    },
+    &#34;TimeTaken&#34;: 498556042,
+    &#34;OutputLog&#34;: &#34;Geometries in cache: 29\nGeometry cache size in bytes: 580520\nCGAL Polyhedrons in cache: 43\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.173\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:      960\n   Facets:       1916\n&#34;,
+    &#34;Skipped&#34;: false,
+    &#34;LowQuality&#34;: false,
+    &#34;SkippedReason&#34;: &#34;&#34;,
+    &#34;GenerateImageResult&#34;: null
+  }
+]</pre></div></details> <div class="columns is-multiline"><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">vape_lock_clip</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 498.556042ms</p><p><strong>Applied Params 1:</strong></p><div class="code-block"><div><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;vape_lock_clip&#34;;
+name = &#34;default&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></div><div x-show="showDebug"><details><summary>Debug Info</summary> <details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl&#39; --render -D &#39;designFileName=&#34;vape_lock_clip&#34;&#39; -D &#39;name=&#34;default&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/vape_lock_clip.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>Geometries in cache: 29
+Geometry cache size in bytes: 580520
+CGAL Polyhedrons in cache: 43
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.173
+   Top level object is a 3D object (manifold):
+   Status:     NoError
+   Genus:      0
+   Vertices:      960
+   Facets:       1916
+</pre></code></div></details></details></div></div></div></div></div></div></div></div><div><div x-show="navSelected === &#39;images&#39;"><h3>Image Results (1)</h3></div><div x-show="navSelected === &#39;images&#39;"><style>
+        .json-viewer {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+        
+        .json-viewer-title {
+            padding: 8px 12px;
+            background: #e9e9e9;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .json-viewer-title:hover {
+            background: #ddd;
+        }
+        
+        .json-viewer-content {
+            padding: 12px;
+            background: white;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .json-pretty {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">Image Results</summary><div class="json-viewer-content"><pre class="json-pretty">[
+  {
+    &#34;InstanceConfig&#34;: {
+      &#34;ID&#34;: &#34;vape_lock_clip&#34;,
+      &#34;Name&#34;: &#34;default&#34;,
+      &#34;AutoName&#34;: &#34;vape_lock_clip&#34;,
+      &#34;Description&#34;: &#34;&#34;,
+      &#34;ExportNameFormat&#34;: &#34;&#34;,
+      &#34;InputPath&#34;: {
+        &#34;Path&#34;: &#34;./vape_lock_clip.scad&#34;,
+        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+        &#34;RawOpenSCADFileName&#34;: &#34;vape_lock_clip&#34;,
+        &#34;ExportNameFormat&#34;: &#34;&#34;,
+        &#34;ParamSets&#34;: &#34;&#34;,
+        &#34;Params&#34;: {},
+        &#34;SkipImages&#34;: false,
+        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+      },
+      &#34;Params&#34;: {
+        &#34;designFileName&#34;: &#34;vape_lock_clip&#34;,
+        &#34;name&#34;: &#34;default&#34;,
+        &#34;version&#34;: &#34;v0.1&#34;
+      },
+      &#34;PartIDLetter&#34;: &#34;A&#34;,
+      &#34;UniqueID&#34;: &#34;vape_lock_clip&#34;,
+      &#34;ConfigError&#34;: &#34;&#34;,
+      &#34;OutputPathV2&#34;: &#34;&#34;,
+      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl&#34;,
+      &#34;RunOutputPathRelative&#34;: &#34;../export/v0.1/vape_lock_clip.stl&#34;,
+      &#34;IgnoredParams&#34;: null,
+      &#34;ImageResults&#34;: [],
+      &#34;ExportImages&#34;: [
+        {
+          &#34;CameraName&#34;: &#34;nice&#34;,
+          &#34;CameraCoordinates&#34;: &#34;0,0,0,45,0,45,350&#34;,
+          &#34;ImageSize&#34;: &#34;&#34;,
+          &#34;ParamFilter&#34;: null,
+          &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip-nice.png&#34;
+        }
+      ],
+      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip&#34;,
+      &#34;InputConfigFilePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/config.toml&#34;,
+      &#34;InputConfigFilePathRelative&#34;: &#34;vape_lock_clip/config.toml&#34;,
+      &#34;SkipImages&#34;: false,
+      &#34;SkippedReason&#34;: &#34;&#34;,
+      &#34;SkippedImageReason&#34;: &#34;&#34;,
+      &#34;IsComplete&#34;: false,
+      &#34;IsSuccessful&#34;: true,
+      &#34;CompletedAt&#34;: &#34;0001-01-01T00:00:00Z&#34;,
+      &#34;STLResults&#34;: [
+        {
+          &#34;InstanceConfig&#34;: {
+            &#34;ID&#34;: &#34;vape_lock_clip&#34;,
+            &#34;Name&#34;: &#34;default&#34;,
+            &#34;AutoName&#34;: &#34;vape_lock_clip&#34;,
+            &#34;Description&#34;: &#34;&#34;,
+            &#34;ExportNameFormat&#34;: &#34;&#34;,
+            &#34;InputPath&#34;: {
+              &#34;Path&#34;: &#34;./vape_lock_clip.scad&#34;,
+              &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
+              &#34;RawOpenSCADFileName&#34;: &#34;vape_lock_clip&#34;,
+              &#34;ExportNameFormat&#34;: &#34;&#34;,
+              &#34;ParamSets&#34;: &#34;&#34;,
+              &#34;Params&#34;: {},
+              &#34;SkipImages&#34;: false,
+              &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
+            },
+            &#34;Params&#34;: {
+              &#34;designFileName&#34;: &#34;vape_lock_clip&#34;,
+              &#34;name&#34;: &#34;default&#34;,
+              &#34;version&#34;: &#34;v0.1&#34;
+            },
+            &#34;PartIDLetter&#34;: &#34;A&#34;,
+            &#34;UniqueID&#34;: &#34;vape_lock_clip&#34;,
+            &#34;ConfigError&#34;: &#34;&#34;,
+            &#34;OutputPathV2&#34;: &#34;&#34;,
+            &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl&#34;,
+            &#34;RunOutputPathRelative&#34;: &#34;../export/v0.1/vape_lock_clip.stl&#34;,
+            &#34;IgnoredParams&#34;: null,
+            &#34;ImageResults&#34;: [],
+            &#34;ExportImages&#34;: [
+              {
+                &#34;CameraName&#34;: &#34;nice&#34;,
+                &#34;CameraCoordinates&#34;: &#34;0,0,0,45,0,45,350&#34;,
+                &#34;ImageSize&#34;: &#34;&#34;,
+                &#34;ParamFilter&#34;: null,
+                &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip-nice.png&#34;
+              }
+            ],
+            &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip&#34;,
+            &#34;InputConfigFilePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/config.toml&#34;,
+            &#34;InputConfigFilePathRelative&#34;: &#34;vape_lock_clip/config.toml&#34;,
+            &#34;SkipImages&#34;: false,
+            &#34;SkippedReason&#34;: &#34;&#34;,
+            &#34;SkippedImageReason&#34;: &#34;&#34;,
+            &#34;IsComplete&#34;: false,
+            &#34;IsSuccessful&#34;: false,
+            &#34;CompletedAt&#34;: &#34;0001-01-01T00:00:00Z&#34;,
+            &#34;STLResults&#34;: null
+          },
+          &#34;OutputPath&#34;: &#34;&#34;,
+          &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip.stl&#39; --render -D &#39;designFileName=\&#34;vape_lock_clip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/vape_lock_clip.scad&#34;,
+          &#34;CommandOutput&#34;: &#34;Geometries in cache: 29\nGeometry cache size in bytes: 580520\nCGAL Polyhedrons in cache: 43\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.173\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:      960\n   Facets:       1916\n&#34;,
+          &#34;Error&#34;: &#34;&#34;,
+          &#34;AppliedParams&#34;: {
+            &#34;designFileName&#34;: &#34;vape_lock_clip&#34;,
+            &#34;name&#34;: &#34;default&#34;,
+            &#34;version&#34;: &#34;v0.1&#34;
+          },
+          &#34;TimeTaken&#34;: 498556042,
+          &#34;OutputLog&#34;: &#34;Geometries in cache: 29\nGeometry cache size in bytes: 580520\nCGAL Polyhedrons in cache: 43\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.173\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:      960\n   Facets:       1916\n&#34;,
+          &#34;Skipped&#34;: false,
+          &#34;LowQuality&#34;: false,
+          &#34;SkippedReason&#34;: &#34;&#34;,
+          &#34;GenerateImageResult&#34;: null
+        }
+      ]
+    },
+    &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip-nice.png&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;designFileName=\&#34;vape_lock_clip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/vape_lock_clip.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file vape_lock_clip.scad, line 36\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 3 elements\nGeometries in cache: 26\nGeometry cache size in bytes: 462608\nCGAL Polyhedrons in cache: 36\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.243\n&#34;,
+    &#34;Error&#34;: &#34;&#34;,
+    &#34;AppliedParams&#34;: {
+      &#34;designFileName&#34;: &#34;vape_lock_clip&#34;,
+      &#34;name&#34;: &#34;default&#34;,
+      &#34;version&#34;: &#34;v0.1&#34;
+    },
+    &#34;TimeTaken&#34;: 537486958,
+    &#34;Skipped&#34;: false,
+    &#34;CameraName&#34;: &#34;nice&#34;,
+    &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
+  }
+]</pre></div></details> <div class="columns is-multiline"><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">default</p><p class="subtitle is-6">Camera: nice</p></div></div><div class="content"><p><strong>Output Path:</strong> ../vape_lock_clip-nice.png</p><p><strong>Time Taken:</strong> 537.49ms</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><div><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;vape_lock_clip&#34;;
+name = &#34;default&#34;;
+version = &#34;v0.1&#34;;
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip-nice.png" alt="Preview of default from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip-nice.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/vape_lock_clip-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=&#34;image&#34; -D &#39;designFileName=&#34;vape_lock_clip&#34;&#39; -D &#39;name=&#34;default&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/vape_lock_clip.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>WARNING: Ignoring unknown variable &#34;image&#34; in file vape_lock_clip.scad, line 36
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
+Compiling design (CSG Products normalization)...
+Normalized CSG tree has 3 elements
+Geometries in cache: 26
+Geometry cache size in bytes: 462608
+CGAL Polyhedrons in cache: 36
+CGAL cache size in bytes: 0
+Total rendering time: 0:00:00.243
+</pre></code></div></details></div></div></div></div></div></div></div><div></div></div><script>
+            
+            // window.htmx && (htmx.config.debug = true);
+
+            // Log all htmx events
+            document.body.addEventListener('htmx:afterRequest', function(evt) {
+                console.log('htmx:afterRequest', evt);
+            });
+            document.body.addEventListener('htmx:sendError', function(evt) {
+                console.error('htmx:sendError', evt);
+            });
+            document.body.addEventListener('htmx:responseError', function(evt) {
+                console.error('htmx:responseError', evt);
+            });
+            document.body.addEventListener('htmx:beforeRequest', function(evt) {
+                console.log('htmx:beforeRequest', evt);
+            });
+            document.body.addEventListener('htmx:beforeSend', function(evt) {
+                console.log('htmx:beforeSend', evt);
+            });
+            document.body.addEventListener('htmx:afterOnLoad', function(evt) {
+                console.log('htmx:afterOnLoad', evt);
+            });
+        </script><div><h1>Config Summary</h1><p>Output Path: /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/report.html</p><p>Total Time: 1 second</p><p>No global parameters</p><h2>Output Paths</h2><p><strong>OutputPath:</strong> /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/vape_lock_clip/export/v0.1/report.html</p><p class="is-size-6 is-italic is-text-grey is-centered">Total processing time: 1 second</p><p class="is-size-6 is-italic is-text-grey is-centered">Generated by openscadgen OpenSCAD version 2025.11.10 v2.7.35 at 2026-04-19 18:57:55</p><br><br><br><br></div></div></body></html>

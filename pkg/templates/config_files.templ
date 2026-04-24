@@ -178,6 +178,21 @@ html, body {
                 h2, h3 {
                     color: var(--text-color);
                 }
+                .create-project-accordion summary {
+                    cursor: pointer;
+                    color: var(--text-color);
+                    font-size: 1.25rem;
+                    font-weight: 600;
+                    list-style-position: outside;
+                }
+                .create-project-accordion summary:hover {
+                    color: var(--accent-color);
+                }
+                .create-project-accordion[open] summary {
+                    margin-bottom: 0.75rem;
+                    padding-bottom: 0.75rem;
+                    border-bottom: 1px solid var(--border-color);
+                }
                 .header {
                     margin-bottom: 30px;
                     position: sticky;
@@ -434,6 +449,40 @@ html, body {
                 <!-- Watcher UI will be loaded here -->
                 <div id="watcher-status" hx-get="/api/watcher/ui" hx-trigger="load" hx-swap="outerHTML"></div>
                 
+                <hr/>
+
+                <details class="create-project-accordion box" style="max-width:720px;margin-bottom:1.5rem;">
+                    <summary>Create new project</summary>
+                    <p class="content is-size-7 mt-3 mb-4">Adds a new folder with <code>config.toml</code> and a starter <code>.scad</code> (same as CLI <code>-i</code> / <code>-ie</code>). The parent field defaults to the server folder for this page.</p>
+                    <form method="post" action="/">
+                        <input type="hidden" name="create_project" value="1"/>
+                        <div class="field">
+                            <label class="label" for="create-project-name">Project name</label>
+                            <div class="control">
+                                <input id="create-project-name" class="input" type="text" name="project_name" required placeholder="e.g. chip_clip"/>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label class="label" for="create-project-parent">Parent directory</label>
+                            <div class="control">
+                                if serverFolder != "" {
+                                    <input id="create-project-parent" class="input" type="text" name="project_parent" value={ serverFolder }/>
+                                } else {
+                                    <input id="create-project-parent" class="input" type="text" name="project_parent" required placeholder="Absolute path to folder that will contain the new project"/>
+                                }
+                            </div>
+                            <p class="help">New folder is created inside this directory (defaults from the server folder when you opened this list).</p>
+                        </div>
+                        <div class="field">
+                            <label class="checkbox">
+                                <input type="checkbox" name="project_extended" value="1"/>
+                                Extended template (BOSL2, <code>-ie</code> / <code>-newe</code>)
+                            </label>
+                        </div>
+                        <button type="submit" class="button is-primary">Create project</button>
+                    </form>
+                </details>
+
                 <hr/>
                 
                 <h2>Config Files</h2>

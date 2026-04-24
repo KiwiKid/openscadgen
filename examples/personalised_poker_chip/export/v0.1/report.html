@@ -749,193 +749,7 @@ html, body {
                 .bottom-nav.expanded .bottom-nav-toggle .icon {
                     transform: rotate(180deg);
                 }
-            </style></head><body :class="{ 'bottom-nav-expanded': bottomNavExpanded }"><div x-show="showDebug">Show DEBUG ON</div><div class="global-header fixed-grid"><nav class="navbar navbar-expand-lg navbar-light bg-light"><div><a class="navbar-brand">personalised_poker_chip</a> <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button> </div><div class="collapse navbar-collapse" id="navbarSupportedContent"><ul class="navbar-nav mr-auto"><li class="nav-item" :class="{ active: navSelected === 'instances' }"><a class="nav-link" @click="navSelected = 'instances'">Instances (4)</a></li><li class="nav-item" :class="{ active: navSelected === 'stlResults' }"><a class="nav-link" @click="navSelected = 'stlResults'">STLs (4)</a></li><li class="nav-item" :class="{ active: navSelected === 'images' }"><a class="nav-link" @click="navSelected = 'images'">Images (3)</a></li></ul></div><div class="mb-3"><label class="form-label">Search Query</label> <input type="text" class="form-control" x-model="filters.searchQuery" placeholder="Search instances..."></div><div class="dropdown"><button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">🔍 Filters</button><ul class="dropdown-menu dropdown-menu-end" style="min-width: 400px; padding: 1rem;"><li><div class="mb-3"><label class="form-label">Name Pattern (Regex)</label> <input type="text" class="form-control" x-model="filters.namePattern" placeholder="e.g., ^test.*"></div></li><li><div class="mb-3"><label class="form-label">Description Pattern (Regex)</label> <input type="text" class="form-control" x-model="filters.descriptionPattern" placeholder="e.g., .*large.*"></div></li><li><div class="mb-3"><label class="form-label">Output Path Pattern (Regex)</label> <input type="text" class="form-control" x-model="filters.outputPathPattern" placeholder="e.g., .*\.stl$"></div></li><li><div class="mb-3"><div class="form-check"><input class="form-check-input" type="checkbox" x-model="filters.showOnlyWithImages" id="showOnlyWithImages"> <label class="form-check-label" for="showOnlyWithImages">Only with images</label></div><div class="form-check"><input class="form-check-input" type="checkbox" x-model="filters.showInstancesWithoutImages" id="showInstancesWithoutImages"> <label class="form-check-label" for="showInstancesWithoutImages">Only without images</label></div><div class="form-check"><input class="form-check-input" type="checkbox" x-model="filters.showOnlyWithErrors" id="showOnlyWithErrors"> <label class="form-check-label" for="showOnlyWithErrors">Only with errors</label></div><div class="form-check"><input class="form-check-input" type="checkbox" x-model="filters.showOnlySkipped" id="showOnlySkipped"> <label class="form-check-label" for="showOnlySkipped">Only skipped</label></div><div class="form-check"><input class="form-check-input" type="checkbox" x-model="filters.showOnlySuccessful" id="showOnlySuccessful"> <label class="form-check-label" for="showOnlySuccessful">Only successful</label></div></div></li><li><div class="d-flex gap-2"><button class="btn btn-outline-secondary btn-sm" @click="clearAllFilters()">Clear All</button> <button class="btn btn-outline-primary btn-sm" @click="$el.closest('.dropdown').querySelector('.dropdown-toggle').click()">Apply</button></div></li></ul></div><div class="ml-2"><button class="btn btn-outline-secondary" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button> <button class="btn btn-outline-secondary ml-1" @click="showDebug = !showDebug"><span x-show="!showDebug">🐛</span> <span x-show="showDebug">🐛</span> <span x-show="showDebug" style="text-decoration: underline;">Debug</span></button></div></nav></div><div class="container-fluid" id="main-content"><!-- Main Content --><div class="container"><div><div x-show="navSelected === &#39;instances&#39;"><h3>Instances (4)</h3></div><div x-show="navSelected === &#39;instances&#39;"><div class="field is-grouped is-grouped-multiline mb-3 og-instance-toolbar" style="align-items: flex-end;"><div class="control"><label class="label" for="og-instance-class-filter">Class (renderType)</label><div class="select"><select id="og-instance-class-filter" x-model="instanceClassFilter"><option value="all">All</option><template x-for="c in instanceClassOptions" :key="c"><option :value="c" x-text="c"></option></template></select></div></div><div class="control"><label class="label">Layout</label><div class="buttons has-addons"><button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'list'}" @click="instanceLayout = 'list'">List</button> <button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'grid'}" @click="instanceLayout = 'grid'">Grid</button> <button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'large'}" @click="instanceLayout = 'large'">Large</button></div></div></div><div id="instances-grid" class="columns is-multiline" :class="'og-layout--' + instanceLayout"><style>
-        .json-viewer {
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background: #f9f9f9;
-        }
-        
-        .json-viewer-title {
-            padding: 8px 12px;
-            background: #e9e9e9;
-            cursor: pointer;
-            font-weight: bold;
-            border-radius: 4px 4px 0 0;
-        }
-        
-        .json-viewer-title:hover {
-            background: #ddd;
-        }
-        
-        .json-viewer-content {
-            padding: 12px;
-            background: white;
-            border-radius: 0 0 4px 4px;
-        }
-        
-        .json-pretty {
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 13px;
-            line-height: 1.4;
-            margin: 0;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-    </style><details class="json-viewer" x-show="showDebug"><summary class="json-viewer-title">Instance personalised_poker_chip_all</summary><div class="json-viewer-content"><pre class="json-pretty">{
-  &#34;ID&#34;: &#34;personalised_poker_chip_all&#34;,
-  &#34;Name&#34;: &#34;default&#34;,
-  &#34;AutoName&#34;: &#34;personalised_poker_chip_all&#34;,
-  &#34;Description&#34;: &#34;&#34;,
-  &#34;ExportNameFormat&#34;: &#34;&#34;,
-  &#34;InputPath&#34;: {
-    &#34;Path&#34;: &#34;./personalised_poker_chip.scad&#34;,
-    &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
-    &#34;RawOpenSCADFileName&#34;: &#34;personalised_poker_chip&#34;,
-    &#34;ExportNameFormat&#34;: &#34;&#34;,
-    &#34;ParamSets&#34;: &#34;&#34;,
-    &#34;Params&#34;: null,
-    &#34;SkipImages&#34;: false,
-    &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
-  },
-  &#34;Params&#34;: {
-    &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
-    &#34;name&#34;: &#34;default&#34;,
-    &#34;renderType&#34;: &#34;all&#34;,
-    &#34;version&#34;: &#34;v0.1&#34;
-  },
-  &#34;PartIDLetter&#34;: &#34;D&#34;,
-  &#34;UniqueID&#34;: &#34;personalised_poker_chip_all&#34;,
-  &#34;ConfigError&#34;: &#34;&#34;,
-  &#34;OutputPathV2&#34;: &#34;&#34;,
-  &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_all.stl&#34;,
-  &#34;RunOutputPathRelative&#34;: &#34;../export/v0.1/personalised_poker_chip_all.stl&#34;,
-  &#34;IgnoredParams&#34;: null,
-  &#34;ImageResults&#34;: null,
-  &#34;ExportImages&#34;: [],
-  &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_all&#34;,
-  &#34;InputConfigFilePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/config.toml&#34;,
-  &#34;InputConfigFilePathRelative&#34;: &#34;personalised_poker_chip/config.toml&#34;,
-  &#34;SkipImages&#34;: false,
-  &#34;SkippedReason&#34;: &#34;&#34;,
-  &#34;SkippedImageReason&#34;: &#34;Skipping image for instance personalised_poker_chip_all: Skipping image because param renderType does not match obj,vertSlice,horzSlice&#34;,
-  &#34;IsComplete&#34;: true,
-  &#34;IsSuccessful&#34;: true,
-  &#34;CompletedAt&#34;: &#34;2026-04-16T12:54:13.242767+12:00&#34;,
-  &#34;STLResults&#34;: [
-    {
-      &#34;InstanceConfig&#34;: {
-        &#34;ID&#34;: &#34;personalised_poker_chip_all&#34;,
-        &#34;Name&#34;: &#34;default&#34;,
-        &#34;AutoName&#34;: &#34;personalised_poker_chip_all&#34;,
-        &#34;Description&#34;: &#34;&#34;,
-        &#34;ExportNameFormat&#34;: &#34;&#34;,
-        &#34;InputPath&#34;: {
-          &#34;Path&#34;: &#34;./personalised_poker_chip.scad&#34;,
-          &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
-          &#34;RawOpenSCADFileName&#34;: &#34;personalised_poker_chip&#34;,
-          &#34;ExportNameFormat&#34;: &#34;&#34;,
-          &#34;ParamSets&#34;: &#34;&#34;,
-          &#34;Params&#34;: null,
-          &#34;SkipImages&#34;: false,
-          &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
-        },
-        &#34;Params&#34;: {
-          &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
-          &#34;name&#34;: &#34;default&#34;,
-          &#34;renderType&#34;: &#34;all&#34;,
-          &#34;version&#34;: &#34;v0.1&#34;
-        },
-        &#34;PartIDLetter&#34;: &#34;D&#34;,
-        &#34;UniqueID&#34;: &#34;personalised_poker_chip_all&#34;,
-        &#34;ConfigError&#34;: &#34;&#34;,
-        &#34;OutputPathV2&#34;: &#34;&#34;,
-        &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_all.stl&#34;,
-        &#34;RunOutputPathRelative&#34;: &#34;../export/v0.1/personalised_poker_chip_all.stl&#34;,
-        &#34;IgnoredParams&#34;: null,
-        &#34;ImageResults&#34;: [],
-        &#34;ExportImages&#34;: [],
-        &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_all&#34;,
-        &#34;InputConfigFilePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/config.toml&#34;,
-        &#34;InputConfigFilePathRelative&#34;: &#34;personalised_poker_chip/config.toml&#34;,
-        &#34;SkipImages&#34;: false,
-        &#34;SkippedReason&#34;: &#34;&#34;,
-        &#34;SkippedImageReason&#34;: &#34;Skipping image for instance personalised_poker_chip_all: Skipping image because param renderType does not match obj,vertSlice,horzSlice&#34;,
-        &#34;IsComplete&#34;: false,
-        &#34;IsSuccessful&#34;: false,
-        &#34;CompletedAt&#34;: &#34;0001-01-01T00:00:00Z&#34;,
-        &#34;STLResults&#34;: null
-      },
-      &#34;OutputPath&#34;: &#34;&#34;,
-      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_all.stl&#39; --render -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; -D &#39;renderType=\&#34;all\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
-      &#34;CommandOutput&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.647\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
-      &#34;Error&#34;: &#34;&#34;,
-      &#34;AppliedParams&#34;: {
-        &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
-        &#34;name&#34;: &#34;default&#34;,
-        &#34;renderType&#34;: &#34;all&#34;,
-        &#34;version&#34;: &#34;v0.1&#34;
-      },
-      &#34;TimeTaken&#34;: 1758933792,
-      &#34;OutputLog&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.647\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
-      &#34;Skipped&#34;: false,
-      &#34;LowQuality&#34;: false,
-      &#34;SkippedReason&#34;: &#34;&#34;,
-      &#34;GenerateImageResult&#34;: null
-    }
-  ]
-}</pre></div></details><div x-show="showDebug">[[InstanceCardV2 - personalised_poker_chip_all]]</div><div x-show="showDebug" class="debug-filter-status" style="border-radius: 4px; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px;"><details><summary tyle="font-weight: bold; margin-bottom: 8px;">🔍 Filter Debug for personalised_poker_chip_all</summary><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(showDebug)"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(showDebug)"></i></span> <span style="margin-left: 8px;">showDebug: showDebug</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.showOnlyWithImages)"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.showOnlyWithImages)"></i></span> <span style="margin-left: 8px;">filters.showOnlyWithImages: filters.showOnlyWithImages</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.showOnlyWithImages || (0 &gt; 0 || 0 &gt; 0))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.showOnlyWithImages || (0 &gt; 0 || 0 &gt; 0))"></i></span> <span style="margin-left: 8px;">showOnlyWithImages: filters.showOnlyWithImages || (0 &gt; 0 || 0 &gt; 0)</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.searchQuery === &#39;&#39; || (&#39;%s %s %s&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.searchQuery === &#39;&#39; || (&#39;%s %s %s&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()))"></i></span> <span style="margin-left: 8px;">Search: &#39;personalised_poker_chip_all&#39;: filters.searchQuery === &#39;&#39; || (&#39;%s %s %s&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.namePattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.namePattern.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.namePattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.namePattern.toLowerCase()))"></i></span> <span style="margin-left: 8px;">personalised_poker_chip_all: filters.namePattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.descriptionPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.descriptionPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase()))"></i></span> <span style="margin-left: 8px;">: filters.descriptionPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.outputPathPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase()))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.outputPathPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase()))"></i></span> <span style="margin-left: 8px;">/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_all.stl: filters.outputPathPattern === &#39;&#39; || &#39;%s&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())</span></div><div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;"><span style="width: 20px; text-align: center;"><i class="fas fa-check" style="color: #28a745;" x-show="(filters.searchQuery === &#39;&#39; || (&#39;default  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_all.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
-        (filters.namePattern === &#39;&#39; || &#39;default&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
-        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
-        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_all.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
-        (!filters.showOnlyWithImages || 0 &gt; 0 || 0 &gt; 0) &amp;&amp;
-        (!filters.showInstancesWithoutImages || (0 === 0 &amp;&amp; 0 === 0)) &amp;&amp;
-        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
-        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
-        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;)) &amp;&amp;
-        (instanceClassFilter === &#39;all&#39; || instanceClassFilter === &#34;all&#34;))"></i> <i class="fas fa-times" style="color: #dc3545;" x-show="!(filters.searchQuery === &#39;&#39; || (&#39;default  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_all.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
-        (filters.namePattern === &#39;&#39; || &#39;default&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
-        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
-        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_all.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
-        (!filters.showOnlyWithImages || 0 &gt; 0 || 0 &gt; 0) &amp;&amp;
-        (!filters.showInstancesWithoutImages || (0 === 0 &amp;&amp; 0 === 0)) &amp;&amp;
-        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
-        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
-        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;)) &amp;&amp;
-        (instanceClassFilter === &#39;all&#39; || instanceClassFilter === &#34;all&#34;))"></i></span> <span style="margin-left: 8px;">FINAL RESULT: filters.searchQuery === &#39;&#39; || (&#39;default  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_all.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
-        (filters.namePattern === &#39;&#39; || &#39;default&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
-        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
-        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_all.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
-        (!filters.showOnlyWithImages || 0 &gt; 0 || 0 &gt; 0) &amp;&amp;
-        (!filters.showInstancesWithoutImages || (0 === 0 &amp;&amp; 0 === 0)) &amp;&amp;
-        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
-        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
-        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;)) &amp;&amp;
-        (instanceClassFilter === &#39;all&#39; || instanceClassFilter === &#34;all&#34;)</span></div></details></div><div class="column is-full" id="instance-personalised_poker_chip_all" hx-swap-oob="true" data-og-class="all" x-show="filters.searchQuery === &#39;&#39; || (&#39;default  /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_all.stl&#39;).toLowerCase().includes(filters.searchQuery.toLowerCase()) &amp;&amp;
-        (filters.namePattern === &#39;&#39; || &#39;default&#39;.toLowerCase().includes(filters.namePattern.toLowerCase())) &amp;&amp;
-        (filters.descriptionPattern === &#39;&#39; || &#39;&#39;.toLowerCase().includes(filters.descriptionPattern.toLowerCase())) &amp;&amp;
-        (filters.outputPathPattern === &#39;&#39; || &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_all.stl&#39;.toLowerCase().includes(filters.outputPathPattern.toLowerCase())) &amp;&amp;
-        (!filters.showOnlyWithImages || 0 &gt; 0 || 0 &gt; 0) &amp;&amp;
-        (!filters.showInstancesWithoutImages || (0 === 0 &amp;&amp; 0 === 0)) &amp;&amp;
-        (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
-        (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
-        (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;)) &amp;&amp;
-        (instanceClassFilter === &#39;all&#39; || instanceClassFilter === &#34;all&#34;)"><div class="card instance-card-v2"><div class="card-content instance-card-v2__inner"><div class="instance-card-v2__body"><div class="media instance-card-v2__head"><div class="media-content"><p class="title is-4">personalised_poker_chip_all</p></div></div><div class="content instance-card-v2__meta"><p class="has-text-success instance-card-v2__line"><i class="fas fa-check-circle"></i> 12:54 2026-04-16</p><p class="has-text-warning instance-card-v2__line"><strong>Image:</strong> Skipping image for instance personalised_poker_chip_all: Skipping image because param renderType does not match obj,vertSlice,horzSlice</p><p class="instance-card-v2__line instance-card-v2__path"><span class="has-text-weight-semibold">Output:</span> ../personalised_poker_chip_all.stl</p></div></div><div class="instance-card-v2__thumb"></div><div class="instance-card-v2__extras"><div class="is-full-width" id="instance-slim-row-personalised_poker_chip_all"><details><summary class="columns"><div class="column is-narrow">personalised_poker_chip_all</div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"><i class="fas fa-cog"></i></div></summary><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="has-text-warning"><strong>Skipped Image Reason:</strong> Skipping image for instance personalised_poker_chip_all: Skipping image because param renderType does not match obj,vertSlice,horzSlice</p><div class="columns is-multiline"></div><div class="code-block"><div><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;personalised_poker_chip&#34;;
-name = &#34;default&#34;;
-renderType = &#34;all&#34;;
-version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>renderType:</strong> all</div><div class="cell is-one-third"><strong>designFileName:</strong> personalised_poker_chip</div><div class="cell is-one-third"><strong>name:</strong> default</div><div class="cell is-one-third"><strong>version:</strong> v0.1</div></div></div></details></div></div><details><summary>Command Output</summary>  <details><summary class="has-text-success">[1 second] - personalised_poker_chip_all</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_all.stl&#39; --render -D &#39;designFileName=&#34;personalised_poker_chip&#34;&#39; -D &#39;name=&#34;default&#34;&#39; -D &#39;renderType=&#34;all&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad</pre></code></div></details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>Geometries in cache: 249
-Geometry cache size in bytes: 10414720
-CGAL Polyhedrons in cache: 17
-CGAL cache size in bytes: 0
-Total rendering time: 0:00:00.647
-   Top level object is a 3D object (manifold):
-   Status:     NoError
-   Genus:      0
-   Vertices:    27387
-   Facets:      54770
-</pre></code></div></details></div></div></div></div></details></div></div><div class="instance-card-v2__actions"></div></div></div></div><style>
+            </style></head><body :class="{ 'bottom-nav-expanded': bottomNavExpanded }"><div x-show="showDebug">Show DEBUG ON</div><div class="global-header fixed-grid"><nav class="navbar navbar-expand-lg navbar-light bg-light"><div><a class="navbar-brand">personalised_poker_chip</a> <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button> </div><div class="collapse navbar-collapse" id="navbarSupportedContent"><ul class="navbar-nav mr-auto"><li class="nav-item" :class="{ active: navSelected === 'instances' }"><a class="nav-link" @click="navSelected = 'instances'">Instances (3)</a></li><li class="nav-item" :class="{ active: navSelected === 'stlResults' }"><a class="nav-link" @click="navSelected = 'stlResults'">STLs (3)</a></li><li class="nav-item" :class="{ active: navSelected === 'images' }"><a class="nav-link" @click="navSelected = 'images'">Images (3)</a></li></ul></div><div class="mb-3"><label class="form-label">Search Query</label> <input type="text" class="form-control" x-model="filters.searchQuery" placeholder="Search instances..."></div><div class="dropdown"><button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">🔍 Filters</button><ul class="dropdown-menu dropdown-menu-end" style="min-width: 400px; padding: 1rem;"><li><div class="mb-3"><label class="form-label">Name Pattern (Regex)</label> <input type="text" class="form-control" x-model="filters.namePattern" placeholder="e.g., ^test.*"></div></li><li><div class="mb-3"><label class="form-label">Description Pattern (Regex)</label> <input type="text" class="form-control" x-model="filters.descriptionPattern" placeholder="e.g., .*large.*"></div></li><li><div class="mb-3"><label class="form-label">Output Path Pattern (Regex)</label> <input type="text" class="form-control" x-model="filters.outputPathPattern" placeholder="e.g., .*\.stl$"></div></li><li><div class="mb-3"><div class="form-check"><input class="form-check-input" type="checkbox" x-model="filters.showOnlyWithImages" id="showOnlyWithImages"> <label class="form-check-label" for="showOnlyWithImages">Only with images</label></div><div class="form-check"><input class="form-check-input" type="checkbox" x-model="filters.showInstancesWithoutImages" id="showInstancesWithoutImages"> <label class="form-check-label" for="showInstancesWithoutImages">Only without images</label></div><div class="form-check"><input class="form-check-input" type="checkbox" x-model="filters.showOnlyWithErrors" id="showOnlyWithErrors"> <label class="form-check-label" for="showOnlyWithErrors">Only with errors</label></div><div class="form-check"><input class="form-check-input" type="checkbox" x-model="filters.showOnlySkipped" id="showOnlySkipped"> <label class="form-check-label" for="showOnlySkipped">Only skipped</label></div><div class="form-check"><input class="form-check-input" type="checkbox" x-model="filters.showOnlySuccessful" id="showOnlySuccessful"> <label class="form-check-label" for="showOnlySuccessful">Only successful</label></div></div></li><li><div class="d-flex gap-2"><button class="btn btn-outline-secondary btn-sm" @click="clearAllFilters()">Clear All</button> <button class="btn btn-outline-primary btn-sm" @click="$el.closest('.dropdown').querySelector('.dropdown-toggle').click()">Apply</button></div></li></ul></div><div class="ml-2"><button class="btn btn-outline-secondary" @click="darkMode = !darkMode"><span x-show="!darkMode">🌙</span> <span x-show="darkMode">☀️</span></button> <button class="btn btn-outline-secondary ml-1" @click="showDebug = !showDebug"><span x-show="!showDebug">🐛</span> <span x-show="showDebug">🐛</span> <span x-show="showDebug" style="text-decoration: underline;">Debug</span></button></div></nav></div><div class="container-fluid" id="main-content"><!-- Main Content --><div class="container"><div><div x-show="navSelected === &#39;instances&#39;"><h3>Instances (3)</h3></div><div x-show="navSelected === &#39;instances&#39;"><div class="field is-grouped is-grouped-multiline mb-3 og-instance-toolbar" style="align-items: flex-end;"><div class="control"><label class="label" for="og-instance-class-filter">Class (renderType)</label><div class="select"><select id="og-instance-class-filter" x-model="instanceClassFilter"><option value="all">All</option><template x-for="c in instanceClassOptions" :key="c"><option :value="c" x-text="c"></option></template></select></div></div><div class="control"><label class="label">Layout</label><div class="buttons has-addons"><button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'list'}" @click="instanceLayout = 'list'">List</button> <button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'grid'}" @click="instanceLayout = 'grid'">Grid</button> <button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'large'}" @click="instanceLayout = 'large'">Large</button></div></div></div><div id="instances-grid" class="columns is-multiline" :class="'og-layout--' + instanceLayout"><style>
         .json-viewer {
             margin: 10px 0;
             border: 1px solid #ddd;
@@ -1105,8 +919,8 @@ Total rendering time: 0:00:00.647
               &#34;STLResults&#34;: null
             },
             &#34;OutputPath&#34;: &#34;&#34;,
-            &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice.stl&#39; --render -D &#39;renderType=\&#34;horzSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
-            &#34;CommandOutput&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.810\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+            &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice.stl&#39; --render -D &#39;name=\&#34;default\&#34;&#39; -D &#39;renderType=\&#34;horzSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
+            &#34;CommandOutput&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.879\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
             &#34;Error&#34;: &#34;&#34;,
             &#34;AppliedParams&#34;: {
               &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
@@ -1114,8 +928,8 @@ Total rendering time: 0:00:00.647
               &#34;renderType&#34;: &#34;horzSlice&#34;,
               &#34;version&#34;: &#34;v0.1&#34;
             },
-            &#34;TimeTaken&#34;: 2090800459,
-            &#34;OutputLog&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.810\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+            &#34;TimeTaken&#34;: 3136091167,
+            &#34;OutputLog&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.879\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
             &#34;Skipped&#34;: false,
             &#34;LowQuality&#34;: false,
             &#34;SkippedReason&#34;: &#34;&#34;,
@@ -1124,8 +938,8 @@ Total rendering time: 0:00:00.647
         ]
       },
       &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice-nice.png&#34;,
-      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; -D &#39;renderType=\&#34;horzSlice\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
-      &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file personalised_poker_chip.scad, line 167\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 137 elements\nGeometries in cache: 75\nGeometry cache size in bytes: 2860640\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.415\n&#34;,
+      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;renderType=\&#34;horzSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
+      &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file personalised_poker_chip.scad, line 170\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 137 elements\nCompiling highlights (1 CSG Trees)...\nGeometries in cache: 103\nGeometry cache size in bytes: 4724992\nCGAL Polyhedrons in cache: 20\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.492\n&#34;,
       &#34;Error&#34;: &#34;&#34;,
       &#34;AppliedParams&#34;: {
         &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
@@ -1133,7 +947,7 @@ Total rendering time: 0:00:00.647
         &#34;renderType&#34;: &#34;horzSlice&#34;,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 1463869292,
+      &#34;TimeTaken&#34;: 1847075959,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;nice&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -1158,7 +972,7 @@ Total rendering time: 0:00:00.647
   &#34;SkippedImageReason&#34;: &#34;&#34;,
   &#34;IsComplete&#34;: true,
   &#34;IsSuccessful&#34;: true,
-  &#34;CompletedAt&#34;: &#34;2026-04-16T12:54:11.483672+12:00&#34;,
+  &#34;CompletedAt&#34;: &#34;2026-04-20T10:23:45.948436+12:00&#34;,
   &#34;STLResults&#34;: [
     {
       &#34;InstanceConfig&#34;: {
@@ -1214,8 +1028,8 @@ Total rendering time: 0:00:00.647
         &#34;STLResults&#34;: null
       },
       &#34;OutputPath&#34;: &#34;&#34;,
-      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice.stl&#39; --render -D &#39;renderType=\&#34;horzSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
-      &#34;CommandOutput&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.810\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice.stl&#39; --render -D &#39;name=\&#34;default\&#34;&#39; -D &#39;renderType=\&#34;horzSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
+      &#34;CommandOutput&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.879\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
       &#34;Error&#34;: &#34;&#34;,
       &#34;AppliedParams&#34;: {
         &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
@@ -1223,8 +1037,8 @@ Total rendering time: 0:00:00.647
         &#34;renderType&#34;: &#34;horzSlice&#34;,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 2090800459,
-      &#34;OutputLog&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.810\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+      &#34;TimeTaken&#34;: 3136091167,
+      &#34;OutputLog&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.879\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
       &#34;Skipped&#34;: false,
       &#34;LowQuality&#34;: false,
       &#34;SkippedReason&#34;: &#34;&#34;,
@@ -1267,20 +1081,20 @@ Total rendering time: 0:00:00.647
         (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
         (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
         (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;)) &amp;&amp;
-        (instanceClassFilter === &#39;all&#39; || instanceClassFilter === &#34;horzSlice&#34;)"><div class="card instance-card-v2"><div class="card-content instance-card-v2__inner"><div class="instance-card-v2__body"><div class="media instance-card-v2__head"><div class="media-content"><p class="title is-4">personalised_poker_chip_horzSlice</p></div></div><div class="content instance-card-v2__meta"><p class="has-text-success instance-card-v2__line"><i class="fas fa-check-circle"></i> 12:54 2026-04-16</p><p class="instance-card-v2__line instance-card-v2__path"><span class="has-text-weight-semibold">Output:</span> ../personalised_poker_chip_horzSlice.stl</p></div></div><div class="instance-card-v2__thumb"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice-nice.png" alt="Preview of default from nice" class="image-preview"></div><div class="instance-card-v2__extras"><div class="is-full-width" id="instance-slim-row-personalised_poker_chip_horzSlice"><details><summary class="columns"><div class="column is-narrow">personalised_poker_chip_horzSlice</div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"><i class="fas fa-cog"></i></div></summary><div class="card"><div class="card-content"><div class="media"><div class="media-content"><div class="columns is-multiline"></div><div class="code-block"><div><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;personalised_poker_chip&#34;;
+        (instanceClassFilter === &#39;all&#39; || instanceClassFilter === &#34;horzSlice&#34;)"><div class="card instance-card-v2"><div class="card-content instance-card-v2__inner"><div class="instance-card-v2__body"><div class="media instance-card-v2__head"><div class="media-content"><p class="title is-4">personalised_poker_chip_horzSlice</p></div></div><div class="content instance-card-v2__meta"><p class="has-text-success instance-card-v2__line"><i class="fas fa-check-circle"></i> 10:23 2026-04-20</p><p class="instance-card-v2__line instance-card-v2__path"><span class="has-text-weight-semibold">Output:</span> ../personalised_poker_chip_horzSlice.stl</p></div></div><div class="instance-card-v2__thumb"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice-nice.png" alt="Preview of default from nice" class="image-preview"></div><div class="instance-card-v2__extras"><div class="is-full-width" id="instance-slim-row-personalised_poker_chip_horzSlice"><details><summary class="columns"><div class="column is-narrow">personalised_poker_chip_horzSlice</div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"><i class="fas fa-cog"></i></div></summary><div class="card"><div class="card-content"><div class="media"><div class="media-content"><div class="columns is-multiline"></div><div class="code-block"><div><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;personalised_poker_chip&#34;;
 name = &#34;default&#34;;
 renderType = &#34;horzSlice&#34;;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>renderType:</strong> horzSlice</div><div class="cell is-one-third"><strong>designFileName:</strong> personalised_poker_chip</div><div class="cell is-one-third"><strong>name:</strong> default</div><div class="cell is-one-third"><strong>version:</strong> v0.1</div></div></div></details></div></div><details><summary>Command Output</summary>  <details><summary class="has-text-success">[2 seconds] - personalised_poker_chip_horzSlice</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice.stl&#39; --render -D &#39;renderType=&#34;horzSlice&#34;&#39; -D &#39;designFileName=&#34;personalised_poker_chip&#34;&#39; -D &#39;name=&#34;default&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad</pre></code></div></details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>Geometries in cache: 249
-Geometry cache size in bytes: 10414720
-CGAL Polyhedrons in cache: 17
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>name:</strong> default</div><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>renderType:</strong> horzSlice</div><div class="cell is-one-third"><strong>designFileName:</strong> personalised_poker_chip</div></div></div></details></div></div><details><summary>Command Output</summary>  <details><summary class="has-text-success">[3 seconds] - personalised_poker_chip_horzSlice</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice.stl&#39; --render -D &#39;name=&#34;default&#34;&#39; -D &#39;renderType=&#34;horzSlice&#34;&#39; -D &#39;designFileName=&#34;personalised_poker_chip&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad</pre></code></div></details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>Geometries in cache: 760
+Geometry cache size in bytes: 34542744
+CGAL Polyhedrons in cache: 45
 CGAL cache size in bytes: 0
-Total rendering time: 0:00:00.810
+Total rendering time: 0:00:01.879
    Top level object is a 3D object (manifold):
    Status:     NoError
    Genus:      0
-   Vertices:    27387
-   Facets:      54770
+   Vertices:    25793
+   Facets:      51582
 </pre></code></div></details></div></div></div></div></details></div></div><div class="instance-card-v2__actions"></div></div></div></div><style>
         .json-viewer {
             margin: 10px 0;
@@ -1451,8 +1265,8 @@ Total rendering time: 0:00:00.810
               &#34;STLResults&#34;: null
             },
             &#34;OutputPath&#34;: &#34;&#34;,
-            &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj.stl&#39; --render -D &#39;name=\&#34;default\&#34;&#39; -D &#39;renderType=\&#34;obj\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
-            &#34;CommandOutput&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.874\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+            &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj.stl&#39; --render -D &#39;renderType=\&#34;obj\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
+            &#34;CommandOutput&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.837\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
             &#34;Error&#34;: &#34;&#34;,
             &#34;AppliedParams&#34;: {
               &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
@@ -1460,8 +1274,8 @@ Total rendering time: 0:00:00.810
               &#34;renderType&#34;: &#34;obj&#34;,
               &#34;version&#34;: &#34;v0.1&#34;
             },
-            &#34;TimeTaken&#34;: 1876181666,
-            &#34;OutputLog&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.874\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+            &#34;TimeTaken&#34;: 3088698459,
+            &#34;OutputLog&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.837\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
             &#34;Skipped&#34;: false,
             &#34;LowQuality&#34;: false,
             &#34;SkippedReason&#34;: &#34;&#34;,
@@ -1470,8 +1284,8 @@ Total rendering time: 0:00:00.810
         ]
       },
       &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj-nice.png&#34;,
-      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;renderType=\&#34;obj\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
-      &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file personalised_poker_chip.scad, line 167\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 137 elements\nGeometries in cache: 75\nGeometry cache size in bytes: 2860640\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.508\n&#34;,
+      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; -D &#39;renderType=\&#34;obj\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
+      &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file personalised_poker_chip.scad, line 170\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 137 elements\nCompiling highlights (1 CSG Trees)...\nGeometries in cache: 103\nGeometry cache size in bytes: 4724992\nCGAL Polyhedrons in cache: 20\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.541\n&#34;,
       &#34;Error&#34;: &#34;&#34;,
       &#34;AppliedParams&#34;: {
         &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
@@ -1479,7 +1293,7 @@ Total rendering time: 0:00:00.810
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 1618930084,
+      &#34;TimeTaken&#34;: 1860014333,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;nice&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -1504,7 +1318,7 @@ Total rendering time: 0:00:00.810
   &#34;SkippedImageReason&#34;: &#34;&#34;,
   &#34;IsComplete&#34;: true,
   &#34;IsSuccessful&#34;: true,
-  &#34;CompletedAt&#34;: &#34;2026-04-16T12:54:02.899883+12:00&#34;,
+  &#34;CompletedAt&#34;: &#34;2026-04-20T10:23:36.122228+12:00&#34;,
   &#34;STLResults&#34;: [
     {
       &#34;InstanceConfig&#34;: {
@@ -1560,8 +1374,8 @@ Total rendering time: 0:00:00.810
         &#34;STLResults&#34;: null
       },
       &#34;OutputPath&#34;: &#34;&#34;,
-      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj.stl&#39; --render -D &#39;name=\&#34;default\&#34;&#39; -D &#39;renderType=\&#34;obj\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
-      &#34;CommandOutput&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.874\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj.stl&#39; --render -D &#39;renderType=\&#34;obj\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
+      &#34;CommandOutput&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.837\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
       &#34;Error&#34;: &#34;&#34;,
       &#34;AppliedParams&#34;: {
         &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
@@ -1569,8 +1383,8 @@ Total rendering time: 0:00:00.810
         &#34;renderType&#34;: &#34;obj&#34;,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 1876181666,
-      &#34;OutputLog&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.874\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+      &#34;TimeTaken&#34;: 3088698459,
+      &#34;OutputLog&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.837\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
       &#34;Skipped&#34;: false,
       &#34;LowQuality&#34;: false,
       &#34;SkippedReason&#34;: &#34;&#34;,
@@ -1613,20 +1427,20 @@ Total rendering time: 0:00:00.810
         (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
         (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
         (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;)) &amp;&amp;
-        (instanceClassFilter === &#39;all&#39; || instanceClassFilter === &#34;obj&#34;)"><div class="card instance-card-v2"><div class="card-content instance-card-v2__inner"><div class="instance-card-v2__body"><div class="media instance-card-v2__head"><div class="media-content"><p class="title is-4">personalised_poker_chip_obj</p></div></div><div class="content instance-card-v2__meta"><p class="has-text-success instance-card-v2__line"><i class="fas fa-check-circle"></i> 12:54 2026-04-16</p><p class="instance-card-v2__line instance-card-v2__path"><span class="has-text-weight-semibold">Output:</span> ../personalised_poker_chip_obj.stl</p></div></div><div class="instance-card-v2__thumb"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj-nice.png" alt="Preview of default from nice" class="image-preview"></div><div class="instance-card-v2__extras"><div class="is-full-width" id="instance-slim-row-personalised_poker_chip_obj"><details><summary class="columns"><div class="column is-narrow">personalised_poker_chip_obj</div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"><i class="fas fa-cog"></i></div></summary><div class="card"><div class="card-content"><div class="media"><div class="media-content"><div class="columns is-multiline"></div><div class="code-block"><div><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;personalised_poker_chip&#34;;
+        (instanceClassFilter === &#39;all&#39; || instanceClassFilter === &#34;obj&#34;)"><div class="card instance-card-v2"><div class="card-content instance-card-v2__inner"><div class="instance-card-v2__body"><div class="media instance-card-v2__head"><div class="media-content"><p class="title is-4">personalised_poker_chip_obj</p></div></div><div class="content instance-card-v2__meta"><p class="has-text-success instance-card-v2__line"><i class="fas fa-check-circle"></i> 10:23 2026-04-20</p><p class="instance-card-v2__line instance-card-v2__path"><span class="has-text-weight-semibold">Output:</span> ../personalised_poker_chip_obj.stl</p></div></div><div class="instance-card-v2__thumb"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj-nice.png" alt="Preview of default from nice" class="image-preview"></div><div class="instance-card-v2__extras"><div class="is-full-width" id="instance-slim-row-personalised_poker_chip_obj"><details><summary class="columns"><div class="column is-narrow">personalised_poker_chip_obj</div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"><i class="fas fa-cog"></i></div></summary><div class="card"><div class="card-content"><div class="media"><div class="media-content"><div class="columns is-multiline"></div><div class="code-block"><div><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;personalised_poker_chip&#34;;
 name = &#34;default&#34;;
 renderType = &#34;obj&#34;;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>renderType:</strong> obj</div><div class="cell is-one-third"><strong>designFileName:</strong> personalised_poker_chip</div><div class="cell is-one-third"><strong>name:</strong> default</div><div class="cell is-one-third"><strong>version:</strong> v0.1</div></div></div></details></div></div><details><summary>Command Output</summary>  <details><summary class="has-text-success">[1 second] - personalised_poker_chip_obj</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj.stl&#39; --render -D &#39;name=&#34;default&#34;&#39; -D &#39;renderType=&#34;obj&#34;&#39; -D &#39;designFileName=&#34;personalised_poker_chip&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad</pre></code></div></details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>Geometries in cache: 249
-Geometry cache size in bytes: 10414720
-CGAL Polyhedrons in cache: 17
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>name:</strong> default</div><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>renderType:</strong> obj</div><div class="cell is-one-third"><strong>designFileName:</strong> personalised_poker_chip</div></div></div></details></div></div><details><summary>Command Output</summary>  <details><summary class="has-text-success">[3 seconds] - personalised_poker_chip_obj</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj.stl&#39; --render -D &#39;renderType=&#34;obj&#34;&#39; -D &#39;designFileName=&#34;personalised_poker_chip&#34;&#39; -D &#39;name=&#34;default&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad</pre></code></div></details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>Geometries in cache: 760
+Geometry cache size in bytes: 34542744
+CGAL Polyhedrons in cache: 45
 CGAL cache size in bytes: 0
-Total rendering time: 0:00:00.874
+Total rendering time: 0:00:01.837
    Top level object is a 3D object (manifold):
    Status:     NoError
    Genus:      0
-   Vertices:    27387
-   Facets:      54770
+   Vertices:    25793
+   Facets:      51582
 </pre></code></div></details></div></div></div></div></details></div></div><div class="instance-card-v2__actions"></div></div></div></div><style>
         .json-viewer {
             margin: 10px 0;
@@ -1797,8 +1611,8 @@ Total rendering time: 0:00:00.874
               &#34;STLResults&#34;: null
             },
             &#34;OutputPath&#34;: &#34;&#34;,
-            &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice.stl&#39; --render -D &#39;renderType=\&#34;vertSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
-            &#34;CommandOutput&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.644\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+            &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice.stl&#39; --render -D &#39;name=\&#34;default\&#34;&#39; -D &#39;renderType=\&#34;vertSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
+            &#34;CommandOutput&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.731\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
             &#34;Error&#34;: &#34;&#34;,
             &#34;AppliedParams&#34;: {
               &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
@@ -1806,8 +1620,8 @@ Total rendering time: 0:00:00.874
               &#34;renderType&#34;: &#34;vertSlice&#34;,
               &#34;version&#34;: &#34;v0.1&#34;
             },
-            &#34;TimeTaken&#34;: 3251674042,
-            &#34;OutputLog&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.644\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+            &#34;TimeTaken&#34;: 2986241500,
+            &#34;OutputLog&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.731\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
             &#34;Skipped&#34;: false,
             &#34;LowQuality&#34;: false,
             &#34;SkippedReason&#34;: &#34;&#34;,
@@ -1816,8 +1630,8 @@ Total rendering time: 0:00:00.874
         ]
       },
       &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice-nice.png&#34;,
-      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;name=\&#34;default\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; -D &#39;renderType=\&#34;vertSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
-      &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file personalised_poker_chip.scad, line 167\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 137 elements\nGeometries in cache: 75\nGeometry cache size in bytes: 2860640\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.671\n&#34;,
+      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;renderType=\&#34;vertSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
+      &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file personalised_poker_chip.scad, line 170\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 137 elements\nCompiling highlights (1 CSG Trees)...\nGeometries in cache: 103\nGeometry cache size in bytes: 4724992\nCGAL Polyhedrons in cache: 20\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.498\n&#34;,
       &#34;Error&#34;: &#34;&#34;,
       &#34;AppliedParams&#34;: {
         &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
@@ -1825,7 +1639,7 @@ Total rendering time: 0:00:00.874
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 1776924083,
+      &#34;TimeTaken&#34;: 1856358833,
       &#34;Skipped&#34;: false,
       &#34;CameraName&#34;: &#34;nice&#34;,
       &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -1850,7 +1664,7 @@ Total rendering time: 0:00:00.874
   &#34;SkippedImageReason&#34;: &#34;&#34;,
   &#34;IsComplete&#34;: true,
   &#34;IsSuccessful&#34;: true,
-  &#34;CompletedAt&#34;: &#34;2026-04-16T12:54:07.928716+12:00&#34;,
+  &#34;CompletedAt&#34;: &#34;2026-04-20T10:23:40.965075+12:00&#34;,
   &#34;STLResults&#34;: [
     {
       &#34;InstanceConfig&#34;: {
@@ -1906,8 +1720,8 @@ Total rendering time: 0:00:00.874
         &#34;STLResults&#34;: null
       },
       &#34;OutputPath&#34;: &#34;&#34;,
-      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice.stl&#39; --render -D &#39;renderType=\&#34;vertSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
-      &#34;CommandOutput&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.644\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+      &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice.stl&#39; --render -D &#39;name=\&#34;default\&#34;&#39; -D &#39;renderType=\&#34;vertSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
+      &#34;CommandOutput&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.731\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
       &#34;Error&#34;: &#34;&#34;,
       &#34;AppliedParams&#34;: {
         &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
@@ -1915,8 +1729,8 @@ Total rendering time: 0:00:00.874
         &#34;renderType&#34;: &#34;vertSlice&#34;,
         &#34;version&#34;: &#34;v0.1&#34;
       },
-      &#34;TimeTaken&#34;: 3251674042,
-      &#34;OutputLog&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.644\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+      &#34;TimeTaken&#34;: 2986241500,
+      &#34;OutputLog&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.731\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
       &#34;Skipped&#34;: false,
       &#34;LowQuality&#34;: false,
       &#34;SkippedReason&#34;: &#34;&#34;,
@@ -1959,21 +1773,21 @@ Total rendering time: 0:00:00.874
         (!filters.showOnlyWithErrors || &#39;&#39; !== &#39;&#39;) &amp;&amp;
         (!filters.showOnlySkipped || &#39;&#39; !== &#39;&#39;) &amp;&amp;
         (!filters.showOnlySuccessful || (&#39;&#39; === &#39;&#39; &amp;&amp; &#39;&#39; === &#39;&#39;)) &amp;&amp;
-        (instanceClassFilter === &#39;all&#39; || instanceClassFilter === &#34;vertSlice&#34;)"><div class="card instance-card-v2"><div class="card-content instance-card-v2__inner"><div class="instance-card-v2__body"><div class="media instance-card-v2__head"><div class="media-content"><p class="title is-4">personalised_poker_chip_vertSlice</p></div></div><div class="content instance-card-v2__meta"><p class="has-text-success instance-card-v2__line"><i class="fas fa-check-circle"></i> 12:54 2026-04-16</p><p class="instance-card-v2__line instance-card-v2__path"><span class="has-text-weight-semibold">Output:</span> ../personalised_poker_chip_vertSlice.stl</p></div></div><div class="instance-card-v2__thumb"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice-nice.png" alt="Preview of default from nice" class="image-preview"></div><div class="instance-card-v2__extras"><div class="is-full-width" id="instance-slim-row-personalised_poker_chip_vertSlice"><details><summary class="columns"><div class="column is-narrow">personalised_poker_chip_vertSlice</div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"><i class="fas fa-cog"></i></div></summary><div class="card"><div class="card-content"><div class="media"><div class="media-content"><div class="columns is-multiline"></div><div class="code-block"><div><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;personalised_poker_chip&#34;;
+        (instanceClassFilter === &#39;all&#39; || instanceClassFilter === &#34;vertSlice&#34;)"><div class="card instance-card-v2"><div class="card-content instance-card-v2__inner"><div class="instance-card-v2__body"><div class="media instance-card-v2__head"><div class="media-content"><p class="title is-4">personalised_poker_chip_vertSlice</p></div></div><div class="content instance-card-v2__meta"><p class="has-text-success instance-card-v2__line"><i class="fas fa-check-circle"></i> 10:23 2026-04-20</p><p class="instance-card-v2__line instance-card-v2__path"><span class="has-text-weight-semibold">Output:</span> ../personalised_poker_chip_vertSlice.stl</p></div></div><div class="instance-card-v2__thumb"><img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice-nice.png" alt="Preview of default from nice" class="image-preview"></div><div class="instance-card-v2__extras"><div class="is-full-width" id="instance-slim-row-personalised_poker_chip_vertSlice"><details><summary class="columns"><div class="column is-narrow">personalised_poker_chip_vertSlice</div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"></div><div class="column is-narrow"><i class="fas fa-cog"></i></div></summary><div class="card"><div class="card-content"><div class="media"><div class="media-content"><div class="columns is-multiline"></div><div class="code-block"><div><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;personalised_poker_chip&#34;;
 name = &#34;default&#34;;
 renderType = &#34;vertSlice&#34;;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>renderType:</strong> vertSlice</div><div class="cell is-one-third"><strong>designFileName:</strong> personalised_poker_chip</div><div class="cell is-one-third"><strong>name:</strong> default</div><div class="cell is-one-third"><strong>version:</strong> v0.1</div></div></div></details></div></div><details><summary>Command Output</summary>  <details><summary class="has-text-success">[3 seconds] - personalised_poker_chip_vertSlice</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice.stl&#39; --render -D &#39;renderType=&#34;vertSlice&#34;&#39; -D &#39;designFileName=&#34;personalised_poker_chip&#34;&#39; -D &#39;name=&#34;default&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad</pre></code></div></details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>Geometries in cache: 249
-Geometry cache size in bytes: 10414720
-CGAL Polyhedrons in cache: 17
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p> <div class="fixed-grid has-4-cols"><div class="grid is-multiline"><div class="cell is-one-third"><strong>name:</strong> default</div><div class="cell is-one-third"><strong>version:</strong> v0.1</div><div class="cell is-one-third"><strong>renderType:</strong> vertSlice</div><div class="cell is-one-third"><strong>designFileName:</strong> personalised_poker_chip</div></div></div></details></div></div><details><summary>Command Output</summary>  <details><summary class="has-text-success">[2 seconds] - personalised_poker_chip_vertSlice</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice.stl&#39; --render -D &#39;name=&#34;default&#34;&#39; -D &#39;renderType=&#34;vertSlice&#34;&#39; -D &#39;designFileName=&#34;personalised_poker_chip&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad</pre></code></div></details><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>Geometries in cache: 760
+Geometry cache size in bytes: 34542744
+CGAL Polyhedrons in cache: 45
 CGAL cache size in bytes: 0
-Total rendering time: 0:00:01.644
+Total rendering time: 0:00:01.731
    Top level object is a 3D object (manifold):
    Status:     NoError
    Genus:      0
-   Vertices:    27387
-   Facets:      54770
-</pre></code></div></details></div></div></div></div></details></div></div><div class="instance-card-v2__actions"></div></div></div></div></div> <div class="my-2"></div></div></div><div><div x-show="navSelected === &#39;stlResults&#39;"><h3>STLs (4)</h3></div><div x-show="navSelected === &#39;stlResults&#39;"><style>
+   Vertices:    25793
+   Facets:      51582
+</pre></code></div></details></div></div></div></div></details></div></div><div class="instance-card-v2__actions"></div></div></div></div></div> <div class="my-2"></div></div></div><div><div x-show="navSelected === &#39;stlResults&#39;"><h3>STLs (3)</h3></div><div x-show="navSelected === &#39;stlResults&#39;"><style>
         .json-viewer {
             margin: 10px 0;
             border: 1px solid #ddd;
@@ -2062,8 +1876,8 @@ Total rendering time: 0:00:01.644
       &#34;STLResults&#34;: null
     },
     &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj.stl&#39; --render -D &#39;name=\&#34;default\&#34;&#39; -D &#39;renderType=\&#34;obj\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
-    &#34;CommandOutput&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.874\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj.stl&#39; --render -D &#39;renderType=\&#34;obj\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.837\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
@@ -2071,8 +1885,8 @@ Total rendering time: 0:00:01.644
       &#34;renderType&#34;: &#34;obj&#34;,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 1876181666,
-    &#34;OutputLog&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.874\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+    &#34;TimeTaken&#34;: 3088698459,
+    &#34;OutputLog&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.837\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
     &#34;Skipped&#34;: false,
     &#34;LowQuality&#34;: false,
     &#34;SkippedReason&#34;: &#34;&#34;,
@@ -2132,8 +1946,8 @@ Total rendering time: 0:00:01.644
       &#34;STLResults&#34;: null
     },
     &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice.stl&#39; --render -D &#39;renderType=\&#34;vertSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
-    &#34;CommandOutput&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.644\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice.stl&#39; --render -D &#39;name=\&#34;default\&#34;&#39; -D &#39;renderType=\&#34;vertSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.731\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
@@ -2141,8 +1955,8 @@ Total rendering time: 0:00:01.644
       &#34;renderType&#34;: &#34;vertSlice&#34;,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 3251674042,
-    &#34;OutputLog&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.644\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+    &#34;TimeTaken&#34;: 2986241500,
+    &#34;OutputLog&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.731\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
     &#34;Skipped&#34;: false,
     &#34;LowQuality&#34;: false,
     &#34;SkippedReason&#34;: &#34;&#34;,
@@ -2202,8 +2016,8 @@ Total rendering time: 0:00:01.644
       &#34;STLResults&#34;: null
     },
     &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice.stl&#39; --render -D &#39;renderType=\&#34;horzSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
-    &#34;CommandOutput&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.810\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice.stl&#39; --render -D &#39;name=\&#34;default\&#34;&#39; -D &#39;renderType=\&#34;horzSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.879\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
@@ -2211,129 +2025,55 @@ Total rendering time: 0:00:01.644
       &#34;renderType&#34;: &#34;horzSlice&#34;,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 2090800459,
-    &#34;OutputLog&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.810\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
-    &#34;Skipped&#34;: false,
-    &#34;LowQuality&#34;: false,
-    &#34;SkippedReason&#34;: &#34;&#34;,
-    &#34;GenerateImageResult&#34;: null
-  },
-  {
-    &#34;InstanceConfig&#34;: {
-      &#34;ID&#34;: &#34;personalised_poker_chip_all&#34;,
-      &#34;Name&#34;: &#34;default&#34;,
-      &#34;AutoName&#34;: &#34;personalised_poker_chip_all&#34;,
-      &#34;Description&#34;: &#34;&#34;,
-      &#34;ExportNameFormat&#34;: &#34;&#34;,
-      &#34;InputPath&#34;: {
-        &#34;Path&#34;: &#34;./personalised_poker_chip.scad&#34;,
-        &#34;RawOpenSCADFile&#34;: &#34;N/A (yet)&#34;,
-        &#34;RawOpenSCADFileName&#34;: &#34;personalised_poker_chip&#34;,
-        &#34;ExportNameFormat&#34;: &#34;&#34;,
-        &#34;ParamSets&#34;: &#34;&#34;,
-        &#34;Params&#34;: null,
-        &#34;SkipImages&#34;: false,
-        &#34;IgnoreParamsWhenProcessing&#34;: &#34;&#34;
-      },
-      &#34;Params&#34;: {
-        &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
-        &#34;name&#34;: &#34;default&#34;,
-        &#34;renderType&#34;: &#34;all&#34;,
-        &#34;version&#34;: &#34;v0.1&#34;
-      },
-      &#34;PartIDLetter&#34;: &#34;D&#34;,
-      &#34;UniqueID&#34;: &#34;personalised_poker_chip_all&#34;,
-      &#34;ConfigError&#34;: &#34;&#34;,
-      &#34;OutputPathV2&#34;: &#34;&#34;,
-      &#34;RunOutputPathV3&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_all.stl&#34;,
-      &#34;RunOutputPathRelative&#34;: &#34;../export/v0.1/personalised_poker_chip_all.stl&#34;,
-      &#34;IgnoredParams&#34;: null,
-      &#34;ImageResults&#34;: [],
-      &#34;ExportImages&#34;: [],
-      &#34;RunOutputImagePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_all&#34;,
-      &#34;InputConfigFilePath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/config.toml&#34;,
-      &#34;InputConfigFilePathRelative&#34;: &#34;personalised_poker_chip/config.toml&#34;,
-      &#34;SkipImages&#34;: false,
-      &#34;SkippedReason&#34;: &#34;&#34;,
-      &#34;SkippedImageReason&#34;: &#34;Skipping image for instance personalised_poker_chip_all: Skipping image because param renderType does not match obj,vertSlice,horzSlice&#34;,
-      &#34;IsComplete&#34;: false,
-      &#34;IsSuccessful&#34;: false,
-      &#34;CompletedAt&#34;: &#34;0001-01-01T00:00:00Z&#34;,
-      &#34;STLResults&#34;: null
-    },
-    &#34;OutputPath&#34;: &#34;&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_all.stl&#39; --render -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; -D &#39;renderType=\&#34;all\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
-    &#34;CommandOutput&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.647\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
-    &#34;Error&#34;: &#34;&#34;,
-    &#34;AppliedParams&#34;: {
-      &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
-      &#34;name&#34;: &#34;default&#34;,
-      &#34;renderType&#34;: &#34;all&#34;,
-      &#34;version&#34;: &#34;v0.1&#34;
-    },
-    &#34;TimeTaken&#34;: 1758933792,
-    &#34;OutputLog&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.647\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+    &#34;TimeTaken&#34;: 3136091167,
+    &#34;OutputLog&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.879\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
     &#34;Skipped&#34;: false,
     &#34;LowQuality&#34;: false,
     &#34;SkippedReason&#34;: &#34;&#34;,
     &#34;GenerateImageResult&#34;: null
   }
-]</pre></div></details> <div class="columns is-multiline"><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">personalised_poker_chip_obj</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 1.876181666s</p><p><strong>Applied Params 1:</strong></p><div class="code-block"><div><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;personalised_poker_chip&#34;;
+]</pre></div></details> <div class="columns is-multiline"><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">personalised_poker_chip_obj</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 3.088698459s</p><p><strong>Applied Params 1:</strong></p><div class="code-block"><div><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;personalised_poker_chip&#34;;
 name = &#34;default&#34;;
 renderType = &#34;obj&#34;;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></div><div x-show="showDebug"><details><summary>Debug Info</summary> <details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj.stl&#39; --render -D &#39;name=&#34;default&#34;&#39; -D &#39;renderType=&#34;obj&#34;&#39; -D &#39;designFileName=&#34;personalised_poker_chip&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>Geometries in cache: 249
-Geometry cache size in bytes: 10414720
-CGAL Polyhedrons in cache: 17
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></div><div x-show="showDebug"><details><summary>Debug Info</summary> <details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj.stl&#39; --render -D &#39;renderType=&#34;obj&#34;&#39; -D &#39;designFileName=&#34;personalised_poker_chip&#34;&#39; -D &#39;name=&#34;default&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>Geometries in cache: 760
+Geometry cache size in bytes: 34542744
+CGAL Polyhedrons in cache: 45
 CGAL cache size in bytes: 0
-Total rendering time: 0:00:00.874
+Total rendering time: 0:00:01.837
    Top level object is a 3D object (manifold):
    Status:     NoError
    Genus:      0
-   Vertices:    27387
-   Facets:      54770
-</pre></code></div></details></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">personalised_poker_chip_vertSlice</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 3.251674042s</p><p><strong>Applied Params 1:</strong></p><div class="code-block"><div><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;personalised_poker_chip&#34;;
+   Vertices:    25793
+   Facets:      51582
+</pre></code></div></details></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">personalised_poker_chip_vertSlice</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 2.9862415s</p><p><strong>Applied Params 1:</strong></p><div class="code-block"><div><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;personalised_poker_chip&#34;;
 name = &#34;default&#34;;
 renderType = &#34;vertSlice&#34;;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></div><div x-show="showDebug"><details><summary>Debug Info</summary> <details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice.stl&#39; --render -D &#39;renderType=&#34;vertSlice&#34;&#39; -D &#39;designFileName=&#34;personalised_poker_chip&#34;&#39; -D &#39;name=&#34;default&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>Geometries in cache: 249
-Geometry cache size in bytes: 10414720
-CGAL Polyhedrons in cache: 17
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></div><div x-show="showDebug"><details><summary>Debug Info</summary> <details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice.stl&#39; --render -D &#39;name=&#34;default&#34;&#39; -D &#39;renderType=&#34;vertSlice&#34;&#39; -D &#39;designFileName=&#34;personalised_poker_chip&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>Geometries in cache: 760
+Geometry cache size in bytes: 34542744
+CGAL Polyhedrons in cache: 45
 CGAL cache size in bytes: 0
-Total rendering time: 0:00:01.644
+Total rendering time: 0:00:01.731
    Top level object is a 3D object (manifold):
    Status:     NoError
    Genus:      0
-   Vertices:    27387
-   Facets:      54770
-</pre></code></div></details></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">personalised_poker_chip_horzSlice</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 2.090800459s</p><p><strong>Applied Params 1:</strong></p><div class="code-block"><div><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;personalised_poker_chip&#34;;
+   Vertices:    25793
+   Facets:      51582
+</pre></code></div></details></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">personalised_poker_chip_horzSlice</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 3.136091167s</p><p><strong>Applied Params 1:</strong></p><div class="code-block"><div><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;personalised_poker_chip&#34;;
 name = &#34;default&#34;;
 renderType = &#34;horzSlice&#34;;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></div><div x-show="showDebug"><details><summary>Debug Info</summary> <details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice.stl&#39; --render -D &#39;renderType=&#34;horzSlice&#34;&#39; -D &#39;designFileName=&#34;personalised_poker_chip&#34;&#39; -D &#39;name=&#34;default&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>Geometries in cache: 249
-Geometry cache size in bytes: 10414720
-CGAL Polyhedrons in cache: 17
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></div><div x-show="showDebug"><details><summary>Debug Info</summary> <details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice.stl&#39; --render -D &#39;name=&#34;default&#34;&#39; -D &#39;renderType=&#34;horzSlice&#34;&#39; -D &#39;designFileName=&#34;personalised_poker_chip&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>Geometries in cache: 760
+Geometry cache size in bytes: 34542744
+CGAL Polyhedrons in cache: 45
 CGAL cache size in bytes: 0
-Total rendering time: 0:00:00.810
+Total rendering time: 0:00:01.879
    Top level object is a 3D object (manifold):
    Status:     NoError
    Genus:      0
-   Vertices:    27387
-   Facets:      54770
-</pre></code></div></details></details></div></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">personalised_poker_chip_all</p><p class="subtitle is-6">Generated successfully</p></div></div><div class="content"><p><strong>Time Taken:</strong> 1.758933792s</p><p><strong>Applied Params 1:</strong></p><div class="code-block"><div><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;personalised_poker_chip&#34;;
-name = &#34;default&#34;;
-renderType = &#34;all&#34;;
-version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></div><div x-show="showDebug"><details><summary>Debug Info</summary> <details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_all.stl&#39; --render -D &#39;designFileName=&#34;personalised_poker_chip&#34;&#39; -D &#39;name=&#34;default&#34;&#39; -D &#39;renderType=&#34;all&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>Geometries in cache: 249
-Geometry cache size in bytes: 10414720
-CGAL Polyhedrons in cache: 17
-CGAL cache size in bytes: 0
-Total rendering time: 0:00:00.647
-   Top level object is a 3D object (manifold):
-   Status:     NoError
-   Genus:      0
-   Vertices:    27387
-   Facets:      54770
+   Vertices:    25793
+   Facets:      51582
 </pre></code></div></details></details></div></div></div></div></div></div></div></div><div><div x-show="navSelected === &#39;images&#39;"><h3>Image Results (3)</h3></div><div x-show="navSelected === &#39;images&#39;"><style>
         .json-viewer {
             margin: 10px 0;
@@ -2475,8 +2215,8 @@ Total rendering time: 0:00:00.647
             &#34;STLResults&#34;: null
           },
           &#34;OutputPath&#34;: &#34;&#34;,
-          &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj.stl&#39; --render -D &#39;name=\&#34;default\&#34;&#39; -D &#39;renderType=\&#34;obj\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
-          &#34;CommandOutput&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.874\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+          &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj.stl&#39; --render -D &#39;renderType=\&#34;obj\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
+          &#34;CommandOutput&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.837\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
           &#34;Error&#34;: &#34;&#34;,
           &#34;AppliedParams&#34;: {
             &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
@@ -2484,8 +2224,8 @@ Total rendering time: 0:00:00.647
             &#34;renderType&#34;: &#34;obj&#34;,
             &#34;version&#34;: &#34;v0.1&#34;
           },
-          &#34;TimeTaken&#34;: 1876181666,
-          &#34;OutputLog&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.874\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+          &#34;TimeTaken&#34;: 3088698459,
+          &#34;OutputLog&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.837\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
           &#34;Skipped&#34;: false,
           &#34;LowQuality&#34;: false,
           &#34;SkippedReason&#34;: &#34;&#34;,
@@ -2494,8 +2234,8 @@ Total rendering time: 0:00:00.647
       ]
     },
     &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj-nice.png&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;renderType=\&#34;obj\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
-    &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file personalised_poker_chip.scad, line 167\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 137 elements\nGeometries in cache: 75\nGeometry cache size in bytes: 2860640\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.508\n&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; -D &#39;renderType=\&#34;obj\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file personalised_poker_chip.scad, line 170\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 137 elements\nCompiling highlights (1 CSG Trees)...\nGeometries in cache: 103\nGeometry cache size in bytes: 4724992\nCGAL Polyhedrons in cache: 20\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.541\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
@@ -2503,7 +2243,7 @@ Total rendering time: 0:00:00.647
       &#34;renderType&#34;: &#34;obj&#34;,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 1618930084,
+    &#34;TimeTaken&#34;: 1860014333,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;nice&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -2614,8 +2354,8 @@ Total rendering time: 0:00:00.647
             &#34;STLResults&#34;: null
           },
           &#34;OutputPath&#34;: &#34;&#34;,
-          &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice.stl&#39; --render -D &#39;renderType=\&#34;vertSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
-          &#34;CommandOutput&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.644\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+          &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice.stl&#39; --render -D &#39;name=\&#34;default\&#34;&#39; -D &#39;renderType=\&#34;vertSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
+          &#34;CommandOutput&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.731\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
           &#34;Error&#34;: &#34;&#34;,
           &#34;AppliedParams&#34;: {
             &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
@@ -2623,8 +2363,8 @@ Total rendering time: 0:00:00.647
             &#34;renderType&#34;: &#34;vertSlice&#34;,
             &#34;version&#34;: &#34;v0.1&#34;
           },
-          &#34;TimeTaken&#34;: 3251674042,
-          &#34;OutputLog&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.644\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+          &#34;TimeTaken&#34;: 2986241500,
+          &#34;OutputLog&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.731\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
           &#34;Skipped&#34;: false,
           &#34;LowQuality&#34;: false,
           &#34;SkippedReason&#34;: &#34;&#34;,
@@ -2633,8 +2373,8 @@ Total rendering time: 0:00:00.647
       ]
     },
     &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice-nice.png&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;name=\&#34;default\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; -D &#39;renderType=\&#34;vertSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
-    &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file personalised_poker_chip.scad, line 167\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 137 elements\nGeometries in cache: 75\nGeometry cache size in bytes: 2860640\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.671\n&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;renderType=\&#34;vertSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file personalised_poker_chip.scad, line 170\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 137 elements\nCompiling highlights (1 CSG Trees)...\nGeometries in cache: 103\nGeometry cache size in bytes: 4724992\nCGAL Polyhedrons in cache: 20\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.498\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
@@ -2642,7 +2382,7 @@ Total rendering time: 0:00:00.647
       &#34;renderType&#34;: &#34;vertSlice&#34;,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 1776924083,
+    &#34;TimeTaken&#34;: 1856358833,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;nice&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -2753,8 +2493,8 @@ Total rendering time: 0:00:00.647
             &#34;STLResults&#34;: null
           },
           &#34;OutputPath&#34;: &#34;&#34;,
-          &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice.stl&#39; --render -D &#39;renderType=\&#34;horzSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
-          &#34;CommandOutput&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.810\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+          &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o &#39;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice.stl&#39; --render -D &#39;name=\&#34;default\&#34;&#39; -D &#39;renderType=\&#34;horzSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
+          &#34;CommandOutput&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.879\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
           &#34;Error&#34;: &#34;&#34;,
           &#34;AppliedParams&#34;: {
             &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
@@ -2762,8 +2502,8 @@ Total rendering time: 0:00:00.647
             &#34;renderType&#34;: &#34;horzSlice&#34;,
             &#34;version&#34;: &#34;v0.1&#34;
           },
-          &#34;TimeTaken&#34;: 2090800459,
-          &#34;OutputLog&#34;: &#34;Geometries in cache: 249\nGeometry cache size in bytes: 10414720\nCGAL Polyhedrons in cache: 17\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.810\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    27387\n   Facets:      54770\n&#34;,
+          &#34;TimeTaken&#34;: 3136091167,
+          &#34;OutputLog&#34;: &#34;Geometries in cache: 760\nGeometry cache size in bytes: 34542744\nCGAL Polyhedrons in cache: 45\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:01.879\n   Top level object is a 3D object (manifold):\n   Status:     NoError\n   Genus:      0\n   Vertices:    25793\n   Facets:      51582\n&#34;,
           &#34;Skipped&#34;: false,
           &#34;LowQuality&#34;: false,
           &#34;SkippedReason&#34;: &#34;&#34;,
@@ -2772,8 +2512,8 @@ Total rendering time: 0:00:00.647
       ]
     },
     &#34;OutputPath&#34;: &#34;/Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice-nice.png&#34;,
-    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; -D &#39;renderType=\&#34;horzSlice\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
-    &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file personalised_poker_chip.scad, line 167\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 137 elements\nGeometries in cache: 75\nGeometry cache size in bytes: 2860640\nCGAL Polyhedrons in cache: 0\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.415\n&#34;,
+    &#34;Command&#34;: &#34;/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=\&#34;image\&#34; -D &#39;renderType=\&#34;horzSlice\&#34;&#39; -D &#39;designFileName=\&#34;personalised_poker_chip\&#34;&#39; -D &#39;name=\&#34;default\&#34;&#39; -D &#39;version=\&#34;v0.1\&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad&#34;,
+    &#34;CommandOutput&#34;: &#34;WARNING: Ignoring unknown variable \&#34;image\&#34; in file personalised_poker_chip.scad, line 170\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nWARNING: Ignoring unknown variable \&#34;image\&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38\nCompiling design (CSG Products normalization)...\nNormalized CSG tree has 137 elements\nCompiling highlights (1 CSG Trees)...\nGeometries in cache: 103\nGeometry cache size in bytes: 4724992\nCGAL Polyhedrons in cache: 20\nCGAL cache size in bytes: 0\nTotal rendering time: 0:00:00.492\n&#34;,
     &#34;Error&#34;: &#34;&#34;,
     &#34;AppliedParams&#34;: {
       &#34;designFileName&#34;: &#34;personalised_poker_chip&#34;,
@@ -2781,7 +2521,7 @@ Total rendering time: 0:00:00.647
       &#34;renderType&#34;: &#34;horzSlice&#34;,
       &#34;version&#34;: &#34;v0.1&#34;
     },
-    &#34;TimeTaken&#34;: 1463869292,
+    &#34;TimeTaken&#34;: 1847075959,
     &#34;Skipped&#34;: false,
     &#34;CameraName&#34;: &#34;nice&#34;,
     &#34;CameraCoords&#34;: &#34;0,0,0,45,0,45,350&#34;
@@ -2790,7 +2530,7 @@ Total rendering time: 0:00:00.647
 name = &#34;default&#34;;
 renderType = &#34;obj&#34;;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj-nice.png" alt="Preview of default from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj-nice.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=&#34;image&#34; -D &#39;renderType=&#34;obj&#34;&#39; -D &#39;designFileName=&#34;personalised_poker_chip&#34;&#39; -D &#39;name=&#34;default&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>WARNING: Ignoring unknown variable &#34;image&#34; in file personalised_poker_chip.scad, line 167
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj-nice.png" alt="Preview of default from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj-nice.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_obj-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=&#34;image&#34; -D &#39;designFileName=&#34;personalised_poker_chip&#34;&#39; -D &#39;name=&#34;default&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;renderType=&#34;obj&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>WARNING: Ignoring unknown variable &#34;image&#34; in file personalised_poker_chip.scad, line 170
 WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
 WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
 WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
@@ -2798,16 +2538,17 @@ WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../
 WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
 Compiling design (CSG Products normalization)...
 Normalized CSG tree has 137 elements
-Geometries in cache: 75
-Geometry cache size in bytes: 2860640
-CGAL Polyhedrons in cache: 0
+Compiling highlights (1 CSG Trees)...
+Geometries in cache: 103
+Geometry cache size in bytes: 4724992
+CGAL Polyhedrons in cache: 20
 CGAL cache size in bytes: 0
-Total rendering time: 0:00:00.508
+Total rendering time: 0:00:00.541
 </pre></code></div></details></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">default</p><p class="subtitle is-6">Camera: nice</p></div></div><div class="content"><p><strong>Output Path:</strong> ../personalised_poker_chip_vertSlice-nice.png</p><p><strong>Time Taken:</strong> 1 second</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><div><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;personalised_poker_chip&#34;;
 name = &#34;default&#34;;
 renderType = &#34;vertSlice&#34;;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice-nice.png" alt="Preview of default from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice-nice.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=&#34;image&#34; -D &#39;name=&#34;default&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;renderType=&#34;vertSlice&#34;&#39; -D &#39;designFileName=&#34;personalised_poker_chip&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>WARNING: Ignoring unknown variable &#34;image&#34; in file personalised_poker_chip.scad, line 167
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice-nice.png" alt="Preview of default from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice-nice.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_vertSlice-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=&#34;image&#34; -D &#39;renderType=&#34;vertSlice&#34;&#39; -D &#39;designFileName=&#34;personalised_poker_chip&#34;&#39; -D &#39;name=&#34;default&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>WARNING: Ignoring unknown variable &#34;image&#34; in file personalised_poker_chip.scad, line 170
 WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
 WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
 WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
@@ -2815,16 +2556,17 @@ WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../
 WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
 Compiling design (CSG Products normalization)...
 Normalized CSG tree has 137 elements
-Geometries in cache: 75
-Geometry cache size in bytes: 2860640
-CGAL Polyhedrons in cache: 0
+Compiling highlights (1 CSG Trees)...
+Geometries in cache: 103
+Geometry cache size in bytes: 4724992
+CGAL Polyhedrons in cache: 20
 CGAL cache size in bytes: 0
-Total rendering time: 0:00:00.671
+Total rendering time: 0:00:00.498
 </pre></code></div></details></div></div></div></div><div class="column is-full"><div class="card"><div class="card-content"><div class="media"><div class="media-content"><p class="title is-4">default</p><p class="subtitle is-6">Camera: nice</p></div></div><div class="content"><p><strong>Output Path:</strong> ../personalised_poker_chip_horzSlice-nice.png</p><p><strong>Time Taken:</strong> 1 second</p><details><summary>Camera Coordinates</summary><p>Coordinates: 0,0,0,45,0,45,350</p><div><p>Format: x,y,z,rotx,roty,rotz,distance</p><ul><li>x,y,z: Camera position in 3D space</li><li>rotx,roty,rotz: Rotation angles in degrees</li><li>distance: Distance from camera to target point</li></ul></div><div class="code-block"><div><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button> <details><summary>Applied Params</summary><code><pre>designFileName = &#34;personalised_poker_chip&#34;;
 name = &#34;default&#34;;
 renderType = &#34;horzSlice&#34;;
 version = &#34;v0.1&#34;;
-</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice-nice.png" alt="Preview of default from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice-nice.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=&#34;image&#34; -D &#39;designFileName=&#34;personalised_poker_chip&#34;&#39; -D &#39;name=&#34;default&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; -D &#39;renderType=&#34;horzSlice&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>WARNING: Ignoring unknown variable &#34;image&#34; in file personalised_poker_chip.scad, line 167
+</pre></code><p class="is-size-7">(copy these into the openscad editor to tweak this instance)</p></details></div></div></details> <img src="file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice-nice.png" alt="Preview of default from nice" class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="image-error" style="display: none;">Image failed to load: file:///Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice-nice.png</div><details><summary>Command</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command</button> <code style="white-space: pre;"><pre>/opt/homebrew/bin/openscad -o /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/personalised_poker_chip_horzSlice-nice.png --imgsize 1920,1080 --projection perspective --camera 0,0,0,45,0,45,350 --preview -D genType=&#34;image&#34; -D &#39;renderType=&#34;horzSlice&#34;&#39; -D &#39;designFileName=&#34;personalised_poker_chip&#34;&#39; -D &#39;name=&#34;default&#34;&#39; -D &#39;version=&#34;v0.1&#34;&#39; /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/personalised_poker_chip.scad</pre></code></div></details> <details><summary>Command Output</summary><div class="code-block"><button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy Command Output</button> <code style="white-space: pre;"><pre>WARNING: Ignoring unknown variable &#34;image&#34; in file personalised_poker_chip.scad, line 170
 WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
 WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
 WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
@@ -2832,11 +2574,12 @@ WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../
 WARNING: Ignoring unknown variable &#34;image&#34; in file ../../../../../../../Documents/OpenSCAD/libraries/BOSL2/builtins.scad, line 38
 Compiling design (CSG Products normalization)...
 Normalized CSG tree has 137 elements
-Geometries in cache: 75
-Geometry cache size in bytes: 2860640
-CGAL Polyhedrons in cache: 0
+Compiling highlights (1 CSG Trees)...
+Geometries in cache: 103
+Geometry cache size in bytes: 4724992
+CGAL Polyhedrons in cache: 20
 CGAL cache size in bytes: 0
-Total rendering time: 0:00:00.415
+Total rendering time: 0:00:00.492
 </pre></code></div></details></div></div></div></div></div></div></div><div></div></div><script>
             
             // window.htmx && (htmx.config.debug = true);
@@ -2860,4 +2603,4 @@ Total rendering time: 0:00:00.415
             document.body.addEventListener('htmx:afterOnLoad', function(evt) {
                 console.log('htmx:afterOnLoad', evt);
             });
-        </script><div><h1>Config Summary</h1><p>Output Path: /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/report.html</p><p>Total Time: 13 seconds</p><h2>Global Parameters</h2><p><strong>renderType:</strong> obj,vertSlice,horzSlice,all</p><h2>Output Paths</h2><p><strong>OutputPath:</strong> /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/report.html</p><p class="is-size-6 is-italic is-text-grey is-centered">Total processing time: 13 seconds</p><p class="is-size-6 is-italic is-text-grey is-centered">Generated by openscadgen OpenSCAD version 2025.11.10 v2.7.34 at 2026-04-16 12:54:13</p><br><br><br><br></div></div></body></html>
+        </script><div><h1>Config Summary</h1><p>Output Path: /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/report.html</p><p>Total Time: 14 seconds</p><h2>Global Parameters</h2><p><strong>renderType:</strong> obj,vertSlice,horzSlice</p><h2>Output Paths</h2><p><strong>OutputPath:</strong> /Users/gregc/mine/making/3d-printing/openSCAD/openscadgen/examples/personalised_poker_chip/export/v0.1/report.html</p><p class="is-size-6 is-italic is-text-grey is-centered">Total processing time: 14 seconds</p><p class="is-size-6 is-italic is-text-grey is-centered">Generated by openscadgen OpenSCAD version 2025.11.10 v2.7.35 at 2026-04-20 10:23:45</p><br><br><br><br></div></div></body></html>

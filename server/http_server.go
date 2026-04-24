@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 	"github.com/a-h/templ"
@@ -149,7 +150,7 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 
 	listener, actualPort, err := tryListenOnPort(port, portWasSpecified)
 	if err != nil {
-		log.Fatalf("Error: Could not bind to port %s: %v", port, err)
+		log.Fatalf("Error: Could not bind to port %s: %v\n End the existing process or use -p to specify a different port", port, err)
 	}
 
 	// Update port if we got a different one
@@ -412,6 +413,43 @@ func handleGETRequest(w http.ResponseWriter, r *http.Request) {
 // handlePOSTRequest handles POST requests for adding configs
 func handlePOSTRequest(w http.ResponseWriter, r *http.Request) {
 	log.Printf("POST (Add Config) request" + r.Method)
+
+	if r.FormValue("create_project") == "1" {
+		name := strings.TrimSpace(r.FormValue("project_name"))
+		parent := strings.TrimSpace(r.FormValue("project_parent"))
+		if parent == "" && globalServerFolder != "" {
+			parent = globalServerFolder
+		}
+		extended := r.FormValue("project_extended") == "1" || r.FormValue("project_extended") == "on"
+		if name == "" {
+			warning := templates.Warning("project_name is required")
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			warning.Render(context.Background(), w)
+			return
+		}
+		if parent == "" {
+			warning := templates.Warning("project parent path is required (or open the config list with a server folder so it can default)")
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			warning.Render(context.Background(), w)
+			return
+		}
+		if err := pkg.InitConfigInParent(parent, name, extended); err != nil {
+			warning := templates.Warning(fmt.Sprintf("Create project: %v", err))
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			warning.Render(context.Background(), w)
+			return
+		}
+		if globalServerFolder != "" {
+			scanned, err := pkg.ScanFolderForConfigFiles(globalServerFolder)
+			if err != nil {
+				log.Printf("rescan after create project: %v", err)
+			} else {
+				configFiles = scanned
+			}
+		}
+		http.Redirect(w, r, pkg.BuildHomeURL(globalServerFolder), http.StatusSeeOther)
+		return
+	}
 
 	projectFolder := r.FormValue("project_folder")
 	if projectFolder != "" {

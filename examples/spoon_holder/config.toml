@@ -1,0 +1,17 @@
+[openscadgen]
+name = "spoon_holder"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}"
+
+# These params will be passed into all the generated designs
+global_params = { }
+
+[[openscadgen.input_paths]]
+path = "./spoon_holder.scad"
+params = { }
+
+[[openscadgen.images]]
+name = "nice"

@@ -1253,10 +1253,14 @@ html, body {
                     font-style: italic;
                     font-size: 0.9em;
                 }
+                /* Bulma default .button is light grey bg + dark text; forcing --text-color
+                   without fixing bg makes dark mode nearly white-on-white. */
                 .button {
-                    color: var(--text-color) !important;
-                //    background-color: var(--card-bg) !important;
                     border: 1px solid var(--border-color) !important;
+                }
+                .dark .button:not(.is-primary):not(.is-link):not(.is-info):not(.is-success):not(.is-warning):not(.is-danger):not(.is-light):not(.is-dark):not(.is-white):not(.is-black):not(.is-text):not(.is-ghost) {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
                 }
                 pre, code {
                     color: var(--text-color) !important;
@@ -1479,8 +1483,7 @@ html, body {
             
                      <nav class="navbar navbar-expand-lg navbar-light bg-light">
                         <div>
-                            <a class="navbar-brand">{ config.Design.Name }</a>
-                            
+                               
                             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                                 <span class="navbar-toggler-icon"></span>
                             </button>
@@ -1488,6 +1491,9 @@ html, body {
                                 <a href={ templ.SafeURL(reportMeta.HomeURL) } class="button is-large">Home</a>
                             }
                         </div>
+                        <div class="navbar-brand">
+                        <a class="navbar-brand">{ config.Design.Name }</a>
+                         </div>
 
                         <div class="collapse navbar-collapse" id="navbarSupportedContent">
                             <ul class="navbar-nav mr-auto">

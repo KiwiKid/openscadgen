@@ -19,11 +19,20 @@ func ParseFlags() models.CmdFlags {
 	flag.BoolVar(&cmdFlags.ShowMan, "m", false, "Alias for -man")
 	flag.BoolVar(&cmdFlags.ShowMan, "h", false, "Alias for -man")
 
-	flag.StringVar(&cmdFlags.InitProjectName, "init", "", "Initialize a new project at the current directory with the given name")
+	initDesc := "Create a new project folder (name or relative path, e.g. examples/my-part). Optional location: -init-dir, or -sf when starting the server in the same command."
+	flag.StringVar(&cmdFlags.InitProjectName, "init", "", initDesc)
 	flag.StringVar(&cmdFlags.InitProjectName, "i", "", "Alias for -init")
+	flag.StringVar(&cmdFlags.InitProjectName, "new", "", "Alias for -init (create new project)")
 
-	flag.StringVar(&cmdFlags.InitProjectNameExtended, "init-extended", "", "Initialize a new project at the current directory with the given name - with bosl2 and renderSlicing support")
-	flag.StringVar(&cmdFlags.InitProjectNameExtended, "ie", "", "Alias for -init")
+	initExtDesc := "Create a new project with BOSL2 / renderSlicing template (same as -ie). Location flags same as -init."
+	flag.StringVar(&cmdFlags.InitProjectNameExtended, "init-extended", "", initExtDesc)
+	flag.StringVar(&cmdFlags.InitProjectNameExtended, "ie", "", "Alias for -init-extended")
+	flag.StringVar(&cmdFlags.InitProjectNameExtended, "new-extended", "", "Alias for -init-extended")
+	flag.StringVar(&cmdFlags.InitProjectNameExtended, "newe", "", "Alias for -new-extended")
+
+	initParentDesc := "Parent directory for a new project from -init/-i/-new or -ie/-newe (default: . or -sf folder when set)"
+	flag.StringVar(&cmdFlags.InitProjectParentDir, "init-dir", "", initParentDesc)
+	flag.StringVar(&cmdFlags.InitProjectParentDir, "id", "", "Alias for -init-dir")
 
 	flag.StringVar(&cmdFlags.RegexPattern, "regex", "", "Regex pattern to only run a specific instances when generating files")
 	flag.StringVar(&cmdFlags.RegexPattern, "r", "", "Alias for -regex")

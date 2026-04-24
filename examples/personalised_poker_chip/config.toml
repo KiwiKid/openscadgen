@@ -6,11 +6,11 @@ version = "v0.1"
 
 export_name_format = "{designFileName}_{renderType}"
 
-global_params = { renderType = "obj,vertSlice,horzSlice" }
+global_params = { renderType = "obj,backHalf,frontHalf,alignBlock" }
 
 [[openscadgen.input_paths]]
 path = "./personalised_poker_chip.scad"
 
 [[openscadgen.images]]
 name = "nice"
-param_filter = { renderType= "obj,vertSlice,horzSlice"}
+param_filter = { renderType= "obj,backHalf,frontHalf"}

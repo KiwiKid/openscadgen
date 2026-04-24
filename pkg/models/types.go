@@ -91,6 +91,7 @@ type CmdFlags struct {
 	ProcessFolder                string `json:"process_folder"`
 	InitProjectName              string `json:"init_project_name"`
 	InitProjectNameExtended      string `json:"init_project_name_extended"`
+	InitProjectParentDir         string `json:"init_project_parent_dir"`
 	ConfigFile                   string `json:"config_file"`
 	SkipRender                   bool   `json:"skip_render"`
 	SkipReadme                   bool   `json:"skip_readme"`

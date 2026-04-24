@@ -1,0 +1,15 @@
+[openscadgen]
+name = "poker_chip_mount"
+description = "a mount for a poker chip in a phone holder/large wallet. Keep chip secure and holds it in one place"
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{useSizer}"
+
+global_params = { useSizer = "true,false"}
+
+[[openscadgen.input_paths]]
+path = "./poker_chip_mount.scad"
+
+[[openscadgen.images]]
+name = "nice"
