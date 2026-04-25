@@ -15,7 +15,7 @@ holderHeight = 10.65;
 holderRoundingReduction = 0.93;
 spitHeightRatio = 1.3;
 
-spoonSplitThickness = 1.4;
+spoonSplitThickness = 2;
 spoonSplitSize = [spoonSplitThickness,holderWidth*spoonSplitWidthRatio,holderHeight*spitHeightRatio];
 spoonSplitTranslate = [-holderLength*0.4,0,0.2];
 spoonSplitRotate = 15;

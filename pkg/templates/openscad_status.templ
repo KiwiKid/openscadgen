@@ -4,55 +4,36 @@ import "fmt"
 
 // OpenSCADNavView is server-side state for the nav OpenSCAD probe widget.
 type OpenSCADNavView struct {
-	Available bool
-	Path      string
-	Version   string
-	Error     string
-	OutOfDate bool
+	Available   bool
+	Path        string
+	Version     string
+	Error       string
+	OutOfDate   bool
+	DetailsOpen bool // from ?isExpanded=1 on /api/openscad/status
 }
 
-// OpenSCADNavWidget shows a status tag; click toggles Alpine-driven details. Includes a
-// hidden #openscad-status node with data-* attributes for tests and programmatic checks.
-// In server UIs, OpenSCADNavPlaceholder fetches this once. Expanded state: query
-// `isExpanded=1` (see static/js openscadNavXData + history.replaceState).
+// OpenSCADNavWidget shows OpenSCAD OK / No OpenSCAD in a <summary>; details hold path/version.
+// Includes #openscad-status with data-* for tests. Expand state: ?isExpanded=1 (see utils.js).
 templ OpenSCADNavWidget(v OpenSCADNavView) {
-	<div id="openscad-nav-widget" class="openscad-nav-widget"
-		x-data="openscadNavXData()">
-		<div class="openscad-nav-row" style="display:flex;flex-wrap:wrap;align-items:center;gap:0.5rem;">
-			if v.Available {
-				<span
-					class="tag is-success is-light"
-					role="button"
-					tabindex="0"
-					style="cursor:pointer;user-select:none;"
-					:aria-expanded="detailsOpen"
-					@click="toggle()"
-					@keydown.enter.prevent="toggle()"
-					@keydown.space.prevent="toggle()"
-				>OpenSCAD OK</span>
-			} else {
-				<span
-					class="tag is-danger is-light"
-					role="button"
-					tabindex="0"
-					style="cursor:pointer;user-select:none;"
-					:aria-expanded="detailsOpen"
-					@click="toggle()"
-					@keydown.enter.prevent="toggle()"
-					@keydown.space.prevent="toggle()"
-				>No OpenSCAD</span>
-			}
+	<div id="openscad-nav-widget" class="openscad-nav-widget">
+		<details id="openscad-nav-details" class="openscad-nav-details" if v.DetailsOpen { open }>
+			<summary class="openscad-nav-summary">
+				if v.Available {
+					<span class="tag is-success is-light">OpenSCAD OK</span>
+				} else {
+					<span class="tag is-danger is-light">No OpenSCAD</span>
+				}
+			</summary>
 			<div
 				class="openscad-nav-panel content is-size-7"
-				x-show="detailsOpen"
-				x-transition
-				style="flex-basis:100%;max-width:min(90vw, 32rem);margin-top:0.25rem;padding-top:0.5rem;border-top:1px solid rgba(0,0,0,0.08);"
+				style="max-width:min(90vw, 32rem);margin-top:0.25rem;padding-top:0.5rem;border-top:1px solid rgba(0,0,0,0.08);"
 			>
 				<div class="is-flex is-justify-content-flex-end mb-2" style="gap:0.5rem;">
 					<button
 						type="button"
 						class="button is-small is-light"
 						hx-get="/api/openscad/status?fragment=1"
+						hx-vals="js:{isExpanded: document.getElementById(&quot;openscad-nav-details&quot;)?.open ? &quot;1&quot; : undefined}"
 						hx-target="closest #openscad-nav-widget"
 						hx-swap="outerHTML"
 					>Reload</button>
@@ -70,7 +51,7 @@ templ OpenSCADNavWidget(v OpenSCADNavView) {
 					<pre class="p-2" style="white-space:pre-wrap;word-break:break-all;background:rgba(0,0,0,0.04);border-radius:4px;">{ v.Error }</pre>
 				}
 			</div>
-		</div>
+		</details>
 		<div id="openscad-status"
 			data-available={ fmt.Sprintf("%t", v.Available) }
 			data-path={ v.Path }
@@ -103,6 +84,7 @@ templ OpenSCADStatusFullPage(v OpenSCADNavView) {
 templ OpenSCADNavPlaceholder() {
 	<div id="openscad-nav-widget"
 		hx-get="/api/openscad/status?fragment=1"
+		hx-vals="js:{isExpanded: new URLSearchParams(window.location.search).get(&quot;isExpanded&quot;) === &quot;1&quot; ? &quot;1&quot; : undefined}"
 		hx-trigger="load"
 		hx-swap="outerHTML">
 		<span class="is-size-7 has-text-grey">OpenSCAD…</span>

@@ -135,58 +135,27 @@
 })();
 
 /**
- * OpenSCAD nav widget (report / config UIs). Keeps `isExpanded=1` in the query string
- * so refresh preserves open/close; htmx reload swaps the fragment and Alpine re-inits.
+ * OpenSCAD nav widget: native <details>; keep isExpanded=1 in the URL so refresh matches open/close.
  */
-function openscadNavXData() {
-    return {
-        detailsOpen: (function () {
-            try {
-                return new URLSearchParams(window.location.search).get('isExpanded') === '1';
-            } catch (e) {
-                return false;
-            }
-        })(),
-        syncURL() {
-            try {
-                const u = new URL(window.location.href);
-                if (this.detailsOpen) {
-                    u.searchParams.set('isExpanded', '1');
-                } else {
-                    u.searchParams.delete('isExpanded');
-                }
-                history.replaceState(null, '', u);
-            } catch (e) { /* no-op */ }
-        },
-        toggle() {
-            this.detailsOpen = !this.detailsOpen;
-            this.syncURL();
-        },
-    };
+function syncOpenSCADNavDetailsURL() {
+    try {
+        var d = document.getElementById('openscad-nav-details');
+        if (!d) return;
+        var u = new URL(window.location.href);
+        if (d.open) {
+            u.searchParams.set('isExpanded', '1');
+        } else {
+            u.searchParams.delete('isExpanded');
+        }
+        history.replaceState(null, '', u);
+    } catch (e) { /* no-op */ }
 }
 
-function openScadNavAfterHtmxSwapInit(evt) {
-    var el = evt.detail.elt;
-    if (!el || el.id !== 'openscad-nav-widget') return;
-    var attempts = 0;
-    (function tryInit() {
-        if (!el.isConnected) return;
-        if (window.Alpine && typeof window.Alpine.initTree === 'function') {
-            window.Alpine.initTree(el);
-            return;
-        }
-        if (++attempts < 50) {
-            setTimeout(tryInit, 20);
-        }
-    })();
-}
-if (document.body) {
-    document.body.addEventListener('htmx:afterSwap', openScadNavAfterHtmxSwapInit);
-} else {
-    document.addEventListener('DOMContentLoaded', function () {
-        document.body.addEventListener('htmx:afterSwap', openScadNavAfterHtmxSwapInit);
-    });
-}
+document.addEventListener('toggle', function (evt) {
+    if (evt.target && evt.target.id === 'openscad-nav-details') {
+        syncOpenSCADNavDetailsURL();
+    }
+}, true);
 
 
 

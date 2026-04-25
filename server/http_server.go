@@ -674,6 +674,7 @@ func handleOpenSCADStatus(w http.ResponseWriter, r *http.Request) {
 			OutOfDate: info.IsOutOfDate,
 		}
 	}
+	v.DetailsOpen = r.URL.Query().Get("isExpanded") == "1"
 	if r.URL.Query().Get("fragment") == "1" {
 		templates.OpenSCADNavWidget(v).Render(ctx, w)
 		return
