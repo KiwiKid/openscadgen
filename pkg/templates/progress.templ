@@ -111,11 +111,14 @@ templ ProgressUpdate(message string, id string, keepPolling bool) {
 }
 
 templ ProgressComplete() {
-    <div id="progress-summary" hx-swap-oob="true" class="notification is-success">
-    <span class="icon">
-            <i class="fas fa-check-circle"></i>
+    <div id="progress-summary" hx-swap-oob="true" class="is-1 has-text-success">
+        <span class="icon-text">
+            <span class="icon">
+                <i class="fas fa-check-circle"></i>
+            </span>
+            <span>All instances completed!</span>
         </span>
-    All instances completed!</div>
+    </div>
     <div id="progress" class="notification is-success">
         <span class="icon">
             <i class="fas fa-check-circle"></i>

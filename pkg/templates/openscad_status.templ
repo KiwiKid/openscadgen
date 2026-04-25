@@ -11,36 +11,65 @@ type OpenSCADNavView struct {
 	OutOfDate bool
 }
 
-// OpenSCADNavWidget shows a compact status chip and a details disclosure; includes a
+// OpenSCADNavWidget shows a status tag; click toggles Alpine-driven details. Includes a
 // hidden #openscad-status node with data-* attributes for tests and programmatic checks.
+// In server UIs, OpenSCADNavPlaceholder fetches this once. Expanded state: query
+// `isExpanded=1` (see static/js openscadNavXData + history.replaceState).
 templ OpenSCADNavWidget(v OpenSCADNavView) {
 	<div id="openscad-nav-widget" class="openscad-nav-widget"
-		hx-get="/api/openscad/status?fragment=1"
-		hx-trigger="load, every 60s"
-		hx-swap="outerHTML">
-		<div class="openscad-nav-row" style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+		x-data="openscadNavXData()">
+		<div class="openscad-nav-row" style="display:flex;flex-wrap:wrap;align-items:center;gap:0.5rem;">
 			if v.Available {
-				<span class="tag is-success is-light">OpenSCAD OK</span>
+				<span
+					class="tag is-success is-light"
+					role="button"
+					tabindex="0"
+					style="cursor:pointer;user-select:none;"
+					:aria-expanded="detailsOpen"
+					@click="toggle()"
+					@keydown.enter.prevent="toggle()"
+					@keydown.space.prevent="toggle()"
+				>OpenSCAD OK</span>
 			} else {
-				<span class="tag is-danger is-light">No OpenSCAD</span>
+				<span
+					class="tag is-danger is-light"
+					role="button"
+					tabindex="0"
+					style="cursor:pointer;user-select:none;"
+					:aria-expanded="detailsOpen"
+					@click="toggle()"
+					@keydown.enter.prevent="toggle()"
+					@keydown.space.prevent="toggle()"
+				>No OpenSCAD</span>
 			}
-			<details class="openscad-nav-details">
-				<summary style="cursor:pointer;font-size:0.85rem;" class="has-text-grey">Details</summary>
-				<div class="content is-size-7" style="margin-top:0.5rem;max-width:min(90vw, 32rem);">
-					if v.Available {
-						<p class="mb-1"><strong>Path</strong></p>
-						<pre class="p-2" style="white-space:pre-wrap;word-break:break-all;background:rgba(0,0,0,0.04);border-radius:4px;">{ v.Path }</pre>
-						<p class="mb-1 mt-2"><strong>Version</strong></p>
-						<pre class="p-2" style="white-space:pre-wrap;word-break:break-all;background:rgba(0,0,0,0.04);border-radius:4px;">{ v.Version }</pre>
-						if v.OutOfDate {
-							<p class="has-text-warning mt-2">Flagged out-of-date.</p>
-						}
-					} else {
-						<p class="mb-1"><strong>Error</strong></p>
-						<pre class="p-2" style="white-space:pre-wrap;word-break:break-all;background:rgba(0,0,0,0.04);border-radius:4px;">{ v.Error }</pre>
-					}
+			<div
+				class="openscad-nav-panel content is-size-7"
+				x-show="detailsOpen"
+				x-transition
+				style="flex-basis:100%;max-width:min(90vw, 32rem);margin-top:0.25rem;padding-top:0.5rem;border-top:1px solid rgba(0,0,0,0.08);"
+			>
+				<div class="is-flex is-justify-content-flex-end mb-2" style="gap:0.5rem;">
+					<button
+						type="button"
+						class="button is-small is-light"
+						hx-get="/api/openscad/status?fragment=1"
+						hx-target="closest #openscad-nav-widget"
+						hx-swap="outerHTML"
+					>Reload</button>
 				</div>
-			</details>
+				if v.Available {
+					<p class="mb-1"><strong>Path</strong></p>
+					<pre class="p-2" style="white-space:pre-wrap;word-break:break-all;background:rgba(0,0,0,0.04);border-radius:4px;">{ v.Path }</pre>
+					<p class="mb-1 mt-2"><strong>Version</strong></p>
+					<pre class="p-2" style="white-space:pre-wrap;word-break:break-all;background:rgba(0,0,0,0.04);border-radius:4px;">{ v.Version }</pre>
+					if v.OutOfDate {
+						<p class="has-text-warning mt-2">Flagged out-of-date.</p>
+					}
+				} else {
+					<p class="mb-1"><strong>Error</strong></p>
+					<pre class="p-2" style="white-space:pre-wrap;word-break:break-all;background:rgba(0,0,0,0.04);border-radius:4px;">{ v.Error }</pre>
+				}
+			</div>
 		</div>
 		<div id="openscad-status"
 			data-available={ fmt.Sprintf("%t", v.Available) }
@@ -60,9 +89,12 @@ templ OpenSCADStatusFullPage(v OpenSCADNavView) {
 			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<title>OpenSCAD status</title>
+			@HeadLinks()
 		</head>
 		<body>
-			@OpenSCADNavWidget(v)
+			<div class="container p-4">
+				@OpenSCADNavWidget(v)
+			</div>
 		</body>
 	</html>
 }

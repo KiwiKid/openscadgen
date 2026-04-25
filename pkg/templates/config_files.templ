@@ -265,10 +265,19 @@ html, body {
                     font-style: italic;
                     font-size: 0.9em;
                 }
+                /* Match report.templ: do not force --text-color on .is-primary etc. or primary becomes low-contrast. */
                 .button {
-                    color: var(--text-color) !important;
-                    background-color: var(--card-bg) !important;
                     border: 1px solid var(--border-color) !important;
+                }
+                .dark .button:not(.is-primary):not(.is-link):not(.is-info):not(.is-success):not(.is-warning):not(.is-danger):not(.is-light):not(.is-dark):not(.is-white):not(.is-black):not(.is-text):not(.is-ghost) {
+                    background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                }
+                /* Bulma .box stays white in dark mode while html uses light text → unreadable summary. */
+                .dark .box {
+                    background-color: var(--card-bg);
+                    color: var(--text-color);
+                    box-shadow: 0 0.5em 1em -0.125em rgba(0, 0, 0, 0.35), 0 0 0 1px var(--border-color);
                 }
                 pre, code {
                     color: var(--text-color) !important;
@@ -455,12 +464,11 @@ html, body {
                     </div>
                 </div>
             </div>
-                <h1>OpenSCAD Generator</h1>
+                <h1>openscadgen</h1>
                 
                 <!-- Watcher UI will be loaded here -->
                 <div id="watcher-status" hx-get="/api/watcher/ui" hx-trigger="load" hx-swap="outerHTML"></div>
                 
-                <hr/>
 
                 <details class="create-project-accordion box" style="max-width:720px;margin-bottom:1.5rem;">
                     <summary>Create new project</summary>
@@ -543,12 +551,6 @@ html, body {
                         }
                     </div>
                 </div>
-                <hr/>
-                
-                <form action="/" method="post">
-                    <input type="text" name="config_path" value="">
-                    <input type="submit" value="Enter">
-                </form>
             </div>
         </body>
 }

@@ -151,6 +151,7 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 
 	listener, actualPort, err := tryListenOnPort(port, portWasSpecified)
 	if err != nil {
+		log.Printf("Is Openscadgen already running? %v", err)
 		log.Fatalf("Error: Could not bind to port %s: %v\n End the existing process or use -p to specify a different port", port, err)
 	}
 
