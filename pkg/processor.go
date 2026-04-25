@@ -3179,6 +3179,12 @@ func findOpenSCAD() (OpenSCADVersion, error) {
 	}, nil
 }
 
+// ProbeOpenSCAD reports whether the openscad CLI is on PATH and returns
+// the trimmed combined output of `openscad --version` and the resolved path.
+func ProbeOpenSCAD() (OpenSCADVersion, error) {
+	return findOpenSCAD()
+}
+
 var configTemplate = `[openscadgen]
 name = "{{projectName}}"
 description = ""

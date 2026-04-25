@@ -136,6 +136,7 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 	http.HandleFunc("/static/", handleStaticFiles)
 	http.HandleFunc("/images", handleImageRequest)
 
+	http.HandleFunc("/api/openscad/status", handleOpenSCADStatus)
 	http.HandleFunc("/api/watcher/status", handleWatcherStatus)
 	http.HandleFunc("/api/watcher/pause", handleWatcherPause)
 	http.HandleFunc("/api/watcher/resume", handleWatcherResume)
@@ -650,6 +651,33 @@ func handleDeleteRequest(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+}
+
+// handleOpenSCADStatus returns HTML: full page by default, or HTMX fragment when ?fragment=1.
+func handleOpenSCADStatus(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	ctx := r.Context()
+	info, err := pkg.ProbeOpenSCAD()
+	var v templates.OpenSCADNavView
+	if err != nil {
+		v = templates.OpenSCADNavView{Available: false, Error: err.Error()}
+	} else {
+		v = templates.OpenSCADNavView{
+			Available: true,
+			Path:      info.Path,
+			Version:   info.Version,
+			OutOfDate: info.IsOutOfDate,
+		}
+	}
+	if r.URL.Query().Get("fragment") == "1" {
+		templates.OpenSCADNavWidget(v).Render(ctx, w)
+		return
+	}
+	templates.OpenSCADStatusFullPage(v).Render(ctx, w)
 }
 
 // handleWatcherStatus returns the current file watching status

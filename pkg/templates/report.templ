@@ -1389,6 +1389,17 @@ html, body {
                 .dark .navbar-nav .nav-item.active .nav-link {
                     color: var(--accent-color) !important;
                 }
+
+                .dark .openscad-nav-widget summary {
+                    color: var(--text-color) !important;
+                }
+                .dark .openscad-nav-widget .content {
+                    color: var(--text-color) !important;
+                }
+                .dark .openscad-nav-widget pre {
+                    background: rgba(255, 255, 255, 0.08) !important;
+                    color: var(--text-color) !important;
+                }
                 
                 .dark .form-control {
                     background-color: var(--card-bg) !important;
@@ -1514,7 +1525,12 @@ html, body {
                                     <li class="nav-item" :class="{ active: navSelected === 'json' }">
                                         <a class="nav-link" @click="navSelected = 'json'">Config</a>
                                     </li>
-                                    <a class="nav-link" href={ templ.SafeURL(fmt.Sprintf("/api/config?config_path=%s&server_folder=%s", reportMeta.ConfigFilePathEncoded, reportMeta.ServerFolderEncoded)) }>Edit Config</a>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href={ templ.SafeURL(fmt.Sprintf("/api/config?config_path=%s&server_folder=%s", reportMeta.ConfigFilePathEncoded, reportMeta.ServerFolderEncoded)) }>Edit Config</a>
+                                    </li>
+                                    <li class="nav-item ms-lg-auto d-flex align-items-center py-1">
+                                        @OpenSCADNavPlaceholder()
+                                    </li>
                                  }
                             </ul>
                             

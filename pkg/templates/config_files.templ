@@ -443,7 +443,18 @@ html, body {
 
         <body>
             <div class="container">
-            <a href="/" class="button">Home</a>
+            <div class="level is-mobile mb-4">
+                <div class="level-left">
+                    <div class="level-item">
+                        <a href="/" class="button">Home</a>
+                    </div>
+                </div>
+                <div class="level-right">
+                    <div class="level-item">
+                        @OpenSCADNavPlaceholder()
+                    </div>
+                </div>
+            </div>
                 <h1>OpenSCAD Generator</h1>
                 
                 <!-- Watcher UI will be loaded here -->
@@ -625,6 +636,9 @@ templ ProjectFolderForm(warning templ.Component){
         <div class="container">
             <div class="card">
                 <div class="card-content">
+                    <div style="display:flex;justify-content:flex-end;margin-bottom:0.75rem;">
+                        @OpenSCADNavPlaceholder()
+                    </div>
                     <h1 class="title">Enter Project Folder Path</h1>
                     <p class="subtitle intro">Point the server at a project folder that contains one or more <code>config.toml</code> files.</p>
 

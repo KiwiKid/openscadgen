@@ -1,0 +1,78 @@
+package templates
+
+import "fmt"
+
+// OpenSCADNavView is server-side state for the nav OpenSCAD probe widget.
+type OpenSCADNavView struct {
+	Available bool
+	Path      string
+	Version   string
+	Error     string
+	OutOfDate bool
+}
+
+// OpenSCADNavWidget shows a compact status chip and a details disclosure; includes a
+// hidden #openscad-status node with data-* attributes for tests and programmatic checks.
+templ OpenSCADNavWidget(v OpenSCADNavView) {
+	<div id="openscad-nav-widget" class="openscad-nav-widget"
+		hx-get="/api/openscad/status?fragment=1"
+		hx-trigger="load, every 60s"
+		hx-swap="outerHTML">
+		<div class="openscad-nav-row" style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+			if v.Available {
+				<span class="tag is-success is-light">OpenSCAD OK</span>
+			} else {
+				<span class="tag is-danger is-light">No OpenSCAD</span>
+			}
+			<details class="openscad-nav-details">
+				<summary style="cursor:pointer;font-size:0.85rem;" class="has-text-grey">Details</summary>
+				<div class="content is-size-7" style="margin-top:0.5rem;max-width:min(90vw, 32rem);">
+					if v.Available {
+						<p class="mb-1"><strong>Path</strong></p>
+						<pre class="p-2" style="white-space:pre-wrap;word-break:break-all;background:rgba(0,0,0,0.04);border-radius:4px;">{ v.Path }</pre>
+						<p class="mb-1 mt-2"><strong>Version</strong></p>
+						<pre class="p-2" style="white-space:pre-wrap;word-break:break-all;background:rgba(0,0,0,0.04);border-radius:4px;">{ v.Version }</pre>
+						if v.OutOfDate {
+							<p class="has-text-warning mt-2">Flagged out-of-date.</p>
+						}
+					} else {
+						<p class="mb-1"><strong>Error</strong></p>
+						<pre class="p-2" style="white-space:pre-wrap;word-break:break-all;background:rgba(0,0,0,0.04);border-radius:4px;">{ v.Error }</pre>
+					}
+				</div>
+			</details>
+		</div>
+		<div id="openscad-status"
+			data-available={ fmt.Sprintf("%t", v.Available) }
+			data-path={ v.Path }
+			data-version={ v.Version }
+			data-out-of-date={ fmt.Sprintf("%t", v.OutOfDate) }
+			data-error={ v.Error }
+			style="display:none"
+			aria-hidden="true"></div>
+	</div>
+}
+
+templ OpenSCADStatusFullPage(v OpenSCADNavView) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>OpenSCAD status</title>
+		</head>
+		<body>
+			@OpenSCADNavWidget(v)
+		</body>
+	</html>
+}
+
+// OpenSCADNavPlaceholder is swapped by HTMX on first load for the live widget.
+templ OpenSCADNavPlaceholder() {
+	<div id="openscad-nav-widget"
+		hx-get="/api/openscad/status?fragment=1"
+		hx-trigger="load"
+		hx-swap="outerHTML">
+		<span class="is-size-7 has-text-grey">OpenSCAD…</span>
+	</div>
+}
