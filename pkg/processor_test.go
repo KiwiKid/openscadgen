@@ -2129,12 +2129,12 @@ func TestParseCameraNameValidDirections(t *testing.T) {
 func TestPopulateExportImages_ParamFilterCommaList(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	// Minimal config: global renderType creates 2 instances, image filter should match only "obj".
+	// Minimal config: two global renderType values create obj + all instances; param_filter should match only "obj".
 	configContent := `[openscadgen]
 name = "test_design"
 version = "v1.0"
 export_name_format = "{designFileName}_{renderType}"
-global_params = { renderType = "obj" }
+global_params = { renderType = "obj,all" }
 
 [[openscadgen.input_paths]]
 path = "./design.scad"
