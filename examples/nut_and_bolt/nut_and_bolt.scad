@@ -15,12 +15,12 @@ include <BOSL2/screws.scad>;
 	 - "all" - the whole object
 	*/
 	renderType = "obj";
-    partType = "nut";
+    partType = "bolt";
 
 
 	module nut_and_bolt(){
         if(partType == "bolt"){
-           screw("M10", head_undersize=-10, head="hex",length=50);
+           screw("M10", head_undersize=-10, head="hex",length=30);
         }else{
             nut("M10", shape="hex", thickness="thin", nutwidth=30);
       }

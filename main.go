@@ -17,6 +17,13 @@ import (
 func main() {
 	cmdFlags := cmd.ParseFlags()
 
+	// If -c / --config was not provided, fall back to CONFIG_FILE env var
+	if cmdFlags.ConfigFile == "" {
+		if envCfg := os.Getenv("CONFIG_FILE"); envCfg != "" {
+			cmdFlags.ConfigFile = envCfg
+		}
+	}
+
 	// Initialize logger before loading config
 	if err := pkg.InitLogger("memory"); err != nil {
 		log.Fatalf("Failed to initialize logger: %v", err)

@@ -186,7 +186,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.8.2"
+const VERSION = "v2.8.3"
 
 type Version struct {
 	OpenSCADGen string
@@ -1447,7 +1447,7 @@ This software is under active development - feedback welcome at https://github.c
 // warning is non-fatal (e.g. unrecognised export image camera) when err is nil.
 func LoadConfigFromFile(flags models.CmdFlags) (*models.Config, error, error) {
 	if flags.ConfigFile == "" {
-		log.Printf(colorRed + "Run directly with a config file use '-c' like '-c you-project/config.toml'\n\nUse -s to run in Server mode\n\n Or Server Folder Scan mode:  -sf parent-project-folder " + colorReset)
+		log.Printf(colorRed + "Run directly with a config file use '-c' like '-c you-project/config.toml' (or a project folder containing config.toml)\n\nUse -s to run in Server mode\n\n Or Server Folder Scan mode:  -sf parent-project-folder " + colorReset)
 		return nil, nil, fmt.Errorf("no config file provided")
 	}
 
@@ -1461,15 +1461,30 @@ func LoadConfigFromFile(flags models.CmdFlags) (*models.Config, error, error) {
 		}
 		configPath = absPath
 	}
+
+	userPathWasDirectory := false
+	if fi, statErr := os.Stat(configPath); statErr == nil && fi.IsDir() {
+		userPathWasDirectory = true
+		configPath = filepath.Join(configPath, "config.toml")
+		if flags.Debug {
+			log.Printf("Config path is a directory; reading %s", configPath)
+		}
+	}
+
 	if flags.Debug {
 		log.Printf("ReadFile config for %s", configPath)
 	}
 
 	data, err := os.ReadFile(configPath)
+	fallbackFromDir := false
 	if err != nil {
 		// Try fallback to serverFolder + configFile if serverFolder is set
 		if flags.ServerFolder != "" {
 			fallbackPath := filepath.Join(flags.ServerFolder, flags.ConfigFile)
+			if fi, statErr := os.Stat(fallbackPath); statErr == nil && fi.IsDir() {
+				fallbackPath = filepath.Join(fallbackPath, "config.toml")
+				fallbackFromDir = true
+			}
 			if flags.Debug {
 				log.Printf("Trying fallback config path: %s", fallbackPath)
 			}
@@ -1493,8 +1508,13 @@ func LoadConfigFromFile(flags models.CmdFlags) (*models.Config, error, error) {
 		log.Printf("ReadFile config for %s", configPath)
 	}
 
+	loadFlags := flags
+	if userPathWasDirectory || fallbackFromDir {
+		loadFlags.ConfigFile = configPath
+	}
+
 	// Use the new LoadConfig method with the file content
-	return LoadConfig(string(data), flags, configPath)
+	return LoadConfig(string(data), loadFlags, configPath)
 }
 
 // LoadConfig parses and validates a configuration string and populates the Config struct.

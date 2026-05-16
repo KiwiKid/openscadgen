@@ -2,7 +2,7 @@ services:
   # Development service with live reloading
   openscadgen-dev:
     build:
-      context: ./making/3d-printing/openSCAD/openscadgen
+      context: .
       dockerfile: Dockerfile.dev
     ports:
       - "6767:6767"  # openscadgen server port
@@ -11,7 +11,8 @@ services:
       - /app/pkg/templates  # Exclude generated templates from volume mount
     environment:
       - GO_ENV=development
-    command: ["sh", "-c", "templ generate && ./openscadgen -sf ./examples/ -p 6767"]
+      - CONFIG_FILE=/app/config/dev.toml
+    command: ["sh", "-c", "templ generate && go run . -c /app/config/dev.toml -sf ./examples/ -p 6767"]
     stdin_open: true
     tty: true
     profiles:
@@ -29,7 +30,8 @@ services:
       - ./output:/app/output        # Mount output directory
     environment:
       - GO_ENV=production
-    command: ["openscadgen", "-sf", "/app/examples", "-p", "6767"]
+      - CONFIG_FILE=/app/config/prod.toml
+    command: ["openscadgen", "-c", "/app/config/prod.toml", "-sf", "/app/examples", "-p", "6767"]
     restart: unless-stopped
     profiles:
       - prod

@@ -23,6 +23,8 @@ params = { name = "tiny", plugRadius = 8.5, plugRadiusBottom = 7.5, rimRadius = 
 [[openscadgen.instances]]
 params = { name = "tiny-wide", plugRadius = 8.5, plugRadiusBottom = 7.5, rimRadius = 18, plugHeight=50 }
 
+[[openscadgen.instances]]
+params = {name = "tiny-wider", plugRadius = 16, plugRadiusBottom = 15, rimRadius = 34,rimGapRadius = 4, rimHeight = 24, plugHeight = 70, rimGapHeight = 30 }
 
 [[openscadgen.images]]
 name = "nice"

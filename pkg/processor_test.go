@@ -332,6 +332,32 @@ func TestLoadConfigFromFile_InvalidToml_ReturnsFatalErrThird(t *testing.T) {
 	}
 }
 
+func TestLoadConfigFromFile_DirectoryArg_UsesConfigToml(t *testing.T) {
+	tmpDir := t.TempDir()
+	projectDir := filepath.Join(tmpDir, "my_project")
+	if err := os.MkdirAll(projectDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	configPath := filepath.Join(projectDir, "config.toml")
+	content := "[openscadgen]\nname = \"dir_arg_test\"\nexport_name_format = \"{designFileName}\"\n"
+	if err := os.WriteFile(configPath, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+	cfg, _, err := LoadConfigFromFile(models.CmdFlags{ConfigFile: projectDir})
+	if err != nil {
+		t.Fatalf("LoadConfigFromFile: %v", err)
+	}
+	if cfg == nil {
+		t.Fatal("expected non-nil config")
+	}
+	if cfg.ConfigFile != configPath {
+		t.Fatalf("ConfigFile = %q; want %q", cfg.ConfigFile, configPath)
+	}
+	if cfg.Design.Name != "dir_arg_test" {
+		t.Fatalf("Design.Name = %q", cfg.Design.Name)
+	}
+}
+
 func TestTomlDecodeErrorSnippet(t *testing.T) {
 	data := "a\nb\nc\nd\ne\nf\ng\n"
 	decodeErr := fmt.Errorf(`toml: line 4 (last key "x"): bogus`)
@@ -2129,12 +2155,12 @@ func TestParseCameraNameValidDirections(t *testing.T) {
 func TestPopulateExportImages_ParamFilterCommaList(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	// Minimal config: global renderType creates 2 instances, image filter should match only "obj".
+	// Minimal config: two global renderType values create obj + all instances; param_filter should match only "obj".
 	configContent := `[openscadgen]
 name = "test_design"
 version = "v1.0"
 export_name_format = "{designFileName}_{renderType}"
-global_params = { renderType = "obj" }
+global_params = { renderType = "obj,all" }
 
 [[openscadgen.input_paths]]
 path = "./design.scad"

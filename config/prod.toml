@@ -1,0 +1,14 @@
+[openscadgen]
+name = "prod-project"
+description = "Production configuration"
+version = "v0.1"
+export_name_format = "{designFileName}"
+
+global_params = { }
+
+[[openscadgen.input_paths]]
+path = "./prod.scad"
+params = { }
+
+[[openscadgen.images]]
+name = "nice"

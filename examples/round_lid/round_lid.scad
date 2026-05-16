@@ -15,10 +15,10 @@
 	*/
 	renderType = "obj";
 
-plugRadius = 14;
-plugRadiusBottom = 12;
-rimRadius = 22;
-rimGapRadius = 3;
+plugRadius = 16;
+plugRadiusBottom = 15;
+rimRadius = 34;
+rimGapRadius = 4;
 
 
 rimHeight = 24;

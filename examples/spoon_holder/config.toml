@@ -4,14 +4,14 @@ description = ""
 
 version = "v0.1"
 
-export_name_format = "{designFileName}"
+export_name_format = "{designFileName}_spoonSplitThickness-{spoonSplitThickness}_isSizer-{isSizer}"
 
 # These params will be passed into all the generated designs
-global_params = { }
+global_params = { spoonSplitThickness="1.5,2,3,4", isSizer="true,false" }
 
 [[openscadgen.input_paths]]
 path = "./spoon_holder.scad"
 params = { }
 
 [[openscadgen.images]]
-name = "nice"
+name = "nice-near"

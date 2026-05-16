@@ -232,8 +232,37 @@ An [example config file](./examples/screw-mounted-clip/config.toml) is provided 
 # Installation 
 Available via the [github release page](https://github.com/kiwikid/openscadgen/releases)
 
+## Docker Usage
 
+You can run openscadgen using Docker without installing Go or OpenSCAD locally.
 
+### Build the Docker image
+
+```bash
+docker build -t openscadgen .
+```
+
+### Run a single config file
+
+Mount your project directory and run the tool:
+
+```bash
+docker run --rm -v /path/to/your/project:/app/project openscadgen openscadgen -c /app/project/config.toml
+```
+
+### Run in server mode
+
+```bash
+docker run --rm -p 6767:6767 -v /path/to/your/projects:/app/examples openscadgen
+```
+
+This starts the server at http://localhost:6767 serving the projects in the mounted directory.
+
+### Notes
+
+- The Docker image includes OpenSCAD and the BOSL2 library.
+- Use `--rm` to automatically remove the container after it finishes.
+- The `-v` flag mounts your local directory into the container.
 
 # Command Line Options
 
