@@ -1,0 +1,20 @@
+[openscadgen]
+name = "door_cord_allower"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{renderType}"
+
+global_params = { renderType = "obj,vertSlice,horzSlice" }
+
+[[openscadgen.input_paths]]
+path = "./door_cord_allower.scad"
+
+
+[[openscadgen.instances]]
+params = { cordHoleRadius = 4, cordHoleOffset=0.2 }
+
+[[openscadgen.images]]
+name = "nice"
+param_filter = { renderType= "obj,vertSlice,horzSlice"}

@@ -1,0 +1,16 @@
+[openscadgen]
+name = "basket_holder_extender"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{renderType}_{topType}"
+
+global_params = { renderType = "obj,vertSlice,horzSlice", topType="base" }
+
+[[openscadgen.input_paths]]
+path = "./basket_holder_extender.scad"
+
+[[openscadgen.images]]
+name = "nice"∏
+param_filter = { renderType= "obj,vertSlice,horzSlice"}

@@ -128,6 +128,22 @@ templ ProgressComplete() {
     <div id="cancel-button" hx-swap-oob="true"></div>
 }
 
+templ ProgressFailure(message string) {
+    <div id="progress-summary" hx-swap-oob="true" class="is-1 has-text-danger">
+        <span class="icon-text">
+            <span class="icon">
+                <i class="fas fa-circle-exclamation"></i>
+            </span>
+            <span>Processing failed</span>
+        </span>
+    </div>
+    <div id="progress" class="notification is-danger">
+        <strong>Processing failed</strong>
+        <pre style="white-space: pre-wrap; word-break: break-word; margin-top: 0.75rem; margin-bottom: 0;">{ message }</pre>
+    </div>
+    <div id="cancel-button" hx-swap-oob="true"></div>
+}
+
 templ InstanceStart(name string, instanceIndex int, instanceCount int, id string) {
     <div id="progress-summary" hx-swap-oob="true" class="is-1">
         <div class="fas fa-spinner"></div> { name } ({ fmt.Sprintf("%d/%d", instanceIndex, instanceCount) })

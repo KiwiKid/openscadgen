@@ -76,6 +76,22 @@ func getRelativeImagePath(outputPath string, exportFolderPath string) string {
     return strings.TrimPrefix(relativePath, "/")
 }
 
+func instanceImageVersion(instance models.InstanceConfig) string {
+    if instance.CompletedAt.IsZero() {
+        return ""
+    }
+    return fmt.Sprintf("%d", instance.CompletedAt.UnixNano())
+}
+
+func buildServerImageURL(outputPath string, exportFolderPath string, version string) string {
+    params := url.Values{}
+    params.Set("config_path", "/"+getRelativeImagePath(outputPath, exportFolderPath))
+    if version != "" {
+        params.Set("v", version)
+    }
+    return "/images?" + params.Encode()
+}
+
 // Helper function to sort STL results by name first, then alphabetically
 func sortSTLResults(results []models.GenerateSTLResult) []models.GenerateSTLResult {
     sorted := make([]models.GenerateSTLResult, len(results))
@@ -99,6 +115,28 @@ func getSortedParamNames(params map[string]interface{}) []string {
     }
     sort.Strings(names)
     return names
+}
+
+func getFailedSTLResults(instance models.InstanceConfig) []models.GenerateSTLResult {
+    failed := make([]models.GenerateSTLResult, 0, len(instance.STLResults))
+    for _, result := range instance.STLResults {
+        if result.Error == "" && result.Command == "" && result.OutputLog == "" && result.CommandOutput == "" {
+            continue
+        }
+        failed = append(failed, result)
+    }
+    return failed
+}
+
+func getSTLErrorLog(result models.GenerateSTLResult) string {
+    switch {
+    case result.OutputLog != "":
+        return result.OutputLog
+    case result.CommandOutput != "":
+        return result.CommandOutput
+    default:
+        return result.Error
+    }
 }
 
 
@@ -539,7 +577,29 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
                         }
                         <p class="instance-card-v2__line instance-card-v2__path"><span class="has-text-weight-semibold">Output:</span> { getRelativePath(instance.RunOutputPathV3, outputPath) }</p>
                         if instance.ConfigError != "" {
-                            <p class="has-text-danger instance-card-v2__line"><strong>Error:</strong> { instance.ConfigError }</p>
+                            if failedSTLResults := getFailedSTLResults(instance); len(failedSTLResults) > 0 {
+                                <details class="instance-card-v2__error-details">
+                                    <summary class="has-text-danger instance-card-v2__line instance-card-v2__error-summary"><strong>Error:</strong> { instance.ConfigError }</summary>
+                                    <div class="instance-card-v2__error-panel">
+                                        for _, stlResult := range failedSTLResults {
+                                            if stlResult.Command != "" {
+                                                <div>
+                                                    <p class="instance-card-v2__error-label">OpenSCAD command</p>
+                                                    @CodeBlock(stlResult.Command, true, false, "Copy Command")
+                                                </div>
+                                            }
+                                            if errorLog := getSTLErrorLog(stlResult); errorLog != "" {
+                                                <div>
+                                                    <p class="instance-card-v2__error-label">Full error log</p>
+                                                    @CodeBlock(errorLog, true, false, "Copy Error Log")
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+                                </details>
+                            } else {
+                                <p class="has-text-danger instance-card-v2__line"><strong>Error:</strong> { instance.ConfigError }</p>
+                            }
                         }
                     </div>
                 </div>
@@ -547,7 +607,7 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
                     if len(instance.ImageResults) > 0 {
                         for _, images := range instance.ImageResults {
                             if reportMeta.IsServerMode {
-                                <img src={ fmt.Sprintf("/images?config_path=/%s", getRelativeImagePath(images.OutputPath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview" />
+                                <img src={ buildServerImageURL(images.OutputPath, outputPath, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview" />
                             } else {
                                 <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(images.OutputPath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview" />
                             }
@@ -555,7 +615,7 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
                     } else if len(instance.ExportImages) > 0 {
                         for _, images := range instance.ExportImages {
                             if reportMeta.IsServerMode {
-                                <img src={ fmt.Sprintf("/images?config_path=/%s", getRelativeImagePath(images.RunOutputImagePath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview" />
+                                <img src={ buildServerImageURL(images.RunOutputImagePath, outputPath, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview" />
                             } else {
                                 <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(images.RunOutputImagePath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview" />
                             }
@@ -572,7 +632,18 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
                         <a class="button is-small is-light" href={ buildPreviewSTLURL(instance, reportMeta) } target="_blank">Preview STL</a>
                     }
                     if reportMeta.IsServerMode {
-                        <button class="button is-small" type="button" data-instance-name={ instance.AutoName } @click="processInstance($event.target.getAttribute('data-instance-name'))">Process</button>
+                        <form
+                            class="is-inline og-process-form"
+                            data-og-process-form="instance"
+                            hx-put="/"
+                            hx-target="#process-status"
+                            hx-on::before-request="window.ogMarkProcessButtonLoading(this)">
+                            <input type="hidden" name="config_path" value={ reportMeta.ConfigFilePathEncoded }>
+                            <input type="hidden" name="server_folder" value={ reportMeta.ServerFolderEncoded }>
+                            <input type="hidden" name="page_instances_signature" value={ reportMeta.InstanceSetSignature }>
+                            <input type="hidden" name="regex" value={ instance.AutoName }>
+                            <button class="button is-small is-primary og-process-button" type="submit">Process</button>
+                        </form>
                     }
                 </div>
             </div>
@@ -640,7 +711,7 @@ templ InstanceRowV3(instance models.InstanceConfig, outputPath string, reportMod
             if len(instance.ImageResults) > 0 {
                 for _, images := range instance.ImageResults {
                     if reportMeta.IsServerMode {
-                        <img src={ fmt.Sprintf("/images?config_path=/%s", getRelativeImagePath(images.OutputPath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32" />
+                        <img src={ buildServerImageURL(images.OutputPath, outputPath, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32" />
                     } else {
                         <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(images.OutputPath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32" />
                     }
@@ -648,7 +719,7 @@ templ InstanceRowV3(instance models.InstanceConfig, outputPath string, reportMod
             } else if len(instance.ExportImages) > 0 {
                 for _, images := range instance.ExportImages {
                     if reportMeta.IsServerMode {
-                        <img src={ fmt.Sprintf("/images?config_path=/%s", getRelativeImagePath(images.RunOutputImagePath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32" />
+                        <img src={ buildServerImageURL(images.RunOutputImagePath, outputPath, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32" />
                     } else {
                         <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(images.RunOutputImagePath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32" />
                     }
@@ -668,10 +739,17 @@ templ InstanceRowV3(instance models.InstanceConfig, outputPath string, reportMod
         <!-- Actions -->
         <td>
             if reportMeta.IsServerMode {
-                <form hx-put={ fmt.Sprintf("/?regex=%s", instance.AutoName) } hx-target={ fmt.Sprintf("#instance-%s", instance.UniqueID) } hx-indicator="#loading-indicator" class="is-inline">
+                <form
+                    class="is-inline og-process-form"
+                    data-og-process-form="instance"
+                    hx-put="/"
+                    hx-target="#process-status"
+                    hx-on::before-request="window.ogMarkProcessButtonLoading(this)">
                     <input type="hidden" name="config_path" value={ reportMeta.ConfigFilePathEncoded }>
                     <input type="hidden" name="server_folder" value={ reportMeta.ServerFolderEncoded }>
-                    <button class="button is-small is-primary" type="submit">Process</button>
+                    <input type="hidden" name="page_instances_signature" value={ reportMeta.InstanceSetSignature }>
+                    <input type="hidden" name="regex" value={ instance.AutoName }>
+                    <button class="button is-small is-primary og-process-button" type="submit">Process</button>
                 </form>
             }
         </td>
@@ -922,13 +1000,188 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
             }
         }
         
-        function processInstance(autoName) {
-            // populate the regex with the auto-name, then trigger a click on the process button
-            const regex = document.querySelector('input[name="regex"]');
-            regex.value = autoName;
-            const processButton = document.querySelector('button[type="submit"]');
-            processButton.click();
+        const OG_PENDING_PROCESS_KEY = 'og-pending-process';
+
+        function ogSerializeProcessForm(formEl) {
+            const fields = {};
+            if (!formEl) {
+                return fields;
+            }
+            const formData = new FormData(formEl);
+            formData.forEach((value, key) => {
+                if (key === 'page_instances_signature') {
+                    return;
+                }
+                if (fields[key] !== undefined) {
+                    if (Array.isArray(fields[key])) {
+                        fields[key].push(value);
+                    } else {
+                        fields[key] = [fields[key], value];
+                    }
+                    return;
+                }
+                fields[key] = value;
+            });
+            return fields;
         }
+
+        function ogRememberPendingProcess(formEl) {
+            try {
+                window.sessionStorage.setItem(OG_PENDING_PROCESS_KEY, JSON.stringify({
+                    fields: ogSerializeProcessForm(formEl)
+                }));
+            } catch (error) {
+                console.warn('Failed to store pending process form state', error);
+            }
+        }
+
+        function ogReadPendingProcess() {
+            try {
+                const raw = window.sessionStorage.getItem(OG_PENDING_PROCESS_KEY);
+                if (!raw) {
+                    return null;
+                }
+                return JSON.parse(raw);
+            } catch (error) {
+                console.warn('Failed to read pending process form state', error);
+                return null;
+            }
+        }
+
+        function ogClearPendingProcess() {
+            try {
+                window.sessionStorage.removeItem(OG_PENDING_PROCESS_KEY);
+            } catch (error) {
+                console.warn('Failed to clear pending process form state', error);
+            }
+        }
+
+        function ogPrimaryProcessForm() {
+            return document.querySelector('form[data-og-process-form="full"]') ||
+                document.querySelector('form[data-og-process-form="slim"]');
+        }
+
+        function ogApplyPendingProcess(formEl, fields) {
+            if (!formEl || !fields) {
+                return;
+            }
+            formEl.querySelectorAll('[name]').forEach((input) => {
+                const name = input.getAttribute('name');
+                if (!name || name === 'page_instances_signature') {
+                    return;
+                }
+                const rawValue = fields[name];
+                if (input.type === 'checkbox') {
+                    if (rawValue === undefined) {
+                        input.checked = false;
+                        return;
+                    }
+                    const values = Array.isArray(rawValue) ? rawValue.map(String) : [String(rawValue)];
+                    if (input.value && input.value !== 'on') {
+                        input.checked = values.includes(input.value);
+                    } else {
+                        input.checked = true;
+                    }
+                    return;
+                }
+                if (input.type === 'radio') {
+                    input.checked = rawValue !== undefined && String(rawValue) === input.value;
+                    return;
+                }
+                if (rawValue === undefined) {
+                    if (input.type !== 'hidden') {
+                        input.value = '';
+                    }
+                    return;
+                }
+                input.value = Array.isArray(rawValue) ? rawValue[rawValue.length - 1] : rawValue;
+            });
+        }
+
+        function ogResumePendingProcess() {
+            const pending = ogReadPendingProcess();
+            if (!pending || !pending.fields) {
+                return;
+            }
+            const formEl = ogPrimaryProcessForm();
+            if (!formEl) {
+                ogClearPendingProcess();
+                return;
+            }
+            const configInput = formEl.querySelector('input[name="config_path"]');
+            if (configInput && pending.fields.config_path && configInput.value !== pending.fields.config_path) {
+                ogClearPendingProcess();
+                return;
+            }
+            ogApplyPendingProcess(formEl, pending.fields);
+            const submitButton = formEl.querySelector('button[type="submit"]');
+            if (typeof formEl.requestSubmit === 'function') {
+                formEl.requestSubmit(submitButton || undefined);
+            } else if (submitButton) {
+                submitButton.click();
+            }
+        }
+
+        function ogMarkProcessButtonLoading(formEl) {
+            if (!formEl) {
+                return;
+            }
+            ogRememberPendingProcess(formEl);
+            const button = formEl.querySelector('.og-process-button');
+            if (!button) {
+                return;
+            }
+            button.classList.add('og-process-button--loading');
+            button.setAttribute('aria-busy', 'true');
+        }
+
+        function ogClearProcessButtonLoading(root) {
+            const scope = root && typeof root.querySelectorAll === 'function' ? root : document;
+            scope.querySelectorAll('.og-process-button--loading').forEach((button) => {
+                button.classList.remove('og-process-button--loading');
+                button.removeAttribute('aria-busy');
+            });
+        }
+
+        document.addEventListener('htmx:afterSwap', function(evt) {
+            const xhr = evt.detail && evt.detail.xhr;
+            if (!xhr) {
+                return;
+            }
+            const status = xhr.getResponseHeader('X-Progress-Status');
+            if (status === 'complete' || status === 'done') {
+                ogClearProcessButtonLoading();
+            }
+        });
+
+        document.addEventListener('htmx:afterRequest', function(evt) {
+            const elt = evt.detail && evt.detail.elt;
+            const formEl = elt && typeof elt.closest === 'function'
+                ? elt.closest('form[data-og-process-form]')
+                : null;
+            if (!formEl) {
+                return;
+            }
+            const xhr = evt.detail && evt.detail.xhr;
+            if (xhr && xhr.getResponseHeader('HX-Redirect')) {
+                return;
+            }
+            ogClearPendingProcess();
+        });
+
+        document.addEventListener('htmx:responseError', function() {
+            ogClearPendingProcess();
+            ogClearProcessButtonLoading();
+        });
+
+        document.addEventListener('htmx:sendError', function() {
+            ogClearPendingProcess();
+            ogClearProcessButtonLoading();
+        });
+
+        window.addEventListener('load', function() {
+            window.setTimeout(ogResumePendingProcess, 0);
+        });
 
         </script>
             <script>
@@ -965,6 +1218,9 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
         @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
+        }
+        @keyframes og-process-border-orbit {
+            to { transform: rotate(1turn); }
         }
         .fas.fa-spinner {
             display: inline-block;
@@ -1140,6 +1396,46 @@ html, body {
                     border-radius: 4px;
                     object-fit: contain;
                 }
+                .og-process-form {
+                    display: inline-flex;
+                }
+                .og-process-button {
+                    position: relative;
+                    isolation: isolate;
+                    overflow: visible;
+                }
+                .og-process-button--loading {
+                    box-shadow: 0 0 0 1px rgba(24, 119, 242, 0.18);
+                    pointer-events: none;
+                    cursor: progress;
+                }
+                .og-process-button--loading::after {
+                    content: "";
+                    position: absolute;
+                    inset: -2px;
+                    border-radius: inherit;
+                    padding: 2px;
+                    background: conic-gradient(
+                        from 0deg,
+                        rgba(24, 119, 242, 0) 0deg,
+                        rgba(24, 119, 242, 0) 292deg,
+                        rgba(24, 119, 242, 0.18) 320deg,
+                        rgba(24, 119, 242, 0.55) 338deg,
+                        rgba(255, 255, 255, 0.95) 349deg,
+                        rgba(24, 119, 242, 1) 357deg,
+                        rgba(24, 119, 242, 0) 360deg
+                    );
+                    -webkit-mask:
+                        linear-gradient(#fff 0 0) content-box,
+                        linear-gradient(#fff 0 0);
+                    -webkit-mask-composite: xor;
+                    mask:
+                        linear-gradient(#fff 0 0) content-box,
+                        linear-gradient(#fff 0 0);
+                    mask-composite: exclude;
+                    animation: og-process-border-orbit 1.1s linear infinite;
+                    pointer-events: none;
+                }
                 /* Instance layout modes (static export + server): toggled via og-layout--* on #instances-grid */
                 #instances-grid.og-layout--grid.columns.is-multiline {
                     display: flex;
@@ -1181,6 +1477,25 @@ html, body {
                     flex-wrap: wrap;
                     gap: 0.45rem;
                     align-items: center;
+                }
+                .instance-card-v2__error-details {
+                    margin: 0;
+                }
+                .instance-card-v2__error-summary {
+                    cursor: pointer;
+                    text-decoration: underline dotted;
+                    text-underline-offset: 0.16em;
+                }
+                .instance-card-v2__error-panel {
+                    margin-top: 0.55rem;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.55rem;
+                }
+                .instance-card-v2__error-label {
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                    margin-bottom: 0.2rem;
                 }
                 #instances-grid.og-layout--list .instance-card-v2 {
                     margin-bottom: 0.4rem;
@@ -1238,6 +1553,9 @@ html, body {
                     margin: 0 !important;
                     font-size: 0.78rem !important;
                     line-height: 1.28 !important;
+                }
+                #instances-grid.og-layout--list .instance-card-v2__error-panel {
+                    gap: 0.45rem;
                 }
                 #instances-grid.og-layout--list .instance-card-v2__path {
                     white-space: nowrap;
@@ -1538,6 +1856,9 @@ html, body {
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" href={ templ.SafeURL(fmt.Sprintf("/api/config?config_path=%s&server_folder=%s", reportMeta.ConfigFilePathEncoded, reportMeta.ServerFolderEncoded)) }>Edit Config</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href={ templ.SafeURL(fmt.Sprintf("/chat?config=%s&server_folder=%s", url.QueryEscape(reportMeta.ConfigFilePathEncoded), url.QueryEscape(reportMeta.ServerFolderEncoded))) }>AI Chat</a>
                                     </li>
                                     <li class="nav-item ms-lg-auto d-flex align-items-center py-1">
                                         @OpenSCADNavPlaceholder()

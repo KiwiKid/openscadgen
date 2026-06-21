@@ -4,14 +4,15 @@ import "github.com/kiwikid/openscadgen/pkg/models"
 
 templ SlimProcessForm(reportMeta models.ReportMeta) {
 	<div style="width: 100%; max-height: 8rem; overflow-y: scroll;">
-		<form method="PUT" action="/" hx-put="/" hx-target="#process-status" hx-indicator="#loading" style="width: 100%; display: flex; gap: 0.5rem; align-items: center;">
+		<form method="PUT" action="/" hx-put="/" hx-target="#process-status" hx-indicator="#loading" hx-on::before-request="window.ogMarkProcessButtonLoading(this)" data-og-process-form="slim" style="width: 100%; display: flex; gap: 0.5rem; align-items: center;">
 			<div x-show="showDebug">
 				[[SlimProcessForm]]
 			</div>
 			<input type="text" name="config_path" value={ reportMeta.ConfigFilePathEncoded } readonly hidden />
-			<input type="text" name="server_folder" value={ reportMeta.ServerFolderEncoded } readonly hidden />	
+			<input type="text" name="server_folder" value={ reportMeta.ServerFolderEncoded } readonly hidden />
+			<input type="text" name="page_instances_signature" value={ reportMeta.InstanceSetSignature } readonly hidden />
 			<input class="input" type="text" name="regex" placeholder="Only process instances that match this pattern" style="flex: 1 1 auto; min-width: 0;" />
-			<button class="button is-primary" type="submit" style="flex: 0 0 auto;">Process</button>
+			<button class="button is-primary og-process-button" type="submit" style="flex: 0 0 auto;">Process</button>
 		</form>
 	</div>
 }
@@ -21,12 +22,13 @@ templ ProcessFormV2(reportMeta models.ReportMeta) {
 		<div class="columns">
 
 					
-			<form method="PUT" action="/" hx-put="/" hx-target="#process-status" hx-indicator="#loading">
+			<form method="PUT" action="/" hx-put="/" hx-target="#process-status" hx-indicator="#loading" hx-on::before-request="window.ogMarkProcessButtonLoading(this)" data-og-process-form="full">
 				<div x-show="showDebug">
 					[[ProcessFormV2]]
 				</div>
 				<input class="input" type="text" name="config_path" value={ reportMeta.ConfigFilePathEncoded } readonly hidden />
-				<input class="input" type="text" name="server_folder" value={ reportMeta.ServerFolderEncoded } readonly hidden />	
+				<input class="input" type="text" name="server_folder" value={ reportMeta.ServerFolderEncoded } readonly hidden />
+				<input class="input" type="text" name="page_instances_signature" value={ reportMeta.InstanceSetSignature } readonly hidden />
 				<!-- Top Row: Regex, Show/Hide Button, Process Button -->
 				<div class="columns is-vcentered">
 					<div class="column is-8">
@@ -41,7 +43,7 @@ templ ProcessFormV2(reportMeta models.ReportMeta) {
 					<div class="column is-6">
 						<div class="field">
 							<div class="control">
-								<button class="button is-large is-primary" type="submit" id="process-btn" title="Process Configuration">
+								<button class="button is-large is-primary og-process-button" type="submit" id="process-btn" title="Process Configuration">
 									<span class="icon">
 										<i class="fas fa-play"></i>
 									</span>

@@ -4,7 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -159,6 +162,28 @@ func tomlDecodeErrorSnippet(configData string, decodeErr error) string {
 		fmt.Fprintf(&b, "%s %4d | %s\n", marker, i, lines[i-1])
 	}
 	return strings.TrimSuffix(b.String(), "\n")
+}
+
+// FormatTOMLDecodeError includes line-context when the decoder reports a source line.
+func FormatTOMLDecodeError(configData string, decodeErr error) string {
+	if decodeErr == nil {
+		return ""
+	}
+	if snip := tomlDecodeErrorSnippet(configData, decodeErr); snip != "" {
+		return fmt.Sprintf("%v\n\nSource context:\n%s", decodeErr, snip)
+	}
+	return decodeErr.Error()
+}
+
+func summarizeRunError(message string) string {
+	message = strings.TrimSpace(message)
+	if message == "" {
+		return ""
+	}
+	if idx := strings.Index(message, "\n"); idx >= 0 {
+		return strings.TrimSpace(message[:idx])
+	}
+	return message
 }
 
 const (
@@ -366,6 +391,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 	}
 
 	completedInstances := 0
+	var processErr error
 
 	// Construct progress for all instances
 	progress.Construct(instances, nonSkippedInstances)
@@ -391,27 +417,44 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 			}
 			var result models.GenerateSTLResult
 			var genErr error
+			stlFailed := false
 			if !config.OnlyImages {
 				result, genErr = generateSTL(&instances[i], config)
-				if genErr != nil {
-
-					result.OutputLog += genErr.Error()
-
-					logError(fmt.Sprintf("Warning: failed to generate STL for instance %s:\n Error:\n%+v", instances[i].AutoName, genErr))
-					stlResults = append(stlResults, result)
-					completedInstances++
-					if config.StopOnError {
-						return models.ProcessResult{}, fmt.Errorf("failed to generate STL: %w", genErr)
-					}
-					instances[i].IsSuccessful = false
-					continue
-
-				} else {
-
+				if result.CommandOutput != "" && result.OutputLog == "" {
 					result.OutputLog = result.CommandOutput
+				}
+				if genErr != nil || result.Error != "" {
+					stlFailed = true
+					if result.Error == "" && genErr != nil {
+						result.Error = genErr.Error()
+					}
+					if result.OutputLog == "" {
+						switch {
+						case result.CommandOutput != "":
+							result.OutputLog = result.CommandOutput
+						case genErr != nil:
+							result.OutputLog = genErr.Error()
+						case result.Error != "":
+							result.OutputLog = result.Error
+						}
+					}
+
+					logError(fmt.Sprintf("Warning: failed to generate STL for instance %s:\n Error:\n%s", instances[i].AutoName, result.Error))
+					instances[i].ConfigError = summarizeRunError(result.Error)
+					instances[i].STLResults = append(instances[i].STLResults, result)
+					stlResults = append(stlResults, result)
+					instances[i].IsSuccessful = false
+
+					if config.StopOnError {
+						if genErr != nil {
+							processErr = fmt.Errorf("failed to generate STL: %w", genErr)
+						} else {
+							processErr = fmt.Errorf("failed to generate STL: %s", result.Error)
+						}
+					}
+				} else {
 					instances[i].STLResults = append(instances[i].STLResults, result)
 					instances[i].IsSuccessful = true
-
 					stlResults = append(stlResults, result)
 				}
 			}
@@ -419,7 +462,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 			// Progress - STL complete
 			//progress.ProgressInstance(instances[i].ID, 100)
 
-			if !config.OnlyExport {
+			if !config.OnlyExport && !stlFailed {
 				genImageResult, err := processImage(config, &instances[i], progress)
 				if err != nil {
 					if config.StopOnError && !config.Server {
@@ -453,9 +496,22 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 
 		completedInstances++
 
+		if processErr != nil {
+			break
+		}
+
 		if config.Debug {
 			LogKeyValuePair("ImageResults Count", fmt.Sprintf("%d", len(instances[i].ImageResults)))
 		}
+	}
+
+	if processErr != nil {
+		return models.ProcessResult{
+			ConfigFile:   config.ConfigFile,
+			Instances:    instances,
+			STLResults:   stlResults,
+			ImageResults: allImageResults,
+		}, processErr
 	}
 
 	configDirectory := filepath.Dir(config.ConfigFile)
@@ -1528,9 +1584,9 @@ func LoadConfig(configData string, flags models.CmdFlags, configPath string) (*m
 	if err != nil {
 		log.Printf(colorRed+"Config file is not valid toml [%s]: %v"+colorReset, configPath, err)
 		if snip := tomlDecodeErrorSnippet(configData, err); snip != "" {
-			log.Printf(colorRed + "Source context near TOML error:\n" + snip + colorReset)
+			log.Print(colorRed + "Source context near TOML error:\n" + snip + colorReset)
 		}
-		return nil, nil, fmt.Errorf("config file is not valid toml [%s]: %w", configPath, err)
+		return nil, nil, fmt.Errorf("config file is not valid toml [%s]: %s", configPath, FormatTOMLDecodeError(configData, err))
 	}
 
 	// Check for undecoded keys
@@ -3665,7 +3721,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 		if config.StopOnError {
 			return result, nil
 		}
-		return result, fmt.Errorf(errMsg)
+		return result, fmt.Errorf("%s", errMsg)
 	}
 
 	// Ensure output directory exists before proceeding
@@ -3776,7 +3832,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 		if config.StopOnError {
 			return result, nil
 		}
-		return result, fmt.Errorf(errMsg)
+		return result, fmt.Errorf("%s", errMsg)
 	}
 	if !config.SkipRender {
 		args = append(args, "--render")
@@ -3972,6 +4028,40 @@ func BuildPageUrl(configFilePath string, serverFolder string) models.PageUrlInfo
 	}
 }
 
+func BuildInstanceSetSignature(instances []models.InstanceConfig) string {
+	type instanceSignatureEntry struct {
+		AutoName      string                 `json:"auto_name"`
+		Name          string                 `json:"name"`
+		Description   string                 `json:"description,omitempty"`
+		InputPath     string                 `json:"input_path,omitempty"`
+		OutputPath    string                 `json:"output_path,omitempty"`
+		Params        map[string]interface{} `json:"params,omitempty"`
+		SkippedReason string                 `json:"skipped_reason,omitempty"`
+	}
+
+	entries := make([]instanceSignatureEntry, 0, len(instances))
+	for _, instance := range instances {
+		entries = append(entries, instanceSignatureEntry{
+			AutoName:      instance.AutoName,
+			Name:          instance.Name,
+			Description:   instance.Description,
+			InputPath:     instance.InputPath.Path,
+			OutputPath:    instance.RunOutputPathV3,
+			Params:        instance.Params,
+			SkippedReason: instance.SkippedReason,
+		})
+	}
+
+	payload, err := json.Marshal(entries)
+	if err != nil {
+		log.Printf("BuildInstanceSetSignature: marshal error: %v", err)
+		return ""
+	}
+
+	sum := sha256.Sum256(payload)
+	return hex.EncodeToString(sum[:])
+}
+
 func BuildReportMeta(params models.BuildReportMetaParams, results models.Results) models.ReportMeta {
 	pageUrlInfo := BuildPageUrl(params.ConfigFilePath, params.ServerFolder)
 
@@ -3981,6 +4071,7 @@ func BuildReportMeta(params models.BuildReportMetaParams, results models.Results
 		TotalQueuedInstances:  params.TotalQueuedInstances,
 		ConfigFilePath:        params.ConfigFilePath,
 		ConfigFilePathEncoded: pageUrlInfo.ConfigFilePathEncoded,
+		InstanceSetSignature:  BuildInstanceSetSignature(params.Instances),
 		ServerFolder:          params.ServerFolder,
 		ServerFolderEncoded:   pageUrlInfo.ServerFolderEncoded,
 		Results:               results,

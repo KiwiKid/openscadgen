@@ -330,6 +330,9 @@ func TestLoadConfigFromFile_InvalidToml_ReturnsFatalErrThird(t *testing.T) {
 	if !strings.Contains(err.Error(), path) {
 		t.Fatalf("error should include path: %v", err)
 	}
+	if !strings.Contains(err.Error(), "Source context:") {
+		t.Fatalf("error should include source context: %v", err)
+	}
 }
 
 func TestLoadConfigFromFile_DirectoryArg_UsesConfigToml(t *testing.T) {
@@ -364,6 +367,70 @@ func TestTomlDecodeErrorSnippet(t *testing.T) {
 	snip := tomlDecodeErrorSnippet(data, decodeErr)
 	if !strings.Contains(snip, "   4 |") || !strings.Contains(snip, ">") {
 		t.Fatalf("expected numbered context with marker, got:\n%s", snip)
+	}
+}
+
+func TestProcess_RecordsFailedInstanceRunDetails(t *testing.T) {
+	tmpDir := t.TempDir()
+	if err := InitLogger(filepath.Join(tmpDir, "test.log")); err != nil {
+		t.Fatalf("InitLogger: %v", err)
+	}
+
+	versionProbePath := filepath.Join(tmpDir, "openscad")
+	if err := os.WriteFile(versionProbePath, []byte("#!/bin/sh\nif [ \"$1\" = \"--version\" ]; then\n  echo 'OpenSCAD 2024.01'\n  exit 0\nfi\necho 'openscad exploded' >&2\nexit 1\n"), 0o755); err != nil {
+		t.Fatalf("write version probe: %v", err)
+	}
+	t.Setenv("PATH", tmpDir+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+	scadPath := filepath.Join(tmpDir, "shape.scad")
+	if err := os.WriteFile(scadPath, []byte("cube(1);\n"), 0o644); err != nil {
+		t.Fatalf("write scad: %v", err)
+	}
+
+	configPath := filepath.Join(tmpDir, "config.toml")
+	configContent := `[openscadgen]
+name = "failure-case"
+input_path = "shape.scad"
+version = "v0.1"
+export_name_format = "{designFileName}_{name}"
+`
+	if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+
+	config, _, err := LoadConfigFromFile(models.CmdFlags{
+		ConfigFile: configPath,
+	})
+	if err != nil {
+		t.Fatalf("LoadConfigFromFile: %v", err)
+	}
+
+	result, err := Process(config, &NoopProgress{}, nil, Operations{GenerateReport: false}, false)
+	if err != nil {
+		t.Fatalf("Process returned unexpected error: %v", err)
+	}
+	if len(result.Instances) != 1 {
+		t.Fatalf("expected 1 instance, got %d", len(result.Instances))
+	}
+
+	instance := result.Instances[0]
+	if !instance.IsComplete {
+		t.Fatal("expected failed instance to still be marked complete")
+	}
+	if instance.IsSuccessful {
+		t.Fatal("expected failed instance to be marked unsuccessful")
+	}
+	if instance.ConfigError == "" {
+		t.Fatal("expected failed instance to expose a summary error")
+	}
+	if len(instance.STLResults) != 1 {
+		t.Fatalf("expected failed instance to keep STL result details, got %d", len(instance.STLResults))
+	}
+	if !strings.Contains(instance.STLResults[0].OutputLog, "openscad exploded") {
+		t.Fatalf("expected STL output log to contain command output, got %q", instance.STLResults[0].OutputLog)
+	}
+	if len(result.STLResults) != 1 {
+		t.Fatalf("expected 1 STL result, got %d", len(result.STLResults))
 	}
 }
 

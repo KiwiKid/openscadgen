@@ -129,6 +129,7 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 	http.HandleFunc("/start", StartHandler)
 	http.HandleFunc("/progress", ProgressHandler)
 	http.HandleFunc("/cancel", CancelHandler)
+	http.HandleFunc("/chat", handleChatRequest)
 	http.HandleFunc("/api/config", handleConfigRequest)
 	http.HandleFunc("/api/open", handleOpenFile)
 	http.HandleFunc("/api/edit", handleEditFile)
@@ -283,7 +284,7 @@ func handleMainRequest(w http.ResponseWriter, r *http.Request) {
 
 // handleGETRequest handles GET requests for displaying configs
 func handleGETRequest(w http.ResponseWriter, r *http.Request) {
-	log.Printf("GET (Display) request" + r.Method)
+	log.Print("GET (Display) request" + r.Method)
 	configEntryPathEncoded := r.URL.Query().Get("config")
 	configEntryPath, err := url.QueryUnescape(configEntryPathEncoded)
 	if err != nil {
@@ -414,7 +415,7 @@ func handleGETRequest(w http.ResponseWriter, r *http.Request) {
 
 // handlePOSTRequest handles POST requests for adding configs
 func handlePOSTRequest(w http.ResponseWriter, r *http.Request) {
-	log.Printf("POST (Add Config) request" + r.Method)
+	log.Print("POST (Add Config) request" + r.Method)
 
 	if r.FormValue("create_project") == "1" {
 		name := strings.TrimSpace(r.FormValue("project_name"))
@@ -480,22 +481,23 @@ func handlePOSTRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 type StartProcessingForm struct {
-	Path                 string `json:"config_path" form:"config_path"`
-	ServerFolder         string `json:"server_folder" form:"server_folder"`
-	Regex                string `json:"regex" form:"regex"`
-	ServerModeConfigFile string `json:"server_mode_config_file" form:"server_mode_config_file"`
-	Quiet                bool   `json:"quiet" form:"quiet"`
-	Debug                bool   `json:"debug" form:"debug"`
-	NoProcessing         bool   `json:"no_processing" form:"no_processing"`
-	Version              bool   `json:"version" form:"version"`
-	RegexPattern         string `json:"regex_pattern" form:"regex_pattern"`
-	MaxInstances         int    `json:"max_instances" form:"max_instances"`
-	StopOnError          bool   `json:"stop_on_error" form:"stop_on_error"`
-	IncludeExportLog     bool   `json:"include_export_log" form:"include_export_log"`
-	ConfigFile           string `json:"config_file" form:"config_file"`
-	SkipRender           bool   `json:"skip_render" form:"skip_render"`
-	SkipReadme           bool   `json:"skip_readme" form:"skip_readme"`
-	LowQuality           bool   `json:"low_quality" form:"low_quality"`
+	Path                   string `json:"config_path" form:"config_path"`
+	PageInstancesSignature string `json:"page_instances_signature" form:"page_instances_signature"`
+	ServerFolder           string `json:"server_folder" form:"server_folder"`
+	Regex                  string `json:"regex" form:"regex"`
+	ServerModeConfigFile   string `json:"server_mode_config_file" form:"server_mode_config_file"`
+	Quiet                  bool   `json:"quiet" form:"quiet"`
+	Debug                  bool   `json:"debug" form:"debug"`
+	NoProcessing           bool   `json:"no_processing" form:"no_processing"`
+	Version                bool   `json:"version" form:"version"`
+	RegexPattern           string `json:"regex_pattern" form:"regex_pattern"`
+	MaxInstances           int    `json:"max_instances" form:"max_instances"`
+	StopOnError            bool   `json:"stop_on_error" form:"stop_on_error"`
+	IncludeExportLog       bool   `json:"include_export_log" form:"include_export_log"`
+	ConfigFile             string `json:"config_file" form:"config_file"`
+	SkipRender             bool   `json:"skip_render" form:"skip_render"`
+	SkipReadme             bool   `json:"skip_readme" form:"skip_readme"`
+	LowQuality             bool   `json:"low_quality" form:"low_quality"`
 }
 
 // formToCmdFlags maps StartProcessingForm to models.CmdFlags with explicit field mapping
@@ -522,7 +524,7 @@ func formToCmdFlags(form StartProcessingForm) models.CmdFlags {
 
 // handlePUTRequest handles PUT requests for processing
 func handlePUTRequest(w http.ResponseWriter, r *http.Request) {
-	log.Printf("PUT (Processing) request" + r.Method)
+	log.Print("PUT (Processing) request" + r.Method)
 
 	var form StartProcessingForm
 
@@ -549,6 +551,7 @@ func handlePUTRequest(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		form.Path = string(configFilePathBytes)
+		form.PageInstancesSignature = r.FormValue("page_instances_signature")
 
 		serverFolderEncoded := r.FormValue("server_folder")
 		serverFolderBytes, err := base64.StdEncoding.DecodeString(serverFolderEncoded)
@@ -605,6 +608,27 @@ func handlePUTRequest(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		warning := templates.Warning(fmt.Sprintf("LoadConfigFromFileError: %v \n\n (ConfigFile: %s, ServerFolder: %s)", err, cmdFlags.ConfigFile, cmdFlags.ServerFolder))
 		warning.Render(context.Background(), w)
+		return
+	}
+
+	instancesForPage, err := pkg.GenerateInstanceConfigs(config)
+	if err != nil {
+		warning := templates.Warning(fmt.Sprintf("GenerateInstanceConfigsError: %v", err))
+		warning.Render(context.Background(), w)
+		return
+	}
+	config.TotalQueuedInstances = 0
+	for _, instance := range instancesForPage {
+		if instance.SkippedReason == "" {
+			config.TotalQueuedInstances++
+		}
+	}
+	loadedInstanceSignature := pkg.BuildInstanceSetSignature(instancesForPage)
+	if form.PageInstancesSignature != "" && loadedInstanceSignature != "" && form.PageInstancesSignature != loadedInstanceSignature {
+		pageUrlInfo := pkg.BuildPageUrl(form.Path, form.ServerFolder)
+		w.Header().Set("HX-Redirect", pageUrlInfo.PageURL)
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_, _ = w.Write([]byte("Reloading updated instances before processing..."))
 		return
 	}
 
@@ -777,6 +801,15 @@ func buildEditConfigParams(configPath string, serverFolder string, content strin
 	}
 }
 
+func renderTOMLEditPage(w http.ResponseWriter, r *http.Request, statusCode int, configPath string, serverFolder string, content string, message templ.Component) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if statusCode != 0 {
+		w.WriteHeader(statusCode)
+	}
+	configParams := buildEditConfigParams(configPath, serverFolder, content, message)
+	templates.TOMLEditForm(&configParams).Render(r.Context(), w)
+}
+
 // handleConfigRequest handles GET and POST requests for config file operations
 func handleConfigRequest(w http.ResponseWriter, r *http.Request) {
 	configPathEncoded := r.URL.Query().Get("config_path")
@@ -822,20 +855,18 @@ func handleConfigGet(w http.ResponseWriter, r *http.Request, configPath string, 
 	configPath = resolveConfigPath(configPath, serverFolder)
 	content, err := os.ReadFile(configPath)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to read config file: %v", err), http.StatusInternalServerError)
+		renderTOMLEditPage(w, r, http.StatusInternalServerError, configPath, serverFolder, "", templates.Warning(fmt.Sprintf("Failed to read config file:\n%s", err)))
 		return
 	}
 
-	configParams := buildEditConfigParams(configPath, serverFolder, string(content), nil)
-	editForm := templates.TOMLEditForm(&configParams)
-	editForm.Render(r.Context(), w)
+	renderTOMLEditPage(w, r, http.StatusOK, configPath, serverFolder, string(content), nil)
 }
 
 // handleConfigPost validates TOML and updates the config file
 func handleConfigPost(w http.ResponseWriter, r *http.Request, configPath string, serverFolder string) {
 	// Parse form data
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, fmt.Sprintf("Failed to parse form: %v", err), http.StatusBadRequest)
+		renderTOMLEditPage(w, r, http.StatusBadRequest, configPath, serverFolder, "", templates.Warning(fmt.Sprintf("Failed to parse form:\n%s", err)))
 		return
 	}
 
@@ -843,7 +874,7 @@ func handleConfigPost(w http.ResponseWriter, r *http.Request, configPath string,
 
 	configContent := r.FormValue("content")
 	if configContent == "" {
-		http.Error(w, "Missing 'content' form field", http.StatusBadRequest)
+		renderTOMLEditPage(w, r, http.StatusBadRequest, configPath, serverFolder, "", templates.Warning("Missing 'content' form field"))
 		return
 	}
 
@@ -851,22 +882,19 @@ func handleConfigPost(w http.ResponseWriter, r *http.Request, configPath string,
 	var testConfig models.Config
 	_, err := toml.Decode(configContent, &testConfig)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Invalid TOML: %v", err), http.StatusBadRequest)
+		renderTOMLEditPage(w, r, http.StatusBadRequest, configPath, serverFolder, configContent, templates.Warning("Invalid TOML:\n"+pkg.FormatTOMLDecodeError(configContent, err)))
 		return
 	}
 
 	// Write the content to the file
 	err = os.WriteFile(path, []byte(configContent), 0644)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to write config file: %v", err), http.StatusInternalServerError)
+		renderTOMLEditPage(w, r, http.StatusInternalServerError, configPath, serverFolder, configContent, templates.Warning(fmt.Sprintf("Failed to write config file:\n%s", err)))
 		return
 	}
 
 	success := templates.Success("Config saved successfully")
-
-	configParams := buildEditConfigParams(configPath, serverFolder, configContent, success)
-	editForm := templates.TOMLEditForm(&configParams)
-	editForm.Render(r.Context(), w)
+	renderTOMLEditPage(w, r, http.StatusOK, configPath, serverFolder, configContent, success)
 
 }
 
@@ -907,6 +935,11 @@ func handleImageRequest(w http.ResponseWriter, r *http.Request) {
 		warning := templates.Warning("Unsupported image file type: " + ext)
 		warning.Render(r.Context(), w)
 	}
+
+	// Prevent stale same-path renders from sticking around after HTMX swaps.
+	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("Expires", "0")
 
 	// Serve the file
 	http.ServeFile(w, r, imagePath)
@@ -1060,28 +1093,26 @@ func handleEditFile(w http.ResponseWriter, r *http.Request) {
 func handleEditGet(w http.ResponseWriter, r *http.Request, serverFolder string, filePath string) {
 	// Check if file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		http.Error(w, "File not found", http.StatusNotFound)
+		renderTOMLEditPage(w, r, http.StatusNotFound, filePath, serverFolder, "", templates.Warning("File not found"))
 		return
 	}
 
 	// Read file content
 	content, err := os.ReadFile(filePath)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to read file: %v", err), http.StatusInternalServerError)
+		renderTOMLEditPage(w, r, http.StatusInternalServerError, filePath, serverFolder, "", templates.Warning(fmt.Sprintf("Failed to read file:\n%s", err)))
 		return
 	}
 
 	// Render the edit form
-	configParams := buildEditConfigParams(filePath, serverFolder, string(content), nil)
-	editForm := templates.TOMLEditForm(&configParams)
-	editForm.Render(r.Context(), w)
+	renderTOMLEditPage(w, r, http.StatusOK, filePath, serverFolder, string(content), nil)
 }
 
 // handleEditPost validates and saves the TOML file
 func handleEditPost(w http.ResponseWriter, r *http.Request, filePath string, serverFolder string) {
 	// Parse form data
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, fmt.Sprintf("Failed to parse form: %v", err), http.StatusBadRequest)
+		renderTOMLEditPage(w, r, http.StatusBadRequest, filePath, serverFolder, "", templates.Warning(fmt.Sprintf("Failed to parse form:\n%s", err)))
 		return
 	}
 
@@ -1099,7 +1130,7 @@ func handleEditPost(w http.ResponseWriter, r *http.Request, filePath string, ser
 	var testConfig models.Config
 	metadata, err := toml.Decode(content, &testConfig)
 	if err != nil {
-		errorMsg := templates.Warning(fmt.Sprintf("Invalid TOML: %v", err))
+		errorMsg := templates.Warning("Invalid TOML:\n" + pkg.FormatTOMLDecodeError(content, err))
 		// Show form with validation error
 		configParams := buildEditConfigParams(filePath, serverFolder, content, errorMsg)
 		editForm := templates.TOMLEditForm(&configParams)

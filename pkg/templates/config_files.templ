@@ -4,11 +4,19 @@ import "github.com/kiwikid/openscadgen/pkg/models"
 import "fmt"
 import "encoding/base64"
 import "net/url"
+import "strings"
 
 func configPickerPageURL(configFile models.ConfigFile, serverFolder string) string {
 	return fmt.Sprintf("/?config=%s&server_folder=%s",
 		base64.StdEncoding.EncodeToString([]byte(configFile.Path)),
 		base64.StdEncoding.EncodeToString([]byte(serverFolder)))
+}
+
+func serverChatPageURL(serverFolder string) string {
+	if serverFolder == "" {
+		return "/chat"
+	}
+	return fmt.Sprintf("/chat?server_folder=%s", url.QueryEscape(base64.StdEncoding.EncodeToString([]byte(serverFolder))))
 }
 
 templ EnterConfigPage(configFiles []models.ConfigFile, serverFolder string) {
@@ -457,6 +465,9 @@ html, body {
                     <div class="level-item">
                         <a href="/" class="button">Home</a>
                     </div>
+                    <div class="level-item">
+                        <a href={ templ.SafeURL(serverChatPageURL(serverFolder)) } class="button is-light">AI Chat</a>
+                    </div>
                 </div>
                 <div class="level-right">
                     <div class="level-item">
@@ -769,7 +780,11 @@ templ ProjectFolderForm(warning templ.Component){
 
 templ Warning(message string) {
     <div class="notification is-warning">
-        {message}
+        if strings.Contains(message, "\n") {
+            <pre style="white-space: pre-wrap; word-break: break-word; margin: 0; background: transparent; padding: 0;">{ message }</pre>
+        } else {
+            { message }
+        }
     </div>
 }
 

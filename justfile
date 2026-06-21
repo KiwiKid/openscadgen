@@ -6,6 +6,12 @@ build:
 test:
     go test ./... -v
 
+chat-live case:
+    OPENSCADGEN_CHAT_HARNESS_MODE=live OPENSCADGEN_CHAT_HARNESS_CASE="{{case}}" go test ./server -run TestChatHarnessModes -count=1 -vet=off -v
+
+chat-test-tools case="":
+    OPENSCADGEN_CHAT_HARNESS_MODE=test-chat-tools OPENSCADGEN_CHAT_HARNESS_CASE="{{case}}" go test ./server -run TestChatHarnessModes -count=1 -vet=off -v
+
 # Generate templ files
 generate:
     go run github.com/a-h/templ/cmd/templ generate

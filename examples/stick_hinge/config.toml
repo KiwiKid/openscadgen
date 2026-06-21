@@ -1,0 +1,22 @@
+[openscadgen]
+name = "stick_hinge"
+description = ""
+
+version = "v0.2"
+
+export_name_format = "{designFileName}_{partType}_{lockedAngle}"
+
+global_params = { partType = "all" }
+
+[[openscadgen.input_paths]]
+path = "./stick_hinge.scad"
+
+[[openscadgen.images]]
+name = "nice"
+
+[[openscadgen.instances]]
+params = { isLocked="false", lockedAngle = 0 }
+
+[[openscadgen.instances]]
+name = "locked-angle"
+params = { isLocked="true", lockedAngle = [10,20,30,40,50] }

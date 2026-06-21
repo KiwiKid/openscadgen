@@ -23,8 +23,22 @@ var (
 	resultMap          = make(map[string]models.ProcessResult)
 	configMap          = make(map[string]*models.Config)
 	instanceResultsMap = make(map[string][]models.InstanceConfig) // Track individual instance results
+	jobErrorMap        = make(map[string]string)
 	mu                 sync.Mutex
 )
+
+func cleanupJobState(id string) {
+	delete(resultMap, id)
+	delete(configMap, id)
+	delete(progressMap, id)
+	delete(cancelMap, id)
+	delete(instanceResultsMap, id)
+	delete(jobErrorMap, id)
+}
+
+func trimProgressError(msg string) string {
+	return strings.TrimSpace(strings.TrimPrefix(msg, "error:"))
+}
 
 // HTMLProgressReporter implements ProgressReporter to send HTML updates
 type HTMLProgressReporter struct {
@@ -166,6 +180,7 @@ func (h *HTMLProgressReporter) FinishInstance() {
 			IsServerMode:         true,
 			ConfigFilePath:       h.config.ConfigFile,
 			ServerFolder:         h.config.ServerFolder,
+			Instances:            h.instances,
 			TotalQueuedInstances: h.config.TotalQueuedInstances,
 		}, models.Results{
 			TimeTake: 0,
@@ -234,6 +249,9 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 			GenerateReport: false,
 		}, true)
 		if err != nil {
+			mu.Lock()
+			jobErrorMap[id] = err.Error()
+			mu.Unlock()
 			updates <- "error: " + err.Error()
 		} else {
 			// Store the result for later use
@@ -262,19 +280,21 @@ func ProgressHandler(w http.ResponseWriter, r *http.Request) {
 	select {
 	case msg, ok := <-updates:
 		if !ok {
+			mu.Lock()
+			jobErr, hasErr := jobErrorMap[id]
+			cleanupJobState(id)
+			mu.Unlock()
+			if hasErr {
+				w.Header().Set("Content-Type", "text/html")
+				w.Header().Set("X-Progress-Status", "error")
+				templates.ProgressFailure(jobErr).Render(context.Background(), w)
+				return
+			}
+
 			// Processing is done, just return "done"
 			w.Header().Set("X-Progress-Status", "done")
 			done := templates.AllComplete()
 			done.Render(context.Background(), w)
-
-			// Clean up
-			mu.Lock()
-			delete(resultMap, id)
-			delete(configMap, id)
-			delete(progressMap, id)
-			delete(cancelMap, id)
-			delete(instanceResultsMap, id)
-			mu.Unlock()
 			return
 		}
 
@@ -324,9 +344,22 @@ func ProgressHandler(w http.ResponseWriter, r *http.Request) {
 			// Check if processing is complete by checking if we have a result
 			mu.Lock()
 			_, hasResult := resultMap[id]
+			jobErr, hasErr := jobErrorMap[id]
 			mu.Unlock()
 
-			if hasResult {
+			if strings.HasPrefix(progressMsg, "error:") || hasErr {
+				errMsg := trimProgressError(progressMsg)
+				if errMsg == "" {
+					errMsg = jobErr
+				}
+				mu.Lock()
+				cleanupJobState(id)
+				mu.Unlock()
+				w.Header().Set("Content-Type", "text/html")
+				w.Header().Set("X-Progress-Status", "error")
+				templates.ProgressFailure(errMsg).Render(context.Background(), w)
+				w.Write([]byte(htmlContent))
+			} else if hasResult {
 				log.Printf("ProgressHandler: Returning progress complete")
 				// Return OOB updates for completion
 				progressComplete := templates.ProgressComplete()
@@ -362,6 +395,13 @@ func ProgressHandler(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("X-Progress-Status", "progress")
 				progressUpdate.Render(context.Background(), w)
 			}
+		} else if strings.HasPrefix(msg, "error:") {
+			mu.Lock()
+			cleanupJobState(id)
+			mu.Unlock()
+			w.Header().Set("Content-Type", "text/html")
+			w.Header().Set("X-Progress-Status", "error")
+			templates.ProgressFailure(trimProgressError(msg)).Render(context.Background(), w)
 		} else {
 			// Return HTMX-compatible progress update with hx-get for next poll
 			progressUpdate := templates.ProgressUpdate(msg, id, true)
@@ -392,11 +432,7 @@ func CancelHandler(w http.ResponseWriter, r *http.Request) {
 	cancel, ok := cancelMap[id]
 	if ok {
 		close(cancel)
-		delete(cancelMap, id)
-		delete(progressMap, id)
-		delete(resultMap, id)
-		delete(configMap, id)
-		delete(instanceResultsMap, id)
+		cleanupJobState(id)
 	}
 	mu.Unlock()
 	w.Write([]byte("cancelled"))
@@ -420,6 +456,10 @@ func StartProcessingJob(config *models.Config) string {
 		}, true)
 		if err != nil {
 			log.Printf("Processing error: %v", err)
+			mu.Lock()
+			jobErrorMap[id] = err.Error()
+			mu.Unlock()
+			updates <- "error: " + err.Error()
 		} else {
 			// Store the result for later use
 			mu.Lock()

@@ -525,7 +525,40 @@ type ReportMeta struct {
 	HomeURL               string
 	ConfigFilePath        string
 	ConfigFilePathEncoded string
+	InstanceSetSignature  string
 	ServerFolder          string
 	ServerFolderEncoded   string
 	Results               Results
+}
+
+type ChatMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+type ChatPageData struct {
+	Title                string
+	Messages             []ChatMessage
+	HistoryJSON          string
+	Draft                string
+	Provider             string
+	OpenAIAvailable      bool
+	DeepSeekAvailable    bool
+	OpenAIDefaultModel   string
+	DeepSeekDefaultModel string
+	Model                string
+	Error                string
+	Notice               string
+	APIKeyConfigured     bool
+	APIKeyLabel          string
+	ProjectLabel         string
+	ProjectPath          string
+	ProjectToolsEnabled  bool
+	ContextFileLabel     string
+	ContextFilePath      string
+	ContextIncluded      bool
+	HomeURL              string
+	BackURL              string
+	ActionURL            string
+	ResetURL             string
 }

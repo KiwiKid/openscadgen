@@ -18,8 +18,8 @@ Note: This design is a learning tool for openSCAD, while the design is functiona
 
  
 
-// oneLargerHolderOneSmallerHolder, twoLargerHolders twoLargerHolders
-cup_holders_mode = "twoLargerHolders";
+// oneLargerHolderOneSmallerHolder, twoLargerHolders justFourLargerHolders
+cup_holders_mode = "justFourLargerHolders";
 
 
 cup_holder_y_offset = 2.5;
@@ -58,6 +58,10 @@ in_car_cup_holder_make_print_easier_cutout_angle = 18;
 holder_length=240;
 holder_width=110;
 holder_depth=100;
+
+if(cup_holders_mode == "justFourLargerHolders"){
+    
+}
 
 
 
@@ -126,15 +130,17 @@ module cupHolder(){
         } else if (cup_holders_mode == "twoLargerHolders") {
            // Cup holder 2 (big)
 
-        translate([-cup_holder_center_offset, cup_holder_y_offset, in_car_cup_holder_height+cup_holder_floor_depth]) roundedCylinder(h=cup_holder_height, d1=cup_holder_1_botton_radius, d2=cup_holder_1_top_radius);
+        #translate([-cup_holder_center_offset, cup_holder_y_offset, in_car_cup_holder_height+cup_holder_floor_depth]) roundedCylinder(h=cup_holder_height, d1=cup_holder_1_botton_radius, d2=cup_holder_1_top_radius);
         
         } else {
            echo("<b style='color:red'>", A="Failed");
         
         }
         
+        
+        if (cup_holders_mode == "twoLargerHolders")
         // Phone Holder 1 
-        translate([phone_holder1_offset, -47, in_car_cup_holder_height+phone_holder_floor_depth])
+        #translate([phone_holder1_offset, -47, in_car_cup_holder_height+phone_holder_floor_depth])
         roundedCube([phone_holder_width, phone_holder_depth, phone_holder_height], radius=10);
         
         
@@ -162,6 +168,9 @@ module cupHolder(){
         
         translate([phone_holder2_offset, 8, phone_holder_depth+phone_holder_floor_depth+20])
         roundedCube([20, 60, 90], center=true);
+        } else if(cup_holders_mode == "justFourLargerHolders"){
+             
+        
         }
         
         

@@ -1,0 +1,324 @@
+package templates
+
+import (
+	"strings"
+
+	"github.com/kiwikid/openscadgen/pkg/models"
+)
+
+func chatMessageClass(role string) string {
+	if strings.EqualFold(role, "assistant") {
+		return "chat-message chat-message--assistant"
+	}
+	return "chat-message chat-message--user"
+}
+
+func chatRoleLabel(role string) string {
+	if strings.EqualFold(role, "assistant") {
+		return "Assistant"
+	}
+	return "You"
+}
+
+templ ChatPage(data models.ChatPageData) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ data.Title }</title>
+			@HeadLinks()
+			<style>
+				body {
+					background:
+						radial-gradient(circle at top left, rgba(26, 115, 232, 0.10), transparent 30%),
+						linear-gradient(180deg, #f5f7fb 0%, #eef2f7 100%);
+					min-height: 100vh;
+				}
+				.chat-page {
+					max-width: 1180px;
+				}
+				.chat-shell,
+				.chat-sidebar {
+					border-radius: 18px;
+					box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+					border: 1px solid rgba(148, 163, 184, 0.18);
+				}
+				.chat-transcript {
+					display: flex;
+					flex-direction: column;
+					gap: 1rem;
+					max-height: 58vh;
+					overflow-y: auto;
+					padding-right: 0.25rem;
+					margin-bottom: 1.5rem;
+				}
+				.chat-empty {
+					border: 1px dashed #cbd5e1;
+					border-radius: 16px;
+					padding: 1.25rem;
+					background: rgba(255, 255, 255, 0.7);
+				}
+				.chat-message {
+					display: flex;
+					flex-direction: column;
+					gap: 0.35rem;
+					max-width: 88%;
+				}
+				.chat-message--assistant {
+					align-self: flex-start;
+				}
+				.chat-message--user {
+					align-self: flex-end;
+				}
+				.chat-message__label {
+					font-size: 0.78rem;
+					font-weight: 700;
+					letter-spacing: 0.02em;
+					text-transform: uppercase;
+					color: #64748b;
+				}
+				.chat-message__bubble {
+					border-radius: 18px;
+					padding: 0.95rem 1rem;
+					white-space: pre-wrap;
+					word-break: break-word;
+					margin: 0;
+					font-family: inherit;
+					line-height: 1.55;
+				}
+				.chat-message--assistant .chat-message__bubble {
+					background: #ffffff;
+					border: 1px solid #dbe4f0;
+				}
+				.chat-message--user .chat-message__bubble {
+					background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+					color: #f8fafc;
+				}
+				.chat-form textarea {
+					min-height: 170px;
+					resize: vertical;
+				}
+				.chat-sidebar code {
+					word-break: break-all;
+				}
+				.chat-actions {
+					gap: 0.75rem;
+				}
+				.chat-meta-list {
+					display: grid;
+					gap: 0.85rem;
+				}
+				.chat-meta-list p:last-child {
+					margin-bottom: 0;
+				}
+				@media (max-width: 768px) {
+					.chat-message {
+						max-width: 100%;
+					}
+					.chat-transcript {
+						max-height: none;
+					}
+				}
+			</style>
+		</head>
+		<body>
+			<section class="section">
+				<div class="container chat-page">
+					<div class="level is-mobile mb-4">
+						<div class="level-left">
+							<div class="level-item">
+								<div class="buttons are-small chat-actions">
+									<a class="button" href={ templ.SafeURL(data.HomeURL) }>Home</a>
+									if data.BackURL != "" {
+										<a class="button is-light" href={ templ.SafeURL(data.BackURL) }>Back</a>
+									}
+									<a class="button is-light" href={ templ.SafeURL(data.ResetURL) }>New Chat</a>
+								</div>
+							</div>
+						</div>
+						<div class="level-right">
+							<div class="level-item">
+								<div class="tags">
+									<span class="tag is-dark">Provider</span>
+									<span class="tag is-primary is-light">{ data.Provider }</span>
+									<span class="tag is-dark">Model</span>
+									<span class="tag is-info is-light">{ data.Model }</span>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="columns is-variable is-5">
+						<div class="column is-4">
+							<div class="card chat-sidebar">
+								<div class="card-content">
+									<h1 class="title is-4 mb-3">AI Chat</h1>
+									<p class="subtitle is-6 mb-5">Server-side AI chat for OpenSCADGen work.</p>
+
+									<div class="chat-meta-list">
+										<div>
+											<p class="has-text-weight-semibold mb-2">API status</p>
+											if data.APIKeyConfigured {
+												<span class="tag is-success is-light">{ data.APIKeyLabel }</span>
+											} else {
+												<span class="tag is-warning is-light">{ data.APIKeyLabel }</span>
+											}
+										</div>
+
+										<div>
+											<p class="has-text-weight-semibold mb-2">Project context</p>
+											if data.ProjectPath != "" {
+												<p class="mb-2"><strong>{ data.ProjectLabel }</strong></p>
+												<p class="is-size-7"><code>{ data.ProjectPath }</code></p>
+												if data.ProjectToolsEnabled {
+													<p class="help mt-2">OpenAI can list, read, edit, commit, and push within this project root when you explicitly ask for those git actions.</p>
+												} else {
+													<p class="help mt-2">This project root is attached as context. Project file and git tools are currently available only with OpenAI.</p>
+												}
+											} else {
+												<p class="help">Open chat from a project or config page if you want project-scoped file and git context attached automatically.</p>
+											}
+										</div>
+
+										<div>
+											<p class="has-text-weight-semibold mb-2">Attached context</p>
+											if data.ContextFileLabel != "" {
+												<p class="mb-2"><strong>{ data.ContextFileLabel }</strong></p>
+												<p class="is-size-7"><code>{ data.ContextFilePath }</code></p>
+												if data.ContextIncluded {
+													<p class="help mt-2">This file is sent to OpenAI with each request on this page.</p>
+												} else {
+													<p class="help mt-2">This file is linked to the page and will be attached the next time you send a message.</p>
+												}
+											} else {
+												<p class="help">Open chat from a config report page if you want the current <code>config.toml</code> attached automatically.</p>
+											}
+										</div>
+
+										<div>
+											<p class="has-text-weight-semibold mb-2">Usage</p>
+											<p class="help">Keep prompts concrete: ask for config changes, parameter suggestions, export troubleshooting, or SCAD edits.</p>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="column is-8">
+							if data.Error != "" {
+								<div class="notification is-danger is-light">{ data.Error }</div>
+							}
+							if data.Notice != "" {
+								<div class="notification is-info is-light">{ data.Notice }</div>
+							}
+
+							<div class="card chat-shell">
+								<div class="card-content">
+									<div id="chat-transcript" class="chat-transcript">
+										if len(data.Messages) == 0 {
+											<div class="chat-empty">
+												<p class="has-text-weight-semibold mb-2">No messages yet.</p>
+												<p class="help mb-0">Start with something narrow, for example: “Suggest cleaner parameter names for this config” or “What would you change to make this print stronger?”</p>
+											</div>
+										}
+										for _, msg := range data.Messages {
+											<article class={ chatMessageClass(msg.Role) }>
+												<div class="chat-message__label">{ chatRoleLabel(msg.Role) }</div>
+												<pre class="chat-message__bubble">{ msg.Content }</pre>
+											</article>
+										}
+									</div>
+
+									<form method="post" action={ templ.SafeURL(data.ActionURL) } class="chat-form">
+										<input type="hidden" name="history_json" value={ data.HistoryJSON }/>
+
+										<div class="field">
+											<label class="label" for="chat-provider">Provider</label>
+											<div class="control">
+												<div class="select is-fullwidth">
+													<select
+														id="chat-provider"
+														name="provider"
+														data-openai-default-model={ data.OpenAIDefaultModel }
+														data-deepseek-default-model={ data.DeepSeekDefaultModel }
+														disabled?={ !data.OpenAIAvailable && !data.DeepSeekAvailable }>
+														<option value="openai" selected?={ data.Provider == "openai" } disabled?={ !data.OpenAIAvailable }>OpenAI</option>
+														<option value="deepseek" selected?={ data.Provider == "deepseek" } disabled?={ !data.DeepSeekAvailable }>DeepSeek</option>
+													</select>
+												</div>
+											</div>
+											<p class="help">Providers without a configured environment token are disabled.</p>
+										</div>
+
+										<div class="field">
+											<label class="label" for="chat-model">Model</label>
+											<div class="control">
+												<input id="chat-model" class="input" type="text" name="model" value={ data.Model } placeholder="e.g. gpt-4.1"/>
+											</div>
+										</div>
+
+										<div class="field">
+											<label class="label" for="chat-message">Message</label>
+											<div class="control">
+												<textarea id="chat-message" class="textarea" name="message" placeholder="Ask for help with the current OpenSCADGen config, SCAD file, or export workflow." autofocus>{ data.Draft }</textarea>
+											</div>
+											<p class="help">Press <code>Ctrl</code> + <code>Enter</code> to send.</p>
+										</div>
+
+										<div class="field is-grouped is-justify-content-flex-end mb-0">
+											<div class="control">
+												<button type="submit" class="button is-primary">Send</button>
+											</div>
+										</div>
+									</form>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<script>
+				document.addEventListener('DOMContentLoaded', function () {
+					const transcript = document.getElementById('chat-transcript');
+					if (transcript) {
+						transcript.scrollTop = transcript.scrollHeight;
+					}
+
+					const providerSelect = document.getElementById('chat-provider');
+					const modelInput = document.getElementById('chat-model');
+					if (providerSelect && modelInput) {
+						const defaultModels = {
+							openai: providerSelect.dataset.openaiDefaultModel || '',
+							deepseek: providerSelect.dataset.deepseekDefaultModel || '',
+						};
+						let previousProvider = providerSelect.value;
+
+						providerSelect.addEventListener('change', function () {
+							const nextProvider = providerSelect.value;
+							const currentModel = modelInput.value.trim();
+							const previousDefault = defaultModels[previousProvider] || '';
+							const nextDefault = defaultModels[nextProvider] || '';
+
+							if (currentModel === '' || currentModel === previousDefault) {
+								modelInput.value = nextDefault;
+							}
+							previousProvider = nextProvider;
+						});
+					}
+
+					const input = document.getElementById('chat-message');
+					if (input) {
+						input.addEventListener('keydown', function (event) {
+							if (event.key === 'Enter' && event.ctrlKey) {
+								event.preventDefault();
+								input.form.requestSubmit();
+							}
+						});
+					}
+				});
+			</script>
+		</body>
+	</html>
+}

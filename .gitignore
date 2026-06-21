@@ -9,7 +9,9 @@ openscadgen
 examples/cup-holder-plus/export/*.stl
 *_templ.go
 latest_nightly.txt
+tmp/chat-harness/
 
 # Nix
 result
 .direnv
+.aider*
