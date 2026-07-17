@@ -1,0 +1,16 @@
+[openscadgen]
+name = "round_thin_cover"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{renderType}"
+
+global_params = { renderType = "obj,vertSlice,horzSlice" }
+
+[[openscadgen.input_paths]]
+path = "./round_thin_cover.scad"
+
+[[openscadgen.images]]
+name = "nice"
+param_filter = { renderType= "obj,vertSlice,horzSlice"}

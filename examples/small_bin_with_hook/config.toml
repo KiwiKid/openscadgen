@@ -1,0 +1,17 @@
+[openscadgen]
+name = "small_bin_with_hook"
+description = ""
+
+version = "v0.4"
+
+export_name_format = "{designFileName}/{hookStyle}/{partType}"
+
+# global_params will be passed into all the generated designs
+global_params = { hookStyle=["includingHook", "noHook",  "withHookGroove"], partType = ["lid", "container", "halves", "middleSection", "hook"] }
+
+[[openscadgen.input_paths]]
+path = "./small_bin_with_hook.scad"
+params = { }
+
+[[openscadgen.images]]
+name = "nice"

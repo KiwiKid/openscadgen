@@ -1,165 +1,157 @@
 package templates
 
-import "github.com/kiwikid/openscadgen/pkg/models"
+import (
+	"fmt"
+	"github.com/kiwikid/openscadgen/pkg/models"
+)
 
 templ SlimProcessForm(reportMeta models.ReportMeta) {
-	<div style="width: 100%; max-height: 8rem; overflow-y: scroll;">
-		<form method="PUT" action="/" hx-put="/" hx-target="#process-status" hx-indicator="#loading" hx-on::before-request="window.ogMarkProcessButtonLoading(this)" data-og-process-form="slim" style="width: 100%; display: flex; gap: 0.5rem; align-items: center;">
+	<div x-data="{ showMobileFilter: false }" style="width: 100%; max-height: 8rem; overflow-y: scroll;">
+		<form method="PUT" action="/" hx-put="/" hx-target="#process-status" hx-indicator="#loading" hx-on::before-request="window.ogMarkProcessButtonLoading(this)" data-og-process-form="slim" style="width: 100%; display: flex; gap: 0.5rem; align-items: center; flex-wrap: nowrap;">
 			<div x-show="showDebug">
 				[[SlimProcessForm]]
 			</div>
-			<input type="text" name="config_path" value={ reportMeta.ConfigFilePathEncoded } readonly hidden />
-			<input type="text" name="server_folder" value={ reportMeta.ServerFolderEncoded } readonly hidden />
-			<input type="text" name="page_instances_signature" value={ reportMeta.InstanceSetSignature } readonly hidden />
-			<input class="input" type="text" name="regex" placeholder="Only process instances that match this pattern" style="flex: 1 1 auto; min-width: 0;" />
-			<button class="button is-primary og-process-button" type="submit" style="flex: 0 0 auto;">Process</button>
+			<input type="text" name="config_path" value={ reportMeta.ConfigFilePathEncoded } readonly hidden/>
+			<input type="text" name="server_folder" value={ reportMeta.ServerFolderEncoded } readonly hidden/>
+			<input type="text" name="page_instances_signature" value={ reportMeta.InstanceSetSignature } readonly hidden/>
+			<div style="display: flex; gap: 0.5rem; flex: 0 0 auto; margin-left: auto; align-items: center; flex-wrap: nowrap;">
+				<button class="button is-primary og-process-button" type="submit">Process</button>
+			</div>
+			<div class="is-hidden-tablet" x-show="showMobileFilter" x-cloak style="flex: 1 1 100%; min-width: 0;">
+				<input class="input" type="text" name="regex" placeholder="Only process instances that match this pattern" style="min-width: 0; width: 100%;"/>
+			</div>
 		</form>
 	</div>
 }
 
 templ ProcessFormV2(reportMeta models.ReportMeta) {
 	<div class="box m-3 p-3">
-		<div class="columns">
-
-					
-			<form method="PUT" action="/" hx-put="/" hx-target="#process-status" hx-indicator="#loading" hx-on::before-request="window.ogMarkProcessButtonLoading(this)" data-og-process-form="full">
-				<div x-show="showDebug">
-					[[ProcessFormV2]]
-				</div>
-				<input class="input" type="text" name="config_path" value={ reportMeta.ConfigFilePathEncoded } readonly hidden />
-				<input class="input" type="text" name="server_folder" value={ reportMeta.ServerFolderEncoded } readonly hidden />
-				<input class="input" type="text" name="page_instances_signature" value={ reportMeta.InstanceSetSignature } readonly hidden />
-				<!-- Top Row: Regex, Show/Hide Button, Process Button -->
-				<div class="columns is-vcentered">
-					<div class="column is-8">
-						<div class="field">
-							<label class="label">Filter Pattern</label>
-							<div class="control">
-								<input class="input" type="text" name="regex" placeholder="Only process instances that match this pattern" />
-							</div>
-						</div>
-					</div>
-					
-					<div class="column is-6">
-						<div class="field">
-							<div class="control">
-								<button class="button is-large is-primary og-process-button" type="submit" id="process-btn" title="Process Configuration">
-									<span class="icon">
-										<i class="fas fa-play"></i>
-									</span>
-								</button>
-								<div id="cancel-button"></div>
-							</div>
-						</div>
-					</div>
-					<div class="column is-2">
-						<button type="button" x-show="!showProcessForm" class="button is-primary" @click="showProcessForm = !showProcessForm">
-							<span class="icon"><i class="fa-solid fa-arrow-down"></i></span>
-						</button>
-						<button type="button" x-show="showProcessForm" class="button is-primary" @click="showProcessForm = !showProcessForm">
-							<span class="icon"><i class="fa-solid fa-arrow-up"></i></span>
-						</button>
-					</div>
-				</div>
-
-		<div x-show="showProcessForm">
-					<!-- Form Fields in Row Layout -->
-					<div class="columns">
-						<!-- Processing Options Column -->
-						<div class="column is-half">
-							<div class="field">
-								<label class="label">Processing Options</label>
-								<div class="field is-grouped is-grouped-multiline">
-									<div class="control">
-										<label class="checkbox">
-											<input type="checkbox" name="quiet" value="true" />
-											Quiet mode
-										</label>
-									</div>
-									<div class="control">
-										<label class="checkbox">
-											<input type="checkbox" name="debug" value="true" />
-											Debug mode
-										</label>
-									</div>
-									<div class="control">
-										<label class="checkbox">
-											<input type="checkbox" name="no_processing" value="true" />
-											Dry run (no processing)
-										</label>
-									</div>
-									<div class="control">
-										<label class="checkbox">
-											<input type="checkbox" name="stop_on_error" value="true" />
-											Stop on error
-										</label>
-									</div>
-									<div class="control">
-										<label class="checkbox">
-											<input type="checkbox" name="low_quality" value="true" />
-											Low quality
-										</label>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<!-- Advanced Options & Numeric Column -->
-						<div class="column is-half">
-							<div class="field">
-								<label class="label">Advanced Options</label>
-								<div class="field is-grouped is-grouped-multiline">
-									<div class="control">
-										<label class="checkbox">
-											<input type="checkbox" name="skip_render" value="true" />
-											Skip render
-										</label>
-									</div>
-									<div class="control">
-										<label class="checkbox">
-											<input type="checkbox" name="skip_readme" value="true" />
-											Skip README generation
-										</label>
-									</div>
-								</div>
-							</div>
-
-							<div class="field">
-								<label class="label">Max Instances</label>
-								<div class="control">
-									<input class="input" type="number" name="max_instances" placeholder="0 = no limit" min="0" />
-								</div>
-								<p class="help">Maximum number of instances to process (0 = no limit)</p>
-							</div>
-						</div>
-					</div>
-	</div>
-
-				<!-- Loading Indicator -->
-				<div id="loading" class="htmx-indicator">
-					<div class="notification is-info">
-						<div class="columns is-vcentered">
-							<div class="column">
-								<strong>Processing...</strong>
-							</div>
-							<div class="column is-narrow">
-								<div class="loader"></div>
-							</div>
-						</div>
-					</div>
-				</div>
-
-			<div class="column is-2" x-show="showProcessForm" >
-				<button type="button" class="button is-primary" @click="showProcessForm = !showProcessForm">
-					<span class="icon"><i class="fa-solid fa-arrow-up"></i></span>
-				</button>
+		<form method="PUT" action="/" hx-put="/" hx-target="#process-status" hx-indicator="#loading" hx-on::before-request="window.ogMarkProcessButtonLoading(this)" data-og-process-form="full">
+			<div x-show="showDebug">
+				[[ProcessFormV2]]
 			</div>
-
-				
-			</form>
-		
+			<input class="input" type="text" name="config_path" value={ reportMeta.ConfigFilePathEncoded } readonly hidden/>
+			<input class="input" type="text" name="server_folder" value={ reportMeta.ServerFolderEncoded } readonly hidden/>
+			<input class="input" type="text" name="page_instances_signature" value={ reportMeta.InstanceSetSignature } readonly hidden/>
+			<!-- Top Row: loading, filter, actions -->
+			<div style="display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap;">
+				<div id="loading" class="htmx-indicator" style="flex: 0 0 auto; min-width: 10rem;">
+					<div class="notification is-info" style="margin-bottom: 0;">
+						<div style="display: flex; gap: 0.75rem; align-items: center;">
+							<div class="loader"></div>
+							<div><strong>Processing...</strong></div>
+						</div>
+					</div>
+				</div>
+				<div style="flex: 1 1 18rem; min-width: 12rem;">
+					<div class="field" style="margin-bottom: 0;">
+						<label class="label">Filter Pattern</label>
+						<div class="control">
+							<input class="input" type="text" name="regex" placeholder="Only process instances that match this pattern"/>
+						</div>
+					</div>
+				</div>
+				<div style="display: flex; gap: 0.5rem; flex: 0 0 auto; margin-left: auto; flex-wrap: wrap;">
+					<button class="button is-large is-primary og-process-button" type="submit" id="process-btn" title="Process Configuration">
+						<span class="icon">
+							<i class="fas fa-play"></i>
+						</span>
+					</button>
+					<button
+						class="button is-large is-danger"
+						type="button"
+						hx-get="/delete-export-stls"
+						hx-target="#delete-status"
+						hx-swap="innerHTML"
+						hx-vals={ fmt.Sprintf(`{"config_path":"%s","server_folder":"%s","version":"%s"}`, reportMeta.ConfigFilePathEncoded, reportMeta.ServerFolderEncoded, reportMeta.ConfigVersion) }
+						title="Clear existing files for this version"
+					>
+						<span class="icon">
+							<i class="fas fa-trash"></i>
+						</span>
+					</button>
+				</div>
+				<div style="flex: 0 0 auto; margin-left: 0.25rem;">
+					<button type="button" x-show="!showProcessForm" class="button is-primary" @click="showProcessForm = !showProcessForm">
+						<span class="icon"><i class="fa-solid fa-arrow-down"></i></span>
+					</button>
+					<button type="button" x-show="showProcessForm" class="button is-primary" @click="showProcessForm = !showProcessForm">
+						<span class="icon"><i class="fa-solid fa-arrow-up"></i></span>
+					</button>
+				</div>
+			</div>
+			<div x-show="showProcessForm">
+				<!-- Form Fields in Row Layout -->
+				<div class="columns">
+					<!-- Processing Options Column -->
+					<div class="column is-half">
+						<div class="field">
+							<label class="label">Processing Options</label>
+							<div class="field is-grouped is-grouped-multiline">
+								<div class="control">
+									<label class="checkbox">
+										<input type="checkbox" name="quiet" value="true"/>
+										Quiet mode
+									</label>
+								</div>
+								<div class="control">
+									<label class="checkbox">
+										<input type="checkbox" name="debug" value="true"/>
+										Debug mode
+									</label>
+								</div>
+								<div class="control">
+									<label class="checkbox">
+										<input type="checkbox" name="no_processing" value="true"/>
+										Dry run (no processing)
+									</label>
+								</div>
+								<div class="control">
+									<label class="checkbox">
+										<input type="checkbox" name="stop_on_error" value="true"/>
+										Stop on error
+									</label>
+								</div>
+								<div class="control">
+									<label class="checkbox">
+										<input type="checkbox" name="low_quality" value="true"/>
+										Low quality
+									</label>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- Advanced Options & Numeric Column -->
+					<div class="column is-half">
+						<div class="field">
+							<label class="label">Advanced Options</label>
+							<div class="field is-grouped is-grouped-multiline">
+								<div class="control">
+									<label class="checkbox">
+										<input type="checkbox" name="skip_render" value="true"/>
+										Skip render
+									</label>
+								</div>
+								<div class="control">
+									<label class="checkbox">
+										<input type="checkbox" name="skip_readme" value="true"/>
+										Skip README generation
+									</label>
+								</div>
+							</div>
+						</div>
+						<div class="field">
+							<label class="label">Max Instances</label>
+							<div class="control">
+								<input class="input" type="number" name="max_instances" placeholder="0 = no limit" min="0"/>
+							</div>
+							<p class="help">Maximum number of instances to process (0 = no limit)</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
 	</div>
-</div>
 	<style>
 		.loader {
 			border: 2px solid #f3f3f3;

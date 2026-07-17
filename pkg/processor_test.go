@@ -1577,7 +1577,7 @@ coord = "0,0,0,90,0,0,600"
 
 			if len(config.GetInputPaths()) == 0 {
 				LogKeyValuePair("No input paths found in config", "")
-				LogWarn("No input paths found in config", true)
+				LogWarnWithCritical("No input paths found in config", true)
 				t.Fatalf("No input paths found in config")
 			} else if config.Debug {
 				LogKeyValuePair(fmt.Sprintf("%d Input paths", len(config.Design.InputPaths)), "")
@@ -2290,6 +2290,66 @@ param_filter = { renderType = "obj,vertSlice" }
 	}
 	if !objFound || !allFound {
 		t.Fatalf("Did not find both obj and all instances")
+	}
+}
+
+func TestGenerateInstances_InstanceParamOverridesGlobalParam(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	configContent := `[openscadgen]
+name = "small_handle_extender"
+version = "v0.5"
+export_name_format = "{designFileName}_{iName}"
+global_params = { clipStyle = "clip" }
+
+[[openscadgen.input_paths]]
+path = "./small_handle_extender.scad"
+
+[[openscadgen.instances]]
+params = { iName = "small", holderLength = 50, holeDepth = 25, clipStyle = "noClip", holderRadius = 6, holeRadius = 3.6 }
+
+[[openscadgen.instances]]
+params = { iName = "small-stubby-holder", wedgeOut = 4, holderLength = 15, holeDepth = 14, clipDownOffset = 6, clipInwardPush = 7, holderRadius = 14, holeRadius = 6.5 }
+`
+
+	configPath := filepath.Join(tmpDir, "config.toml")
+	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		t.Fatalf("Failed to write config.toml: %v", err)
+	}
+
+	if err := os.WriteFile(filepath.Join(tmpDir, "small_handle_extender.scad"), []byte("cube(1);"), 0644); err != nil {
+		t.Fatalf("Failed to write scad file: %v", err)
+	}
+
+	config, _, err := LoadConfigFromFile(models.CmdFlags{ConfigFile: configPath})
+	if err != nil {
+		t.Fatalf("Failed to load config: %v", err)
+	}
+
+	if len(config.Design.ConfiguredInstanceConfig) != 2 {
+		t.Fatalf("Expected 2 configured instances, got %d", len(config.Design.ConfiguredInstanceConfig))
+	}
+
+	firstInstances, _, err := GenerateInstances(config, config.Design.ConfiguredInstanceConfig[0], config.Design.InputPaths[0])
+	if err != nil {
+		t.Fatalf("GenerateInstances for first instance failed: %v", err)
+	}
+	if len(firstInstances) != 1 {
+		t.Fatalf("Expected 1 generated instance for first config, got %d", len(firstInstances))
+	}
+	if got := firstInstances[0].Params["clipStyle"]; got != "noClip" {
+		t.Fatalf("Expected first instance clipStyle to override global value, got %#v", got)
+	}
+
+	secondInstances, _, err := GenerateInstances(config, config.Design.ConfiguredInstanceConfig[1], config.Design.InputPaths[0])
+	if err != nil {
+		t.Fatalf("GenerateInstances for second instance failed: %v", err)
+	}
+	if len(secondInstances) != 1 {
+		t.Fatalf("Expected 1 generated instance for second config, got %d", len(secondInstances))
+	}
+	if got := secondInstances[0].Params["clipStyle"]; got != "clip" {
+		t.Fatalf("Expected second instance to inherit global clipStyle, got %#v", got)
 	}
 }
 

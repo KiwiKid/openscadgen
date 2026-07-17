@@ -33,7 +33,7 @@ func TestInitConfigInParent_smoke(t *testing.T) {
 		t.Fatal(err)
 	}
 	dir := t.TempDir()
-	if err := InitConfigInParent(dir, "my-widget", false); err != nil {
+	if err := InitConfigInParentWithTemplate(dir, "my-widget", "basic"); err != nil {
 		t.Fatal(err)
 	}
 	cfg := filepath.Join(dir, "my_widget", "config.toml")
@@ -52,7 +52,7 @@ func TestInitConfigInParent_rejectPathEscape(t *testing.T) {
 		t.Fatal(err)
 	}
 	dir := t.TempDir()
-	err := InitConfigInParent(dir, "..", false)
+	err := InitConfigInParentWithTemplate(dir, "..", "basic")
 	if err == nil {
 		t.Fatal("expected error for .. base name")
 	}
@@ -64,7 +64,7 @@ func TestInitConfigInParent_nestedRelativePath(t *testing.T) {
 		t.Fatal(err)
 	}
 	dir := t.TempDir()
-	if err := InitConfigInParent(dir, "nested/my-widget", false); err != nil {
+	if err := InitConfigInParentWithTemplate(dir, "nested/my-widget", "basic"); err != nil {
 		t.Fatal(err)
 	}
 	cfg := filepath.Join(dir, "nested", "my_widget", "config.toml")

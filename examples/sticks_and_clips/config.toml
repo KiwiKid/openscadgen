@@ -1,0 +1,24 @@
+[openscadgen]
+name = "sticks_and_clips"
+description = ""
+
+version = "v0.3"
+
+export_name_format = "{designFileName}_{partType}_{clipScale}_{stickXRotate}"
+
+# These params will be passed into all the generated designs
+global_params = {  }
+
+[[openscadgen.input_paths]]
+path = "./sticks_and_clips.scad"
+params = { }
+
+[[openscadgen.instances]]
+params = { partType="clip",  clipScale = [0.7,1,1.3] }
+
+[[openscadgen.instances]]
+params = { partType="holder", stickXRotate = [10, 20, 30, 40] }
+
+
+[[openscadgen.images]]
+name = "nice"

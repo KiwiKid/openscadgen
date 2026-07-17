@@ -91,7 +91,9 @@ type CmdFlags struct {
 	ProcessFolder                string `json:"process_folder"`
 	InitProjectName              string `json:"init_project_name"`
 	InitProjectNameExtended      string `json:"init_project_name_extended"`
+	InitProjectNameExplainer     string `json:"init_project_name_explainer"`
 	InitProjectParentDir         string `json:"init_project_parent_dir"`
+	NoInput                      bool   `json:"no_input"`
 	ConfigFile                   string `json:"config_file"`
 	SkipRender                   bool   `json:"skip_render"`
 	SkipReadme                   bool   `json:"skip_readme"`
@@ -154,6 +156,8 @@ type Config struct {
 	OpenScadGenVersion           string
 	InitProjectName              string
 	InitProjectNameExtended      string
+	InitProjectNameExplainer     string
+	NoInput                      bool
 }
 
 type InputPath struct {
@@ -513,10 +517,12 @@ type EditConfigParams struct {
 	ConfigFilePathEncoded string
 	ServerFolder          string
 	ServerFolderEncoded   string
+	ReportURL             string
 	FilePath              string
 	FilePathEncoded       string
 	Content               string
 	ErrorMsg              templ.Component
+	InstanceCountLabel    string
 }
 
 type ReportMeta struct {
@@ -528,6 +534,7 @@ type ReportMeta struct {
 	InstanceSetSignature  string
 	ServerFolder          string
 	ServerFolderEncoded   string
+	ConfigVersion         string
 	Results               Results
 }
 
@@ -537,28 +544,32 @@ type ChatMessage struct {
 }
 
 type ChatPageData struct {
-	Title                string
-	Messages             []ChatMessage
-	HistoryJSON          string
-	Draft                string
-	Provider             string
-	OpenAIAvailable      bool
-	DeepSeekAvailable    bool
-	OpenAIDefaultModel   string
-	DeepSeekDefaultModel string
-	Model                string
-	Error                string
-	Notice               string
-	APIKeyConfigured     bool
-	APIKeyLabel          string
-	ProjectLabel         string
-	ProjectPath          string
-	ProjectToolsEnabled  bool
-	ContextFileLabel     string
-	ContextFilePath      string
-	ContextIncluded      bool
-	HomeURL              string
-	BackURL              string
-	ActionURL            string
-	ResetURL             string
+	Title                   string
+	Messages                []ChatMessage
+	HistoryJSON             string
+	Draft                   string
+	Provider                string
+	OpenAIAvailable         bool
+	DeepSeekAvailable       bool
+	OpenAIDefaultModel      string
+	DeepSeekDefaultModel    string
+	Model                   string
+	Error                   string
+	Notice                  string
+	APIKeyConfigured        bool
+	APIKeyLabel             string
+	ProjectLabel            string
+	ProjectPath             string
+	ProjectToolsEnabled     bool
+	ContextFileLabel        string
+	ContextFilePath         string
+	ContextIncluded         bool
+	AsyncEnabled            bool
+	ConfigAutomationEnabled bool
+	HomeURL                 string
+	BackURL                 string
+	ActionURL               string
+	ResetURL                string
+	RunURL                  string
+	StatusURL               string
 }

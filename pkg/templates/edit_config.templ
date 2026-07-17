@@ -1,16 +1,42 @@
 package templates
 
-import "github.com/kiwikid/openscadgen/pkg/models"
+import (
+	"fmt"
+	"strings"
 
-templ EditConfig(config models.Config, msg templ.Component) {
-    <div>
-    if msg != nil {
-        @msg
-    }
-        <h1>Edit Config</h1>
-        <form hx-post="/api/config" >
-            <textarea name="config">{ JSONString(config) }</textarea>
-            <button type="submit">Save</button>
-        </form>
-    </div>
+	"github.com/kiwikid/openscadgen/pkg/models"
+)
+
+templ EditConfigPanel(editFormConfig *models.EditConfigParams) {
+	<div class="container">
+		<div class="level is-mobile mb-4">
+			<div class="level-left">
+				<div class="level-item">
+					<div class="buttons are-small">
+						<a class="button is-light" hx-get={ templ.SafeURL(editFormConfig.ReportURL) } hx-target="#main-content" hx-swap="innerHTML" hx-push-url="true">Back to Instances</a>
+						<a class="button is-warning" href={ templ.SafeURL(fmt.Sprintf("/?config=%s", editFormConfig.ConfigFilePathEncoded)) }>Open Report</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<h1 class="title is-4">Edit TOML File</h1>
+		<div class="file-path">{ strings.TrimPrefix(editFormConfig.ConfigFilePath, "/") }</div>
+		if editFormConfig.ErrorMsg != nil {
+			@editFormConfig.ErrorMsg
+		}
+		<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/api/edit?config_path=%s&server_folder=%s", editFormConfig.ConfigFilePathEncoded, editFormConfig.ServerFolderEncoded)) } hx-post={ templ.SafeURL(fmt.Sprintf("/api/edit?config_path=%s&server_folder=%s", editFormConfig.ConfigFilePathEncoded, editFormConfig.ServerFolderEncoded)) } hx-target="#main-content" hx-swap="innerHTML">
+			<div class="help-text">
+				# Optional: Camera positions for image generation
+				[[openscadgen.images]]
+				name = &#34;string&#34;                   # Name of the camera position
+				coord = &#34;string&#34;                  # Camera coordinates (x,y,z,rotx,roty,rotz,distance)
+				image_size = &#34;string&#34;             # Optional, image dimensions (width,height)
+				param_filter = {  } # Optional, filter parameters for this camera
+			</div>
+			<div class="buttons">
+				<button type="submit" class="button is-success">Save Changes</button>
+			</div>
+			<textarea id="editarea" style="height: 350px; width: 100%;" id="content" name="content">{ editFormConfig.Content }</textarea>
+		</form>
+	</div>
 }

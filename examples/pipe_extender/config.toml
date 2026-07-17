@@ -1,0 +1,17 @@
+[openscadgen]
+name = "pipe_extender"
+description = ""
+
+version = "v0.2"
+
+export_name_format = "{designFileName}_{middleSectionHeight}"
+
+# These params will be passed into all the generated designs
+global_params = {  }
+
+[[openscadgen.input_paths]]
+path = "./pipe_extender.scad"
+params = { }
+
+[[openscadgen.images]]
+name = "nice"

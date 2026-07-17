@@ -1,72 +1,72 @@
 package templates
 
 import (
-    "fmt"
-    "strings"
-    "github.com/kiwikid/openscadgen/pkg/models"
+	"fmt"
+	"github.com/kiwikid/openscadgen/pkg/models"
+	"strings"
 )
 
 // Helper function to format parameters as HTML
 func formatParamsHTML(params map[string]interface{}) string {
-    var result string
-    for key, value := range params {
-        result += fmt.Sprintf("<div><strong>%s:</strong> %v</div>", key, value)
-    }
-    return result
+	var result string
+	for key, value := range params {
+		result += fmt.Sprintf("<div><strong>%s:</strong> %v</div>", key, value)
+	}
+	return result
 }
 
 // Helper function to get relative path for instance card
 func getInstanceCardRelativePath(outputPathV2 string, outputPath string) string {
-    relativePath := outputPathV2
-    if strings.HasPrefix(relativePath, outputPath) {
-        relativePath = strings.TrimPrefix(relativePath, outputPath)
-        relativePath = strings.TrimPrefix(relativePath, "/")
-    }
-    return relativePath
+	relativePath := outputPathV2
+	if strings.HasPrefix(relativePath, outputPath) {
+		relativePath = strings.TrimPrefix(relativePath, outputPath)
+		relativePath = strings.TrimPrefix(relativePath, "/")
+	}
+	return relativePath
 }
 
 // Helper function to get status class
 func getStatusClass(skippedReason string) string {
-    if skippedReason != "" {
-        return "is-warning"
-    }
-    return "is-success"
+	if skippedReason != "" {
+		return "is-warning"
+	}
+	return "is-success"
 }
 
 // Helper function to get status text
 func getStatusText(skippedReason string) string {
-    if skippedReason != "" {
-        return "Skipped"
-    }
-    return "Complete"
+	if skippedReason != "" {
+		return "Skipped"
+	}
+	return "Complete"
 }
 
 templ InstanceCard(instance models.InstanceConfig, outputPath string) {
-    <div class="column is-4" id={ fmt.Sprintf("instance-%s", instance.UniqueID) } hx-swap-oob="true">
-        <div class="card">[[InstanceCard]]
-            <header class="card-header">
-                <p class="card-header-title">
-                    {instance.AutoName} ({instance.Name})
-                </p>
-                <span class={ fmt.Sprintf("tag %s", getStatusClass(instance.SkippedReason))} >{getStatusText(instance.SkippedReason)}</span>
-            </header>
-            <div class="card-content">
-                <div class="content">
-                    <p><strong>Description:</strong> {instance.Description}</p>
-                    <p><strong>Output Path:</strong> { getInstanceCardRelativePath(instance.RunOutputPathV3, outputPath) }</p>
-                    <div><strong>Parameters:</strong></div>
-                    <div class="ml-3" unsafe={formatParamsHTML(instance.Params)}></div>
-                    if instance.SkippedReason != "" {
-                        <p><strong>Skipped Reason:</strong> {instance.SkippedReason}</p>
-                    }
-                    
-                    @Debug("Instance Debug Info", fmt.Sprintf("ID: %s, UniqueID: %s, PartIDLetter: %s, ConfigError: %s", instance.ID, instance.UniqueID, instance.PartIDLetter, instance.ConfigError))
-                    @Debug("Paths Debug", fmt.Sprintf("OutputPathV2: %s, RunOutputPathV3: %s, RunOutputImagePath: %s", instance.OutputPathV2, instance.RunOutputPathV3, instance.RunOutputImagePath))
-                    @Debug("Image Results", fmt.Sprintf("ImageResults count: %d, SkipImages: %v, SkippedImageReason: %s", len(instance.ImageResults), instance.SkipImages, instance.SkippedImageReason))
-                    @Debug("Export Images", fmt.Sprintf("ExportImages count: %d", len(instance.ExportImages)))
-                    @Debug("Ignored Params", fmt.Sprintf("IgnoredParams: %v", instance.IgnoredParams))
-                </div>
-            </div>
-        </div>
-    </div>
-} 
+	<div class="column is-4" id={ fmt.Sprintf("instance-%s", instance.UniqueID) } hx-swap-oob="true">
+		<div class="card">
+			[[InstanceCard]]
+			<header class="card-header">
+				<p class="card-header-title">
+					{ instance.AutoName } ({ instance.Name })
+				</p>
+				<span class={ fmt.Sprintf("tag %s", getStatusClass(instance.SkippedReason)) }>{ getStatusText(instance.SkippedReason) }</span>
+			</header>
+			<div class="card-content">
+				<div class="content">
+					<p><strong>Description:</strong> { instance.Description }</p>
+					<p><strong>Output Path:</strong> { getInstanceCardRelativePath(instance.RunOutputPathV3, outputPath) }</p>
+					<div><strong>Parameters:</strong></div>
+					<div class="ml-3" unsafe={ formatParamsHTML(instance.Params) }></div>
+					if instance.SkippedReason != "" {
+						<p><strong>Skipped Reason:</strong> { instance.SkippedReason }</p>
+					}
+					@Debug("Instance Debug Info", fmt.Sprintf("ID: %s, UniqueID: %s, PartIDLetter: %s, ConfigError: %s", instance.ID, instance.UniqueID, instance.PartIDLetter, instance.ConfigError))
+					@Debug("Paths Debug", fmt.Sprintf("OutputPathV2: %s, RunOutputPathV3: %s, RunOutputImagePath: %s", instance.OutputPathV2, instance.RunOutputPathV3, instance.RunOutputImagePath))
+					@Debug("Image Results", fmt.Sprintf("ImageResults count: %d, SkipImages: %v, SkippedImageReason: %s", len(instance.ImageResults), instance.SkipImages, instance.SkippedImageReason))
+					@Debug("Export Images", fmt.Sprintf("ExportImages count: %d", len(instance.ExportImages)))
+					@Debug("Ignored Params", fmt.Sprintf("IgnoredParams: %v", instance.IgnoredParams))
+				</div>
+			</div>
+		</div>
+	</div>
+}

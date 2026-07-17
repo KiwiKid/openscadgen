@@ -1,0 +1,26 @@
+[openscadgen]
+name = "small_handle_extender"
+description = ""
+
+version = "v0.5"
+
+export_name_format = "{designFileName}_{iName}"
+
+# global_params will be passed into all the generated designs
+global_params = { clipStyle="noClip" }
+
+[[openscadgen.input_paths]]
+path = "./small_handle_extender.scad"
+params = { }
+
+# [[openscadgen.instances]] allow for scoping input params (or [[openscadgen.param_sets]]) to specific designs 
+[[openscadgen.instances]]
+params = { iName = "small", holderLength = 50, holeDepth = 25, holderRadius = 6, holeRadius = 3.6 }
+
+[[openscadgen.instances]]
+params = { iName = "small-stubby-holder", wedgeOut = 4, holderLength = 25, holeDepth = 14,clipDownOffset = 6, clipInwardPush = 7, holderRadius = 14, holeRadius = 6.5 }
+
+
+
+[[openscadgen.images]]
+name = "nice"

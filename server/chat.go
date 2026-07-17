@@ -32,7 +32,7 @@ const (
 	defaultDeepSeekBaseURL = "https://api.deepseek.com"
 	maxChatHistoryMessages = 24
 	maxChatContextBytes    = 16000
-	maxChatToolRounds      = 8
+	maxChatToolRounds      = 12
 	maxChatProjectEntries  = 40
 	maxChatOutputBytes     = 24000
 	maxChatReadBytes       = 20000
@@ -59,6 +59,16 @@ type chatContext struct {
 	Truncated           bool
 	LoadErr             error
 	ProjectErr          error
+}
+
+type chatSubmission struct {
+	History      []models.ChatMessage
+	Draft        string
+	Auth         chatAuthConfig
+	Model        string
+	CtxInfo      chatContext
+	Instructions string
+	Notice       string
 }
 
 type openAIResponsesRequest struct {
@@ -205,61 +215,39 @@ func handleChatGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleChatPost(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	submission, historyErr, err := buildChatSubmission(r)
+	if err != nil {
 		http.Error(w, "Failed to parse form: "+err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	history, err := parseChatHistory(r.FormValue("history_json"))
-	if err != nil {
+	if historyErr != nil {
 		ctxInfo := buildChatContext(r, false)
 		auth := getChatAuthConfig(readRequestedProvider(r))
-		data := makeChatPageData(r, nil, auth, readChatModel(r, auth.SelectedProvider), strings.TrimSpace(r.FormValue("message")), "Conversation state was invalid. Start a new chat.", "", ctxInfo)
+		data := makeChatPageData(r, nil, auth, readChatModel(r, auth.SelectedProvider), submission.Draft, "Conversation state was invalid. Start a new chat.", "", ctxInfo)
+		renderChatPage(w, r, data)
+		return
+	}
+	if submission.Draft == "" {
+		data := makeChatPageData(r, submission.History, submission.Auth, submission.Model, "", "Enter a message before sending.", submission.Notice, submission.CtxInfo)
 		renderChatPage(w, r, data)
 		return
 	}
 
-	draft := strings.TrimSpace(r.FormValue("message"))
-	ctxInfo := buildChatContext(r, true)
-	auth := getChatAuthConfig(readRequestedProvider(r))
-	model := readChatModel(r, auth.SelectedProvider)
-
-	if draft == "" {
-		data := makeChatPageData(r, history, auth, model, "", "Enter a message before sending.", "", ctxInfo)
-		renderChatPage(w, r, data)
-		return
-	}
-
-	history = append(history, models.ChatMessage{
+	history := append(append([]models.ChatMessage(nil), submission.History...), models.ChatMessage{
 		Role:    "user",
-		Content: draft,
+		Content: submission.Draft,
 	})
 	history = normalizeChatHistory(history)
-
-	instructions, notice := buildChatInstructions(ctxInfo)
-	if ctxInfo.LoadErr != nil {
-		if notice != "" {
-			notice += " "
-		}
-		notice += fmt.Sprintf("Current file context could not be loaded: %v", ctxInfo.LoadErr)
-	}
-	if ctxInfo.ProjectErr != nil {
-		if notice != "" {
-			notice += " "
-		}
-		notice += fmt.Sprintf("Project context could not be loaded: %v", ctxInfo.ProjectErr)
-	}
-
-	if auth.Token == "" {
-		data := makeChatPageData(r, history, auth, model, "", "Neither DEEPSEEK_API_TOKEN nor OPENAI_API_KEY is set.", notice, ctxInfo)
+	if submission.Auth.Token == "" {
+		data := makeChatPageData(r, history, submission.Auth, submission.Model, "", "Neither DEEPSEEK_API_TOKEN nor OPENAI_API_KEY is set.", submission.Notice, submission.CtxInfo)
 		renderChatPage(w, r, data)
 		return
 	}
 
-	answer, err := createProviderChatResponseWithContext(r.Context(), auth, model, instructions, history, ctxInfo)
+	answer, err := createProviderChatResponseWithContext(r.Context(), submission.Auth, submission.Model, submission.Instructions, history, submission.CtxInfo)
 	if err != nil {
 		log.Printf("chat response error: %v", err)
-		data := makeChatPageData(r, history, auth, model, "", err.Error(), notice, ctxInfo)
+		data := makeChatPageData(r, history, submission.Auth, submission.Model, "", err.Error(), submission.Notice, submission.CtxInfo)
 		renderChatPage(w, r, data)
 		return
 	}
@@ -270,13 +258,19 @@ func handleChatPost(w http.ResponseWriter, r *http.Request) {
 	})
 	history = normalizeChatHistory(history)
 
-	data := makeChatPageData(r, history, auth, model, "", "", notice, ctxInfo)
+	data := makeChatPageData(r, history, submission.Auth, submission.Model, "", "", submission.Notice, submission.CtxInfo)
 	renderChatPage(w, r, data)
 }
 
 func renderChatPage(w http.ResponseWriter, r *http.Request, data models.ChatPageData) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := templates.ChatPage(data).Render(r.Context(), w); err != nil {
+	var err error
+	if r.Header.Get("HX-Request") == "true" {
+		err = templates.ChatPanel(data).Render(r.Context(), w)
+	} else {
+		err = templates.ChatPage(data).Render(r.Context(), w)
+	}
+	if err != nil {
 		http.Error(w, "Failed to render chat page: "+err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -304,32 +298,37 @@ func makeChatPageData(r *http.Request, history []models.ChatMessage, auth chatAu
 	}
 
 	actionURL := buildChatRouteURL(ctxInfo.ConfigEncoded, ctxInfo.ServerFolderEncoded, auth.SelectedProvider)
+	runURL := buildChatRunURL(ctxInfo.ConfigEncoded, ctxInfo.ServerFolderEncoded, auth.SelectedProvider)
 
 	return models.ChatPageData{
-		Title:                title,
-		Messages:             history,
-		HistoryJSON:          string(historyJSON),
-		Draft:                draft,
-		Provider:             auth.SelectedProvider,
-		OpenAIAvailable:      auth.OpenAIAvailable,
-		DeepSeekAvailable:    auth.DeepSeekAvailable,
-		OpenAIDefaultModel:   defaultModel(providerOpenAI),
-		DeepSeekDefaultModel: defaultModel(providerDeepSeek),
-		Model:                model,
-		Error:                errMsg,
-		Notice:               notice,
-		APIKeyConfigured:     auth.Token != "",
-		APIKeyLabel:          auth.Label,
-		ProjectLabel:         ctxInfo.ProjectLabel,
-		ProjectPath:          ctxInfo.ProjectRoot,
-		ProjectToolsEnabled:  chatProjectToolsEnabled(auth.SelectedProvider, ctxInfo),
-		ContextFileLabel:     contextFileLabel,
-		ContextFilePath:      ctxInfo.ResolvedPath,
-		ContextIncluded:      ctxInfo.Content != "",
-		HomeURL:              homeURL,
-		BackURL:              backURL,
-		ActionURL:            actionURL,
-		ResetURL:             actionURL,
+		Title:                   title,
+		Messages:                history,
+		HistoryJSON:             string(historyJSON),
+		Draft:                   draft,
+		Provider:                auth.SelectedProvider,
+		OpenAIAvailable:         auth.OpenAIAvailable,
+		DeepSeekAvailable:       auth.DeepSeekAvailable,
+		OpenAIDefaultModel:      defaultModel(providerOpenAI),
+		DeepSeekDefaultModel:    defaultModel(providerDeepSeek),
+		Model:                   model,
+		Error:                   errMsg,
+		Notice:                  notice,
+		APIKeyConfigured:        auth.Token != "",
+		APIKeyLabel:             auth.Label,
+		ProjectLabel:            ctxInfo.ProjectLabel,
+		ProjectPath:             ctxInfo.ProjectRoot,
+		ProjectToolsEnabled:     chatProjectToolsEnabled(auth.SelectedProvider, ctxInfo),
+		ContextFileLabel:        contextFileLabel,
+		ContextFilePath:         ctxInfo.ResolvedPath,
+		ContextIncluded:         ctxInfo.Content != "",
+		AsyncEnabled:            true,
+		ConfigAutomationEnabled: chatConfigAutomationEnabled(auth, ctxInfo),
+		HomeURL:                 homeURL,
+		BackURL:                 backURL,
+		ActionURL:               actionURL,
+		ResetURL:                actionURL,
+		RunURL:                  runURL,
+		StatusURL:               "/api/chat/status",
 	}
 }
 
@@ -541,6 +540,10 @@ func buildChatInstructionsWithBase(baseInstructions string, ctxInfo chatContext)
 		b.WriteString(ctxInfo.ResolvedPath)
 		b.WriteString("\n\n")
 		b.WriteString(ctxInfo.Content)
+		if strings.EqualFold(filepath.Ext(ctxInfo.ResolvedPath), ".toml") {
+			b.WriteString("\n\nIf the user wants config changes applied, edit this TOML directly with the available file tools.")
+			b.WriteString(" After changing it, run process_config_and_review before your final answer so you can report render errors and image feedback from the updated config.")
+		}
 	}
 
 	return b.String(), strings.Join(notices, " ")
@@ -644,6 +647,14 @@ func selectedProviderLabel(provider string, available bool) string {
 }
 
 func buildChatRouteURL(configEncoded string, serverFolderEncoded string, provider string) string {
+	return buildChatURL("/chat", configEncoded, serverFolderEncoded, provider)
+}
+
+func buildChatRunURL(configEncoded string, serverFolderEncoded string, provider string) string {
+	return buildChatURL("/api/chat/run", configEncoded, serverFolderEncoded, provider)
+}
+
+func buildChatURL(path string, configEncoded string, serverFolderEncoded string, provider string) string {
 	values := url.Values{}
 	if configEncoded != "" {
 		values.Set("config", configEncoded)
@@ -656,9 +667,9 @@ func buildChatRouteURL(configEncoded string, serverFolderEncoded string, provide
 	}
 	encoded := values.Encode()
 	if encoded == "" {
-		return "/chat"
+		return path
 	}
-	return "/chat?" + encoded
+	return path + "?" + encoded
 }
 
 func decodeMaybeBase64(raw string) string {
@@ -735,8 +746,13 @@ func createProviderChatResult(ctx context.Context, auth chatAuthConfig, model st
 }
 
 func createProviderChatResultWithContext(ctx context.Context, auth chatAuthConfig, model string, instructions string, history []models.ChatMessage, ctxInfo chatContext) (chatProviderResult, error) {
+	return createProviderChatResultWithContextAndStatus(ctx, auth, model, instructions, history, ctxInfo, nil)
+}
+
+func createProviderChatResultWithContextAndStatus(ctx context.Context, auth chatAuthConfig, model string, instructions string, history []models.ChatMessage, ctxInfo chatContext, status chatStatusSink) (chatProviderResult, error) {
 	switch normalizeProvider(auth.SelectedProvider) {
 	case providerDeepSeek:
+		reportChatStatus(status, "Waiting for DeepSeek response")
 		result, err := createDeepSeekChatResult(ctx, auth.Token, baseURLForProvider(auth.SelectedProvider), model, instructions, history)
 		if err != nil {
 			return chatProviderResult{}, err
@@ -744,7 +760,13 @@ func createProviderChatResultWithContext(ctx context.Context, auth chatAuthConfi
 		result.Provider = providerDeepSeek
 		return result, nil
 	default:
-		result, err := createOpenAIChatResultWithContext(ctx, auth.Token, baseURLForProvider(auth.SelectedProvider), model, instructions, history, ctxInfo)
+		reportChatStatus(status, "Waiting for OpenAI response")
+		result, err := createOpenAIChatResultWithContextAndStatus(ctx, auth.Token, baseURLForProvider(auth.SelectedProvider), model, instructions, history, chatToolRuntime{
+			CtxInfo: ctxInfo,
+			Auth:    auth,
+			Model:   model,
+			Report:  status,
+		})
 		if err != nil {
 			return chatProviderResult{}, err
 		}
@@ -769,6 +791,17 @@ func createOpenAIChatResult(ctx context.Context, apiKey string, baseURL string, 
 }
 
 func createOpenAIChatResultWithContext(ctx context.Context, apiKey string, baseURL string, model string, instructions string, history []models.ChatMessage, ctxInfo chatContext) (chatProviderResult, error) {
+	return createOpenAIChatResultWithContextAndStatus(ctx, apiKey, baseURL, model, instructions, history, chatToolRuntime{
+		CtxInfo: ctxInfo,
+		Auth: chatAuthConfig{
+			SelectedProvider: providerOpenAI,
+			Token:            apiKey,
+		},
+		Model: model,
+	})
+}
+
+func createOpenAIChatResultWithContextAndStatus(ctx context.Context, apiKey string, baseURL string, model string, instructions string, history []models.ChatMessage, runtime chatToolRuntime) (chatProviderResult, error) {
 	input, err := buildOpenAIInput(history)
 	if err != nil {
 		return chatProviderResult{}, err
@@ -777,10 +810,13 @@ func createOpenAIChatResultWithContext(ctx context.Context, apiKey string, baseU
 		return chatProviderResult{}, fmt.Errorf("no chat messages to send")
 	}
 
-	tools := buildOpenAIProjectTools(ctxInfo)
+	tools := buildOpenAIProjectTools(runtime.CtxInfo)
 	allToolCalls := make([]chatToolCall, 0)
 
 	for round := 0; round < maxChatToolRounds; round++ {
+		if round > 0 {
+			reportChatStatus(runtime.Report, fmt.Sprintf("Continuing tool loop (%d/%d)", round+1, maxChatToolRounds))
+		}
 		reqBody := openAIResponsesRequest{
 			Model:        model,
 			Instructions: instructions,
@@ -838,7 +874,8 @@ func createOpenAIChatResultWithContext(ctx context.Context, apiKey string, baseU
 			return result, nil
 		}
 
-		toolOutputs, err := executeChatToolCalls(ctx, ctxInfo, result.ToolCalls)
+		reportChatStatus(runtime.Report, fmt.Sprintf("Running %d tool action(s)", len(result.ToolCalls)))
+		toolOutputs, err := executeChatToolCalls(ctx, runtime, result.ToolCalls)
 		if err != nil {
 			return chatProviderResult{}, err
 		}
@@ -871,6 +908,16 @@ func buildOpenAIInput(history []models.ChatMessage) ([]json.RawMessage, error) {
 
 func chatProjectToolsEnabled(provider string, ctxInfo chatContext) bool {
 	return normalizeProvider(provider) == providerOpenAI && strings.TrimSpace(ctxInfo.ProjectRoot) != ""
+}
+
+func chatConfigAutomationEnabled(auth chatAuthConfig, ctxInfo chatContext) bool {
+	if !chatProjectToolsEnabled(auth.SelectedProvider, ctxInfo) {
+		return false
+	}
+	if strings.TrimSpace(ctxInfo.ResolvedPath) == "" {
+		return false
+	}
+	return strings.EqualFold(filepath.Ext(ctxInfo.ResolvedPath), ".toml")
 }
 
 func buildOpenAIProjectTools(ctxInfo chatContext) []openAITool {
@@ -942,6 +989,7 @@ func buildOpenAIProjectTools(ctxInfo chatContext) []openAITool {
 				"additionalProperties": false,
 			},
 		},
+		buildProcessConfigTool(),
 		{
 			Type:        "function",
 			Name:        "git_status",
@@ -1003,10 +1051,10 @@ func buildOpenAIProjectTools(ctxInfo chatContext) []openAITool {
 	}
 }
 
-func executeChatToolCalls(ctx context.Context, ctxInfo chatContext, calls []chatToolCall) ([]json.RawMessage, error) {
+func executeChatToolCalls(ctx context.Context, runtime chatToolRuntime, calls []chatToolCall) ([]json.RawMessage, error) {
 	outputs := make([]json.RawMessage, 0, len(calls))
 	for _, call := range calls {
-		output, err := executeChatToolCall(ctx, ctxInfo, call)
+		output, err := executeChatToolCall(ctx, runtime, call)
 		if err != nil {
 			return nil, err
 		}
@@ -1015,7 +1063,7 @@ func executeChatToolCalls(ctx context.Context, ctxInfo chatContext, calls []chat
 	return outputs, nil
 }
 
-func executeChatToolCall(ctx context.Context, ctxInfo chatContext, call chatToolCall) (json.RawMessage, error) {
+func executeChatToolCall(ctx context.Context, runtime chatToolRuntime, call chatToolCall) (json.RawMessage, error) {
 	callID := strings.TrimSpace(call.CallID)
 	if callID == "" {
 		callID = strings.TrimSpace(call.ID)
@@ -1024,13 +1072,17 @@ func executeChatToolCall(ctx context.Context, ctxInfo chatContext, call chatTool
 		return nil, fmt.Errorf("tool call %q did not include a call id", call.Name)
 	}
 
-	payload, err := runProjectTool(ctx, ctxInfo, call)
+	reportChatStatus(runtime.Report, describeChatToolCall(call))
+	payload, err := runProjectTool(ctx, runtime, call)
 	if err != nil {
 		payload = map[string]any{
 			"ok":    false,
 			"tool":  call.Name,
 			"error": err.Error(),
 		}
+		reportChatStatus(runtime.Report, fmt.Sprintf("Tool %s failed", call.Name))
+	} else {
+		reportChatStatus(runtime.Report, fmt.Sprintf("Tool %s completed", call.Name))
 	}
 	return marshalFunctionCallOutput(callID, payload)
 }
@@ -1051,8 +1103,8 @@ func marshalFunctionCallOutput(callID string, payload any) (json.RawMessage, err
 	return json.RawMessage(item), nil
 }
 
-func runProjectTool(ctx context.Context, ctxInfo chatContext, call chatToolCall) (any, error) {
-	projectRoot := strings.TrimSpace(ctxInfo.ProjectRoot)
+func runProjectTool(ctx context.Context, runtime chatToolRuntime, call chatToolCall) (any, error) {
+	projectRoot := strings.TrimSpace(runtime.CtxInfo.ProjectRoot)
 	if projectRoot == "" {
 		return nil, fmt.Errorf("no project root is attached to this chat")
 	}
@@ -1097,6 +1149,20 @@ func runProjectTool(ctx context.Context, ctxInfo chatContext, call chatToolCall)
 			return nil, err
 		}
 		return writeProjectFileTool(projectRoot, args.Path, args.Content)
+	case "process_config_and_review":
+		var args struct {
+			Path         string `json:"path"`
+			ReviewImages *bool  `json:"review_images"`
+			MaxImages    int    `json:"max_images"`
+		}
+		if err := decodeToolArguments(call.Arguments, &args); err != nil {
+			return nil, err
+		}
+		reviewImages := true
+		if args.ReviewImages != nil {
+			reviewImages = *args.ReviewImages
+		}
+		return processConfigAndReviewTool(ctx, runtime, args.Path, reviewImages, args.MaxImages)
 	case "git_status":
 		return gitStatusTool(ctx, projectRoot)
 	case "git_diff":
@@ -1129,6 +1195,48 @@ func runProjectTool(ctx context.Context, ctxInfo chatContext, call chatToolCall)
 		return gitPushTool(ctx, projectRoot, args.Remote, args.Branch, args.SetUpstream)
 	default:
 		return nil, fmt.Errorf("unsupported tool %q", call.Name)
+	}
+}
+
+func describeChatToolCall(call chatToolCall) string {
+	type pathArg struct {
+		Path string `json:"path"`
+	}
+
+	switch call.Name {
+	case "list_project_files":
+		var args pathArg
+		_ = decodeToolArguments(call.Arguments, &args)
+		if strings.TrimSpace(args.Path) == "" {
+			return "Listing project files"
+		}
+		return "Listing project files in " + args.Path
+	case "read_project_file":
+		var args pathArg
+		_ = decodeToolArguments(call.Arguments, &args)
+		return "Reading " + args.Path
+	case "edit_project_file":
+		var args pathArg
+		_ = decodeToolArguments(call.Arguments, &args)
+		return "Applying edits to " + args.Path
+	case "write_project_file":
+		var args pathArg
+		_ = decodeToolArguments(call.Arguments, &args)
+		return "Writing " + args.Path
+	case "process_config_and_review":
+		var args pathArg
+		_ = decodeToolArguments(call.Arguments, &args)
+		return "Processing " + args.Path
+	case "git_status":
+		return "Checking git status"
+	case "git_diff":
+		return "Inspecting git diff"
+	case "git_commit":
+		return "Creating git commit"
+	case "git_push":
+		return "Pushing git branch"
+	default:
+		return "Running " + call.Name
 	}
 }
 

@@ -1,0 +1,17 @@
+[openscadgen]
+name = "round_sleeve"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{sleeveHeight}"
+
+# These params will be passed into all the generated designs
+global_params = { sleeveHeight=[3,150] }
+
+[[openscadgen.input_paths]]
+path = "./round_sleeve.scad"
+params = { }
+
+[[openscadgen.images]]
+name = "nice"

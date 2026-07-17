@@ -1,0 +1,21 @@
+[openscadgen]
+name = "old_light_switch_cover_smart_light"
+description = ""
+
+version = "v0.2"
+
+export_name_format = "{designFileName}_{bowlHoles}"
+
+# global_params will be passed into all the generated designs
+global_params = {  }
+
+[[openscadgen.input_paths]]
+path = "./old_light_switch_cover_smart_light.scad"
+params = { bowlHoles = ["prismoidHoles", "noHoles"] }
+
+# [[openscadgen.instances]] allow for scoping input params (or [[openscadgen.param_sets]]) to specific designs 
+# [[openscadgen.instances]]
+# params = { height = 87 }
+
+[[openscadgen.images]]
+name = "nice"

@@ -2,17 +2,21 @@ package templates
 
 import (
 	"fmt"
-	"net/url"
 	"sort"
 )
 
 type DeleteExportSTLsPageData struct {
-	RootDir      string
-	STLFiles     []string
-	PerformDelete bool
-	Deleted      []string
-	Failed       map[string]string
-	Error        string
+	RootDir              string
+	ConfigFilePath       string
+	ConfigVersion        string
+	CurrentVersionFiles  []string
+	OtherVersionFiles    map[string][]string
+	SelectedOtherVersion bool
+	PreviewOnly          bool
+	Confirmed            bool
+	Deleted              []string
+	Failed               map[string]string
+	Error                string
 }
 
 func sortedKeys(m map[string]string) []string {
@@ -25,73 +29,78 @@ func sortedKeys(m map[string]string) []string {
 }
 
 templ DeleteExportSTLsPage(data DeleteExportSTLsPageData) {
-	<!DOCTYPE html>
-	<html lang="en">
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Delete export STLs</title>
-		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
-	</head>
-	<body>
-	<section class="section">
-		<div class="container">
-			<h1 class="title">Delete <code>export/</code> STL files</h1>
-
-			<div class="content">
-				<p><strong>Root:</strong> <code>{ data.RootDir }</code></p>
+	<div class="box">
+		<h2 class="title is-5">Clear Existing Files</h2>
+		if data.Error != "" {
+			<div class="notification is-danger">{ data.Error }</div>
+		}
+		if len(data.Deleted) > 0 {
+			<div class="notification is-success">Deleted { fmt.Sprintf("%d", len(data.Deleted)) } files.</div>
+		}
+		if len(data.Failed) > 0 {
+			<div class="notification is-warning">
+				Failed to delete { fmt.Sprintf("%d", len(data.Failed)) } files.
+				<ul>
+					for _, k := range sortedKeys(data.Failed) {
+						<li><code>{ k }</code>: { data.Failed[k] }</li>
+					}
+				</ul>
 			</div>
-
-			if data.Error != "" {
-				<div class="notification is-danger">
-					<strong>{ data.Error }</strong>
-				</div>
-			}
-
-			if len(data.Deleted) > 0 {
-				<div class="notification is-success">
-					<strong>Deleted { fmt.Sprintf("%d", len(data.Deleted)) } files.</strong>
-				</div>
-			}
-
-			if len(data.Failed) > 0 {
-				<div class="notification is-warning">
-					<strong>Failed to delete { fmt.Sprintf("%d", len(data.Failed)) } files.</strong>
-					<ul>
-						for _, k := range sortedKeys(data.Failed) {
-							<li><code>{ k }</code>: { data.Failed[k] }</li>
-						}
-					</ul>
-				</div>
-			}
-
-			<div class="box">
-				<p class="mb-3"><strong>Found:</strong> { fmt.Sprintf("%d", len(data.STLFiles)) } STL files under <code>export/</code> folders</p>
-
-				if len(data.STLFiles) == 0 {
-					<p class="has-text-grey">Nothing to delete.</p>
-				} else {
-					<form method="POST" action="/delete-export-stls">
-						<input type="hidden" name="dir" value={ data.RootDir }/>
-						<input type="hidden" name="performDelete" value="true"/>
-						<div class="buttons">
-							<button class="button is-danger" type="submit">Delete these files</button>
-							<a class="button" href={ fmt.Sprintf("/delete-export-stls?dir=%s", url.QueryEscape(data.RootDir)) }>Refresh</a>
-						</div>
-					</form>
-
-					<hr/>
-
-					<ul>
-						for _, f := range data.STLFiles {
+		}
+		<p class="mb-2"><strong>Config:</strong> <code>{ data.ConfigFilePath }</code></p>
+		<p class="mb-3"><strong>Version:</strong> <code>{ data.ConfigVersion }</code></p>
+		if len(data.CurrentVersionFiles) == 0 {
+			<p class="has-text-grey">No files found in the current version.</p>
+		} else {
+			if !data.Confirmed {
+				<form method="POST" action="/delete-export-stls" hx-post="/delete-export-stls" hx-target="#delete-status" hx-swap="innerHTML">
+					<input type="hidden" name="config_path" value={ data.ConfigFilePath }/>
+					<input type="hidden" name="version" value={ data.ConfigVersion }/>
+					<input type="hidden" name="confirmed" value="true"/>
+					<input type="hidden" name="include_other_versions" value={ fmt.Sprintf("%t", data.SelectedOtherVersion) }/>
+					<div class="buttons">
+						<button class="button is-danger" type="submit">Delete { fmt.Sprintf("%d", len(data.CurrentVersionFiles)) } files</button>
+					</div>
+				</form>
+				<p class="mt-4"><strong>Sample files:</strong></p>
+				<ul>
+					for i, f := range data.CurrentVersionFiles {
+						if i < 10 {
 							<li><code>{ f }</code></li>
 						}
-					</ul>
-				}
-			</div>
-		</div>
-	</section>
-	</body>
-	</html>
+					}
+				</ul>
+			} else {
+				<p><strong>Are you sure you want to delete { fmt.Sprintf("%d", len(data.CurrentVersionFiles)) } files?</strong></p>
+				<ul>
+					for i, f := range data.CurrentVersionFiles {
+						if i < 10 {
+							<li><code>{ f }</code></li>
+						}
+					}
+				</ul>
+				<form method="POST" action="/delete-export-stls" hx-post="/delete-export-stls" hx-target="#delete-status" hx-swap="innerHTML">
+					<input type="hidden" name="config_path" value={ data.ConfigFilePath }/>
+					<input type="hidden" name="version" value={ data.ConfigVersion }/>
+					<input type="hidden" name="confirmed" value="true"/>
+					<input type="hidden" name="include_other_versions" value={ fmt.Sprintf("%t", data.SelectedOtherVersion) }/>
+					<div class="buttons">
+						<button class="button is-danger" type="submit">Confirm Delete</button>
+					</div>
+				</form>
+			}
+		}
+		if len(data.OtherVersionFiles) > 0 {
+			<hr/>
+			<form method="GET" action="/delete-export-stls" hx-get="/delete-export-stls" hx-target="#delete-status" hx-swap="innerHTML">
+				<input type="hidden" name="config_path" value={ data.ConfigFilePath }/>
+				<input type="hidden" name="version" value={ data.ConfigVersion }/>
+				<label class="checkbox">
+					<input type="checkbox" name="include_other_versions" value="true" checked={ data.SelectedOtherVersion }/>
+					Clear other versions too ({ fmt.Sprintf("%d", len(data.OtherVersionFiles)) } files)
+				</label>
+				<button class="button is-light ml-3" type="submit">Update preview</button>
+			</form>
+		}
+	</div>
 }
-

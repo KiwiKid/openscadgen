@@ -312,6 +312,7 @@ func TestBuildOpenAIProjectToolsIncludesGitAndFileTools(t *testing.T) {
 		"read_project_file",
 		"edit_project_file",
 		"write_project_file",
+		"process_config_and_review",
 		"git_status",
 		"git_diff",
 		"git_commit",
@@ -424,6 +425,78 @@ func TestCreateOpenAIChatResultWithContextExecutesProjectToolLoop(t *testing.T) 
 	}
 	if len(requests) != 2 {
 		t.Fatalf("expected 2 OpenAI requests, got %d", len(requests))
+	}
+}
+
+func TestProcessConfigAndReviewToolReturnsInvalidConfigPayload(t *testing.T) {
+	tempDir := t.TempDir()
+	configPath := filepath.Join(tempDir, "config.toml")
+	if err := os.WriteFile(configPath, []byte("[openscadgen\n"), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+
+	payload, err := processConfigAndReviewTool(
+		context.Background(),
+		chatToolRuntime{
+			CtxInfo: chatContext{
+				ProjectRoot:  tempDir,
+				ServerFolder: tempDir,
+			},
+			Auth: chatAuthConfig{
+				SelectedProvider: providerOpenAI,
+				Token:            "test-key",
+			},
+			Model: "gpt-4.1",
+		},
+		"config.toml",
+		false,
+		1,
+	)
+	if err != nil {
+		t.Fatalf("processConfigAndReviewTool error: %v", err)
+	}
+
+	if payload["config_valid"] != false {
+		t.Fatalf("expected config_valid false, got %#v", payload["config_valid"])
+	}
+	if payload["load_error"] == "" {
+		t.Fatalf("expected load error payload, got %#v", payload)
+	}
+}
+
+func TestSelectVisionReviewImagesPrioritizesNiceCamera(t *testing.T) {
+	tempDir := t.TempDir()
+	writeImage := func(name string) string {
+		path := filepath.Join(tempDir, name)
+		if err := os.WriteFile(path, []byte("png"), 0o644); err != nil {
+			t.Fatalf("write image %s: %v", name, err)
+		}
+		return path
+	}
+
+	images := []models.GenerateImageResult{
+		{
+			OutputPath: writeImage("demo-obj.png"),
+			CameraName: "obj",
+			InstanceConfig: models.InstanceConfig{
+				AutoName: "demo",
+			},
+		},
+		{
+			OutputPath: writeImage("demo-nice.png"),
+			CameraName: "nice",
+			InstanceConfig: models.InstanceConfig{
+				AutoName: "demo",
+			},
+		},
+	}
+
+	selected := selectVisionReviewImages(tempDir, images, 2)
+	if len(selected) != 2 {
+		t.Fatalf("expected 2 selected images, got %d", len(selected))
+	}
+	if selected[0].CameraName != "nice" {
+		t.Fatalf("expected nice camera first, got %#v", selected)
 	}
 }
 

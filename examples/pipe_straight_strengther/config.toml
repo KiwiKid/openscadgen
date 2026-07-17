@@ -1,0 +1,22 @@
+[openscadgen]
+name = "pipe_straight_strengther"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}"
+
+# global_params will be passed into all the generated designs. 
+# Example height = [1,37,100] or text = "woah"
+global_params = { }
+
+[[openscadgen.input_paths]]
+path = "./pipe_straight_strengther.scad"
+params = { }
+
+# [[openscadgen.instances]] allow for scoping input params (or [[openscadgen.param_sets]]) to specific designs 
+# [[openscadgen.instances]]
+# params = { height = 87 }
+
+[[openscadgen.images]]
+name = "nice"

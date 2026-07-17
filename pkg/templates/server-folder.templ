@@ -1,8 +1,7 @@
 package templates
 
-
 templ SaveServerFolder(serverFolder string) {
-    <script data-server-folder={ serverFolder }>
+	<script data-server-folder={ serverFolder }>
         (function () {
             const key = 'opensacdgen-serverFolder';
             const lastKey = 'opensacdgen-serverFolder-lastNavigated';
@@ -44,7 +43,7 @@ templ SaveServerFolder(serverFolder string) {
 }
 
 templ ServerFolderOptionsComponent() {
-    <script>
+	<script>
         (function () {
             const KEY = 'opensacdgen-serverFolder';
             const LAST_KEY = 'opensacdgen-serverFolder-lastNavigated';
@@ -165,6 +164,6 @@ templ ServerFolderOptionsComponent() {
 }
 
 templ ServerFolderForm(warning templ.Component) {
-    @ServerFolderOptionsComponent()
-    <server-folder-options></server-folder-options>
+	@ServerFolderOptionsComponent()
+	<server-folder-options></server-folder-options>
 }

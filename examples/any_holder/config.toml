@@ -1,0 +1,17 @@
+[openscadgen]
+name = "any_holder"
+description = ""
+
+version = "v0.5"
+
+export_name_format = "{designFileName}-{insetThing}-{attachmentType}/{hookType}-rotate-{hookRotate}"
+
+# These params will be passed into all the generated designs
+global_params = { insetThing = ["square", "round"], hookRotate=[0, 5, 10], attachmentType = ["largeHook", "smallHook"], hookType = ["left", "right", "full", "central"] }
+
+[[openscadgen.input_paths]]
+path = "./any_holder.scad"
+params = { }
+
+[[openscadgen.images]]
+name = "nice"

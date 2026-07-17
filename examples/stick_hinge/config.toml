@@ -4,9 +4,9 @@ description = ""
 
 version = "v0.2"
 
-export_name_format = "{designFileName}_{partType}_{lockedAngle}"
+export_name_format = "{designFileName}_{partType}_{lockedAngle}_{renderType}"
 
-global_params = { partType = "all" }
+global_params = { partType = "all", renderType=["obj","sizer"] }
 
 [[openscadgen.input_paths]]
 path = "./stick_hinge.scad"

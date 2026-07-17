@@ -215,6 +215,23 @@ func TestHandleOpenSCADStatusMethodNotAllowed(t *testing.T) {
 	}
 }
 
+func TestHandleHealth(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/health", nil)
+	rr := httptest.NewRecorder()
+
+	handleHealth(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d body=%q", rr.Code, rr.Body.String())
+	}
+	if got := rr.Header().Get("Content-Type"); !strings.HasPrefix(got, "application/json") {
+		t.Fatalf("expected JSON content type, got %q", got)
+	}
+	if body := strings.TrimSpace(rr.Body.String()); body != `{"ok":true}` {
+		t.Fatalf("unexpected body %q", body)
+	}
+}
+
 func TestHandleConfigGetReadErrorRendersHTML(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/api/config", nil)
 	rr := httptest.NewRecorder()

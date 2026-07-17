@@ -65,6 +65,9 @@ jobs:
           ls -la /usr/bin/openscad || echo "OpenSCAD not in /usr/bin"
           ls -la /usr/local/bin/openscad || echo "OpenSCAD not in /usr/local/bin"
 
+      - name: Templ Format
+        run: go run github.com/a-h/templ/cmd/templ fmt --fail .
+
       - name: Templ Generate
         run: go run github.com/a-h/templ/cmd/templ generate .
 

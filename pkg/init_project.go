@@ -1,10 +1,12 @@
 package pkg
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/kiwikid/openscadgen/pkg/models"
 )
@@ -50,10 +52,76 @@ func ResolveInitParentDir(f models.CmdFlags) string {
 	return "."
 }
 
-// InitConfigInParent creates a project directory from projectName inside parentDir
-// (same templates as -i / -ie). projectName may be a single leaf ("my-part") or a relative
-// path ("examples/spoon-holder"); each path segment is sanitized. parentDir is left as-is.
+func hasExistingProjectConfig(parentDir string) (bool, error) {
+	found := false
+	err := filepath.WalkDir(parentDir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
+		if filepath.Base(path) == "config.toml" {
+			found = true
+			return filepath.SkipAll
+		}
+		return nil
+	})
+	return found, err
+}
+
+func promptForExplainerUpgrade() bool {
+	reader := bufio.NewReader(os.Stdin)
+	answerCh := make(chan string, 1)
+	go func() {
+		line, _ := reader.ReadString('\n')
+		answerCh <- strings.TrimSpace(line)
+	}()
+
+	select {
+	case answer := <-answerCh:
+		answer = strings.ToLower(answer)
+		return answer == "" || answer == "y" || answer == "yes"
+	case <-time.After(10 * time.Second):
+		return true
+	}
+}
+
+func ChooseInitTemplate(f models.CmdFlags, parentDir string) (bool, error) {
+	if f.NoInput {
+		return false, nil
+	}
+	existing, err := hasExistingProjectConfig(parentDir)
+	if err != nil {
+		return false, err
+	}
+	if existing {
+		return false, nil
+	}
+	fmt.Printf("No existing project config found under %s.\n", parentDir)
+	fmt.Printf("Create the explainer starter project first? [Y/n] (auto-yes in 10s): ")
+	if promptForExplainerUpgrade() {
+		fmt.Println("Y")
+		return true, nil
+	}
+	fmt.Println("n")
+	return false, nil
+}
+
+// InitConfigInParent creates a project directory from projectName inside parentDir.
+// It preserves the original boolean API used by existing call sites.
 func InitConfigInParent(parentDir, projectName string, extended bool) error {
+	template := "basic"
+	if extended {
+		template = "extended"
+	}
+	return InitConfigInParentWithTemplate(parentDir, projectName, template)
+}
+
+// InitConfigInParentWithTemplate creates a project directory from projectName inside parentDir
+// using the requested template. projectName may be a single leaf ("my-part") or a relative
+// path ("examples/spoon-holder"); each path segment is sanitized. parentDir is left as-is.
+func InitConfigInParentWithTemplate(parentDir, projectName string, template string) error {
 	parentDir = filepath.Clean(parentDir)
 	rel := filepath.Clean(strings.TrimSpace(projectName))
 	if rel == "" || rel == "." || rel == ".." {
@@ -98,9 +166,12 @@ func InitConfigInParent(parentDir, projectName string, extended bool) error {
 	projectNameUnderLined := strings.NewReplacer(" ", "_").Replace(sanitizedLeaf)
 
 	var configBody string
-	if extended {
+	switch template {
+	case "extended":
 		configBody = configTemplateExtended
-	} else {
+	case "explainer":
+		configBody = configTemplateExplainer
+	default:
 		configBody = configTemplate
 	}
 
@@ -129,7 +200,7 @@ func InitConfigInParent(parentDir, projectName string, extended bool) error {
 	}
 	defer scadFile.Close()
 
-	if extended {
+	if template == "extended" {
 		_, err = scadFile.WriteString(openScadTemplateExtended(projectNameUnderLined))
 		if err != nil {
 			logError(fmt.Sprintf("Failed to write template to scad file: %s", err))

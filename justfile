@@ -14,10 +14,16 @@ chat-test-tools case="":
 
 # Generate templ files
 generate:
+    go run github.com/a-h/templ/cmd/templ fmt .
     go run github.com/a-h/templ/cmd/templ generate
+
+# Check templ formatting without changing files
+templ-fmt-check:
+    go run github.com/a-h/templ/cmd/templ fmt --fail .
 
 # Watch for changes and regenerate templ files
 watch:
+    go run github.com/a-h/templ/cmd/templ fmt .
     go run github.com/a-h/templ/cmd/templ generate --watch
 
 # Clean generated files

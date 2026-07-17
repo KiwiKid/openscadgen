@@ -14,23 +14,23 @@ func JSONString(data interface{}) string {
 }
 
 templ Debug(title string, detail string) {
-    <details>
-        <summary>{title}</summary>
-        <p>{fmt.Sprintf("%+v", detail)}</p>
-    </details>
+	<details>
+		<summary>{ title }</summary>
+		<p>{ fmt.Sprintf("%+v", detail) }</p>
+	</details>
 }
 
 templ JSONViewer(title string, data interface{}) {
-    <details class="json-viewer">
-        <summary class="json-viewer-title">{title}</summary>
-        <div class="json-viewer-content">
-            <pre class="json-pretty">{JSONString(data)}</pre>
-        </div>
-    </details>
+	<details class="json-viewer">
+		<summary class="json-viewer-title">{ title }</summary>
+		<div class="json-viewer-content">
+			<pre class="json-pretty">{ JSONString(data) }</pre>
+		</div>
+	</details>
 }
 
 templ JSONViewerWithStyle(title string, data interface{}) {
-    <style>
+	<style>
         .json-viewer {
             margin: 10px 0;
             border: 1px solid #ddd;
@@ -65,21 +65,21 @@ templ JSONViewerWithStyle(title string, data interface{}) {
             word-wrap: break-word;
         }
     </style>
-    
-    <details class="json-viewer" x-show="showDebug">
-        <summary class="json-viewer-title">{title}</summary>
-        <div class="json-viewer-content">
-            <pre class="json-pretty">{JSONString(data)}</pre>
-        </div>
-    </details>
+	<details class="json-viewer" x-show="showDebug">
+		<summary class="json-viewer-title">{ title }</summary>
+		<div class="json-viewer-content">
+			<pre class="json-pretty">{ JSONString(data) }</pre>
+		</div>
+	</details>
 }
+
 templ Collapsable(title string, key string, isOpen bool, fullWidth bool) {
-    <div>
-        <div x-show={ fmt.Sprintf("navSelected === '%s'", key) }>
-            <h3>{title}</h3>
-        </div>
-        <div x-show={ fmt.Sprintf("navSelected === '%s'", key) }>
-           { children... }
-        </div>
-    </div>
+	<div>
+		<div x-show={ fmt.Sprintf("navSelected === '%s'", key) }>
+			<h3>{ title }</h3>
+		</div>
+		<div x-show={ fmt.Sprintf("navSelected === '%s'", key) }>
+			{ children... }
+		</div>
+	</div>
 }

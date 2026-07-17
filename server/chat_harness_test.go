@@ -146,7 +146,7 @@ func runChatHarnessLive(t *testing.T, repoRoot string) {
 			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 			defer cancel()
 
-			result, err := createProviderChatResult(ctx, auth, model, instructions, history)
+			result, err := createProviderChatResultWithContext(ctx, auth, model, instructions, history, ctxInfo)
 			if err != nil {
 				t.Fatalf("createProviderChatResult error: %v", err)
 			}

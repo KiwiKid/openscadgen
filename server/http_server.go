@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -71,7 +70,7 @@ func tryListenOnPort(port string, portWasSpecified bool) (net.Listener, string, 
 	}
 
 	// Port wasn't specified, try random port
-	log.Printf("Port %s is in use, trying random port...", port)
+	pkg.LogWarnf("Port %s is in use, trying random port...", port)
 	// Use port 0, which lets the OS assign a random available port
 	listener, err = net.Listen("tcp", ":0")
 	if err != nil {
@@ -91,7 +90,7 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 
 	var err error
 	if cmdFlags.Debug {
-		log.Printf("[Debug]")
+		pkg.LogDebugf("Debug mode enabled")
 	}
 	var msg = fmt.Sprintf("Starting server on port %s", port)
 
@@ -100,7 +99,8 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 	if cmdFlags.EnableFileWatcher {
 		fileWatcher, err = NewFileWatcher()
 		if err != nil {
-			log.Fatalf("Error creating file watcher: %v", err)
+			pkg.LogErrorf("Error creating file watcher: %v", err)
+			os.Exit(1)
 		}
 	}
 
@@ -108,15 +108,16 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 		globalServerFolder = serverFolder
 		configFiles, err = pkg.ScanFolderForConfigFiles(serverFolder)
 		if err != nil {
-			log.Fatalf("ScanFolderForConfigFiles Error: %v", err)
+			pkg.LogErrorf("ScanFolderForConfigFiles Error: %v", err)
+			os.Exit(1)
 		}
-		log.Printf("Found %d config files in %s", len(configFiles), serverFolder)
+		pkg.LogInfof("Found %d config files in %s", len(configFiles), serverFolder)
 		msg += fmt.Sprintf(" and %d config files in %s", len(configFiles), serverFolder)
 
 		// Start file watching only if enabled
 		if cmdFlags.EnableFileWatcher && fileWatcher != nil {
 			if err := fileWatcher.StartWatching(serverFolder); err != nil {
-				log.Printf("Warning: Could not start file watching: %v", err)
+				pkg.LogWarnf("Warning: Could not start file watching: %v", err)
 			} else {
 				msg += " with file watching enabled"
 			}
@@ -130,14 +131,18 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 	http.HandleFunc("/progress", ProgressHandler)
 	http.HandleFunc("/cancel", CancelHandler)
 	http.HandleFunc("/chat", handleChatRequest)
+	http.HandleFunc("/api/chat/run", handleChatRun)
+	http.HandleFunc("/api/chat/status", handleChatStatus)
 	http.HandleFunc("/api/config", handleConfigRequest)
 	http.HandleFunc("/api/open", handleOpenFile)
 	http.HandleFunc("/api/edit", handleEditFile)
+	http.HandleFunc("/health", handleHealth)
 
 	http.HandleFunc("/static/", handleStaticFiles)
 	http.HandleFunc("/images", handleImageRequest)
 
 	http.HandleFunc("/api/openscad/status", handleOpenSCADStatus)
+	http.HandleFunc("/api/openscad/health/badge", handleOpenSCADHealthBadge)
 	http.HandleFunc("/api/watcher/status", handleWatcherStatus)
 	http.HandleFunc("/api/watcher/pause", handleWatcherPause)
 	http.HandleFunc("/api/watcher/resume", handleWatcherResume)
@@ -152,13 +157,14 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 
 	listener, actualPort, err := tryListenOnPort(port, portWasSpecified)
 	if err != nil {
-		log.Printf("Is Openscadgen already running? %v", err)
-		log.Fatalf("Error: Could not bind to port %s: %v\n End the existing process or use -p to specify a different port", port, err)
+		pkg.LogErrorf("Is Openscadgen already running? %v", err)
+		pkg.LogErrorf("Could not bind to port %s: %v\nEnd the existing process or use -p to specify a different port", port, err)
+		os.Exit(1)
 	}
 
 	// Update port if we got a different one
 	if actualPort != port {
-		log.Printf("Port %s was in use, using %s instead", originalPort, actualPort)
+		pkg.LogWarnf("Port %s was in use, using %s instead", originalPort, actualPort)
 		port = actualPort
 		// Update message with actual port
 		msg = fmt.Sprintf("Starting server on port %s", port)
@@ -171,45 +177,81 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 	}
 
 	msg += fmt.Sprintf("\n\n Running. Will soon navigate to http://localhost%s", port)
-	log.Print(msg)
+	pkg.LogStagef("server", "%s", msg)
 
 	// Call onStart callback before starting server
 	if onStart != nil {
-		log.Print("onStart starting")
+		pkg.LogInfof("onStart starting")
 		err = onStart(port)
 		if err != nil {
 			listener.Close()
-			log.Fatalf("Error on start: %v", err)
+			pkg.LogErrorf("Error on start: %v", err)
+			os.Exit(1)
 		}
 	}
 
-	log.Printf("Server started on port %s", port)
+	pkg.LogInfof("Server started on port %s", port)
 
 	// Start server on the listener (non-blocking for now, but we'll block here)
 	err = http.Serve(listener, nil)
 	if err != nil {
-		log.Fatalf("Error on serve: %v", err)
+		pkg.LogErrorf("Error on serve: %v", err)
+		os.Exit(1)
 	}
 
 	return ServerInfo{Port: port, Address: fmt.Sprintf("http://localhost%s", port)}
 }
 
 func handleDeleteExportSTLs(w http.ResponseWriter, r *http.Request) {
+	resolveDeleteScope := func(configPath string, serverFolder string, version string, includeOtherVersions bool) (templates.DeleteExportSTLsPageData, error) {
+		flags := models.CmdFlags{ConfigFile: configPath, ServerFolder: serverFolder}
+		config, _, err := pkg.LoadConfigFromFile(flags)
+		if err != nil {
+			return templates.DeleteExportSTLsPageData{}, err
+		}
+		activeVersion := strings.TrimSpace(version)
+		if activeVersion == "" {
+			activeVersion = config.Design.Version
+		}
+		outputRoot := filepath.Join(filepath.Dir(config.ConfigFile), config.Design.OutputPath)
+		currentFiles, otherFiles, err := pkg.PreviewVersionFiles(outputRoot, config.Design.ClearVersion(activeVersion), includeOtherVersions)
+		if err != nil {
+			return templates.DeleteExportSTLsPageData{}, err
+		}
+		return templates.DeleteExportSTLsPageData{
+			RootDir:              outputRoot,
+			ConfigFilePath:       config.ConfigFile,
+			ConfigVersion:        activeVersion,
+			CurrentVersionFiles:  currentFiles,
+			OtherVersionFiles:    otherFiles,
+			SelectedOtherVersion: includeOtherVersions,
+		}, nil
+	}
+
 	switch r.Method {
 	case "GET":
-		rootDir := r.URL.Query().Get("dir")
-		if rootDir == "" {
-			if globalServerFolder != "" {
-				rootDir = globalServerFolder
-			} else {
-				rootDir = "."
+		configPath := r.URL.Query().Get("config_path")
+		if configPath == "" {
+			http.Error(w, "Missing config_path", http.StatusBadRequest)
+			return
+		}
+		decodedConfigPath, err := base64.StdEncoding.DecodeString(configPath)
+		if err != nil {
+			http.Error(w, "Invalid config_path", http.StatusBadRequest)
+			return
+		}
+		serverFolder := r.URL.Query().Get("server_folder")
+		if serverFolder != "" {
+			decodedServerFolder, err := base64.StdEncoding.DecodeString(serverFolder)
+			if err != nil {
+				http.Error(w, "Invalid server_folder", http.StatusBadRequest)
+				return
 			}
+			serverFolder = string(decodedServerFolder)
 		}
-		files, err := pkg.FindExportSTLFiles(rootDir)
-		data := templates.DeleteExportSTLsPageData{
-			RootDir:  rootDir,
-			STLFiles: files,
-		}
+		version := r.URL.Query().Get("version")
+		includeOtherVersions := r.URL.Query().Get("include_other_versions") == "true"
+		data, err := resolveDeleteScope(string(decodedConfigPath), serverFolder, version, includeOtherVersions)
 		if err != nil {
 			data.Error = err.Error()
 		}
@@ -221,30 +263,31 @@ func handleDeleteExportSTLs(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Failed to parse form: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-		rootDir := r.FormValue("dir")
-		if rootDir == "" {
-			if globalServerFolder != "" {
-				rootDir = globalServerFolder
-			} else {
-				rootDir = "."
-			}
+		configPath := r.FormValue("config_path")
+		if configPath == "" {
+			http.Error(w, "Missing config_path", http.StatusBadRequest)
+			return
 		}
-		performDelete := r.FormValue("performDelete") == "true"
-
-		files, err := pkg.FindExportSTLFiles(rootDir)
-		data := templates.DeleteExportSTLsPageData{
-			RootDir:       rootDir,
-			STLFiles:      files,
-			PerformDelete: performDelete,
-		}
+		version := r.FormValue("version")
+		serverFolder := r.FormValue("server_folder")
+		includeOtherVersions := r.FormValue("include_other_versions") == "true"
+		confirmed := r.FormValue("confirmed") == "true"
+		data, err := resolveDeleteScope(configPath, serverFolder, version, includeOtherVersions)
 		if err != nil {
 			data.Error = err.Error()
+		}
+		if !confirmed {
+			data.PreviewOnly = true
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			templates.DeleteExportSTLsPage(data).Render(r.Context(), w)
 			return
 		}
-		if performDelete && len(files) > 0 {
-			delRes := pkg.DeleteFiles(files)
+		deletePaths := append([]string{}, data.CurrentVersionFiles...)
+		for _, files := range data.OtherVersionFiles {
+			deletePaths = append(deletePaths, files...)
+		}
+		if len(deletePaths) > 0 {
+			delRes := pkg.DeleteFiles(deletePaths)
 			data.Deleted = delRes.Deleted
 			if len(delRes.Failed) > 0 {
 				data.Failed = map[string]string{}
@@ -252,11 +295,8 @@ func handleDeleteExportSTLs(w http.ResponseWriter, r *http.Request) {
 					data.Failed[p] = e.Error()
 				}
 			}
-			// Refresh list after delete attempt
-			remaining, _ := pkg.FindExportSTLFiles(rootDir)
-			data.STLFiles = remaining
 		}
-
+		data.Confirmed = true
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		templates.DeleteExportSTLsPage(data).Render(r.Context(), w)
 		return
@@ -284,16 +324,16 @@ func handleMainRequest(w http.ResponseWriter, r *http.Request) {
 
 // handleGETRequest handles GET requests for displaying configs
 func handleGETRequest(w http.ResponseWriter, r *http.Request) {
-	log.Print("GET (Display) request" + r.Method)
+	pkg.LogInfof("GET (Display) request %s", r.Method)
 	configEntryPathEncoded := r.URL.Query().Get("config")
 	configEntryPath, err := url.QueryUnescape(configEntryPathEncoded)
 	if err != nil {
-		log.Printf("QueryUnescape Error: %v", err)
+		pkg.LogWarnf("QueryUnescape Error: %v", err)
 	}
 
 	serverFolderEncoded := r.URL.Query().Get("server_folder")
 	if serverFolderEncoded != "" {
-		log.Printf("(url) server_folder query: %s", serverFolderEncoded)
+		pkg.LogInfof("(url) server_folder query: %s", serverFolderEncoded)
 		serverFolderBytes, err := base64.StdEncoding.DecodeString(serverFolderEncoded)
 		if err != nil {
 			warning := templates.Warning(fmt.Sprintf("Error decoding server folder: %v", err))
@@ -312,14 +352,14 @@ func handleGETRequest(w http.ResponseWriter, r *http.Request) {
 		prev := globalServerFolder
 		globalServerFolder = decoded
 		configFiles = scanned
-		log.Printf("Found %d config files in %s (server_folder query overrides default)", len(configFiles), decoded)
+		pkg.LogInfof("Found %d config files in %s (server_folder query overrides default)", len(configFiles), decoded)
 
 		if fileWatcherEnabled && fileWatcher != nil && prev != decoded {
 			if fileWatcher.IsWatching() {
 				fileWatcher.StopWatching()
 				nw, werr := NewFileWatcher()
 				if werr != nil {
-					log.Printf("Warning: could not recreate file watcher: %v", werr)
+					pkg.LogWarnf("Warning: could not recreate file watcher: %v", werr)
 					fileWatcher = nil
 				} else {
 					fileWatcher = nw
@@ -327,12 +367,12 @@ func handleGETRequest(w http.ResponseWriter, r *http.Request) {
 			}
 			if fileWatcher != nil && !fileWatcher.IsWatching() {
 				if err := fileWatcher.StartWatching(decoded); err != nil {
-					log.Printf("Warning: could not start file watching on %s: %v", decoded, err)
+					pkg.LogWarnf("Warning: could not start file watching on %s: %v", decoded, err)
 				}
 			}
 		}
 	} else if globalServerFolder != "" {
-		log.Printf("globalServerFolder: %s", globalServerFolder)
+		pkg.LogInfof("globalServerFolder: %s", globalServerFolder)
 	}
 
 	// If no server_folder is provided and no config is specified, show the server folder selector
@@ -387,11 +427,11 @@ func handleGETRequest(w http.ResponseWriter, r *http.Request) {
 			if len(instance.SkippedReason) == 0 {
 				config.TotalQueuedInstances++
 			} else {
-				log.Printf("Skipped instance: %s - %s", instance.AutoName, instance.SkippedReason)
+				pkg.LogInfof("Skipped instance: %s - %s", instance.AutoName, instance.SkippedReason)
 			}
 		}
 
-		log.Printf("Generating report for %s with %d instances (total queued instances: %d)", decodedConfigEntryPath, len(instances), config.TotalQueuedInstances)
+		pkg.LogStagef("report", "Generating report for %s with %d instances (total queued instances: %d)", decodedConfigEntryPath, len(instances), config.TotalQueuedInstances)
 
 		var warning templ.Component
 		if warn != nil {
@@ -415,7 +455,7 @@ func handleGETRequest(w http.ResponseWriter, r *http.Request) {
 
 // handlePOSTRequest handles POST requests for adding configs
 func handlePOSTRequest(w http.ResponseWriter, r *http.Request) {
-	log.Print("POST (Add Config) request" + r.Method)
+	pkg.LogInfof("POST (Add Config) request %s", r.Method)
 
 	if r.FormValue("create_project") == "1" {
 		name := strings.TrimSpace(r.FormValue("project_name"))
@@ -445,7 +485,7 @@ func handlePOSTRequest(w http.ResponseWriter, r *http.Request) {
 		if globalServerFolder != "" {
 			scanned, err := pkg.ScanFolderForConfigFiles(globalServerFolder)
 			if err != nil {
-				log.Printf("rescan after create project: %v", err)
+				pkg.LogWarnf("rescan after create project: %v", err)
 			} else {
 				configFiles = scanned
 			}
@@ -462,7 +502,7 @@ func handlePOSTRequest(w http.ResponseWriter, r *http.Request) {
 			warning.Render(context.Background(), w)
 			return
 		}
-		log.Printf("Found %d config files in %s", len(configFiles), projectFolder)
+		pkg.LogInfof("Found %d config files in %s", len(configFiles), projectFolder)
 		configFilesComponent := templates.ListConfig(configFiles)
 		configFilesComponent.Render(context.Background(), w)
 		return
@@ -524,7 +564,7 @@ func formToCmdFlags(form StartProcessingForm) models.CmdFlags {
 
 // handlePUTRequest handles PUT requests for processing
 func handlePUTRequest(w http.ResponseWriter, r *http.Request) {
-	log.Print("PUT (Processing) request" + r.Method)
+	pkg.LogInfof("PUT (Processing) request %s", r.Method)
 
 	var form StartProcessingForm
 
@@ -678,6 +718,25 @@ func handleDeleteRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func handleHealth(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte(`{"ok":true}`))
+}
+
+func handleOpenSCADHealthBadge(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_ = templates.OpenSCADHealthBadge(true, true, false).Render(r.Context(), w)
+}
+
 // handleOpenSCADStatus returns HTML: full page by default, or HTMX fragment when ?fragment=1.
 func handleOpenSCADStatus(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
@@ -689,16 +748,42 @@ func handleOpenSCADStatus(w http.ResponseWriter, r *http.Request) {
 	info, err := pkg.ProbeOpenSCAD()
 	var v templates.OpenSCADNavView
 	if err != nil {
-		v = templates.OpenSCADNavView{Available: false, Error: err.Error()}
-	} else {
 		v = templates.OpenSCADNavView{
-			Available: true,
-			Path:      info.Path,
-			Version:   info.Version,
-			OutOfDate: info.IsOutOfDate,
+			Available:            false,
+			Error:                err.Error(),
+			InstallSupported:     runtime.GOOS == "darwin",
+			InstallSupportLabel:  "darwin",
+			BOSL2ActionLabel:     "Install",
+			BOSL2InstallSupported: runtime.GOOS == "darwin",
+		}
+	} else {
+		bosl2Available, bosl2Err := pkg.ProbeBOSL2(info.Path)
+		bosl2ActionLabel := "Install"
+		if bosl2Available {
+			bosl2ActionLabel = "Upgrade"
+		}
+		v = templates.OpenSCADNavView{
+			Available:             true,
+			Path:                  info.Path,
+			Version:               info.Version,
+			OutOfDate:             info.IsOutOfDate,
+			InstallSupported:      runtime.GOOS == "darwin",
+			InstallSupportLabel:   "darwin",
+			BOSL2Available:        bosl2Available,
+			BOSL2ActionLabel:      bosl2ActionLabel,
+			BOSL2InstallSupported: runtime.GOOS == "darwin",
+		}
+		if bosl2Err != nil {
+			v.BOSL2Error = bosl2Err.Error()
 		}
 	}
 	v.DetailsOpen = r.URL.Query().Get("isExpanded") == "1"
+	if !v.Available {
+		v.InstallSupported = runtime.GOOS == "darwin"
+		v.InstallSupportLabel = "darwin"
+		v.BOSL2InstallSupported = runtime.GOOS == "darwin"
+		v.BOSL2ActionLabel = "Install"
+	}
 	if r.URL.Query().Get("fragment") == "1" {
 		templates.OpenSCADNavWidget(v).Render(ctx, w)
 		return
@@ -796,6 +881,7 @@ func buildEditConfigParams(configPath string, serverFolder string, content strin
 		FilePathEncoded:       base64.StdEncoding.EncodeToString([]byte(content)),
 		ServerFolder:          serverFolder,
 		ServerFolderEncoded:   serverFolderEncoded,
+		ReportURL:             pkg.BuildPageUrl(configPath, serverFolder).PageURL,
 		Content:               content,
 		ErrorMsg:              errorMsg,
 	}
@@ -807,6 +893,10 @@ func renderTOMLEditPage(w http.ResponseWriter, r *http.Request, statusCode int, 
 		w.WriteHeader(statusCode)
 	}
 	configParams := buildEditConfigParams(configPath, serverFolder, content, message)
+	if r.Header.Get("HX-Request") == "true" {
+		templates.EditConfigPanel(&configParams).Render(r.Context(), w)
+		return
+	}
 	templates.TOMLEditForm(&configParams).Render(r.Context(), w)
 }
 
@@ -894,7 +984,20 @@ func handleConfigPost(w http.ResponseWriter, r *http.Request, configPath string,
 	}
 
 	success := templates.Success("Config saved successfully")
-	renderTOMLEditPage(w, r, http.StatusOK, configPath, serverFolder, configContent, success)
+	configParams := buildEditConfigParams(configPath, serverFolder, configContent, success)
+	instances, instErr := pkg.GenerateInstanceConfigs(&testConfig)
+	if instErr == nil {
+		countLabel := fmt.Sprintf("(%d)", len(instances))
+		configParams.InstanceCountLabel = countLabel
+	}
+	if r.Header.Get("HX-Request") == "true" {
+		if configParams.InstanceCountLabel != "" {
+			_, _ = w.Write([]byte(fmt.Sprintf(`<span id="instances-count-top" hx-swap-oob="true">%s</span><span id="instances-count-bottom" hx-swap-oob="true">%s</span>`, configParams.InstanceCountLabel, configParams.InstanceCountLabel)))
+		}
+		templates.EditConfigPanel(&configParams).Render(r.Context(), w)
+		return
+	}
+	templates.TOMLEditForm(&configParams).Render(r.Context(), w)
 
 }
 
@@ -1207,13 +1310,13 @@ func handlePreviewRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	filePath := string(filePathBytes)
 
-	log.Printf("Preview request for instance: %s", instanceID)
+	pkg.LogInfof("Preview request for instance: %s", instanceID)
 
 	// Load config and find the instance to get the STL file path
-	log.Printf("Checking config file: %s (encoded as: %s)", filePath, filePathEncoded)
+	pkg.LogInfof("Checking config file: %s (encoded as: %s)", filePath, filePathEncoded)
 	config, _, err := pkg.LoadConfigFromFile(models.CmdFlags{ConfigFile: filePath, Server: true, ServerFolder: globalServerFolder})
 	if err != nil {
-		log.Printf("handlePreviewRequest Error loading config %s: %v", filePath, err)
+		pkg.LogWarnf("handlePreviewRequest Error loading config %s: %v", filePath, err)
 		warning := templates.Warning(fmt.Sprintf("handlePreviewRequest Error loading config %s: %v", filePath, err))
 		warning.Render(r.Context(), w)
 		return
@@ -1221,31 +1324,31 @@ func handlePreviewRequest(w http.ResponseWriter, r *http.Request) {
 
 	instances, err := pkg.GenerateInstanceConfigs(config)
 	if err != nil {
-		log.Printf("Error generating instances for %s: %v", filePath, err)
+		pkg.LogWarnf("Error generating instances for %s: %v", filePath, err)
 		http.Error(w, "Error generating instances", http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("Found %d instances in %s", len(instances), filePath)
+	pkg.LogInfof("Found %d instances in %s", len(instances), filePath)
 	var targetInstance *models.InstanceConfig
 	for _, instance := range instances {
-		log.Printf("Checking instance: %s", instance.UniqueID)
+		pkg.LogDebugf("Checking instance: %s", instance.UniqueID)
 		if instance.UniqueID == instanceID {
 			targetInstance = &instance
-			log.Printf("Found matching instance: %s, STL path: %s", instance.UniqueID, instance.RunOutputPathV3)
+			pkg.LogInfof("Found matching instance: %s, STL path: %s", instance.UniqueID, instance.RunOutputPathV3)
 			break
 		}
 	}
 
 	if targetInstance == nil {
-		log.Printf("Instance not found: %s", instanceID)
+		pkg.LogWarnf("Instance not found: %s", instanceID)
 		http.Error(w, fmt.Sprintf("Instance not found: %s", instanceID), http.StatusNotFound)
 		return
 	}
 
 	// Check if STL file exists
 	if _, err := os.Stat(targetInstance.RunOutputPathV3); os.IsNotExist(err) {
-		log.Printf("STL file not found: %s", targetInstance.RunOutputPathV3)
+		pkg.LogWarnf("STL file not found: %s", targetInstance.RunOutputPathV3)
 		http.Error(w, "STL file not found", http.StatusNotFound)
 		return
 	}
@@ -1260,8 +1363,8 @@ func handlePreviewRequest(w http.ResponseWriter, r *http.Request) {
 	encodedSTLPath := base64.StdEncoding.EncodeToString([]byte(targetInstance.RunOutputPathV3))
 	stlPath := fmt.Sprintf("/api/stl?file_path=%s", encodedSTLPath)
 
-	log.Printf("Using STL file path: %s", targetInstance.RunOutputPathV3)
-	log.Printf("Encoded STL path: %s", encodedSTLPath)
+	pkg.LogInfof("Using STL file path: %s", targetInstance.RunOutputPathV3)
+	pkg.LogDebugf("Encoded STL path: %s", encodedSTLPath)
 
 	pageUrlInfo := pkg.BuildPageUrl(filePath, serverFolder)
 
@@ -1288,7 +1391,7 @@ func handleSTLRequest(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Missing file_path path", http.StatusBadRequest)
 		return
 	} else {
-		log.Printf("handleSTLRequest - filePathEncoded: %s", filePathEncoded)
+		pkg.LogDebugf("handleSTLRequest - filePathEncoded: %s", filePathEncoded)
 	}
 
 	// Decode the base64 encoded config path
@@ -1309,11 +1412,11 @@ func handleSTLRequest(w http.ResponseWriter, r *http.Request) {
 		filePath = string(filePathBytes)
 	}
 
-	log.Printf("STL handler - filePath: %s", filePath)
+	pkg.LogInfof("STL handler - filePath: %s", filePath)
 
 	// Check if STL file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		log.Printf("STL file not found: %s", filePath)
+		pkg.LogWarnf("STL file not found: %s", filePath)
 		http.Error(w, "STL file not found", http.StatusNotFound)
 		return
 	}
@@ -1321,12 +1424,12 @@ func handleSTLRequest(w http.ResponseWriter, r *http.Request) {
 	// Check file size
 	fileInfo, err := os.Stat(filePath)
 	if err != nil {
-		log.Printf("Error getting file info: %v", err)
+		pkg.LogWarnf("Error getting file info: %v", err)
 		http.Error(w, "Error accessing file", http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("STL file size: %d bytes", fileInfo.Size())
+	pkg.LogInfof("STL file size: %d bytes", fileInfo.Size())
 
 	// Set headers for STL file
 	w.Header().Set("Content-Type", "application/octet-stream")
@@ -1334,6 +1437,6 @@ func handleSTLRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	// Serve the STL file
-	log.Printf("Serving STL file: %s", filePath)
+	pkg.LogInfof("Serving STL file: %s", filePath)
 	http.ServeFile(w, r, filePath)
 }

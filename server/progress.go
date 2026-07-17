@@ -142,17 +142,17 @@ func (h *HTMLProgressReporter) Construct(instances []models.InstanceConfig, nonS
 
 func (h *HTMLProgressReporter) StartInstance(instanceId string, name string, instanceIndex int, instanceCount int) {
 	h.currentInstanceID = instanceId
-	log.Printf("HTMLProgressReporter: Starting instance: %s", instanceId)
+	pkg.LogStagef("progress", "Starting instance: %s", instanceId)
 
 	h.updates <- fmt.Sprintf("Starting instance %s", name)
 }
 
 func (h *HTMLProgressReporter) FinishInstance() {
-	log.Printf("HTMLProgressReporter: FinishInstance called for instance: %s", h.currentInstanceID)
+	pkg.LogStagef("progress", "FinishInstance called for instance: %s", h.currentInstanceID)
 
 	// Only process if we have a current instance ID (instance was actually started)
 	if h.currentInstanceID == "" {
-		log.Printf("HTMLProgressReporter: No current instance ID, skipping FinishInstance")
+		pkg.LogWarnWithCritical("progress: No current instance ID, skipping FinishInstance", false)
 		return
 	}
 
@@ -161,13 +161,13 @@ func (h *HTMLProgressReporter) FinishInstance() {
 	for i := range h.instances {
 		if h.instances[i].ID == h.currentInstanceID {
 			completedInstance = &h.instances[i]
-			log.Printf("HTMLProgressReporter: Found matching instance: %s (ID: %s)", completedInstance.AutoName, completedInstance.ID)
+			pkg.LogInfof("progress: Found matching instance: %s (ID: %s)", completedInstance.AutoName, completedInstance.ID)
 			break
 		}
 	}
 
 	if completedInstance != nil {
-		log.Printf("HTMLProgressReporter: Found completed instance: %s (ID: %s, UniqueID: %s)", completedInstance.AutoName, completedInstance.ID, completedInstance.UniqueID)
+		pkg.LogInfof("progress: Found completed instance: %s (ID: %s, UniqueID: %s)", completedInstance.AutoName, completedInstance.ID, completedInstance.UniqueID)
 
 		// Send terminal-style update first
 		//	h.updates <- fmt.Sprintf("Instance complete: %s", completedInstance.AutoName)
@@ -190,7 +190,7 @@ func (h *HTMLProgressReporter) FinishInstance() {
 
 		// Send HTML update
 		htmlUpdate := "html:" + htmlCard.String()
-		log.Printf("HTMLProgressReporter: Sending HTML update for instance: %s (UniqueID: %s, HTML ID will be: instance-%s)", completedInstance.AutoName, completedInstance.UniqueID, completedInstance.UniqueID)
+		pkg.LogInfof("progress: Sending HTML update for instance: %s (UniqueID: %s, HTML ID will be: instance-%s)", completedInstance.AutoName, completedInstance.UniqueID, completedInstance.UniqueID)
 		h.updates <- htmlUpdate
 
 		// Store the completed instance
@@ -209,7 +209,7 @@ func (h *HTMLProgressReporter) FinishInstance() {
 		// Clear the current instance ID to prevent reuse
 		h.currentInstanceID = ""
 	} else {
-		log.Printf("HTMLProgressReporter: Could not find completed instance for ID: %s", h.currentInstanceID)
+		pkg.LogWarnWithCritical(fmt.Sprintf("progress: Could not find completed instance for ID: %s", h.currentInstanceID), false)
 		// Clear the current instance ID even if not found
 		h.currentInstanceID = ""
 	}

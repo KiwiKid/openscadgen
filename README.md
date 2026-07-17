@@ -302,16 +302,23 @@ This starts the server at http://localhost:6767 serving the projects in the moun
 ```bash
 -i, -init string      Initialize a new project
 -ie, -init-extended string  Initialize with BOSL2 and renderSlicing support
+-ix, -init-explainer string  Initialize with a more verbose starter config
+-no-input             Skip interactive init prompts
 -custom-openscad-command string  Custom OpenSCAD command to use
 ```
 
 ### Project Initialization
-Use `-init` to quickly create a new project structure:
+Use `-init` to quickly create a new project structure. On a first project, the CLI will prompt to use the explainer starter template and will auto-accept after 10 seconds:
 ```bash
 ./openscadgen -init my-new-project
 ```
 
 This creates a basic config file and directory structure to get you started quickly.
+
+If you want the explanatory starter config directly, use:
+```bash
+./openscadgen -init-explainer my-new-project
+```
 
 ## Debug & Verbosity
 ```bash

@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/kiwikid/openscadgen/pkg/models"
@@ -18,6 +19,161 @@ func chatRoleLabel(role string) string {
 		return "Assistant"
 	}
 	return "You"
+}
+
+templ ChatPanel(data models.ChatPageData) {
+	<section class="section">
+		<div class="container chat-page">
+			<div class="level is-mobile mb-4">
+				<div class="level-left">
+					<div class="level-item">
+						<div class="buttons are-small chat-actions">
+							<a class="button" hx-get={ templ.SafeURL(data.HomeURL) } hx-target="#main-content" hx-swap="innerHTML" hx-push-url="true">Home</a>
+							if data.BackURL != "" {
+								<a class="button is-light" hx-get={ templ.SafeURL(data.BackURL) } hx-target="#main-content" hx-swap="innerHTML" hx-push-url="true">Back</a>
+							}
+							<a class="button is-light" href={ templ.SafeURL(data.ResetURL) }>New Chat</a>
+						</div>
+					</div>
+				</div>
+				<div class="level-right">
+					<div class="level-item">
+						<div class="tags">
+							<span class="tag is-dark">Provider</span>
+							<span class="tag is-primary is-light">{ data.Provider }</span>
+							<span class="tag is-dark">Model</span>
+							<span class="tag is-info is-light">{ data.Model }</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="columns is-variable is-5">
+				<div class="column is-4">
+					<div class="card chat-sidebar">
+						<div class="card-content">
+							<h1 class="title is-4 mb-3">AI Chat</h1>
+							<p class="subtitle is-6 mb-5">Server-side AI chat for OpenSCADGen work.</p>
+							<div class="chat-meta-list">
+								<div>
+									<p class="has-text-weight-semibold mb-2">API status</p>
+									if data.APIKeyConfigured {
+										<span class="tag is-success is-light">{ data.APIKeyLabel }</span>
+									} else {
+										<span class="tag is-warning is-light">{ data.APIKeyLabel }</span>
+									}
+								</div>
+								<div>
+									<p class="has-text-weight-semibold mb-2">Project context</p>
+									if data.ProjectPath != "" {
+										<p class="mb-2"><strong>{ data.ProjectLabel }</strong></p>
+										<p class="is-size-7"><code>{ data.ProjectPath }</code></p>
+										if data.ProjectToolsEnabled {
+											<p class="help mt-2">OpenAI can list, read, edit, commit, and push within this project root when you explicitly ask for those git actions.</p>
+										} else {
+											<p class="help mt-2">This project root is attached as context. Project file and git tools are currently available only with OpenAI.</p>
+										}
+									} else {
+										<p class="help">Open chat from a project or config page if you want project-scoped file and git context attached automatically.</p>
+									}
+								</div>
+								<div>
+									<p class="has-text-weight-semibold mb-2">Attached context</p>
+									if data.ContextFileLabel != "" {
+										<p class="mb-2"><strong>{ data.ContextFileLabel }</strong></p>
+										<p class="is-size-7"><code>{ data.ContextFilePath }</code></p>
+										if data.ContextIncluded {
+											<p class="help mt-2">This file is sent to OpenAI with each request on this page.</p>
+										} else {
+											<p class="help mt-2">This file is linked to the page and will be attached the next time you send a message.</p>
+										}
+									} else {
+										<p class="help">Open chat from a config report page if you want the current <code>config.toml</code> attached automatically.</p>
+									}
+								</div>
+								<div>
+									<p class="has-text-weight-semibold mb-2">Usage</p>
+									<p class="help">Keep prompts concrete: ask for config changes, parameter suggestions, export troubleshooting, or SCAD edits.</p>
+									if data.ConfigAutomationEnabled {
+										<p class="help mt-2">OpenAI chat can apply config edits, run generation, review the rendered PNGs, and return a grounded summary from the updated config.</p>
+									}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="column is-8">
+					if data.Error != "" {
+						<div class="notification is-danger is-light">{ data.Error }</div>
+					}
+					if data.Notice != "" {
+						<div class="notification is-info is-light">{ data.Notice }</div>
+					}
+					<div class="card chat-shell">
+						<div class="card-content">
+							<div id="chat-inline-notice" class="chat-inline-notice"></div>
+							<div id="chat-status" class="chat-status" aria-live="polite">
+								<p class="has-text-weight-semibold mb-2">Working</p>
+								<div id="chat-status-items" class="chat-status__items"></div>
+							</div>
+							<div id="chat-transcript" class="chat-transcript">
+								if len(data.Messages) == 0 {
+									<div class="chat-empty">
+										<p class="has-text-weight-semibold mb-2">No messages yet.</p>
+										<p class="help mb-0">Start with something narrow, for example: “Suggest cleaner parameter names for this config” or “What would you change to make this print stronger?”</p>
+									</div>
+								}
+								for _, msg := range data.Messages {
+									<article class={ chatMessageClass(msg.Role) }>
+										<div class="chat-message__label">{ chatRoleLabel(msg.Role) }</div>
+										<pre class="chat-message__bubble">{ msg.Content }</pre>
+									</article>
+								}
+							</div>
+							<form method="post" action={ templ.SafeURL(data.ActionURL) } class="chat-form" data-run-url={ data.RunURL } data-status-url={ data.StatusURL } data-async-enabled={ fmt.Sprintf("%t", data.AsyncEnabled) } hx-post={ templ.SafeURL(data.ActionURL) } hx-target="#main-content" hx-swap="innerHTML">
+								<input type="hidden" name="history_json" value={ data.HistoryJSON }/>
+								<div class="field">
+									<label class="label" for="chat-provider">Provider</label>
+									<div class="control">
+										<div class="select is-fullwidth">
+											<select
+												id="chat-provider"
+												name="provider"
+												data-openai-default-model={ data.OpenAIDefaultModel }
+												data-deepseek-default-model={ data.DeepSeekDefaultModel }
+												disabled?={ !data.OpenAIAvailable && !data.DeepSeekAvailable }
+											>
+												<option value="openai" selected?={ data.Provider == "openai" } disabled?={ !data.OpenAIAvailable }>OpenAI</option>
+												<option value="deepseek" selected?={ data.Provider == "deepseek" } disabled?={ !data.DeepSeekAvailable }>DeepSeek</option>
+											</select>
+										</div>
+									</div>
+									<p class="help">Providers without a configured environment token are disabled.</p>
+								</div>
+								<div class="field">
+									<label class="label" for="chat-model">Model</label>
+									<div class="control">
+										<input id="chat-model" class="input" type="text" name="model" value={ data.Model } placeholder="e.g. gpt-4.1"/>
+									</div>
+								</div>
+								<div class="field">
+									<label class="label" for="chat-message">Message</label>
+									<div class="control">
+										<textarea id="chat-message" class="textarea" name="message" placeholder="Ask for help with the current OpenSCADGen config, SCAD file, or export workflow." autofocus>{ data.Draft }</textarea>
+									</div>
+									<p class="help">Press <code>Ctrl</code> + <code>Enter</code> to send.</p>
+								</div>
+								<div class="field is-grouped is-justify-content-flex-end mb-0">
+									<div class="control">
+										<button type="submit" class="button is-primary" id="chat-submit-button">Send</button>
+									</div>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
 }
 
 templ ChatPage(data models.ChatPageData) {
@@ -99,6 +255,15 @@ templ ChatPage(data models.ChatPageData) {
 					min-height: 170px;
 					resize: vertical;
 				}
+				.chat-form.is-busy {
+					opacity: 0.88;
+				}
+				.chat-form.is-busy textarea,
+				.chat-form.is-busy input,
+				.chat-form.is-busy select,
+				.chat-form.is-busy button {
+					cursor: progress;
+				}
 				.chat-sidebar code {
 					word-break: break-all;
 				}
@@ -112,6 +277,44 @@ templ ChatPage(data models.ChatPageData) {
 				.chat-meta-list p:last-child {
 					margin-bottom: 0;
 				}
+				.chat-inline-notice:empty {
+					display: none;
+				}
+				.chat-status {
+					display: none;
+					border-radius: 16px;
+					background: rgba(15, 118, 110, 0.08);
+					border: 1px solid rgba(15, 118, 110, 0.18);
+					padding: 1rem 1.1rem;
+					margin-bottom: 1rem;
+				}
+				.chat-status.is-visible {
+					display: block;
+				}
+				.chat-status.is-error {
+					background: rgba(220, 38, 38, 0.08);
+					border-color: rgba(220, 38, 38, 0.18);
+				}
+				.chat-status.is-complete {
+					background: rgba(22, 163, 74, 0.08);
+					border-color: rgba(22, 163, 74, 0.18);
+				}
+				.chat-status__items {
+					display: flex;
+					flex-direction: column;
+					gap: 0.45rem;
+					max-height: 10rem;
+					overflow-y: auto;
+				}
+				.chat-status__item {
+					font-size: 0.92rem;
+					line-height: 1.45;
+					color: #334155;
+				}
+				.chat-status__item:last-child {
+					font-weight: 600;
+					color: #0f172a;
+				}
 				@media (max-width: 768px) {
 					.chat-message {
 						max-width: 100%;
@@ -123,162 +326,7 @@ templ ChatPage(data models.ChatPageData) {
 			</style>
 		</head>
 		<body>
-			<section class="section">
-				<div class="container chat-page">
-					<div class="level is-mobile mb-4">
-						<div class="level-left">
-							<div class="level-item">
-								<div class="buttons are-small chat-actions">
-									<a class="button" href={ templ.SafeURL(data.HomeURL) }>Home</a>
-									if data.BackURL != "" {
-										<a class="button is-light" href={ templ.SafeURL(data.BackURL) }>Back</a>
-									}
-									<a class="button is-light" href={ templ.SafeURL(data.ResetURL) }>New Chat</a>
-								</div>
-							</div>
-						</div>
-						<div class="level-right">
-							<div class="level-item">
-								<div class="tags">
-									<span class="tag is-dark">Provider</span>
-									<span class="tag is-primary is-light">{ data.Provider }</span>
-									<span class="tag is-dark">Model</span>
-									<span class="tag is-info is-light">{ data.Model }</span>
-								</div>
-							</div>
-						</div>
-					</div>
-
-					<div class="columns is-variable is-5">
-						<div class="column is-4">
-							<div class="card chat-sidebar">
-								<div class="card-content">
-									<h1 class="title is-4 mb-3">AI Chat</h1>
-									<p class="subtitle is-6 mb-5">Server-side AI chat for OpenSCADGen work.</p>
-
-									<div class="chat-meta-list">
-										<div>
-											<p class="has-text-weight-semibold mb-2">API status</p>
-											if data.APIKeyConfigured {
-												<span class="tag is-success is-light">{ data.APIKeyLabel }</span>
-											} else {
-												<span class="tag is-warning is-light">{ data.APIKeyLabel }</span>
-											}
-										</div>
-
-										<div>
-											<p class="has-text-weight-semibold mb-2">Project context</p>
-											if data.ProjectPath != "" {
-												<p class="mb-2"><strong>{ data.ProjectLabel }</strong></p>
-												<p class="is-size-7"><code>{ data.ProjectPath }</code></p>
-												if data.ProjectToolsEnabled {
-													<p class="help mt-2">OpenAI can list, read, edit, commit, and push within this project root when you explicitly ask for those git actions.</p>
-												} else {
-													<p class="help mt-2">This project root is attached as context. Project file and git tools are currently available only with OpenAI.</p>
-												}
-											} else {
-												<p class="help">Open chat from a project or config page if you want project-scoped file and git context attached automatically.</p>
-											}
-										</div>
-
-										<div>
-											<p class="has-text-weight-semibold mb-2">Attached context</p>
-											if data.ContextFileLabel != "" {
-												<p class="mb-2"><strong>{ data.ContextFileLabel }</strong></p>
-												<p class="is-size-7"><code>{ data.ContextFilePath }</code></p>
-												if data.ContextIncluded {
-													<p class="help mt-2">This file is sent to OpenAI with each request on this page.</p>
-												} else {
-													<p class="help mt-2">This file is linked to the page and will be attached the next time you send a message.</p>
-												}
-											} else {
-												<p class="help">Open chat from a config report page if you want the current <code>config.toml</code> attached automatically.</p>
-											}
-										</div>
-
-										<div>
-											<p class="has-text-weight-semibold mb-2">Usage</p>
-											<p class="help">Keep prompts concrete: ask for config changes, parameter suggestions, export troubleshooting, or SCAD edits.</p>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<div class="column is-8">
-							if data.Error != "" {
-								<div class="notification is-danger is-light">{ data.Error }</div>
-							}
-							if data.Notice != "" {
-								<div class="notification is-info is-light">{ data.Notice }</div>
-							}
-
-							<div class="card chat-shell">
-								<div class="card-content">
-									<div id="chat-transcript" class="chat-transcript">
-										if len(data.Messages) == 0 {
-											<div class="chat-empty">
-												<p class="has-text-weight-semibold mb-2">No messages yet.</p>
-												<p class="help mb-0">Start with something narrow, for example: “Suggest cleaner parameter names for this config” or “What would you change to make this print stronger?”</p>
-											</div>
-										}
-										for _, msg := range data.Messages {
-											<article class={ chatMessageClass(msg.Role) }>
-												<div class="chat-message__label">{ chatRoleLabel(msg.Role) }</div>
-												<pre class="chat-message__bubble">{ msg.Content }</pre>
-											</article>
-										}
-									</div>
-
-									<form method="post" action={ templ.SafeURL(data.ActionURL) } class="chat-form">
-										<input type="hidden" name="history_json" value={ data.HistoryJSON }/>
-
-										<div class="field">
-											<label class="label" for="chat-provider">Provider</label>
-											<div class="control">
-												<div class="select is-fullwidth">
-													<select
-														id="chat-provider"
-														name="provider"
-														data-openai-default-model={ data.OpenAIDefaultModel }
-														data-deepseek-default-model={ data.DeepSeekDefaultModel }
-														disabled?={ !data.OpenAIAvailable && !data.DeepSeekAvailable }>
-														<option value="openai" selected?={ data.Provider == "openai" } disabled?={ !data.OpenAIAvailable }>OpenAI</option>
-														<option value="deepseek" selected?={ data.Provider == "deepseek" } disabled?={ !data.DeepSeekAvailable }>DeepSeek</option>
-													</select>
-												</div>
-											</div>
-											<p class="help">Providers without a configured environment token are disabled.</p>
-										</div>
-
-										<div class="field">
-											<label class="label" for="chat-model">Model</label>
-											<div class="control">
-												<input id="chat-model" class="input" type="text" name="model" value={ data.Model } placeholder="e.g. gpt-4.1"/>
-											</div>
-										</div>
-
-										<div class="field">
-											<label class="label" for="chat-message">Message</label>
-											<div class="control">
-												<textarea id="chat-message" class="textarea" name="message" placeholder="Ask for help with the current OpenSCADGen config, SCAD file, or export workflow." autofocus>{ data.Draft }</textarea>
-											</div>
-											<p class="help">Press <code>Ctrl</code> + <code>Enter</code> to send.</p>
-										</div>
-
-										<div class="field is-grouped is-justify-content-flex-end mb-0">
-											<div class="control">
-												<button type="submit" class="button is-primary">Send</button>
-											</div>
-										</div>
-									</form>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</section>
-
+			@ChatPanel(data)
 			<script>
 				document.addEventListener('DOMContentLoaded', function () {
 					const transcript = document.getElementById('chat-transcript');
@@ -314,6 +362,198 @@ templ ChatPage(data models.ChatPageData) {
 							if (event.key === 'Enter' && event.ctrlKey) {
 								event.preventDefault();
 								input.form.requestSubmit();
+							}
+						});
+					}
+
+					const form = document.querySelector('.chat-form');
+					const historyInput = form ? form.querySelector('input[name="history_json"]') : null;
+					const submitButton = document.getElementById('chat-submit-button');
+					const statusBox = document.getElementById('chat-status');
+					const statusItems = document.getElementById('chat-status-items');
+					const inlineNotice = document.getElementById('chat-inline-notice');
+					let activeChatJob = null;
+					let lastEventSeq = 0;
+
+					function scrollTranscript() {
+						if (transcript) {
+							transcript.scrollTop = transcript.scrollHeight;
+						}
+					}
+
+					function setInlineNotice(kind, text) {
+						if (!inlineNotice) {
+							return;
+						}
+						if (!text) {
+							inlineNotice.innerHTML = '';
+							return;
+						}
+						inlineNotice.innerHTML = '';
+						const notice = document.createElement('div');
+						notice.className = kind === 'error' ? 'notification is-danger is-light' : 'notification is-info is-light';
+						notice.textContent = text;
+						inlineNotice.appendChild(notice);
+					}
+
+					function clearEmptyState() {
+						if (!transcript) {
+							return;
+						}
+						const emptyState = transcript.querySelector('.chat-empty');
+						if (emptyState) {
+							emptyState.remove();
+						}
+					}
+
+					function appendTranscriptMessage(role, text) {
+						if (!transcript) {
+							return;
+						}
+						clearEmptyState();
+						const article = document.createElement('article');
+						article.className = role === 'assistant' ? 'chat-message chat-message--assistant' : 'chat-message chat-message--user';
+						const label = document.createElement('div');
+						label.className = 'chat-message__label';
+						label.textContent = role === 'assistant' ? 'Assistant' : 'You';
+						const bubble = document.createElement('pre');
+						bubble.className = 'chat-message__bubble';
+						bubble.textContent = text;
+						article.appendChild(label);
+						article.appendChild(bubble);
+						transcript.appendChild(article);
+						scrollTranscript();
+					}
+
+					function setBusy(isBusy) {
+						if (!form) {
+							return;
+						}
+						form.classList.toggle('is-busy', isBusy);
+						const fields = form.querySelectorAll('textarea, input, select, button');
+						fields.forEach(function (field) {
+							field.disabled = isBusy;
+						});
+					}
+
+					function showStatus(kind) {
+						if (!statusBox) {
+							return;
+						}
+						statusBox.classList.add('is-visible');
+						statusBox.classList.remove('is-error', 'is-complete');
+						if (kind === 'error') {
+							statusBox.classList.add('is-error');
+						}
+						if (kind === 'complete') {
+							statusBox.classList.add('is-complete');
+						}
+					}
+
+					function appendStatusEvent(message) {
+						if (!statusItems || !message) {
+							return;
+						}
+						showStatus();
+						const item = document.createElement('div');
+						item.className = 'chat-status__item';
+						item.textContent = message;
+						statusItems.appendChild(item);
+						statusItems.scrollTop = statusItems.scrollHeight;
+					}
+
+					async function pollChatStatus() {
+						if (!activeChatJob || !form) {
+							return;
+						}
+						try {
+							const response = await fetch(form.dataset.statusUrl + '?id=' + encodeURIComponent(activeChatJob) + '&after=' + encodeURIComponent(String(lastEventSeq)));
+							if (!response.ok) {
+								throw new Error('Status request failed with ' + response.status);
+							}
+							const payload = await response.json();
+							(payload.events || []).forEach(function (event) {
+								lastEventSeq = Math.max(lastEventSeq, event.seq || 0);
+								appendStatusEvent(event.message);
+							});
+
+							if (!payload.done) {
+								window.setTimeout(pollChatStatus, 900);
+								return;
+							}
+
+							activeChatJob = null;
+							setBusy(false);
+							showStatus(payload.error ? 'error' : 'complete');
+							if (payload.notice) {
+								setInlineNotice('info', payload.notice);
+							} else {
+								setInlineNotice('', '');
+							}
+							if (payload.error) {
+								setInlineNotice('error', payload.error);
+								appendStatusEvent('Chat run failed');
+								return;
+							}
+							if (payload.assistant_message) {
+								appendTranscriptMessage('assistant', payload.assistant_message);
+							}
+							if (historyInput && payload.history_json) {
+								historyInput.value = payload.history_json;
+							}
+							appendStatusEvent('Chat run complete');
+						} catch (error) {
+							activeChatJob = null;
+							setBusy(false);
+							showStatus('error');
+							setInlineNotice('error', error.message || 'Failed to read chat status.');
+						}
+					}
+
+					if (form && form.dataset.asyncEnabled === 'true') {
+						form.addEventListener('submit', async function (event) {
+							event.preventDefault();
+							if (activeChatJob) {
+								return;
+							}
+
+							const draft = input ? input.value.trim() : '';
+							if (!draft) {
+								setInlineNotice('error', 'Enter a message before sending.');
+								return;
+							}
+
+							const formData = new FormData(form);
+							setInlineNotice('', '');
+							if (statusItems) {
+								statusItems.innerHTML = '';
+							}
+							showStatus();
+							appendStatusEvent('Submitting prompt');
+							setBusy(true);
+
+							try {
+								const response = await fetch(form.dataset.runUrl, {
+									method: 'POST',
+									body: formData,
+								});
+								const payload = await response.json();
+								if (!response.ok) {
+									throw new Error(payload.error || 'Failed to start chat run.');
+								}
+
+								activeChatJob = payload.job_id;
+								lastEventSeq = 0;
+								appendTranscriptMessage('user', draft);
+								if (input) {
+									input.value = '';
+								}
+								pollChatStatus();
+							} catch (error) {
+								activeChatJob = null;
+								setBusy(false);
+								showStatus('error');
+								setInlineNotice('error', error.message || 'Failed to start chat run.');
 							}
 						});
 					}

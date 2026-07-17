@@ -1,355 +1,428 @@
 package templates
 
 import (
-    "fmt"
-    "time"
-    "github.com/kiwikid/openscadgen/pkg/models"
-    "strings"
-    "sort"
-	"encoding/json"
 	"bytes"
-	"path/filepath"
 	"encoding/base64"
-	"net/url"
+	"encoding/json"
+	"fmt"
 	"github.com/dustin/go-humanize"
+	"github.com/kiwikid/openscadgen/pkg/models"
+	"net/url"
+	"path/filepath"
+	"sort"
+	"strings"
+	"time"
 )
 
 func formatDuration(d time.Duration) string {
-    if d < time.Millisecond {
-        return fmt.Sprintf("%.2fµs", float64(d)/float64(time.Microsecond))
-    }
-    if d < time.Second {
-        return fmt.Sprintf("%.2fms", float64(d)/float64(time.Millisecond))
-    }
-    // Use go-humanize's relative time, then trim off any trailing space/labels.
-    now := time.Now()
-    return strings.TrimSpace(humanize.RelTime(now.Add(-d), now, "", ""))
+	if d < time.Millisecond {
+		return fmt.Sprintf("%.2fµs", float64(d)/float64(time.Microsecond))
+	}
+	if d < time.Second {
+		return fmt.Sprintf("%.2fms", float64(d)/float64(time.Millisecond))
+	}
+	// Use go-humanize's relative time, then trim off any trailing space/labels.
+	now := time.Now()
+	return strings.TrimSpace(humanize.RelTime(now.Add(-d), now, "", ""))
 }
 
 templ Success(message string) {
-    <div class="notification is-success">
-        <strong> { message }</strong>
-        <button class="delete"></button>
-    </div>
+	<div class="notification is-success">
+		<strong>{ message }</strong>
+		<button class="delete"></button>
+	</div>
 }
 
 // Helper function to get relative path
 func getRelativePath(fullPath string, basePath string) string {
-    // If the full path is already relative, return it as is
-    if !strings.HasPrefix(fullPath, "/") {
-        return fullPath
-    }
-    
-    // If base path is empty, just return the filename
-    if basePath == "" {
-        return filepath.Base(fullPath)
-    }
-    
-    // Try to make the path relative to the base path
-    relPath, err := filepath.Rel(basePath, fullPath)
-    if err != nil {
-        // If we can't make it relative, return just the filename
-        return filepath.Base(fullPath)
-    }
-    return relPath
+	// If the full path is already relative, return it as is
+	if !strings.HasPrefix(fullPath, "/") {
+		return fullPath
+	}
+
+	// If base path is empty, just return the filename
+	if basePath == "" {
+		return filepath.Base(fullPath)
+	}
+
+	// Try to make the path relative to the base path
+	relPath, err := filepath.Rel(basePath, fullPath)
+	if err != nil {
+		// If we can't make it relative, return just the filename
+		return filepath.Base(fullPath)
+	}
+	return relPath
 }
 
 templ DebugAlpineState(condition string, label string) {
-    <div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;">
-        <span style="width: 20px; text-align: center;">
-            <i class="fas fa-check" style="color: #28a745;"
-                x-show={fmt.Sprintf("(%s)", condition)}
-            ></i>
-            <i class="fas fa-times" style="color: #dc3545;"
-                                x-show={fmt.Sprintf("!(%s)", condition)}
-
-            ></i>
-        </span>
-        <span style="margin-left: 8px;">{ label }: { condition }</span>
-    </div>
+	<div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;">
+		<span style="width: 20px; text-align: center;">
+			<i
+				class="fas fa-check"
+				style="color: #28a745;"
+				x-show={ fmt.Sprintf("(%s)", condition) }
+			></i>
+			<i
+				class="fas fa-times"
+				style="color: #dc3545;"
+				x-show={ fmt.Sprintf("!(%s)", condition) }
+			></i>
+		</span>
+		<span style="margin-left: 8px;">{ label }: { condition }</span>
+	</div>
 }
 
 // Helper function to get relative image path
 func getRelativeImagePath(outputPath string, exportFolderPath string) string {
-    // Remove the export folder path prefix and any leading slashes
-    relativePath := strings.TrimPrefix(outputPath, exportFolderPath)
-    return strings.TrimPrefix(relativePath, "/")
+	// Remove the export folder path prefix and any leading slashes
+	relativePath := strings.TrimPrefix(outputPath, exportFolderPath)
+	return strings.TrimPrefix(relativePath, "/")
 }
 
 func instanceImageVersion(instance models.InstanceConfig) string {
-    if instance.CompletedAt.IsZero() {
-        return ""
-    }
-    return fmt.Sprintf("%d", instance.CompletedAt.UnixNano())
+	if instance.CompletedAt.IsZero() {
+		return ""
+	}
+	return fmt.Sprintf("%d", instance.CompletedAt.UnixNano())
 }
 
 func buildServerImageURL(outputPath string, exportFolderPath string, version string) string {
-    params := url.Values{}
-    params.Set("config_path", "/"+getRelativeImagePath(outputPath, exportFolderPath))
-    if version != "" {
-        params.Set("v", version)
-    }
-    return "/images?" + params.Encode()
+	params := url.Values{}
+	params.Set("config_path", "/"+getRelativeImagePath(outputPath, exportFolderPath))
+	if version != "" {
+		params.Set("v", version)
+	}
+	return "/images?" + params.Encode()
 }
 
 // Helper function to sort STL results by name first, then alphabetically
 func sortSTLResults(results []models.GenerateSTLResult) []models.GenerateSTLResult {
-    sorted := make([]models.GenerateSTLResult, len(results))
-    copy(sorted, results)
-    sort.Slice(sorted, func(i, j int) bool {
-        // First sort by name
-        if sorted[i].InstanceConfig.Name != sorted[j].InstanceConfig.Name {
-            return sorted[i].InstanceConfig.Name < sorted[j].InstanceConfig.Name
-        }
-        // Then sort alphabetically by output path
-        return sorted[i].OutputPath < sorted[j].OutputPath
-    })
-    return sorted
+	sorted := make([]models.GenerateSTLResult, len(results))
+	copy(sorted, results)
+	sort.Slice(sorted, func(i, j int) bool {
+		// First sort by name
+		if sorted[i].InstanceConfig.Name != sorted[j].InstanceConfig.Name {
+			return sorted[i].InstanceConfig.Name < sorted[j].InstanceConfig.Name
+		}
+		// Then sort alphabetically by output path
+		return sorted[i].OutputPath < sorted[j].OutputPath
+	})
+	return sorted
 }
 
 // Helper function to get sorted parameter names
 func getSortedParamNames(params map[string]interface{}) []string {
-    names := make([]string, 0, len(params))
-    for name := range params {
-        names = append(names, name)
-    }
-    sort.Strings(names)
-    return names
+	names := make([]string, 0, len(params))
+	for name := range params {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names
+}
+
+func getJSONAttr(v interface{}) string {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return "{}"
+	}
+	return string(b)
 }
 
 func getFailedSTLResults(instance models.InstanceConfig) []models.GenerateSTLResult {
-    failed := make([]models.GenerateSTLResult, 0, len(instance.STLResults))
-    for _, result := range instance.STLResults {
-        if result.Error == "" && result.Command == "" && result.OutputLog == "" && result.CommandOutput == "" {
-            continue
-        }
-        failed = append(failed, result)
-    }
-    return failed
+	failed := make([]models.GenerateSTLResult, 0, len(instance.STLResults))
+	for _, result := range instance.STLResults {
+		if result.Error == "" && result.Command == "" && result.OutputLog == "" && result.CommandOutput == "" {
+			continue
+		}
+		failed = append(failed, result)
+	}
+	return failed
 }
 
 func getSTLErrorLog(result models.GenerateSTLResult) string {
-    switch {
-    case result.OutputLog != "":
-        return result.OutputLog
-    case result.CommandOutput != "":
-        return result.CommandOutput
-    default:
-        return result.Error
-    }
+	switch {
+	case result.OutputLog != "":
+		return result.OutputLog
+	case result.CommandOutput != "":
+		return result.CommandOutput
+	default:
+		return result.Error
+	}
 }
 
-
 templ RenderParams(params map[string]interface{}) {
-    <div class="code-block">
-       
-       <div>
-        <button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button>
-            
-            
-            <details><summary>Applied Params</summary><code><pre>
-            for _, name := range getSortedParamNames(params) {
-                switch v := params[name].(type) {
-                case string:
-                    { fmt.Sprintf("%s = \"%s\";\n", name, v) }
-                case int, int64, float64:
-                    { fmt.Sprintf("%s = %v;\n", name, v) }
-                case bool:
-                    { fmt.Sprintf("%s = %v;\n", name, v) }
-                case map[string]interface{}:
-                    { fmt.Sprintf("%s = [%v];\n", name, v) }
-                default:
-                    { fmt.Sprintf("%s = \"%v\";\n", name, v) }
-                }
-            }
-
-            
-        </pre></code>
-            <p class="is-size-7">
-                    (copy these into the openscad editor to tweak this instance)
-            </p>
-            { children... }
-        </details>
-        </div>
-
-    </div>
+	<div class="code-block">
+		<div>
+			<button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button>
+			<details>
+				<summary>Applied Params</summary>
+				<code>
+					<pre>
+						for _, name := range getSortedParamNames(params) {
+							switch v := params[name].(type) {
+								case string:
+									{ fmt.Sprintf("%s = \"%s\";\n", name, v) }
+								case int, int64, float64:
+									{ fmt.Sprintf("%s = %v;\n", name, v) }
+								case bool:
+									{ fmt.Sprintf("%s = %v;\n", name, v) }
+								case map[string]interface{}:
+									{ fmt.Sprintf("%s = [%v];\n", name, v) }
+								default:
+									{ fmt.Sprintf("%s = \"%v\";\n", name, v) }
+							}
+						}
+					</pre>
+				</code>
+				<p class="is-size-7">
+					(copy these into the openscad editor to tweak this instance)
+				</p>
+				{ children... }
+			</details>
+		</div>
+	</div>
 }
 
 func formatJson(code string) string {
-    var prettyJSON bytes.Buffer
-    err := json.Indent(&prettyJSON, []byte(code), "", "  ")
-    if err != nil {
-        return code
-    }
-    return prettyJSON.String()
+	var prettyJSON bytes.Buffer
+	err := json.Indent(&prettyJSON, []byte(code), "", "  ")
+	if err != nil {
+		return code
+	}
+	return prettyJSON.String()
 }
 
-
-templ CodeBlock(code string, copyButton bool, formatted bool, copyButtonText string){
-    <div class="code-block">    
-        if copyButton {
-            <button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">{ copyButtonText }</button>
-        }
-        <code style="white-space: pre;">
-       
-        if formatted { 
-             <pre>{ formatJson(code) }</pre>
-        } else { 
-         <pre>{ code }</pre>
-        }
-        
-        </code>
-    </div>
+templ CodeBlock(code string, copyButton bool, formatted bool, copyButtonText string) {
+	<div class="code-block">
+		if copyButton {
+			<button onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">{ copyButtonText }</button>
+		}
+		<code style="white-space: pre;">
+			if formatted {
+				<pre>{ formatJson(code) }</pre>
+			} else {
+				<pre>{ code }</pre>
+			}
+		</code>
+	</div>
 }
 
 func getInstanceClassName(instance models.InstanceConfig) string {
-    if instance.SkippedReason != "" {
-        return " has-background-grey-light			"
-    }
-    return ""
+	if instance.SkippedReason != "" {
+		return " has-background-grey-light			"
+	}
+	return ""
 }
 
-
 templ ProcessForm(reportMeta models.ReportMeta) {
-    <form hx-put="/" hx-indicator="#loading-indicator">
-        <input type="hidden" name="config_path" value={ reportMeta.ConfigFilePathEncoded }>
-        <input type="hidden" name="server_folder" value={ reportMeta.ServerFolderEncoded }>
-        <button id="process-btn" class="button is-large" type="submit">Process</button>
-        <span id="loading-indicator" class="htmx-indicator" style="margin-left:8px;">Loading...</span>
-    </form>
+	<form hx-put="/" hx-indicator="#loading-indicator">
+		<input type="hidden" name="config_path" value={ reportMeta.ConfigFilePathEncoded }/>
+		<input type="hidden" name="server_folder" value={ reportMeta.ServerFolderEncoded }/>
+		<button id="process-btn" class="button is-large" type="submit">Process</button>
+		<span id="loading-indicator" class="htmx-indicator" style="margin-left:8px;">Loading...</span>
+	</form>
 }
 
 func buildDeleteURL(configFile string, serverFolder string, dryRun bool, cleanOldVersions bool) string {
-    var parts []string
-    
-    if len(configFile) > 0 {
-        parts = append(parts, fmt.Sprintf("config_file=%s", url.QueryEscape(configFile)))
-    } else if len(serverFolder) > 0 {
-        parts = append(parts, fmt.Sprintf("server_folder=%s", url.QueryEscape(serverFolder)))
-    }
-    
-    if dryRun {
-        parts = append(parts, "dryRun=true")
-    }
-    
-    if cleanOldVersions {
-        parts = append(parts, "cleanOldVersions=true")
-    }
-    
-    if len(parts) == 0 {
-        return "/"
-    }
-    
-    return "/?" + strings.Join(parts, "&")
+	var parts []string
+
+	if len(configFile) > 0 {
+		parts = append(parts, fmt.Sprintf("config_file=%s", url.QueryEscape(configFile)))
+	} else if len(serverFolder) > 0 {
+		parts = append(parts, fmt.Sprintf("server_folder=%s", url.QueryEscape(serverFolder)))
+	}
+
+	if dryRun {
+		parts = append(parts, "dryRun=true")
+	}
+
+	if cleanOldVersions {
+		parts = append(parts, "cleanOldVersions=true")
+	}
+
+	if len(parts) == 0 {
+		return "/"
+	}
+
+	return "/?" + strings.Join(parts, "&")
+}
+
+templ OpenSCADHealthBadge(available bool, healthy bool, unavailable bool) {
+	if unavailable {
+		<span
+			id="openscadgen-health-badge"
+			class="tag is-danger is-light"
+			data-health-state="error"
+			hx-get="/api/openscad/health/badge"
+			hx-trigger="every 5m"
+			hx-swap="outerHTML"
+		>openscadgen unavailable</span>
+	} else if healthy {
+		<span
+			id="openscadgen-health-badge"
+			class="tag is-success is-light"
+			data-health-state="ok"
+			hx-get="/api/openscad/health/badge"
+			hx-trigger="every 5m"
+			hx-swap="outerHTML"
+		>openscadgen OK</span>
+	} else if available {
+		<span
+			id="openscadgen-health-badge"
+			class="tag is-warning is-light"
+			data-health-state="loading"
+			hx-get="/api/openscad/health/badge"
+			hx-trigger="load, every 5m"
+			hx-swap="outerHTML"
+		>openscadgen…</span>
+	} else {
+		<span
+			id="openscadgen-health-badge"
+			class="tag is-light"
+			data-health-state="unknown"
+			hx-get="/api/openscad/health/badge"
+			hx-trigger="load, every 5m"
+			hx-swap="outerHTML"
+		>openscadgen…</span>
+	}
 }
 
 func getDeleteTitle(configFile string, serverFolder string) string {
-    if len(configFile) > 0 {
-        return fmt.Sprintf("Delete config file: %s", configFile)
-    }
-    return fmt.Sprintf("Delete folder: %s", serverFolder)
+	if len(configFile) > 0 {
+		return fmt.Sprintf("Delete config file: %s", configFile)
+	}
+	return fmt.Sprintf("Delete folder: %s", serverFolder)
 }
 
 templ DeleteButton(configFile string, serverFolder string, dryRun bool, cleanOldVersions bool) {
-    if len(configFile) > 0 || len(serverFolder) > 0 {
-        <button 
-            class="button is-danger" 
-            hx-delete={ templ.SafeURL(buildDeleteURL(configFile, serverFolder, dryRun, cleanOldVersions)) }
-            hx-confirm="Are you sure you want to delete this?"
-            hx-indicator="#delete-loading"
-            title={ getDeleteTitle(configFile, serverFolder) }
-        >
-            <span class="icon">
-                <i class="fas fa-trash"></i>
-            </span>
-            <span>Delete</span>
-        </button>
-        <span id="delete-loading" class="htmx-indicator" style="margin-left:8px;">Deleting...</span>
-    }
+	if len(configFile) > 0 || len(serverFolder) > 0 {
+		<button
+			class="button is-danger"
+			hx-delete={ templ.SafeURL(buildDeleteURL(configFile, serverFolder, dryRun, cleanOldVersions)) }
+			hx-confirm="Are you sure you want to delete this?"
+			hx-indicator="#delete-loading"
+			title={ getDeleteTitle(configFile, serverFolder) }
+		>
+			<span class="icon">
+				<i class="fas fa-trash"></i>
+			</span>
+			<span>Delete</span>
+		</button>
+		<span id="delete-loading" class="htmx-indicator" style="margin-left:8px;">Deleting...</span>
+	}
 }
 
-
-
 templ ReportInstance(instance models.InstanceConfig, allParamNames []string, outputPath string, instanceIndex int, isOOB bool) {
-    <tr id={ fmt.Sprintf("instance-%d", instanceIndex) } class={ getInstanceClassName(instance) } x-show={ fmt.Sprintf(`filters.searchQuery === '' || ('%s %s').toLowerCase().includes(filters.searchQuery.toLowerCase())`, instance.Name, instance.OutputPathV2) } if isOOB { hx-swap-oob="beforeend:#instances-table tbody" }>
-        <td>{ instance.AutoName } ({ instance.Name })</td>
-        <td>
-        if instance.Description != "" {
-            <pre style="white-space: pre-line">{ instance.Description } </pre>
-        }
-            @RenderParams(instance.Params)
-        </td>
-        <td>{ getRelativePath(instance.OutputPathV2, outputPath) }</td>
-        <td>{ fmt.Sprintf("%v", instance.IgnoredParams) }</td>
-        
-        <td>{ instance.SkippedReason }</td>
-        for _, paramName := range allParamNames {
-            if value, ok := instance.Params[paramName]; ok {
-                <td>{ fmt.Sprintf("%v", value) }</td>
-            } else {
-                <td class="is-italic" title="No Param for { paramName }">N/A</td>
-            }
-        }
-    </tr>
-    if instance.ConfigError != "" {
-        <tr id={ fmt.Sprintf("instance-error-%d", instanceIndex) } if isOOB { hx-swap-oob="beforeend:#instances-table tbody" }>        
-            <td colspan={ fmt.Sprintf("%d", len(allParamNames) + 2) } class="is-danger">{ instance.ConfigError }</td>
-        </tr>
-    }
-    if instance.SkippedReason != "" {
-       <tr id={ fmt.Sprintf("instance-skipped-%d", instanceIndex) } if isOOB { hx-swap-oob="beforeend:#instances-table tbody" }><td>{ instance.SkippedReason }</td> </tr>
-    }
-    if len(instance.ImageResults) > 0 {
-        <tr id={ fmt.Sprintf("instance-images-%d", instanceIndex) } if isOOB { hx-swap-oob="beforeend:#instances-table tbody" }>
-         <td colspan="100%">
-            for _, images := range instance.ImageResults {
-               <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(images.OutputPath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';" />
-            }
-            </td>
-        </tr>
-    }
+	<tr
+		id={ fmt.Sprintf("instance-%d", instanceIndex) }
+		class={ getInstanceClassName(instance) }
+		x-show={ fmt.Sprintf(`filters.searchQuery === '' || ('%s %s').toLowerCase().includes(filters.searchQuery.toLowerCase())`, instance.Name, instance.OutputPathV2) }
+		if isOOB {
+			hx-swap-oob="beforeend:#instances-table tbody"
+		}
+	>
+		<td>{ instance.AutoName } ({ instance.Name })</td>
+		<td>
+			if instance.Description != "" {
+				<pre style="white-space: pre-line">{ instance.Description } </pre>
+			}
+			@RenderParams(instance.Params)
+		</td>
+		<td>{ getRelativePath(instance.OutputPathV2, outputPath) }</td>
+		<td>{ fmt.Sprintf("%v", instance.IgnoredParams) }</td>
+		<td>{ instance.SkippedReason }</td>
+		for _, paramName := range allParamNames {
+			if value, ok := instance.Params[paramName]; ok {
+				<td>{ fmt.Sprintf("%v", value) }</td>
+			} else {
+				<td class="is-italic" title="No Param for { paramName }">N/A</td>
+			}
+		}
+	</tr>
+	if instance.ConfigError != "" {
+		<tr
+			id={ fmt.Sprintf("instance-error-%d", instanceIndex) }
+			if isOOB {
+				hx-swap-oob="beforeend:#instances-table tbody"
+			}
+		>
+			<td colspan={ fmt.Sprintf("%d", len(allParamNames)+2) } class="is-danger">{ instance.ConfigError }</td>
+		</tr>
+	}
+	if instance.SkippedReason != "" {
+		<tr
+			id={ fmt.Sprintf("instance-skipped-%d", instanceIndex) }
+			if isOOB {
+				hx-swap-oob="beforeend:#instances-table tbody"
+			}
+		><td>{ instance.SkippedReason }</td> </tr>
+	}
+	if len(instance.ImageResults) > 0 {
+		<tr
+			id={ fmt.Sprintf("instance-images-%d", instanceIndex) }
+			if isOOB {
+				hx-swap-oob="beforeend:#instances-table tbody"
+			}
+		>
+			<td colspan="100%">
+				for _, images := range instance.ImageResults {
+					<img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(images.OutputPath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"/>
+				}
+			</td>
+		</tr>
+	}
 }
 
 templ ReportSTLResult(stlResult models.GenerateSTLResult, outputPath string, resultIndex int, isOOB bool) {
-    <tr id={ fmt.Sprintf("stl-result-%d", resultIndex) } x-show={ fmt.Sprintf(`filters.searchQuery === '' || ('%s %s').toLowerCase().includes(filters.searchQuery.toLowerCase())`, stlResult.InstanceConfig.Name, stlResult.OutputPath) } if isOOB { hx-swap-oob="beforeend:#stl-results-table tbody" }>
-        <td>{ stlResult.InstanceConfig.Name }
-        if stlResult.Error != "" {
-            <div class="is-danger">{ stlResult.Error }</div>
-        }
-        </td>
-        <td><a href={ templ.SafeURL(getRelativePath(stlResult.OutputPath, outputPath)) } target="_blank"></a></td>
-        <td>{ formatDuration(stlResult.TimeTaken) }</td>
-        if len(stlResult.AppliedParams) > 0 {
-            <td> @RenderParams(stlResult.AppliedParams) </td>
-        } else {
-            <td>@CodeBlock(fmt.Sprintf("%v", stlResult.InstanceConfig.Params), true, false, "Copy Params") </td>
-        }
-        
-        <!-- <td>
+	<tr
+		id={ fmt.Sprintf("stl-result-%d", resultIndex) }
+		x-show={ fmt.Sprintf(`filters.searchQuery === '' || ('%s %s').toLowerCase().includes(filters.searchQuery.toLowerCase())`, stlResult.InstanceConfig.Name, stlResult.OutputPath) }
+		if isOOB {
+			hx-swap-oob="beforeend:#stl-results-table tbody"
+		}
+	>
+		<td>
+			{ stlResult.InstanceConfig.Name }
+			if stlResult.Error != "" {
+				<div class="is-danger">{ stlResult.Error }</div>
+			}
+		</td>
+		<td><a href={ templ.SafeURL(getRelativePath(stlResult.OutputPath, outputPath)) } target="_blank"></a></td>
+		<td>{ formatDuration(stlResult.TimeTaken) }</td>
+		if len(stlResult.AppliedParams) > 0 {
+			<td>
+				@RenderParams(stlResult.AppliedParams)
+			</td>
+		} else {
+			<td>
+				@CodeBlock(fmt.Sprintf("%v", stlResult.InstanceConfig.Params), true, false, "Copy Params")
+			</td>
+		}
+		<!-- <td>
             <details>
                 <summary>OpenSCAD Code</summary>
                 @CodeBlock( stlResult.InstanceConfig.InputPath.RawOpenSCADFile, true, false, "Copy OpenSCAD Code")
             </details>
         </td> -->
-        <td x-show="showDebug">
-            <details>
-                <summary>Command</summary>
-                @CodeBlock(stlResult.Command, true, false, "Copy Command")
-            </details>
-            if stlResult.Command != "" {
-                <details>
-                    <summary>Command</summary>
-                    @CodeBlock(stlResult.Command, true, false, "Copy Command")
-                </details>
-            }
-            if stlResult.CommandOutput != "" {
-                <details>
-                    <summary>Command Output</summary>
-                    @CodeBlock(stlResult.CommandOutput, true, false, "Copy Command Output")
-                </details>
-            }
-        </td>
-    </tr>
+		<td x-show="showDebug">
+			<details>
+				<summary>Command</summary>
+				@CodeBlock(stlResult.Command, true, false, "Copy Command")
+			</details>
+			if stlResult.Command != "" {
+				<details>
+					<summary>Command</summary>
+					@CodeBlock(stlResult.Command, true, false, "Copy Command")
+				</details>
+			}
+			if stlResult.CommandOutput != "" {
+				<details>
+					<summary>Command Output</summary>
+					@CodeBlock(stlResult.CommandOutput, true, false, "Copy Command Output")
+				</details>
+			}
+		</td>
+	</tr>
 }
 
 // ogInstanceClass labels each instance for the exported report layout filter (uses param renderType when set).
@@ -393,92 +466,87 @@ func getInstanceShow(instance models.InstanceConfig) string {
 }
 
 func buildPreviewSTLURL(instance models.InstanceConfig, reportMeta models.ReportMeta) templ.SafeURL {
-    return templ.SafeURL(fmt.Sprintf("/api/preview?instance=%s&file_path=%s&config_path=%s&server_folder=%s", instance.UniqueID, base64.StdEncoding.EncodeToString([]byte(instance.InputConfigFilePathRelative)), reportMeta.ConfigFilePathEncoded, reportMeta.ServerFolderEncoded))
+	return templ.SafeURL(fmt.Sprintf("/api/preview?instance=%s&file_path=%s&config_path=%s&server_folder=%s", instance.UniqueID, base64.StdEncoding.EncodeToString([]byte(instance.InputConfigFilePathRelative)), reportMeta.ConfigFilePathEncoded, reportMeta.ServerFolderEncoded))
+}
+
+func buildPreviewSTLFileUrl(instance models.InstanceConfig, reportMeta models.ReportMeta) templ.SafeURL {
+	return templ.SafeURL(fmt.Sprintf("file://%s", []byte(instance.InputConfigFilePathRelative)))
 }
 
 templ InstanceSlimRow(instance models.InstanceConfig, outputPath string, reportMode string, allParamNames []string, reportMeta models.ReportMeta) {
-    <div class="is-full-width" id={ fmt.Sprintf("instance-slim-row-%s", instance.UniqueID) }>
-        <details>
-        <summary class="columns">
-            <div class="column is-narrow">
-            { instance.AutoName } 
-            </div>
-            <div class="column is-narrow">
-            { instance.Description }
-            </div>
-            for _, stlResult := range instance.STLResults {
-                <div class="column is-narrow">
-                { stlResult.Error }
-                </div>
-            }
-            <div class="column is-narrow">
-            { instance.SkippedReason }
-            </div>
-            <div class="column is-narrow">
-            { instance.ConfigError }
-            </div>
-            <div class="column is-narrow">
-                <i class="fas fa-cog"></i>
-            </div>
-            
-        </summary>
-        <div class="card">
-            <div class="card-content">
-                    <div class="media">
-                        <div class="media-content">
-                            if instance.SkippedReason != "" {
-                                <p class="has-text-warning"><strong>Skipped:</strong> { instance.SkippedReason }</p>
-                            }
-                            if instance.SkippedImageReason != "" {
-                                <p class="has-text-warning"><strong>Skipped Image Reason:</strong> { instance.SkippedImageReason }</p>
-                            }
-                            if instance.ConfigError != "" {
-                                <p class="has-text-danger"><strong>Error:</strong> { instance.ConfigError }</p>
-                            }
-                            <div class="columns is-multiline">
-                            
-                            </div>
-
-                            @RenderParams(instance.Params) {
-                                if instance.SkippedReason != "" {
-                                    <p class="has-text-warning"><strong>Skipped:</strong> { instance.SkippedReason }</p>
-                                }
-                                <div class="fixed-grid has-4-cols">
-                                    <div class="grid is-multiline">
-                                            for _, paramName := range allParamNames {
-                                                if value, ok := instance.Params[paramName]; ok {
-                                                    <div class="cell is-one-third"><strong>{ paramName }:</strong> { fmt.Sprintf("%v", value) }</div>
-                                                }
-                                            }
-                                    </div>
-                                </div>
-                            }
-
-                            <details>
-                            <summary>
-                                Command Output
-                            </summary>
-
-                            if instance.STLResults != nil && len(instance.STLResults) > 0 {
-                                for _, stlResult := range instance.STLResults {
-                                    
-                                /*    @RenderParams(stlResult.AppliedParams)*/
-                                    <details>
-                                    if stlResult.Error != "" {
-                                        <summary class="has-text-danger">{ stlResult.InstanceConfig.AutoName }: { stlResult.Error }</summary>
-                                    } else {
-                                        <summary class="has-text-success">[{ formatDuration(stlResult.TimeTaken) }] - { stlResult.InstanceConfig.AutoName }   </summary>
-                                    }
-                                        @CodeBlock(stlResult.Command, true, false, "Copy Command")
-                                    </details>
-
-                                    @CodeBlock(stlResult.OutputLog, true, false, "Copy Command Output")
-                                }
-                            } else {
-                                <p>No STL results</p>
-                            }
-
-                            /*if instance.ImageResults != nil && len(instance.ImageResults) > 0 {
+	<div class="is-full-width" id={ fmt.Sprintf("instance-slim-row-%s", instance.UniqueID) }>
+		<details>
+			<summary class="columns">
+				<div class="column is-narrow">
+					{ instance.AutoName }
+				</div>
+				<div class="column is-narrow">
+					{ instance.Description }
+				</div>
+				for _, stlResult := range instance.STLResults {
+					<div class="column is-narrow">
+						{ stlResult.Error }
+					</div>
+				}
+				<div class="column is-narrow">
+					{ instance.SkippedReason }
+				</div>
+				<div class="column is-narrow">
+					{ instance.ConfigError }
+				</div>
+				<div class="column is-narrow">
+					<i class="fas fa-cog"></i>
+				</div>
+			</summary>
+			<div class="card">
+				<div class="card-content">
+					<div class="media">
+						<div class="media-content">
+							if instance.SkippedReason != "" {
+								<p class="has-text-warning"><strong>Skipped:</strong> { instance.SkippedReason }</p>
+							}
+							if instance.SkippedImageReason != "" {
+								<p class="has-text-warning"><strong>Skipped Image Reason:</strong> { instance.SkippedImageReason }</p>
+							}
+							if instance.ConfigError != "" {
+								<p class="has-text-danger"><strong>Error:</strong> { instance.ConfigError }</p>
+							}
+							<div class="columns is-multiline"></div>
+							@RenderParams(instance.Params) {
+								if instance.SkippedReason != "" {
+									<p class="has-text-warning"><strong>Skipped:</strong> { instance.SkippedReason }</p>
+								}
+								<div class="fixed-grid has-4-cols">
+									<div class="grid is-multiline">
+										for _, paramName := range allParamNames {
+											if value, ok := instance.Params[paramName]; ok {
+												<div class="cell is-one-third"><strong>{ paramName }:</strong> { fmt.Sprintf("%v", value) }</div>
+											}
+										}
+									</div>
+								</div>
+							}
+							<details>
+								<summary>
+									Command Output
+								</summary>
+								if instance.STLResults != nil && len(instance.STLResults) > 0 {
+									for _, stlResult := range instance.STLResults {
+										/*    @RenderParams(stlResult.AppliedParams)*/
+										<details>
+											if stlResult.Error != "" {
+												<summary class="has-text-danger">{ stlResult.InstanceConfig.AutoName }: { stlResult.Error }</summary>
+											} else {
+												<summary class="has-text-success">[{ formatDuration(stlResult.TimeTaken) }] - { stlResult.InstanceConfig.AutoName } </summary>
+											}
+											@CodeBlock(stlResult.Command, true, false, "Copy Command")
+										</details>
+										@CodeBlock(stlResult.OutputLog, true, false, "Copy Command Output")
+									}
+								} else {
+									<p>No STL results</p>
+								}
+								/*if instance.ImageResults != nil && len(instance.ImageResults) > 0 {
 
                                     <div class="columns">
                                 for _, imageResult := range instance.ImageResults {
@@ -502,18 +570,18 @@ templ InstanceSlimRow(instance models.InstanceConfig, outputPath string, reportM
                             } else {
                                 <p>No image results</p>
                             }*/
-                            </details>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </details>
-    </div>
+							</details>
+						</div>
+					</div>
+				</div>
+			</div>
+		</details>
+	</div>
 }
 
 templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMode string, allParamNames []string, reportMeta models.ReportMeta) {
-    @JSONViewerWithStyle(fmt.Sprintf("Instance %s", instance.AutoName), instance)
-    /*if instance.IsComplete {
+	@JSONViewerWithStyle(fmt.Sprintf("Instance %s", instance.AutoName), instance)
+	/*if instance.IsComplete {
         <div hx-swap-oob="beforeend:#instances-grid"> 
             <div class="column">
                 <div class="card">
@@ -534,246 +602,257 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
             </div>
         </div>
     }*/
-    <div x-show="showDebug">
-        [[InstanceCardV2 - { instance.AutoName }]]
-    </div>
-    <div x-show="showDebug" class="debug-filter-status" style="border-radius: 4px; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px;">
-        <details><summary tyle="font-weight: bold; margin-bottom: 8px;">🔍 Filter Debug for { instance.AutoName }</summary>
-        @DebugAlpineState("showDebug", "showDebug")
-         @DebugAlpineState("filters.showOnlyWithImages", "filters.showOnlyWithImages")
-         @DebugAlpineState( fmt.Sprintf("filters.showOnlyWithImages || (%v > 0 || %v > 0)", len(instance.ImageResults), len(instance.ExportImages)),"showOnlyWithImages")
-        @DebugAlpineState("filters.searchQuery === '' || ('%s %s %s').toLowerCase().includes(filters.searchQuery.toLowerCase())", fmt.Sprintf("Search: '%s'", instance.AutoName))
-        @DebugAlpineState("filters.namePattern === '' || '%s'.toLowerCase().includes(filters.namePattern.toLowerCase())", instance.AutoName)
-        @DebugAlpineState("filters.descriptionPattern === '' || '%s'.toLowerCase().includes(filters.descriptionPattern.toLowerCase())", instance.Description)
-        @DebugAlpineState("filters.outputPathPattern === '' || '%s'.toLowerCase().includes(filters.outputPathPattern.toLowerCase())", instance.RunOutputPathV3)
-        @DebugAlpineState(getInstanceShow(instance), "FINAL RESULT")
-       </details>
-    </div>
-
-    <div class="column is-full" id={ fmt.Sprintf("instance-%s", instance.UniqueID) } hx-swap-oob="true"
-    data-og-class={ ogInstanceClass(instance) }
-    x-show={getInstanceShow(instance)}
-    >
-        <div class="card instance-card-v2">
-            <div class="card-content instance-card-v2__inner">
-                <div class="instance-card-v2__body">
-                    <div class="media instance-card-v2__head">
-                        <div class="media-content">
-                            <p class="title is-4">{ instance.AutoName } </p>
-                            if instance.Description != "" {
-                                <p class="subtitle is-6">{ instance.Description }</p>
-                            }
-                        </div>
-                    </div>
-                    <div class="content instance-card-v2__meta">
-                        if instance.IsComplete {
-                            <p class="has-text-success instance-card-v2__line"><i class="fas fa-check-circle"></i> { instance.CompletedAt.Format("15:04") } { instance.CompletedAt.Format("2006-01-02") }</p>
-                        }
-                        if instance.SkippedReason != "" {
-                            <p class="has-text-warning instance-card-v2__line"><strong>Skipped:</strong> { instance.SkippedReason }</p>
-                        }
-                        if instance.SkippedImageReason != "" {
-                            <p class="has-text-warning instance-card-v2__line"><strong>Image:</strong> { instance.SkippedImageReason }</p>
-                        }
-                        <p class="instance-card-v2__line instance-card-v2__path"><span class="has-text-weight-semibold">Output:</span> { getRelativePath(instance.RunOutputPathV3, outputPath) }</p>
-                        if instance.ConfigError != "" {
-                            if failedSTLResults := getFailedSTLResults(instance); len(failedSTLResults) > 0 {
-                                <details class="instance-card-v2__error-details">
-                                    <summary class="has-text-danger instance-card-v2__line instance-card-v2__error-summary"><strong>Error:</strong> { instance.ConfigError }</summary>
-                                    <div class="instance-card-v2__error-panel">
-                                        for _, stlResult := range failedSTLResults {
-                                            if stlResult.Command != "" {
-                                                <div>
-                                                    <p class="instance-card-v2__error-label">OpenSCAD command</p>
-                                                    @CodeBlock(stlResult.Command, true, false, "Copy Command")
-                                                </div>
-                                            }
-                                            if errorLog := getSTLErrorLog(stlResult); errorLog != "" {
-                                                <div>
-                                                    <p class="instance-card-v2__error-label">Full error log</p>
-                                                    @CodeBlock(errorLog, true, false, "Copy Error Log")
-                                                </div>
-                                            }
-                                        }
-                                    </div>
-                                </details>
-                            } else {
-                                <p class="has-text-danger instance-card-v2__line"><strong>Error:</strong> { instance.ConfigError }</p>
-                            }
-                        }
-                    </div>
-                </div>
-                <div class="instance-card-v2__thumb">
-                    if len(instance.ImageResults) > 0 {
-                        for _, images := range instance.ImageResults {
-                            if reportMeta.IsServerMode {
-                                <img src={ buildServerImageURL(images.OutputPath, outputPath, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview" />
-                            } else {
-                                <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(images.OutputPath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview" />
-                            }
-                        }
-                    } else if len(instance.ExportImages) > 0 {
-                        for _, images := range instance.ExportImages {
-                            if reportMeta.IsServerMode {
-                                <img src={ buildServerImageURL(images.RunOutputImagePath, outputPath, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview" />
-                            } else {
-                                <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(images.RunOutputImagePath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview" />
-                            }
-                        }
-                    }
-                </div>
-                if instance.IsComplete {
-                    <div class="instance-card-v2__extras">
-                        @InstanceSlimRow(instance, outputPath, reportMode, allParamNames, reportMeta)
-                    </div>
-                }
-                <div class="instance-card-v2__actions">
-                    if reportMeta.IsServerMode {
-                        <a class="button is-small is-light" href={ buildPreviewSTLURL(instance, reportMeta) } target="_blank">Preview STL</a>
-                    }
-                    if reportMeta.IsServerMode {
-                        <form
-                            class="is-inline og-process-form"
-                            data-og-process-form="instance"
-                            hx-put="/"
-                            hx-target="#process-status"
-                            hx-on::before-request="window.ogMarkProcessButtonLoading(this)">
-                            <input type="hidden" name="config_path" value={ reportMeta.ConfigFilePathEncoded }>
-                            <input type="hidden" name="server_folder" value={ reportMeta.ServerFolderEncoded }>
-                            <input type="hidden" name="page_instances_signature" value={ reportMeta.InstanceSetSignature }>
-                            <input type="hidden" name="regex" value={ instance.AutoName }>
-                            <button class="button is-small is-primary og-process-button" type="submit">Process</button>
-                        </form>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
+	<div x-show="showDebug">
+		[[InstanceCardV2 - { instance.AutoName }]]
+	</div>
+	<div x-show="showDebug" class="debug-filter-status" style="border-radius: 4px; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px;">
+		<details>
+			<summary tyle="font-weight: bold; margin-bottom: 8px;">🔍 Filter Debug for { instance.AutoName }</summary>
+			@DebugAlpineState("showDebug", "showDebug")
+			@DebugAlpineState("filters.showOnlyWithImages", "filters.showOnlyWithImages")
+			@DebugAlpineState(fmt.Sprintf("filters.showOnlyWithImages || (%v > 0 || %v > 0)", len(instance.ImageResults), len(instance.ExportImages)), "showOnlyWithImages")
+			@DebugAlpineState("filters.searchQuery === '' || ('%s %s %s').toLowerCase().includes(filters.searchQuery.toLowerCase())", fmt.Sprintf("Search: '%s'", instance.AutoName))
+			@DebugAlpineState("filters.namePattern === '' || '%s'.toLowerCase().includes(filters.namePattern.toLowerCase())", instance.AutoName)
+			@DebugAlpineState("filters.descriptionPattern === '' || '%s'.toLowerCase().includes(filters.descriptionPattern.toLowerCase())", instance.Description)
+			@DebugAlpineState("filters.outputPathPattern === '' || '%s'.toLowerCase().includes(filters.outputPathPattern.toLowerCase())", instance.RunOutputPathV3)
+			@DebugAlpineState(getInstanceShow(instance), "FINAL RESULT")
+		</details>
+	</div>
+	<div
+		class="column is-full"
+		id={ fmt.Sprintf("instance-%s", instance.UniqueID) }
+		hx-swap-oob="true"
+		data-og-class={ ogInstanceClass(instance) }
+		data-og-params={ getJSONAttr(instance.Params) }
+		x-show={ getInstanceShow(instance) }
+	>
+		<div class="card instance-card-v2">
+			<div class="card-content instance-card-v2__inner">
+				<div class="instance-card-v2__body">
+					<div class="media instance-card-v2__head">
+						<div class="media-content">
+							<p class="title is-4">{ instance.AutoName } </p>
+							if instance.Description != "" {
+								<p class="subtitle is-6">{ instance.Description }</p>
+							}
+						</div>
+					</div>
+					<div class="content instance-card-v2__meta">
+						if instance.IsComplete {
+							<p class="has-text-success instance-card-v2__line"><i class="fas fa-check-circle"></i> { instance.CompletedAt.Format("15:04") } { instance.CompletedAt.Format("2006-01-02") }</p>
+						}
+						if instance.SkippedReason != "" {
+							<p class="has-text-warning instance-card-v2__line"><strong>Skipped:</strong> { instance.SkippedReason }</p>
+						}
+						if instance.SkippedImageReason != "" {
+							<p class="has-text-warning instance-card-v2__line"><strong>Image:</strong> { instance.SkippedImageReason }</p>
+						}
+						<p class="instance-card-v2__line instance-card-v2__path"><span class="has-text-weight-semibold">Output:</span> { getRelativePath(instance.RunOutputPathV3, outputPath) }</p>
+						if instance.ConfigError != "" {
+							if failedSTLResults := getFailedSTLResults(instance); len(failedSTLResults) > 0 {
+								<details class="instance-card-v2__error-details">
+									<summary class="has-text-danger instance-card-v2__line instance-card-v2__error-summary"><strong>Error:</strong> { instance.ConfigError }</summary>
+									<div class="instance-card-v2__error-panel">
+										for _, stlResult := range failedSTLResults {
+											if stlResult.Command != "" {
+												<div>
+													<p class="instance-card-v2__error-label">OpenSCAD command</p>
+													@CodeBlock(stlResult.Command, true, false, "Copy Command")
+												</div>
+											}
+											if errorLog := getSTLErrorLog(stlResult); errorLog != "" {
+												<div>
+													<p class="instance-card-v2__error-label">Full error log</p>
+													@CodeBlock(errorLog, true, false, "Copy Error Log")
+												</div>
+											}
+										}
+									</div>
+								</details>
+							} else {
+								<p class="has-text-danger instance-card-v2__line"><strong>Error:</strong> { instance.ConfigError }</p>
+							}
+						}
+					</div>
+				</div>
+				<div class="instance-card-v2__thumb">
+					if len(instance.ImageResults) > 0 {
+						for _, images := range instance.ImageResults {
+							if reportMeta.IsServerMode {
+								<img src={ buildServerImageURL(images.OutputPath, outputPath, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview"/>
+							} else {
+								<img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(images.OutputPath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview"/>
+							}
+						}
+					} else if len(instance.ExportImages) > 0 {
+						for _, images := range instance.ExportImages {
+							if reportMeta.IsServerMode {
+								<img src={ buildServerImageURL(images.RunOutputImagePath, outputPath, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview"/>
+							} else {
+								<img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(images.RunOutputImagePath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview"/>
+							}
+						}
+					}
+				</div>
+				if instance.IsComplete {
+					<div class="instance-card-v2__extras">
+						@InstanceSlimRow(instance, outputPath, reportMode, allParamNames, reportMeta)
+					</div>
+				}
+				<div class="instance-card-v2__actions">
+					if reportMeta.IsServerMode {
+						<a class="button is-small is-light" href={ buildPreviewSTLFileUrl(instance, reportMeta) } target="_blank">Open STL</a>
+					}
+					if reportMeta.IsServerMode {
+						<a class="button is-small is-light" href={ buildPreviewSTLURL(instance, reportMeta) } target="_blank">Preview STL</a>
+					}
+					if reportMeta.IsServerMode {
+						<form
+							class="is-inline og-process-form"
+							data-og-process-form="instance"
+							hx-put="/"
+							hx-target="#process-status"
+							hx-on::before-request="window.ogMarkProcessButtonLoading(this)"
+						>
+							<input type="hidden" name="config_path" value={ reportMeta.ConfigFilePathEncoded }/>
+							<input type="hidden" name="server_folder" value={ reportMeta.ServerFolderEncoded }/>
+							<input type="hidden" name="page_instances_signature" value={ reportMeta.InstanceSetSignature }/>
+							<input type="hidden" name="regex" value={ instance.AutoName }/>
+							<button class="button is-small is-primary og-process-button" type="submit">Process</button>
+							<span class="htmx-indicator og-process-inline-indicator" data-og-process-indicator style="margin-left: 0.5rem;">
+								<span class="icon is-small"><i class="fas fa-spinner fa-spin"></i></span>
+								<span class="og-process-indicator__text">Processing...</span>
+							</span>
+						</form>
+					}
+				</div>
+			</div>
+		</div>
+	</div>
 }
 
 // (coming soon)
 templ InstanceRowV3(instance models.InstanceConfig, outputPath string, reportMode string, allParamNames []string, reportMeta models.ReportMeta) {
-    @JSONViewerWithStyle(fmt.Sprintf("Instance %s", instance.AutoName), instance)
-    [[InstanceRowV3 - { instance.AutoName }]]
-    <div x-show="showDebug" class="debug-filter-status" style="border-radius: 4px; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px;">
-        <details><summary style="font-weight: bold; margin-bottom: 8px;">🔍 Filter Debug for { instance.AutoName }</summary>
-        
-        @DebugAlpineState("showDebug", "showDebug")
-        @DebugAlpineState("showOnlyWithImages", "showOnlyWithImages")
-        @DebugAlpineState("filters.searchQuery === '' || ('%s %s %s').toLowerCase().includes(filters.searchQuery.toLowerCase())", fmt.Sprintf("Search: '%s'", instance.AutoName))
-        @DebugAlpineState("filters.namePattern === '' || '%s'.toLowerCase().includes(filters.namePattern.toLowerCase())", instance.AutoName)
-        @DebugAlpineState("filters.descriptionPattern === '' || '%s'.toLowerCase().includes(filters.descriptionPattern.toLowerCase())", instance.Description)
-        @DebugAlpineState("filters.outputPathPattern === '' || '%s'.toLowerCase().includes(filters.outputPathPattern.toLowerCase())", instance.RunOutputPathV3)
-        @DebugAlpineState(getInstanceShow(instance), "FINAL RESULT")
-       </details>
-    </div>
-
-    <tr id={ fmt.Sprintf("instance-%s", instance.UniqueID) } hx-swap-oob="true"
-    x-show={getInstanceShow(instance)}
-    >
-        <!-- Name and Description -->
-        <td>
-            <div>
-                <strong class="title is-6">{ instance.AutoName }</strong>
-                if instance.Description != "" {
-                    <br>
-                    <span class="subtitle is-7">{ instance.Description }</span>
-                }
-            </div>
-        </td>
-        
-        <!-- Status -->
-        <td>
-            if instance.ConfigError != "" {
-                <span class="tag is-danger">Error</span>
-            } else if instance.SkippedReason != "" {
-                <span class="tag is-warning">Skipped</span>
-            } else {
-                <span class="tag is-success">Success</span>
-            }
-        </td>
-        
-        <!-- Parameters -->
-        <td>
-            <div class="tags are-small">
-                for _, paramName := range allParamNames {
-                    if value, ok := instance.Params[paramName]; ok {
-                        <span class="tag is-light">
-                            <strong>{ paramName }:</strong> { fmt.Sprintf("%v", value) }
-                        </span>
-                    }
-                }
-            </div>
-        </td>
-        
-        <!-- Images -->
-        <td>
-            if len(instance.ImageResults) > 0 {
-                for _, images := range instance.ImageResults {
-                    if reportMeta.IsServerMode {
-                        <img src={ buildServerImageURL(images.OutputPath, outputPath, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32" />
-                    } else {
-                        <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(images.OutputPath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32" />
-                    }
-                }
-            } else if len(instance.ExportImages) > 0 {
-                for _, images := range instance.ExportImages {
-                    if reportMeta.IsServerMode {
-                        <img src={ buildServerImageURL(images.RunOutputImagePath, outputPath, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32" />
-                    } else {
-                        <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(images.RunOutputImagePath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32" />
-                    }
-                }
-            } else {
-                <span class="has-text-grey">No images</span>
-            }
-        </td>
-        
-        <!-- Output Path -->
-        <td>
-            <a href={ templ.SafeURL(fmt.Sprintf("file:/%s", instance.RunOutputPathV3)) } target="_blank" class="is-size-7">
-                { getRelativePath(instance.RunOutputPathV3, outputPath) }
-            </a>
-        </td>
-        
-        <!-- Actions -->
-        <td>
-            if reportMeta.IsServerMode {
-                <form
-                    class="is-inline og-process-form"
-                    data-og-process-form="instance"
-                    hx-put="/"
-                    hx-target="#process-status"
-                    hx-on::before-request="window.ogMarkProcessButtonLoading(this)">
-                    <input type="hidden" name="config_path" value={ reportMeta.ConfigFilePathEncoded }>
-                    <input type="hidden" name="server_folder" value={ reportMeta.ServerFolderEncoded }>
-                    <input type="hidden" name="page_instances_signature" value={ reportMeta.InstanceSetSignature }>
-                    <input type="hidden" name="regex" value={ instance.AutoName }>
-                    <button class="button is-small is-primary og-process-button" type="submit">Process</button>
-                </form>
-            }
-        </td>
-        
-        <!-- Error/Skip Messages -->
-        if instance.ConfigError != "" || instance.SkippedReason != "" {
-            <td>
-                if instance.ConfigError != "" {
-                    <span class="has-text-danger is-size-7">{ instance.ConfigError }</span>
-                }
-                if instance.SkippedReason != "" {
-                    <span class="has-text-warning is-size-7">{ instance.SkippedReason }</span>
-                }
-            </td>
-        }
-    </tr>
+	@JSONViewerWithStyle(fmt.Sprintf("Instance %s", instance.AutoName), instance)
+	[[InstanceRowV3 - { instance.AutoName }]]
+	<div x-show="showDebug" class="debug-filter-status" style="border-radius: 4px; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px;">
+		<details>
+			<summary style="font-weight: bold; margin-bottom: 8px;">🔍 Filter Debug for { instance.AutoName }</summary>
+			@DebugAlpineState("showDebug", "showDebug")
+			@DebugAlpineState("showOnlyWithImages", "showOnlyWithImages")
+			@DebugAlpineState("filters.searchQuery === '' || ('%s %s %s').toLowerCase().includes(filters.searchQuery.toLowerCase())", fmt.Sprintf("Search: '%s'", instance.AutoName))
+			@DebugAlpineState("filters.namePattern === '' || '%s'.toLowerCase().includes(filters.namePattern.toLowerCase())", instance.AutoName)
+			@DebugAlpineState("filters.descriptionPattern === '' || '%s'.toLowerCase().includes(filters.descriptionPattern.toLowerCase())", instance.Description)
+			@DebugAlpineState("filters.outputPathPattern === '' || '%s'.toLowerCase().includes(filters.outputPathPattern.toLowerCase())", instance.RunOutputPathV3)
+			@DebugAlpineState(getInstanceShow(instance), "FINAL RESULT")
+		</details>
+	</div>
+	<tr
+		id={ fmt.Sprintf("instance-%s", instance.UniqueID) }
+		hx-swap-oob="true"
+		x-show={ getInstanceShow(instance) }
+	>
+		<!-- Name and Description -->
+		<td>
+			<div>
+				<strong class="title is-6">{ instance.AutoName }</strong>
+				if instance.Description != "" {
+					<br/>
+					<span class="subtitle is-7">{ instance.Description }</span>
+				}
+			</div>
+		</td>
+		<!-- Status -->
+		<td>
+			if instance.ConfigError != "" {
+				<span class="tag is-danger">Error</span>
+			} else if instance.SkippedReason != "" {
+				<span class="tag is-warning">Skipped</span>
+			} else {
+				<span class="tag is-success">Success</span>
+			}
+		</td>
+		<!-- Parameters -->
+		<td>
+			<div class="tags are-small">
+				for _, paramName := range allParamNames {
+					if value, ok := instance.Params[paramName]; ok {
+						<span class="tag is-light">
+							<strong>{ paramName }:</strong> { fmt.Sprintf("%v", value) }
+						</span>
+					}
+				}
+			</div>
+		</td>
+		<!-- Images -->
+		<td>
+			if len(instance.ImageResults) > 0 {
+				for _, images := range instance.ImageResults {
+					if reportMeta.IsServerMode {
+						<img src={ buildServerImageURL(images.OutputPath, outputPath, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32"/>
+					} else {
+						<img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(images.OutputPath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32"/>
+					}
+				}
+			} else if len(instance.ExportImages) > 0 {
+				for _, images := range instance.ExportImages {
+					if reportMeta.IsServerMode {
+						<img src={ buildServerImageURL(images.RunOutputImagePath, outputPath, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32"/>
+					} else {
+						<img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(images.RunOutputImagePath, outputPath)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32"/>
+					}
+				}
+			} else {
+				<span class="has-text-grey">No images</span>
+			}
+		</td>
+		<!-- Output Path -->
+		<td>
+			<a href={ templ.SafeURL(fmt.Sprintf("file:/%s", instance.RunOutputPathV3)) } target="_blank" class="is-size-7">
+				{ getRelativePath(instance.RunOutputPathV3, outputPath) }
+			</a>
+		</td>
+		<!-- Actions -->
+		<td>
+			if reportMeta.IsServerMode {
+				<form
+					class="is-inline og-process-form"
+					data-og-process-form="instance"
+					hx-put="/"
+					hx-target="#process-status"
+					hx-on::before-request="window.ogMarkProcessButtonLoading(this)"
+				>
+					<input type="hidden" name="config_path" value={ reportMeta.ConfigFilePathEncoded }/>
+					<input type="hidden" name="server_folder" value={ reportMeta.ServerFolderEncoded }/>
+					<input type="hidden" name="page_instances_signature" value={ reportMeta.InstanceSetSignature }/>
+					<input type="hidden" name="regex" value={ instance.AutoName }/>
+					<button class="button is-small is-primary og-process-button" type="submit">Process</button>
+					<span class="htmx-indicator og-process-inline-indicator" data-og-process-indicator style="margin-left: 0.5rem;">
+						<span class="icon is-small"><i class="fas fa-spinner fa-spin"></i></span>
+						<span class="og-process-indicator__text">Processing...</span>
+					</span>
+				</form>
+			}
+		</td>
+		<!-- Error/Skip Messages -->
+		if instance.ConfigError != "" || instance.SkippedReason != "" {
+			<td>
+				if instance.ConfigError != "" {
+					<span class="has-text-danger is-size-7">{ instance.ConfigError }</span>
+				}
+				if instance.SkippedReason != "" {
+					<span class="has-text-warning is-size-7">{ instance.SkippedReason }</span>
+				}
+			</td>
+		}
+	</tr>
 }
 
-
 templ HeadLinks() {
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <style>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+	<style>
             .openscad-nav-details > .openscad-nav-summary {
                 list-style: none;
                 cursor: pointer;
@@ -782,28 +861,173 @@ templ HeadLinks() {
                 display: none;
             }
         </style>
-        <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
-        <script src="/static/js/utils.js"></script>
-        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
+	<script src="/static/js/utils.js"></script>
+	<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+	<!--
+		(function() {
+			var healthPollTimer = null;
+			var healthTimeoutTimer = null;
+			var lastActivityAt = 0;
+			var pollingWindowMs = 15000;
+			var pollEveryMs = 300000;
+			var maxConsecutiveFailures = 3;
+			var consecutiveFailures = 0;
+
+			function setHealthBadge(text, state) {
+				var badge = document.getElementById('openscadgen-health-badge');
+				if (!badge) {
+					return;
+				}
+				badge.textContent = text;
+				badge.dataset.healthState = state;
+				badge.classList.remove('is-success', 'is-danger', 'is-warning', 'is-light');
+				if (state === 'ok') {
+					badge.classList.add('is-success', 'is-light');
+				} else if (state === 'error') {
+					badge.classList.add('is-danger', 'is-light');
+				} else if (state === 'loading') {
+					badge.classList.add('is-warning', 'is-light');
+				} else {
+					badge.classList.add('is-light');
+				}
+			}
+
+			function stopHealthPolling() {
+				if (healthPollTimer) {
+					window.clearTimeout(healthPollTimer);
+					healthPollTimer = null;
+				}
+				if (healthTimeoutTimer) {
+					window.clearTimeout(healthTimeoutTimer);
+					healthTimeoutTimer = null;
+				}
+			}
+
+			function scheduleNextPoll(delayMs) {
+				if (healthPollTimer) {
+					window.clearTimeout(healthPollTimer);
+				}
+				healthPollTimer = window.setTimeout(pollHealth, delayMs);
+			}
+
+			function scheduleIdleStop() {
+				if (healthTimeoutTimer) {
+					window.clearTimeout(healthTimeoutTimer);
+				}
+				healthTimeoutTimer = window.setTimeout(function() {
+					if (Date.now() - lastActivityAt > pollingWindowMs) {
+						stopHealthPolling();
+					}
+				}, 1000);
+			}
+
+			async function pollHealth() {
+				var badge = document.getElementById('openscadgen-health-badge');
+				if (!badge) {
+					stopHealthPolling();
+					return;
+				}
+				if (document.hidden) {
+					return;
+				}
+				if (Date.now() - lastActivityAt > pollingWindowMs) {
+					stopHealthPolling();
+					return;
+				}
+				setHealthBadge('openscadgen…', 'loading');
+				try {
+					var response = await fetch(badge.dataset.healthUrl || '/health', {
+						method: 'GET',
+						cache: 'no-store',
+						headers: { 'Accept': 'application/json' }
+					});
+					if (!response.ok) {
+						throw new Error('HTTP ' + response.status);
+					}
+					var data = await response.json();
+					if (data && data.ok) {
+						consecutiveFailures = 0;
+						setHealthBadge('openscadgen OK', 'ok');
+						scheduleNextPoll(pollEveryMs);
+					} else {
+						consecutiveFailures++;
+						if (consecutiveFailures >= maxConsecutiveFailures) {
+							setHealthBadge('openscadgen unavailable', 'error');
+							stopHealthPolling();
+						} else {
+							setHealthBadge('openscadgen down, retrying', 'error');
+							scheduleNextPoll(pollEveryMs * consecutiveFailures);
+						}
+					}
+				} catch (err) {
+					consecutiveFailures++;
+					if (consecutiveFailures >= maxConsecutiveFailures) {
+						setHealthBadge('openscadgen unavailable', 'error');
+						stopHealthPolling();
+					} else {
+						setHealthBadge('openscadgen down, retrying', 'error');
+						scheduleNextPoll(pollEveryMs * consecutiveFailures);
+					}
+				}
+			}
+
+			function scheduleHealthPolling() {
+				var badge = document.getElementById('openscadgen-health-badge');
+				if (!badge) {
+					stopHealthPolling();
+					return;
+				}
+				lastActivityAt = Date.now();
+				consecutiveFailures = 0;
+				scheduleIdleStop();
+				pollHealth();
+			}
+
+			function markHealthActivity() {
+				if (document.getElementById('openscadgen-health-badge')) {
+					scheduleHealthPolling();
+				}
+			}
+
+			document.addEventListener('mousemove', markHealthActivity, { passive: true });
+			document.addEventListener('mousedown', markHealthActivity, { passive: true });
+			document.addEventListener('keydown', markHealthActivity);
+			document.addEventListener('scroll', markHealthActivity, { passive: true });
+			document.addEventListener('touchstart', markHealthActivity, { passive: true });
+			document.addEventListener('visibilitychange', function() {
+				if (!document.hidden) {
+					markHealthActivity();
+				}
+			});
+			document.addEventListener('htmx:afterSwap', markHealthActivity);
+			document.addEventListener('htmx:afterRequest', markHealthActivity);
+			window.addEventListener('load', function() {
+				if (document.getElementById('openscadgen-health-badge')) {
+					scheduleHealthPolling();
+				}
+			});
+		})();
+	-->
 }
 
 templ Report(reportMode string, config *models.Config, instances []models.InstanceConfig, outputPath string, stlResults []models.GenerateSTLResult, imageResults []models.GenerateImageResult, allParamNames []string, reportMeta models.ReportMeta, totalTimeTaken time.Duration, msg templ.Component) {
-    <!DOCTYPE html>
-    <html lang="en" x-data="alpineReportData()" x-init="init()">
-        <head>
-            <meta charset="UTF-8"/>
-            <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-            <base href="."/>
-            <title>
-            if config != nil &&config.Design.Name != "" {
-                { config.Design.Name } - OpenSCAD Generation Report
-            } else {
-                OpenSCAD Generation Report
-            }
-            </title>
-            @HeadLinks()
-<script>
+	<!DOCTYPE html>
+	<html lang="en" x-data="alpineReportData()" x-init="init()">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<base href="."/>
+			<title>
+				if config != nil &&config.Design.Name != "" {
+					{ config.Design.Name } - OpenSCAD Generation Report
+				} else {
+					OpenSCAD Generation Report
+				}
+			</title>
+			@HeadLinks()
+			<script>
         function alpineReportData() {
             return {
                 darkMode: true,
@@ -816,6 +1040,8 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
                 instanceClassFilter: (function () { try { return localStorage.getItem('og-report-instance-class') || 'all'; } catch (e) { return 'all'; } })(),
                 instanceLayout: (function () { try { var v = localStorage.getItem('og-report-instance-layout'); if (v === 'list' || v === 'grid' || v === 'large') return v; } catch (e) {} return 'grid'; })(),
                 instanceClassOptions: [],
+                paramFilterOptions: [],
+                paramFilterSingles: [],
                 // Advanced filtering options
                 filters: {
                     searchQuery: '',
@@ -893,13 +1119,8 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
                         if (!paramValue) continue;
                         const instanceValue = instance.Params[paramName];
                         if (instanceValue === undefined) return false;
-                        
-                        // Support different comparison types
-                        if (typeof paramValue === 'string') {
-                            if (!String(instanceValue).toLowerCase().includes(paramValue.toLowerCase())) {
-                                return false;
-                            }
-                        } else if (instanceValue !== paramValue) {
+
+                        if (String(instanceValue) !== String(paramValue)) {
                             return false;
                         }
                     }
@@ -982,11 +1203,43 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
                         const root = document.getElementById('instances-grid');
                         if (!root) return;
                         const s = {};
+                        const paramValues = {};
                         root.querySelectorAll('[data-og-class]').forEach((el) => {
                             const c = el.getAttribute('data-og-class') || 'default';
                             s[c] = true;
                         });
+                        root.querySelectorAll('[data-og-params]').forEach((el) => {
+                            try {
+                                const params = JSON.parse(el.getAttribute('data-og-params') || '{}');
+                                Object.entries(params).forEach(([name, value]) => {
+                                    const type = typeof value;
+                                    if (!(type === 'string' || type === 'number' || type === 'boolean')) {
+                                        return;
+                                    }
+                                    if (!paramValues[name]) {
+                                        paramValues[name] = {};
+                                    }
+                                    paramValues[name][String(value)] = true;
+                                });
+                            } catch (e) {
+                                // ignore malformed data attributes
+                            }
+                        });
                         this.instanceClassOptions = Object.keys(s).sort();
+                        this.paramFilterOptions = Object.entries(paramValues)
+                            .map(([name, values]) => ({
+                                name,
+                                options: Object.keys(values).sort(),
+                            }))
+                            .filter(({ options }) => options.length > 1)
+                            .sort((a, b) => a.name.localeCompare(b.name));
+                        this.paramFilterSingles = Object.entries(paramValues)
+                            .map(([name, values]) => ({
+                                name,
+                                value: Object.keys(values).sort()[0],
+                            }))
+                            .filter(({ name }) => !this.paramFilterOptions.some((option) => option.name === name))
+                            .sort((a, b) => a.name.localeCompare(b.name));
                         if (this.instanceClassFilter !== 'all' && this.instanceClassOptions.indexOf(this.instanceClassFilter) < 0) {
                             this.instanceClassFilter = 'all';
                         }
@@ -1132,7 +1385,36 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
                 return;
             }
             button.classList.add('og-process-button--loading');
+            formEl.dataset.ogProcessState = 'loading';
+            const indicator = formEl.querySelector('[data-og-process-indicator]');
+            if (indicator) {
+                indicator.classList.remove('og-process-indicator--failed');
+                const text = indicator.querySelector('.og-process-indicator__text');
+                if (text) {
+                    text.textContent = 'Processing...';
+                }
+            }
             button.setAttribute('aria-busy', 'true');
+        }
+
+        function ogMarkProcessButtonFailed(formEl) {
+            if (!formEl) {
+                return;
+            }
+            const button = formEl.querySelector('.og-process-button');
+            if (button) {
+                button.classList.remove('og-process-button--loading');
+                button.setAttribute('aria-busy', 'false');
+            }
+            formEl.dataset.ogProcessState = 'failed';
+            const indicator = formEl.querySelector('[data-og-process-indicator]');
+            if (indicator) {
+                indicator.classList.add('og-process-indicator--failed');
+                const text = indicator.querySelector('.og-process-indicator__text');
+                if (text) {
+                    text.textContent = 'Request failed';
+                }
+            }
         }
 
         function ogClearProcessButtonLoading(root) {
@@ -1166,17 +1448,35 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
             if (xhr && xhr.getResponseHeader('HX-Redirect')) {
                 return;
             }
+            if (evt.detail && evt.detail.failed) {
+                ogMarkProcessButtonFailed(formEl);
+                ogClearPendingProcess();
+                return;
+            }
+            ogClearPendingProcess();
+            ogClearProcessButtonLoading(formEl);
+        });
+
+        document.addEventListener('htmx:responseError', function(evt) {
+            const elt = evt.detail && evt.detail.elt;
+            const formEl = elt && typeof elt.closest === 'function'
+                ? elt.closest('form[data-og-process-form]')
+                : null;
+            if (formEl) {
+                ogMarkProcessButtonFailed(formEl);
+            }
             ogClearPendingProcess();
         });
 
-        document.addEventListener('htmx:responseError', function() {
+        document.addEventListener('htmx:sendError', function(evt) {
+            const elt = evt.detail && evt.detail.elt;
+            const formEl = elt && typeof elt.closest === 'function'
+                ? elt.closest('form[data-og-process-form]')
+                : null;
+            if (formEl) {
+                ogMarkProcessButtonFailed(formEl);
+            }
             ogClearPendingProcess();
-            ogClearProcessButtonLoading();
-        });
-
-        document.addEventListener('htmx:sendError', function() {
-            ogClearPendingProcess();
-            ogClearProcessButtonLoading();
         });
 
         window.addEventListener('load', function() {
@@ -1184,7 +1484,7 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
         });
 
         </script>
-            <script>
+			<script>
                 (function() {
                     var darkMode = localStorage.getItem('darkMode');
                     if (darkMode === null) {
@@ -1199,7 +1499,7 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
                     }
                 })();
             </script>
-            <script>
+			<script>
                 function copyDetailsContent() {
                     const button = $el.querySelector('button');
                     const codeBlock = $el.querySelector('pre code');
@@ -1213,8 +1513,7 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
                     });
                 }
             </script>
-            
-                <style>
+			<style>
         @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
@@ -1279,7 +1578,8 @@ html, body {
                     top: 0;
                     background-color: var(--bg-color);
                     z-index: 1000;
-                    padding: 1rem;
+                    width: 100%;
+                    padding: 0.85rem 1.25rem;
                     border-bottom: 1px solid var(--border-color);
                     margin-bottom: 2rem;
                     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -1289,6 +1589,59 @@ html, body {
                     justify-content: space-between;
                     align-items: center;
                     padding: 0;
+                }
+                .global-header__nav {
+                    width: 100%;
+                    display: flex;
+                    flex-wrap: wrap;
+                    align-items: center;
+                    gap: 0.75rem 1rem;
+                }
+                .global-header__brand {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.85rem;
+                    flex: 0 0 auto;
+                }
+                .global-header__search {
+                    flex: 1 1 420px;
+                    min-width: 220px;
+                }
+                .global-header__actions {
+                    flex: 0 0 auto;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    flex-wrap: wrap;
+                    justify-content: flex-end;
+                }
+                .global-header__tabs {
+                    width: 100%;
+                }
+                .global-header__advanced {
+                    width: 100%;
+                    border: 1px solid var(--border-color);
+                    border-radius: 10px;
+                    background: var(--card-bg);
+                    padding: 0.75rem 0.9rem;
+                }
+                .global-header__advanced summary {
+                    font-weight: 600;
+                    cursor: pointer;
+                    list-style: none;
+                }
+                .global-header__advanced summary::-webkit-details-marker {
+                    display: none;
+                }
+                .global-header__advanced-panel {
+                    margin-top: 0.9rem;
+                    display: grid;
+                    gap: 1rem;
+                }
+                .global-header__chip-row {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem 1rem;
                 }
                 .search-box {
                     flex: 1;
@@ -1435,6 +1788,18 @@ html, body {
                     mask-composite: exclude;
                     animation: og-process-border-orbit 1.1s linear infinite;
                     pointer-events: none;
+                }
+                .og-process-indicator--failed .notification {
+                    background: rgba(220, 53, 69, 0.12);
+                    border: 1px solid rgba(220, 53, 69, 0.35);
+                    color: var(--error-color);
+                }
+                .og-process-inline-indicator.og-process-indicator--failed {
+                    display: inline-flex !important;
+                    align-items: center;
+                    gap: 0.35rem;
+                    color: var(--error-color);
+                    font-size: 0.9em;
                 }
                 /* Instance layout modes (static export + server): toggled via og-layout--* on #instances-grid */
                 #instances-grid.og-layout--grid.columns.is-multiline {
@@ -1816,323 +2181,317 @@ html, body {
                     transform: rotate(180deg);
                 }
             </style>
-        </head>
-        <body :class="{ 'bottom-nav-expanded': bottomNavExpanded }">
-        <div x-show="showDebug">Show DEBUG ON</div>
-        <div class="global-header fixed-grid">
-            
-                     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-                        <div>
-                               
-                            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                                <span class="navbar-toggler-icon"></span>
-                            </button>
-                            if reportMeta.IsServerMode {
-                                <a href={ templ.SafeURL(reportMeta.HomeURL) } class="button is-large">Home</a>
+		</head>
+		<body :class="{ 'bottom-nav-expanded': bottomNavExpanded }">
+			<div x-show="showDebug">Show DEBUG ON</div>
+			<div class="global-header fixed-grid">
+				<nav class="navbar navbar-expand-lg navbar-light bg-light" style="width: 100%;">
+					<div class="global-header__nav">
+						<div class="global-header__brand">
+							<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+								<span class="navbar-toggler-icon"></span>
+							</button>
+							if reportMeta.IsServerMode {
+								<a href={ templ.SafeURL(reportMeta.HomeURL) } class="button is-large">Home</a>
                             }
-                        </div>
-                        <div class="navbar-brand">
-                        <a class="navbar-brand">{ config.Design.Name }</a>
-                         </div>
-
-                        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                            <ul class="navbar-nav mr-auto">
-                                <li class="nav-item" :class="{ active: navSelected === 'instances' }">
-                                    <a class="nav-link" @click="navSelected = 'instances'">Instances { fmt.Sprintf("(%d)", len(instances)) }</a>
-                                </li>
-                                 if reportMode == "complete" {
-                                    <li class="nav-item" :class="{ active: navSelected === 'stlResults' }">
-                                        <a class="nav-link" @click="navSelected = 'stlResults'">STLs { fmt.Sprintf("(%d)", len(stlResults)) }</a>
-                                    </li>
-                                    <li class="nav-item" :class="{ active: navSelected === 'images' }">
-                                    if len(imageResults) > 0 {
-                                        <a class="nav-link" @click="navSelected = 'images'">Images { fmt.Sprintf("(%d)", len(imageResults)) }</a>
-                                    }
-                                    </li>
-                                 }
-                                 if reportMeta.IsServerMode {
-                                    <li class="nav-item" :class="{ active: navSelected === 'json' }">
-                                        <a class="nav-link" @click="navSelected = 'json'">Config</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href={ templ.SafeURL(fmt.Sprintf("/api/config?config_path=%s&server_folder=%s", reportMeta.ConfigFilePathEncoded, reportMeta.ServerFolderEncoded)) }>Edit Config</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href={ templ.SafeURL(fmt.Sprintf("/chat?config=%s&server_folder=%s", url.QueryEscape(reportMeta.ConfigFilePathEncoded), url.QueryEscape(reportMeta.ServerFolderEncoded))) }>AI Chat</a>
-                                    </li>
-                                    <li class="nav-item ms-lg-auto d-flex align-items-center py-1">
-                                        @OpenSCADNavPlaceholder()
-                                    </li>
-                                 }
-                            </ul>
+								<a class="navbar-brand">{ config.Design.Name }</a>
+                                
+							</div>
                             
-                        </div>
-                        
-                                                 <div class="mb-3">
-                            <label class="form-label">Search Query</label>
-                            <input type="text" class="form-control" x-model="filters.searchQuery" placeholder="Search instances...">
-                        </div>
-                        <div class="dropdown">
-                            <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                🔍 Filters
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end" style="min-width: 400px; padding: 1rem;">
-                                <li>
-                                    <div class="mb-3">
-                                        <label class="form-label">Name Pattern (Regex)</label>
-                                        <input type="text" class="form-control" x-model="filters.namePattern" placeholder="e.g., ^test.*">
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="mb-3">
-                                        <label class="form-label">Description Pattern (Regex)</label>
-                                        <input type="text" class="form-control" x-model="filters.descriptionPattern" placeholder="e.g., .*large.*">
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="mb-3">
-                                        <label class="form-label">Output Path Pattern (Regex)</label>
-                                        <input type="text" class="form-control" x-model="filters.outputPathPattern" placeholder="e.g., .*\.stl$">
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="mb-3">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" x-model="filters.showOnlyWithImages" id="showOnlyWithImages">
-                                            <label class="form-check-label" for="showOnlyWithImages">
-                                                Only with images
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" x-model="filters.showInstancesWithoutImages" id="showInstancesWithoutImages">
-                                            <label class="form-check-label" for="showInstancesWithoutImages">
-                                                Only without images
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" x-model="filters.showOnlyWithErrors" id="showOnlyWithErrors">
-                                            <label class="form-check-label" for="showOnlyWithErrors">
-                                                Only with errors
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" x-model="filters.showOnlySkipped" id="showOnlySkipped">
-                                            <label class="form-check-label" for="showOnlySkipped">
-                                                Only skipped
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" x-model="filters.showOnlySuccessful" id="showOnlySuccessful">
-                                            <label class="form-check-label" for="showOnlySuccessful">
-                                                Only successful
-                                            </label>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="d-flex gap-2">
-                                        <button class="btn btn-outline-secondary btn-sm" @click="clearAllFilters()">Clear All</button>
-                                        <button class="btn btn-outline-primary btn-sm" @click="$el.closest('.dropdown').querySelector('.dropdown-toggle').click()">Apply</button>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="ml-2">
-                            <button class="btn btn-outline-secondary" @click="darkMode = !darkMode">
-                                <span x-show="!darkMode">🌙</span>
-                                <span x-show="darkMode">☀️</span>
-                            </button>
-                            <button class="btn btn-outline-secondary ml-1" @click="showDebug = !showDebug">
-                                <span x-show="!showDebug">🐛</span>
-                                <span x-show="showDebug">🐛</span>
-                                <span x-show="showDebug" style="text-decoration: underline;">Debug</span>
-                            </button>
-                        </div>
-                    </nav>
-                </div>
-            
-            
-            <div class="container-fluid" id="main-content">
-            
-                <!-- Main Content -->
-                   
-             
-                    
-                    <div class="container">
-                    if len(config.Design.Description) > 0 {
-                        <pre style="white-space: pre-line">{ config.Design.Description }</pre>
-                    }
-
-
-                @Collapsable(fmt.Sprintf("Instances (%d)",  len(instances)), "instances", false, true) {
-                    if len(instances) > 0 {
-                        <div class="field is-grouped is-grouped-multiline mb-3 og-instance-toolbar" style="align-items: flex-end;">
-                            <div class="control">
-                                <label class="label" for="og-instance-class-filter">Class (renderType)</label>
-                                <div class="select">
-                                    <select id="og-instance-class-filter" x-model="instanceClassFilter">
-                                        <option value="all">All</option>
-                                        <template x-for="c in instanceClassOptions" :key="c">
-                                            <option :value="c" x-text="c"></option>
-                                        </template>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="control">
-                                <label class="label">Layout</label>
-                                <div class="buttons has-addons">
-                                    <button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'list'}" @click="instanceLayout = 'list'">List</button>
-                                    <button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'grid'}" @click="instanceLayout = 'grid'">Grid</button>
-                                    <button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'large'}" @click="instanceLayout = 'large'">Large</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="instances-grid" class="columns is-multiline" :class="'og-layout--' + instanceLayout">
-                            for _, instance := range instances {
-                                @InstanceCardV2(instance, outputPath, reportMode, allParamNames, reportMeta)
-                            }
-                        </div>
-                    } else {
-                        <div class="is-danger">No Instances Generated</div>
-                    }
-                <div class="my-2"></div>
-                }
-
-               @Collapsable(fmt.Sprintf("STLs (%d)",  len(stlResults)), "stlResults", false, true) {
-                @JSONViewerWithStyle("STLs", stlResults)
-                if len(stlResults) > 0 {
-                        <div class="columns is-multiline">
-                            for _, stlResult := range sortSTLResults(stlResults) {
-                                <div class="column is-full">
-                                    <div class="card">
-                                        <div class="card-content">
-                                            <div class="media">
-                                                <div class="media-content">
-                                                    <p class="title is-4">{ stlResult.InstanceConfig.AutoName }</p>
-                                                    if stlResult.Error != "" {
-                                                        <p class="subtitle is-6 has-text-danger">{ stlResult.Error }</p>
-                                                    } else {
-                                                        <p class="subtitle is-6">Generated successfully</p>
-                                                    }
-                                                </div>
-                                            </div>
-                                            <div class="content">
-                                                <p><strong>Time Taken:</strong> { fmt.Sprintf("%v", stlResult.TimeTaken) }</p>
-                                                  if reportMeta.IsServerMode {
-                                                    <p><strong>Output:</strong> <a href={ buildPreviewSTLURL(stlResult.InstanceConfig, reportMeta) } target="_blank">Preview STL</a></p>
-                                                  }
-                                                if len(stlResult.AppliedParams) > 0 {
-                                                    <p><strong>Applied Params 1:</strong></p>
-                                                    @RenderParams(stlResult.AppliedParams)
-                                                } else {
-                                                    <p><strong>Instance Params:</strong></p>
-                                                    @CodeBlock(fmt.Sprintf("%v", stlResult.InstanceConfig.Params), true, false, "Copy Params")
-                                                }
-                                                <div x-show="showDebug">
-                                                    <details>
-                                                        <summary>Debug Info</summary>
-                                                        <details>
-                                                            <summary>Command</summary>
-                                                            @CodeBlock(stlResult.Command, true, false, "Copy Command")
-                                                        </details>
-                                                        if stlResult.CommandOutput != "" {
-                                                            <details>
-                                                                <summary>Command Output</summary>
-                                                                @CodeBlock(stlResult.CommandOutput, true, false, "Copy Command Output")
-                                                            </details>
-                                                        }
-                                                    </details>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    } else {
-                        <details><summary>No STL Generation Results</summary>
-                        <div>
-                        if config.RegexPattern != "" {
-                            <div class="is-warning">[ Some may be skipped based on provided regex pattern: { config.RegexPattern } ]</div>
-                        }
-
-                        if config.MaxInstances > 0 {
-                            <div>Max instances: { fmt.Sprintf("%d", config.MaxInstances) } blocked all instances from being generated?</div>
-                        }
-
-                        Add stl generation to the config file to generate stl files for each instance:
-                        @CodeBlock(`
+						<div class="global-header__search">
+							<input type="text" class="input" x-model="filters.searchQuery" placeholder="Search instances, STLs, and output paths..."/>
+						</div>
+						<div class="global-header__actions">
+							<button class="button is-light" @click="clearAllFilters()">Clear</button>
+							<button class="button is-light" @click="darkMode = !darkMode">
+								<span x-show="!darkMode">🌙</span>
+								<span x-show="darkMode">☀️</span>
+							</button>
+							<button class="button is-light" @click="showDebug = !showDebug">
+								<span x-show="!showDebug">🐛</span>
+								<span x-show="showDebug">🐛</span>
+								<span x-show="showDebug" style="text-decoration: underline;">Debug</span>
+							</button>
+						</div>
+						<div class="global-header__tabs">
+							<ul class="navbar-nav mr-auto">
+								<li class="nav-item" :class="{ active: navSelected === 'instances' }">
+									<a class="nav-link" @click="navSelected = 'instances'">Instances <span id="instances-count-top">{ fmt.Sprintf("(%d)", len(instances)) }</span></a>
+								</li>
+								if reportMode == "complete" {
+									<li class="nav-item" :class="{ active: navSelected === 'stlResults' }">
+										<a class="nav-link" @click="navSelected = 'stlResults'">STLs { fmt.Sprintf("(%d)", len(stlResults)) }</a>
+									</li>
+									<li class="nav-item" :class="{ active: navSelected === 'images' }">
+										if len(imageResults) > 0 {
+											<a class="nav-link" @click="navSelected = 'images'">Images { fmt.Sprintf("(%d)", len(imageResults)) }</a>
+										}
+									</li>
+								}
+								if reportMeta.IsServerMode {
+									<li class="nav-item" :class="{ active: navSelected === 'json' }">
+										<a class="nav-link" @click="navSelected = 'json'">Config</a>
+									</li>
+									<li class="nav-item">
+										<a class="nav-link" hx-get={ templ.SafeURL(fmt.Sprintf("/api/config?config_path=%s&server_folder=%s", reportMeta.ConfigFilePathEncoded, reportMeta.ServerFolderEncoded)) } hx-target="#main-content" hx-swap="innerHTML" hx-push-url="true">Edit Config</a>
+									</li>
+									<li class="nav-item">
+										<a class="nav-link" hx-get={ templ.SafeURL(fmt.Sprintf("/chat?config=%s&server_folder=%s", url.QueryEscape(reportMeta.ConfigFilePathEncoded), url.QueryEscape(reportMeta.ServerFolderEncoded))) } hx-target="#main-content" hx-swap="innerHTML" hx-push-url="true">AI Chat</a>
+									</li>
+								}
+							</ul>
+						</div>
+						<details class="global-header__advanced">
+							<summary>Advanced</summary>
+							<div class="global-header__advanced-panel">
+								if reportMeta.IsServerMode {
+									<div class="box">
+										if reportMeta.ConfigFilePath != "" {
+											@ProcessFormV2(reportMeta)
+										} else {
+											<form hx-post="/" hx-swap="outerHTML">
+												<input type="text" name="config_path" x-model="configFile"/>
+												<input type="submit" value="Enter"/>
+											</form>
+										}
+									</div>
+								}
+								<div class="field">
+									<label class="label">Filters</label>
+									<div class="global-header__chip-row">
+										<label class="checkbox">
+											<input type="checkbox" x-model="filters.showOnlyWithImages" id="showOnlyWithImages"/>
+											Only with images
+										</label>
+										<label class="checkbox">
+											<input type="checkbox" x-model="filters.showInstancesWithoutImages" id="showInstancesWithoutImages"/>
+											Only without images
+										</label>
+										<label class="checkbox">
+											<input type="checkbox" x-model="filters.showOnlyWithErrors" id="showOnlyWithErrors"/>
+											Only with errors
+										</label>
+										<label class="checkbox">
+											<input type="checkbox" x-model="filters.showOnlySkipped" id="showOnlySkipped"/>
+											Only skipped
+										</label>
+										<label class="checkbox">
+											<input type="checkbox" x-model="filters.showOnlySuccessful" id="showOnlySuccessful"/>
+											Only successful
+										</label>
+									</div>
+								</div>
+								<div class="field">
+									<label class="label">Pattern Filters</label>
+									<div class="control">
+										<input type="text" class="input mb-2" x-model="filters.namePattern" placeholder="Name Pattern (Regex)"/>
+										<input type="text" class="input mb-2" x-model="filters.descriptionPattern" placeholder="Description Pattern (Regex)"/>
+										<input type="text" class="input mb-2" x-model="filters.outputPathPattern" placeholder="Output Path Pattern (Regex)"/>
+									</div>
+								</div>
+								<div class="field">
+									<label class="label">Param Filters</label>
+									<div class="global-header__chip-row">
+										<div class="control" style="min-width: 220px;">
+											<label class="label is-small" for="og-instance-class-filter">Class (renderType)</label>
+											<div class="select is-fullwidth">
+												<select id="og-instance-class-filter" x-model="instanceClassFilter">
+													<option value="all">All</option>
+													<template x-for="c in instanceClassOptions" :key="c">
+														<option :value="c" x-text="c"></option>
+													</template>
+												</select>
+											</div>
+										</div>
+										<template x-for="param in paramFilterSingles" :key="param.name">
+											<div class="control" style="min-width: 220px;">
+												<label class="label is-small" x-text="param.name"></label>
+												<div class="input is-static" style="display: flex; align-items: center; min-height: 2.5rem;">
+													<span x-text="param.value"></span>
+												</div>
+											</div>
+										</template>
+										<template x-for="param in paramFilterOptions" :key="param.name">
+											<div class="control" style="min-width: 220px;">
+												<label class="label is-small" :for="'param-filter-' + param.name" x-text="param.name"></label>
+												<div class="select is-fullwidth">
+													<select :id="'param-filter-' + param.name" x-model="filters.paramFilters[param.name]">
+														<option value="">All</option>
+														<template x-for="option in param.options" :key="option">
+															<option :value="option" x-text="option"></option>
+														</template>
+													</select>
+												</div>
+											</div>
+										</template>
+									</div>
+								</div>
+							</div>
+						</details>
+					</div>
+				</nav>
+			</div>
+			<div class="container-fluid" id="main-content">
+				<!-- Main Content -->
+				<div class="container">
+					if len(config.Design.Description) > 0 {
+						<pre style="white-space: pre-line">{ config.Design.Description }</pre>
+					}
+					@Collapsable(fmt.Sprintf("Instances (%d)", len(instances)), "instances", false, true) {
+						if len(instances) > 0 {
+							<div class="field is-grouped is-grouped-multiline mb-3 og-instance-toolbar" style="align-items: flex-end;">
+								<div class="control">
+									<label class="label">Layout</label>
+									<div class="buttons has-addons">
+										<button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'list'}" @click="instanceLayout = 'list'">List</button>
+										<button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'grid'}" @click="instanceLayout = 'grid'">Grid</button>
+										<button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'large'}" @click="instanceLayout = 'large'">Large</button>
+									</div>
+								</div>
+							</div>
+							<div id="instances-grid" class="columns is-multiline" :class="'og-layout--' + instanceLayout">
+								for _, instance := range instances {
+									@InstanceCardV2(instance, outputPath, reportMode, allParamNames, reportMeta)
+								}
+							</div>
+						} else {
+							<div class="is-danger">No Instances Generated</div>
+						}
+						<div class="my-2"></div>
+					}
+					@Collapsable(fmt.Sprintf("STLs (%d)", len(stlResults)), "stlResults", false, true) {
+						@JSONViewerWithStyle("STLs", stlResults)
+						if len(stlResults) > 0 {
+							<div class="columns is-multiline">
+								for _, stlResult := range sortSTLResults(stlResults) {
+									<div class="column is-full">
+										<div class="card">
+											<div class="card-content">
+												<div class="media">
+													<div class="media-content">
+														<p class="title is-4">{ stlResult.InstanceConfig.AutoName }</p>
+														if stlResult.Error != "" {
+															<p class="subtitle is-6 has-text-danger">{ stlResult.Error }</p>
+														} else {
+															<p class="subtitle is-6">Generated successfully</p>
+														}
+													</div>
+												</div>
+												<div class="content">
+													<p><strong>Time Taken:</strong> { fmt.Sprintf("%v", stlResult.TimeTaken) }</p>
+													if reportMeta.IsServerMode {
+														<p><strong>Output:</strong> <a href={ buildPreviewSTLURL(stlResult.InstanceConfig, reportMeta) } target="_blank">Preview STL</a></p>
+													}
+													if len(stlResult.AppliedParams) > 0 {
+														<p><strong>Applied Params 1:</strong></p>
+														@RenderParams(stlResult.AppliedParams)
+													} else {
+														<p><strong>Instance Params:</strong></p>
+														@CodeBlock(fmt.Sprintf("%v", stlResult.InstanceConfig.Params), true, false, "Copy Params")
+													}
+													<div x-show="showDebug">
+														<details>
+															<summary>Debug Info</summary>
+															<details>
+																<summary>Command</summary>
+																@CodeBlock(stlResult.Command, true, false, "Copy Command")
+															</details>
+															if stlResult.CommandOutput != "" {
+																<details>
+																	<summary>Command Output</summary>
+																	@CodeBlock(stlResult.CommandOutput, true, false, "Copy Command Output")
+																</details>
+															}
+														</details>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								}
+							</div>
+						} else {
+							<details>
+								<summary>No STL Generation Results</summary>
+								<div>
+									if config.RegexPattern != "" {
+										<div class="is-warning">[ Some may be skipped based on provided regex pattern: { config.RegexPattern } ]</div>
+									}
+									if config.MaxInstances > 0 {
+										<div>Max instances: { fmt.Sprintf("%d", config.MaxInstances) } blocked all instances from being generated?</div>
+									}
+									Add stl generation to the config file to generate stl files for each instance:
+									@CodeBlock(`
                         [[openscadgen.instances]]
                         name = "default"
                         `, false, false, "Copy Config")
-                        </div>
-                        </details>
-                    }
-                }
-
-
-                if len(imageResults) > 0 {
-                    @Collapsable(fmt.Sprintf("Image Results (%d)", len(imageResults)), "images", false, true) {
-                        @JSONViewerWithStyle("Image Results", imageResults)
-                        <div class="columns is-multiline">
-                            for _, imageResult := range imageResults {
-                                <div class="column is-full">
-                                    <div class="card">
-                                        <div class="card-content">
-                                            <div class="media">
-                                                <div class="media-content">
-                                                    <p class="title is-4">{ imageResult.InstanceConfig.Name }</p>
-                                                    <p class="subtitle is-6">Camera: { imageResult.CameraName }</p>
-                                                </div>
-                                            </div>
-                                            <div class="content">
-                                                <p><strong>Output Path:</strong> { getRelativePath(imageResult.OutputPath, outputPath) }</p>
-                                                <p><strong>Time Taken:</strong> { formatDuration(imageResult.TimeTaken) }</p>
-                                                <details>
-                                                    <summary>Camera Coordinates</summary>
-                                                    <p>Coordinates: {imageResult.CameraCoords}</p>
-                                                    <div>
-                                                        <p>Format: x,y,z,rotx,roty,rotz,distance</p>
-                                                        <ul>
-                                                            <li>x,y,z: Camera position in 3D space</li>
-                                                            <li>rotx,roty,rotz: Rotation angles in degrees</li>
-                                                            <li>distance: Distance from camera to target point</li>
-                                                        </ul>
-                                                    </div>
-                                                    @RenderParams(imageResult.AppliedParams)
-                                                </details>
-                                                if imageResult.Error == "" {
-                                                    <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)) } 
-                                                        alt={ fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName) } 
-                                                        class="image-preview"
-                                                        onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"
-                                                    />
-                                                    <div class="image-error" style="display: none;">Image failed to load: { fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)) }</div>
-                                                } else {
-                                                    <span class="tag is-danger">Failed: { imageResult.Error }</span>
-                                                }
-                                                <details>
-                                                    <summary>Command</summary>
-                                                    @CodeBlock(imageResult.Command, true, false, "Copy Command")
-                                                </details>
-                                                if imageResult.CommandOutput != "" {
-                                                    <details>
-                                                        <summary>Command Output</summary>
-                                                        @CodeBlock(imageResult.CommandOutput, true, false, "Copy Command Output")
-                                                    </details>
-                                                }
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    }
-                } else {
-                    @Collapsable("Images", "images", false, true) {
-                        <div>
-                        Add export images to the config file to generate images for each instance:
-                    @CodeBlock(`
+								</div>
+							</details>
+						}
+					}
+					if len(imageResults) > 0 {
+						@Collapsable(fmt.Sprintf("Image Results (%d)", len(imageResults)), "images", false, true) {
+							@JSONViewerWithStyle("Image Results", imageResults)
+							<div class="columns is-multiline">
+								for _, imageResult := range imageResults {
+									<div class="column is-full">
+										<div class="card">
+											<div class="card-content">
+												<div class="media">
+													<div class="media-content">
+														<p class="title is-4">{ imageResult.InstanceConfig.Name }</p>
+														<p class="subtitle is-6">Camera: { imageResult.CameraName }</p>
+													</div>
+												</div>
+												<div class="content">
+													<p><strong>Output Path:</strong> { getRelativePath(imageResult.OutputPath, outputPath) }</p>
+													<p><strong>Time Taken:</strong> { formatDuration(imageResult.TimeTaken) }</p>
+													<details>
+														<summary>Camera Coordinates</summary>
+														<p>Coordinates: { imageResult.CameraCoords }</p>
+														<div>
+															<p>Format: x,y,z,rotx,roty,rotz,distance</p>
+															<ul>
+																<li>x,y,z: Camera position in 3D space</li>
+																<li>rotx,roty,rotz: Rotation angles in degrees</li>
+																<li>distance: Distance from camera to target point</li>
+															</ul>
+														</div>
+														@RenderParams(imageResult.AppliedParams)
+													</details>
+													if imageResult.Error == "" {
+														<img
+															src={ fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)) }
+															alt={ fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName) }
+															class="image-preview"
+															onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"
+														/>
+														<div class="image-error" style="display: none;">Image failed to load: { fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)) }</div>
+													} else {
+														<span class="tag is-danger">Failed: { imageResult.Error }</span>
+													}
+													<details>
+														<summary>Command</summary>
+														@CodeBlock(imageResult.Command, true, false, "Copy Command")
+													</details>
+													if imageResult.CommandOutput != "" {
+														<details>
+															<summary>Command Output</summary>
+															@CodeBlock(imageResult.CommandOutput, true, false, "Copy Command Output")
+														</details>
+													}
+												</div>
+											</div>
+										</div>
+									</div>
+								}
+							</div>
+						}
+					} else {
+						@Collapsable("Images", "images", false, true) {
+							<div>
+								Add export images to the config file to generate images for each instance:
+								@CodeBlock(`
                         [[openscadgen.images]]
                         name = "nice"
 
@@ -2143,17 +2502,12 @@ html, body {
                         name = "custom"
                         coord = "0,0,0,90,0,0,600"
                         `, false, false, "Copy Config")
-                        </div>
-                    }
-                }
-                <div>
-            </div>
-
-            
-        </div>
-
-
-        <script>
+							</div>
+						}
+					}
+					<div></div>
+				</div>
+				<script>
             
             // window.htmx && (htmx.config.debug = true);
 
@@ -2177,247 +2531,244 @@ html, body {
                 console.log('htmx:afterOnLoad', evt);
             });
         </script>
-    
-            @ConfigSummary(*config, outputPath, totalTimeTaken)
-            </div>
-            
-            if reportMeta.IsServerMode {
-            <nav class="bottom-nav" :class="bottomNavExpanded ? 'expanded' : 'collapsed'">
-                <div class="bottom-nav-header">
-                    <div class="columns is-vcentered is-mobile" style="margin: 0;">
-                        <div class="column is-narrow" style="flex: 0 0 auto; min-width: 150px; max-width: 200px;">
-                            <div id="progress-summary">[no progress-summary]</div>
-                        </div>
-                        <div class="column" style="flex: 1 1 auto; min-width: 0;">
-                            @SlimProcessForm(reportMeta)
-                        </div>
-                        <div class="column is-narrow" style="flex: 0 0 auto; width: auto; padding-left: 0.5rem;">
-                            <button class="bottom-nav-toggle" @click="bottomNavExpanded = !bottomNavExpanded" aria-label="Toggle navigation">
-                                <span class="icon">
-                                    <i class="fas fa-chevron-up"></i>
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="bottom-nav-content" x-show="bottomNavExpanded">
-                    <div class="container">
-                        <div class="tabs is-centered is-fullwidth">
-                            <ul>
-                                <li :class="{ 'is-active': navSelected === 'instances' }">
-                                    <a @click="navSelected = 'instances'">Instances { fmt.Sprintf("(%d)", len(instances)) }</a>
-                                </li>
-                                if reportMode == "complete" {
-                                    <li :class="{ 'is-active': navSelected === 'stlResults' }">
-                                        <a @click="navSelected = 'stlResults'">STLs { fmt.Sprintf("(%d)", len(stlResults)) }</a>
-                                    </li>
-                                    <li :class="{ 'is-active': navSelected === 'images' }">
-                                        if len(imageResults) > 0 {
-                                            <a @click="navSelected = 'images'">Images { fmt.Sprintf("(%d)", len(imageResults)) }</a>
-                                        }
-                                    </li>
-                                }
-                                if reportMeta.IsServerMode {
-                                    <li :class="{ 'is-active': navSelected === 'json' }">
-                                        <a @click="navSelected = 'json'">Config</a>
-                                    </li>
-                                }
-                            </ul>
-                        </div>
-                        
-                        <div class="section">
-                            <div>
-                                <div id="process-status">process-status</div>
-
-                            </div>
-
-                            if reportMeta.IsServerMode {
-                                <div class="box">
-                                    <div >
-                                    if reportMeta.ConfigFilePath != "" {
-                                        @ProcessFormV2(reportMeta)
-                                    } else {
-                                        <form hx-post="/" hx-swap="outerHTML">
-                                            <input type="text" name="config_path" x-model="configFile">
-                                            <input type="submit" value="Enter">
-                                        </form>
-                                    }
-                                    </div>
-                                </div>
-                            }
-                            <div class="field">
-                                <label class="label">Search Query</label>
-                                <div class="control">
-                                    <input type="text" class="input" x-model="filters.searchQuery" placeholder="Search instances...">
-                                </div>
-                            </div>
-                            
-                            <div class="field">
-                                <label class="label">Filters</label>
-                                <div class="control">
-                                    <div class="field">
-                                        <label class="checkbox">
-                                            <input type="checkbox" x-model="filters.showOnlyWithImages">
-                                            Only with images
-                                        </label>
-                                    </div>
-                                    <div class="field">
-                                        <label class="checkbox">
-                                            <input type="checkbox" x-model="filters.showInstancesWithoutImages">
-                                            Only without images
-                                        </label>
-                                    </div>
-                                    <div class="field">
-                                        <label class="checkbox">
-                                            <input type="checkbox" x-model="filters.showOnlyWithErrors">
-                                            Only with errors
-                                        </label>
-                                    </div>
-                                    <div class="field">
-                                        <label class="checkbox">
-                                            <input type="checkbox" x-model="filters.showOnlySkipped">
-                                            Only skipped
-                                        </label>
-                                    </div>
-                                    <div class="field">
-                                        <label class="checkbox">
-                                            <input type="checkbox" x-model="filters.showOnlySuccessful">
-                                            Only successful
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="field">
-                                <label class="label">Pattern Filters</label>
-                                <div class="control">
-                                    <input type="text" class="input mb-2" x-model="filters.namePattern" placeholder="Name Pattern (Regex)">
-                                    <input type="text" class="input mb-2" x-model="filters.descriptionPattern" placeholder="Description Pattern (Regex)">
-                                    <input type="text" class="input mb-2" x-model="filters.outputPathPattern" placeholder="Output Path Pattern (Regex)">
-                                </div>
-                            </div>
-                            
-                            <div class="field is-grouped">
-                                <div class="control">
-                                    <button class="button is-primary" @click="clearAllFilters()">Clear All Filters</button>
-                                </div>
-                                <div class="control">
-                                    <button class="button" @click="darkMode = !darkMode">
-                                        <span x-show="!darkMode">🌙</span>
-                                        <span x-show="darkMode">☀️</span>
-                                    </button>
-                                </div>
-                                <div class="control">
-                                    <button class="button" @click="showDebug = !showDebug">
-                                        <span x-show="!showDebug">🐛</span>
-                                        <span x-show="showDebug">🐛</span>
-                                        <span x-show="showDebug" style="text-decoration: underline;">Debug</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-            }
-    </body>
-</html>
+				@ConfigSummary(*config, outputPath, totalTimeTaken)
+			</div>
+			if reportMeta.IsServerMode {
+				<nav class="bottom-nav" :class="bottomNavExpanded ? 'expanded' : 'collapsed'">
+					<div class="bottom-nav-header">
+						<div class="columns is-vcentered is-mobile" style="margin: 0;">
+							<div class="column is-narrow" style="flex: 0 0 auto; min-width: 150px; max-width: 200px;">
+								<div id="progress-summary">[no progress-summary]</div>
+							</div>
+							<div class="column" style="flex: 1 1 auto; min-width: 0;">
+								@SlimProcessForm(reportMeta)
+							</div>
+							<div class="column is-narrow" style="flex: 0 0 auto; width: auto; padding-left: 0.5rem;">
+								<button class="bottom-nav-toggle" @click="bottomNavExpanded = !bottomNavExpanded" aria-label="Toggle navigation">
+									<span class="icon">
+										<i class="fas fa-chevron-up"></i>
+									</span>
+								</button>
+							</div>
+						</div>
+					</div>
+					<div class="bottom-nav-content" x-show="bottomNavExpanded">
+						<div class="container">
+							<div class="tabs is-centered is-fullwidth">
+								<ul>
+								<li :class="{ 'is-active': navSelected === 'instances' }">
+									<a @click="navSelected = 'instances'">Instances <span id="instances-count-bottom">{ fmt.Sprintf("(%d)", len(instances)) }</span></a>
+								</li>
+									if reportMode == "complete" {
+										<li :class="{ 'is-active': navSelected === 'stlResults' }">
+											<a @click="navSelected = 'stlResults'">STLs { fmt.Sprintf("(%d)", len(stlResults)) }</a>
+										</li>
+										<li :class="{ 'is-active': navSelected === 'images' }">
+											if len(imageResults) > 0 {
+												<a @click="navSelected = 'images'">Images { fmt.Sprintf("(%d)", len(imageResults)) }</a>
+											}
+										</li>
+									}
+									if reportMeta.IsServerMode {
+										<li :class="{ 'is-active': navSelected === 'json' }">
+											<a @click="navSelected = 'json'">Config</a>
+										</li>
+									}
+								</ul>
+							</div>
+							<div class="section">
+								<div>
+									<div id="process-status">process-status</div>
+									<div id="delete-status" class="mt-3"></div>
+								</div>
+								if reportMeta.IsServerMode {
+									<div class="box">
+										<div>
+											if reportMeta.ConfigFilePath != "" {
+												@ProcessFormV2(reportMeta)
+											} else {
+												<form hx-post="/" hx-swap="outerHTML">
+													<input type="text" name="config_path" x-model="configFile"/>
+													<input type="submit" value="Enter"/>
+												</form>
+											}
+										</div>
+									</div>
+								}
+								<div class="field">
+									<label class="label">Search Query</label>
+									<div class="control">
+										<input type="text" class="input" x-model="filters.searchQuery" placeholder="Search instances..."/>
+									</div>
+								</div>
+								<div class="field">
+									<label class="label">Filters</label>
+									<div class="control">
+										<div class="field">
+											<label class="checkbox">
+												<input type="checkbox" x-model="filters.showOnlyWithImages"/>
+												Only with images
+											</label>
+										</div>
+										<div class="field">
+											<label class="checkbox">
+												<input type="checkbox" x-model="filters.showInstancesWithoutImages"/>
+												Only without images
+											</label>
+										</div>
+										<div class="field">
+											<label class="checkbox">
+												<input type="checkbox" x-model="filters.showOnlyWithErrors"/>
+												Only with errors
+											</label>
+										</div>
+										<div class="field">
+											<label class="checkbox">
+												<input type="checkbox" x-model="filters.showOnlySkipped"/>
+												Only skipped
+											</label>
+										</div>
+										<div class="field">
+											<label class="checkbox">
+												<input type="checkbox" x-model="filters.showOnlySuccessful"/>
+												Only successful
+											</label>
+										</div>
+									</div>
+								</div>
+								<div class="field">
+									<label class="label">Pattern Filters</label>
+									<div class="control">
+										<input type="text" class="input mb-2" x-model="filters.namePattern" placeholder="Name Pattern (Regex)"/>
+										<input type="text" class="input mb-2" x-model="filters.descriptionPattern" placeholder="Description Pattern (Regex)"/>
+										<input type="text" class="input mb-2" x-model="filters.outputPathPattern" placeholder="Output Path Pattern (Regex)"/>
+									</div>
+								</div>
+								<div class="field is-grouped">
+									<div class="control">
+										<button class="button is-primary" @click="clearAllFilters()">Clear All Filters</button>
+									</div>
+									<div class="control">
+										<button class="button" @click="darkMode = !darkMode">
+											<span x-show="!darkMode">🌙</span>
+											<span x-show="darkMode">☀️</span>
+										</button>
+									</div>
+									<div class="control">
+										<button class="button" @click="showDebug = !showDebug">
+											<span x-show="!showDebug">🐛</span>
+											<span x-show="showDebug">🐛</span>
+											<span x-show="showDebug" style="text-decoration: underline;">Debug</span>
+										</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</nav>
+			}
+		</body>
+	</html>
 }
 
 templ CollapsableJson(title string, data interface{}, isOpen bool) {
-    @Collapsable(title, "json", isOpen, true) {
-        <div class="code-block">CollapsableJson {title}
-            <button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button>
-            <code style="white-space: pre;">
-                <pre>{ formatJson(fmt.Sprintf("%+v", data)) }</pre>
-            </code>
-        </div>
-    }
+	@Collapsable(title, "json", isOpen, true) {
+		<div class="code-block">
+			CollapsableJson { title }
+			<button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre').textContent)">Copy</button>
+			<code style="white-space: pre;">
+				<pre>{ formatJson(fmt.Sprintf("%+v", data)) }</pre>
+			</code>
+		</div>
+	}
 }
-
 
 // Component for adding new STL results
 templ AddSTLResult(stlResult models.GenerateSTLResult, outputPath string, resultIndex int) {
-    <tr id={ fmt.Sprintf("stl-result-%d", resultIndex) } hx-swap-oob="beforeend:#stl-results-table tbody">
-        <td>{ stlResult.InstanceConfig.Name }
-        if stlResult.Error != "" {
-            <div class="is-danger">{ stlResult.Error }</div>
-        }
-        </td>
-        <td><a href={ templ.SafeURL(getRelativePath(stlResult.OutputPath, outputPath)) } target="_blank"></a></td>
-        <td>{ fmt.Sprintf("%v", stlResult.TimeTaken) }</td>
-        if len(stlResult.AppliedParams) > 0 {
-            <td> @RenderParams(stlResult.AppliedParams) </td>
-        } else {
-            <td>@CodeBlock(fmt.Sprintf("%v", stlResult.InstanceConfig.Params), true, false, "Copy Params") </td>
-        }
-        
-        <td>
-            <details>
-                <summary>Command</summary>
-                @CodeBlock(stlResult.Command, true, false, "Copy Command")
-            </details>
-            if stlResult.CommandOutput != "" {
-                <details>
-                    <summary>Command Output</summary>
-                    @CodeBlock(stlResult.CommandOutput, true, false, "Copy Command Output")
-                </details>
-            }
-        </td>
-    </tr>
+	<tr id={ fmt.Sprintf("stl-result-%d", resultIndex) } hx-swap-oob="beforeend:#stl-results-table tbody">
+		<td>
+			{ stlResult.InstanceConfig.Name }
+			if stlResult.Error != "" {
+				<div class="is-danger">{ stlResult.Error }</div>
+			}
+		</td>
+		<td><a href={ templ.SafeURL(getRelativePath(stlResult.OutputPath, outputPath)) } target="_blank"></a></td>
+		<td>{ fmt.Sprintf("%v", stlResult.TimeTaken) }</td>
+		if len(stlResult.AppliedParams) > 0 {
+			<td>
+				@RenderParams(stlResult.AppliedParams)
+			</td>
+		} else {
+			<td>
+				@CodeBlock(fmt.Sprintf("%v", stlResult.InstanceConfig.Params), true, false, "Copy Params")
+			</td>
+		}
+		<td>
+			<details>
+				<summary>Command</summary>
+				@CodeBlock(stlResult.Command, true, false, "Copy Command")
+			</details>
+			if stlResult.CommandOutput != "" {
+				<details>
+					<summary>Command Output</summary>
+					@CodeBlock(stlResult.CommandOutput, true, false, "Copy Command Output")
+				</details>
+			}
+		</td>
+	</tr>
 }
 
 // Component for adding new image results
 templ AddImageResult(imageResult models.GenerateImageResult, outputPath string, resultIndex int) {
-    <tr id={ fmt.Sprintf("image-result-%d", resultIndex) } hx-swap-oob="beforeend:#image-results-table tbody">
-        <td>{ imageResult.InstanceConfig.Name }</td>
-        <td>{ imageResult.CameraName }</td>
-        <td>{ getRelativePath(imageResult.OutputPath, outputPath) }</td>
-
-        <td>{ formatDuration(imageResult.TimeTaken) }</td>
-        <td>
-            <details>
-                <summary>View Camera Coordinates</summary>
-                <p>Coordinates: {imageResult.CameraCoords}</p>
-                <div>
-                    <p>Format: x,y,z,rotx,roty,rotz,distance</p>
-                    <ul>
-                        <li>x,y,z: Camera position in 3D space</li>
-                        <li>rotx,roty,rotz: Rotation angles in degrees</li>
-                        <li>distance: Distance from camera to target point</li>
-                    </ul>
-                </div>
-            </details>
-            @RenderParams(imageResult.AppliedParams)
-        </td>
-        <td>
-            if imageResult.Error == "" {
-                <img src={ fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)) } 
-                    alt={ fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName) } 
-                    class="image-preview"
-                    onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"
-                />
-                <div class="image-error" style="display: none;">Image failed to load: { fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)) }</div>
-            } else {
-                <span class="tag is-danger">Failed</span>
-            }
-        </td>
-        if imageResult.Error != "" {
-            <td class="is-danger">{ imageResult.Error }</td>
-        } else {
-            <td></td>
-        }
-        <td>
-            <details>
-                <summary>Command</summary>
-                @CodeBlock(imageResult.Command, true, false, "Copy Command")
-            </details>
-            if imageResult.CommandOutput != "" {
-                <details>
-                    <summary>Command Output</summary>
-                    @CodeBlock(imageResult.CommandOutput, true, false, "Copy Command Output")
-                </details>
-            }
-        </td>
-    </tr>
+	<tr id={ fmt.Sprintf("image-result-%d", resultIndex) } hx-swap-oob="beforeend:#image-results-table tbody">
+		<td>{ imageResult.InstanceConfig.Name }</td>
+		<td>{ imageResult.CameraName }</td>
+		<td>{ getRelativePath(imageResult.OutputPath, outputPath) }</td>
+		<td>{ formatDuration(imageResult.TimeTaken) }</td>
+		<td>
+			<details>
+				<summary>View Camera Coordinates</summary>
+				<p>Coordinates: { imageResult.CameraCoords }</p>
+				<div>
+					<p>Format: x,y,z,rotx,roty,rotz,distance</p>
+					<ul>
+						<li>x,y,z: Camera position in 3D space</li>
+						<li>rotx,roty,rotz: Rotation angles in degrees</li>
+						<li>distance: Distance from camera to target point</li>
+					</ul>
+				</div>
+			</details>
+			@RenderParams(imageResult.AppliedParams)
+		</td>
+		<td>
+			if imageResult.Error == "" {
+				<img
+					src={ fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)) }
+					alt={ fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName) }
+					class="image-preview"
+					onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"
+				/>
+				<div class="image-error" style="display: none;">Image failed to load: { fmt.Sprintf("file:///%s", getRelativeImagePath(imageResult.OutputPath, outputPath)) }</div>
+			} else {
+				<span class="tag is-danger">Failed</span>
+			}
+		</td>
+		if imageResult.Error != "" {
+			<td class="is-danger">{ imageResult.Error }</td>
+		} else {
+			<td></td>
+		}
+		<td>
+			<details>
+				<summary>Command</summary>
+				@CodeBlock(imageResult.Command, true, false, "Copy Command")
+			</details>
+			if imageResult.CommandOutput != "" {
+				<details>
+					<summary>Command Output</summary>
+					@CodeBlock(imageResult.CommandOutput, true, false, "Copy Command Output")
+				</details>
+			}
+		</td>
+	</tr>
 }

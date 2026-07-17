@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,47 +25,52 @@ func main() {
 
 	// Initialize logger before loading config
 	if err := pkg.InitLogger("memory"); err != nil {
-		log.Fatalf("Failed to initialize logger: %v", err)
+		pkg.LogErrorf("Failed to initialize logger: %v", err)
+		os.Exit(1)
 	}
 
 	version := pkg.GetVersion()
 	if cmdFlags.Debug || cmdFlags.Version {
-		log.Printf("OpenSCADGen Version: %s", version.OpenSCADGen)
-		log.Printf("OpenSCAD Version: %s", version.OpenSCAD)
+		pkg.LogInfof("OpenSCADGen Version: %s", version.OpenSCADGen)
+		pkg.LogInfof("OpenSCAD Version: %s", version.OpenSCAD)
 	}
 	if cmdFlags.Version {
 		return
 	}
 
-	if cmdFlags.InitProjectName != "" {
-		log.Printf("Initializing project: %s", cmdFlags.InitProjectName)
+	if cmdFlags.InitProjectName != "" || cmdFlags.InitProjectNameExtended != "" || cmdFlags.InitProjectNameExplainer != "" {
+		parent := pkg.ResolveInitParentDir(cmdFlags)
+		template := "basic"
 		name := strings.TrimSpace(cmdFlags.InitProjectName)
-		parent := pkg.ResolveInitParentDir(cmdFlags)
-		var err error
+		stageLabel := "project"
+
+		switch {
+		case cmdFlags.InitProjectNameExplainer != "":
+			name = strings.TrimSpace(cmdFlags.InitProjectNameExplainer)
+			template = "explainer"
+			stageLabel = "explainer project"
+		case cmdFlags.InitProjectNameExtended != "":
+			name = strings.TrimSpace(cmdFlags.InitProjectNameExtended)
+			template = "extended"
+			stageLabel = "extended project"
+		default:
+			if chosen, err := pkg.ChooseInitTemplate(cmdFlags, parent); err != nil {
+				pkg.LogErrorf("init project: %v", err)
+				os.Exit(1)
+			} else if chosen {
+				template = "explainer"
+				stageLabel = "explainer project"
+			}
+		}
+
+		pkg.LogStagef("init", "Initializing %s: %s", stageLabel, name)
 		if filepath.IsAbs(name) {
-			// Preserve prior behaviour: absolute -i is treated as a leaf under -init-dir / -sf.
-			err = pkg.InitConfigInParent(parent, filepath.Base(name), false)
-		} else {
-			err = pkg.InitConfigInParent(parent, name, false)
+			// Preserve prior behaviour: absolute init names are treated as a leaf under -init-dir / -sf.
+			name = filepath.Base(name)
 		}
-		if err != nil {
-			log.Fatalf("init project: %v", err)
-		}
-		if !cmdFlags.Server && cmdFlags.ServerFolder == "" {
-			return
-		}
-	} else if cmdFlags.InitProjectNameExtended != "" {
-		log.Printf("Initializing extended project: %s", cmdFlags.InitProjectNameExtended)
-		name := strings.TrimSpace(cmdFlags.InitProjectNameExtended)
-		parent := pkg.ResolveInitParentDir(cmdFlags)
-		var err error
-		if filepath.IsAbs(name) {
-			err = pkg.InitConfigInParent(parent, filepath.Base(name), true)
-		} else {
-			err = pkg.InitConfigInParent(parent, name, true)
-		}
-		if err != nil {
-			log.Fatalf("init project: %v", err)
+		if err := pkg.InitConfigInParentWithTemplate(parent, name, template); err != nil {
+			pkg.LogErrorf("init project: %v", err)
+			os.Exit(1)
 		}
 		if !cmdFlags.Server && cmdFlags.ServerFolder == "" {
 			return
@@ -89,10 +93,11 @@ func main() {
 	if cmdFlags.DeleteExportSTLsDir != "" {
 		files, err := pkg.FindExportSTLFiles(cmdFlags.DeleteExportSTLsDir)
 		if err != nil {
-			log.Fatalf("FindExportSTLFiles Error: %v", err)
+			pkg.LogErrorf("FindExportSTLFiles Error: %v", err)
+			os.Exit(1)
 		}
 		if len(files) == 0 {
-			log.Printf("No export/*.stl files found under: %s", cmdFlags.DeleteExportSTLsDir)
+			pkg.LogInfof("No export/*.stl files found under: %s", cmdFlags.DeleteExportSTLsDir)
 			return
 		}
 
@@ -105,20 +110,20 @@ func main() {
 		line, _ := reader.ReadString('\n')
 		line = strings.TrimSpace(line)
 		if strings.ToLower(line) != "y" {
-			log.Printf("Aborted (no delete performed).")
+			pkg.LogWarnf("Aborted (no delete performed).")
 			return
 		}
 
 		res := pkg.DeleteFiles(files)
 		if len(res.Failed) > 0 {
-			log.Printf("Deleted %d files; %d failed:", len(res.Deleted), len(res.Failed))
+			pkg.LogWarnf("Deleted %d files; %d failed:", len(res.Deleted), len(res.Failed))
 			for p, e := range res.Failed {
-				log.Printf("  - %s: %v", p, e)
+				pkg.LogWarnf("  - %s: %v", p, e)
 			}
 			os.Exit(1)
 			return
 		}
-		log.Printf("Deleted %d files.", len(res.Deleted))
+		pkg.LogInfof("Deleted %d files.", len(res.Deleted))
 		return
 	}
 
@@ -132,9 +137,10 @@ func main() {
 		cmdFlags.OverwriteExisting = true
 		processResults, err := pkg.ProcessFolder(cmdFlags.ProcessFolder, cmdFlags)
 		if err != nil {
-			log.Fatalf("ProcessFolder Error: %v", err)
+			pkg.LogErrorf("ProcessFolder Error: %v", err)
+			os.Exit(1)
 		}
-		log.Printf("Processed %d config files", len(processResults))
+		pkg.LogInfof("Processed %d config files", len(processResults))
 		return
 	}
 
@@ -142,7 +148,8 @@ func main() {
 
 		config, _, err := pkg.LoadConfigFromFile(cmdFlags)
 		if err != nil {
-			log.Fatalf("LoadConfig Error: %v", err)
+			pkg.LogErrorf("LoadConfig Error: %v", err)
+			os.Exit(1)
 		}
 
 		// Use terminal progress reporter instead of NoopProgress
@@ -157,24 +164,25 @@ func main() {
 			GenerateReport: true,
 		}, false)
 		if err != nil {
-			log.Fatalf("Process Error: %v", err)
+			pkg.LogErrorf("Process Error: %v", err)
+			os.Exit(1)
 		}
 
 		//if !config.Quiet {
-		log.Printf("Total processing time: %v", processResult.TotalTimeTaken)
+		pkg.LogInfof("Total processing time: %v", processResult.TotalTimeTaken)
 		//}
 
 		if len(processResult.STLResults) == 0 && len(processResult.ImageResults) == 0 {
-			log.Printf("Match options:")
+			pkg.LogInfof("Match options:")
 			for _, instance := range processResult.Instances {
 				instanceStr := fmt.Sprintf("  - %s", instance.Name)
 				/*for _, param := range instance.Params {
 					instanceStr += fmt.Sprintf(" %v", param)
 				}*/
-				log.Println(instanceStr)
+				pkg.LogInfof("%s", instanceStr)
 			}
-			pkg.LogWarn("No STLs or images generated", true)
-			pkg.LogWarn(fmt.Sprintf("Regex pattern didn't match any instances: %s\n\n(match options listed above)", config.RegexPattern), false)
+			pkg.LogWarnWithCritical("No STLs or images generated", true)
+			pkg.LogWarnWithCritical(fmt.Sprintf("Regex pattern didn't match any instances: %s\n\n(match options listed above)", config.RegexPattern), false)
 
 			os.Exit(1)
 			return

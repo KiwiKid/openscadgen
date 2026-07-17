@@ -1,0 +1,10 @@
+{
+  "name": "stick-hinge-config-help",
+  "provider": "openai",
+  "model": "gpt-4.1",
+  "context_path": "examples/stick_hinge/config.toml",
+  "prompt": "Review this OpenSCADGen config and suggest two concrete improvements that would make the stick hinge design easier to iterate on. Keep the answer short and practical.",
+  "expect": {
+    "require_text": true
+  }
+}

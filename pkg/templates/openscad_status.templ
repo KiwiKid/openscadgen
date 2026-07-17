@@ -2,27 +2,48 @@ package templates
 
 import "fmt"
 
+func bosl2ActionDisabledReason(available bool) string {
+	if available {
+		return ""
+	}
+	return "OpenSCAD must be installed before BOSL2 can be installed or upgraded."
+}
+
 // OpenSCADNavView is server-side state for the nav OpenSCAD probe widget.
 type OpenSCADNavView struct {
-	Available   bool
-	Path        string
-	Version     string
-	Error       string
-	OutOfDate   bool
-	DetailsOpen bool // from ?isExpanded=1 on /api/openscad/status
+	Available             bool
+	Path                  string
+	Version               string
+	Error                 string
+	OutOfDate             bool
+	InstallSupported      bool
+	InstallSupportLabel   string
+	BOSL2Available        bool
+	BOSL2ActionLabel      string
+	BOSL2InstallSupported bool
+	BOSL2Error            string
+	DetailsOpen           bool // from ?isExpanded=1 on /api/openscad/status
 }
 
 // OpenSCADNavWidget shows OpenSCAD OK / No OpenSCAD in a <summary>; details hold path/version.
 // Includes #openscad-status with data-* for tests. Expand state: ?isExpanded=1 (see utils.js).
 templ OpenSCADNavWidget(v OpenSCADNavView) {
 	<div id="openscad-nav-widget" class="openscad-nav-widget">
-		<details id="openscad-nav-details" class="openscad-nav-details" if v.DetailsOpen { open }>
+		<details
+			id="openscad-nav-details"
+			class="openscad-nav-details"
+			if v.DetailsOpen {
+				open
+			}
+		>
 			<summary class="openscad-nav-summary">
-				if v.Available {
-					<span class="tag is-success is-light">OpenSCAD OK</span>
-				} else {
-					<span class="tag is-danger is-light">No OpenSCAD</span>
-				}
+				<span class="is-inline-flex" style="gap:0.35rem; flex-wrap:wrap; align-items:center;">
+					if v.Available {
+						<span class="tag is-success is-light">OpenSCAD OK</span>
+					} else {
+						<span class="tag is-danger is-light">No OpenSCAD</span>
+					}
+				</span>
 			</summary>
 			<div
 				class="openscad-nav-panel content is-size-7"
@@ -38,7 +59,38 @@ templ OpenSCADNavWidget(v OpenSCADNavView) {
 						hx-swap="outerHTML"
 					>Reload</button>
 				</div>
+				<div class="is-flex is-flex-wrap-wrap is-align-items-center mb-2" style="gap:0.5rem;">
+					if v.BOSL2Available {
+						<span class="tag is-success is-light">BOSL2</span>
+					} else {
+						<span class="tag is-warning is-light">BOSL2</span>
+					}
+					if v.BOSL2InstallSupported {
+						<button
+							type="button"
+							class="button is-small is-link"
+							disabled={ !v.Available }
+							title={ bosl2ActionDisabledReason(v.Available) }
+						>{ v.BOSL2ActionLabel } BOSL2</button>
+						if !v.Available {
+							<p class="has-text-grey is-size-7 mt-1">{ bosl2ActionDisabledReason(v.Available) }</p>
+						}
+						<p class="has-text-grey is-size-7 mt-1">
+							BOSL2 is a helper library used by many OpenSCAD models. This will install or upgrade it in your local OpenSCAD libraries on supported platforms.
+						</p>
+					} else {
+						<span class="has-text-grey is-size-7">BOSL2 install not supported (supported are { v.InstallSupportLabel }).</span>
+					}
+				</div>
 				if v.Available {
+					<div class="mb-2">
+						<span
+							id="openscadgen-health-badge"
+							class="tag is-light"
+							data-health-url="/health"
+							data-health-state="unknown"
+						>openscadgen…</span>
+					</div>
 					<p class="mb-1"><strong>Path</strong></p>
 					<pre class="p-2" style="white-space:pre-wrap;word-break:break-all;background:rgba(0,0,0,0.04);border-radius:4px;">{ v.Path }</pre>
 					<p class="mb-1 mt-2"><strong>Version</strong></p>
@@ -46,20 +98,34 @@ templ OpenSCADNavWidget(v OpenSCADNavView) {
 					if v.OutOfDate {
 						<p class="has-text-warning mt-2">Flagged out-of-date.</p>
 					}
+					if !v.InstallSupported {
+						<p class="has-text-grey mt-2">OpenSCAD install not supported (supported are { v.InstallSupportLabel }).</p>
+					}
+					if v.BOSL2Error != "" {
+						<p class="has-text-grey mt-2">{ v.BOSL2Error }</p>
+					}
 				} else {
 					<p class="mb-1"><strong>Error</strong></p>
 					<pre class="p-2" style="white-space:pre-wrap;word-break:break-all;background:rgba(0,0,0,0.04);border-radius:4px;">{ v.Error }</pre>
+					if !v.InstallSupported {
+						<p class="has-text-grey mt-2">OpenSCAD install not supported (supported are { v.InstallSupportLabel }).</p>
+					}
+					if v.BOSL2Error != "" {
+						<p class="has-text-grey mt-2">{ v.BOSL2Error }</p>
+					}
 				}
 			</div>
 		</details>
-		<div id="openscad-status"
+		<div
+			id="openscad-status"
 			data-available={ fmt.Sprintf("%t", v.Available) }
 			data-path={ v.Path }
 			data-version={ v.Version }
 			data-out-of-date={ fmt.Sprintf("%t", v.OutOfDate) }
 			data-error={ v.Error }
 			style="display:none"
-			aria-hidden="true"></div>
+			aria-hidden="true"
+		></div>
 	</div>
 }
 
@@ -82,11 +148,13 @@ templ OpenSCADStatusFullPage(v OpenSCADNavView) {
 
 // OpenSCADNavPlaceholder is swapped by HTMX on first load for the live widget.
 templ OpenSCADNavPlaceholder() {
-	<div id="openscad-nav-widget"
+	<div
+		id="openscad-nav-widget"
 		hx-get="/api/openscad/status?fragment=1"
 		hx-vals="js:{isExpanded: new URLSearchParams(window.location.search).get(&quot;isExpanded&quot;) === &quot;1&quot; ? &quot;1&quot; : undefined}"
 		hx-trigger="load"
-		hx-swap="outerHTML">
+		hx-swap="outerHTML"
+	>
 		<span class="is-size-7 has-text-grey">OpenSCAD…</span>
 	</div>
 }

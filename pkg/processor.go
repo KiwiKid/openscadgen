@@ -211,7 +211,7 @@ To create a new version:
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 */
-const VERSION = "v2.8.3"
+const VERSION = "v2.8.4"
 
 type Version struct {
 	OpenSCADGen string
@@ -636,17 +636,17 @@ func clearExportFolder(config *models.Config, outputPaths models.OutputPaths) {
 		if config.Server {
 			LogKeyValuePair("Server mode, skipping check", outputPaths.OutputPath)
 		} else if !config.OverwriteExisting {
-			LogWarn(fmt.Sprintf("\nThe export folder (%s) has %d existing files: \n%s\n\n(the '-ow' flag will skip this check)\n\n(tip: if you want to keep the existing stl export files, cancel this run and update the 'version' in the config file, this will generate a new folder and keep the existing files)", outputPaths.ExportFolderPath, len(files), filesStr), false)
+			LogWarnWithCritical(fmt.Sprintf("\nThe export folder (%s) has %d existing files: \n%s\n\n(the '-ow' flag will skip this check)\n\n(tip: if you want to keep the existing stl export files, cancel this run and update the 'version' in the config file, this will generate a new folder and keep the existing files)", outputPaths.ExportFolderPath, len(files), filesStr), false)
 			printDirectoryContents(outputPaths.ExportFolderPath)
 
-			LogWarn(fmt.Sprintf("\n\n the files above can be overwritten: \n\n\t%s\n\nDo you want to continue? (y/n):", outputPaths.ExportFolderPath), true)
+			LogWarnWithCritical(fmt.Sprintf("\n\n the files above can be overwritten: \n\n\t%s\n\nDo you want to continue? (y/n):", outputPaths.ExportFolderPath), true)
 			reader := bufio.NewReader(os.Stdin)
 			response, _ := reader.ReadString('\n')
 			if response != "y\n" && response != "Y\n" {
 				fmt.Println("Aborting operation.")
 				os.Exit(1)
 			}
-			LogWarn("Prepare to recieve", false)
+			LogWarnWithCritical("Prepare to recieve", false)
 		} else if !strings.HasPrefix(outputPaths.ExportFolderPath, "export") {
 			log.Printf("Export folder path does not start with export, skipping deletion")
 			return
@@ -1301,7 +1301,7 @@ func parseCameraName(cameraName string) (string, string) {
 		}
 	}
 
-	LogWarn(fmt.Sprintf("Camera name '%s' is not a preset and has no coordinates specified", cameraName), false)
+	LogWarnWithCritical(fmt.Sprintf("Camera name '%s' is not a preset and has no coordinates specified", cameraName), false)
 
 	// If we can't parse it properly, return the original name and empty distance
 	return cameraName, ""
@@ -1714,7 +1714,7 @@ func LoadConfig(configData string, flags models.CmdFlags, configPath string) (*m
 			LogKeyValuePair("ExportNameFormat", exportNameFormat)
 		}
 		if !strings.Contains(conf.Design.ExportNameFormat, paramName) {
-			LogWarn(fmt.Sprintf("ExportNameFormat contains param: \n\n -\t(%s)\n\n that is not in the params. Include every param in the export_name_format (in the format '{param_name}') to ensure all instances are generated to unique files.", paramName), true)
+			LogWarnWithCritical(fmt.Sprintf("ExportNameFormat contains param: \n\n -\t(%s)\n\n that is not in the params. Include every param in the export_name_format (in the format '{param_name}') to ensure all instances are generated to unique files.", paramName), true)
 		}
 	}
 
@@ -1748,7 +1748,7 @@ func LoadConfig(configData string, flags models.CmdFlags, configPath string) (*m
 						if len(conf.Design.InputPaths) > 1 {
 							nameHasDesignFileName := strings.Contains(exportNameFormat, "{designFileName}")
 							if !nameHasDesignFileName {
-								LogWarn("If more than one input is specified, the export_name_format need to include designFileName (add {designFileName} to the export_name_format)", true)
+								LogWarnWithCritical("If more than one input is specified, the export_name_format need to include designFileName (add {designFileName} to the export_name_format)", true)
 								LogKeyValuePair("ExportNameFormat missing {designFileName}", exportNameFormat)
 								LogKeyValuePair("from config file:", flags.ConfigFile)
 								os.Exit(1)
@@ -1770,7 +1770,7 @@ func LoadConfig(configData string, flags models.CmdFlags, configPath string) (*m
 							LogKeyValuePair("Missing Param name", paramName)
 							LogKeyValuePair("Param value", fmt.Sprintf("%v", paramValue))
 							LogKeyValuePair("Config file", flags.ConfigFile)
-							LogWarn(fmt.Sprintf(`Export instance name:
+							LogWarnWithCritical(fmt.Sprintf(`Export instance name:
 							   %s
 
 							   does not contain param:
@@ -1792,7 +1792,7 @@ func LoadConfig(configData string, flags models.CmdFlags, configPath string) (*m
 		}
 		name := strings.Split(paramName, "}")[0]
 		if !strings.Contains(conf.Design.ExportNameFormat, name) {
-			LogWarn(fmt.Sprintf("ExportNameFormat contains param (%s) that is not in the params", name), true)
+			LogWarnWithCritical(fmt.Sprintf("ExportNameFormat contains param (%s) that is not in the params", name), true)
 		}
 	}
 
@@ -2892,6 +2892,12 @@ func GenerateInstances(config *models.Config, configuredInstanceConfig models.Co
 			}
 
 			// Add non-ignored parameters that don't have multiple values
+			// Add global parameter combination values
+			for k, v := range globalCombo {
+				instance.Params[k] = v
+			}
+
+			// Add non-ignored parameters that don't have multiple values
 			for k, v := range filteredParams {
 				if !paramHasMultipleValues(v) {
 					instance.Params[k] = v
@@ -2900,11 +2906,6 @@ func GenerateInstances(config *models.Config, configuredInstanceConfig models.Co
 
 			// Add parameter combination values
 			for k, v := range paramCombo {
-				instance.Params[k] = v
-			}
-
-			// Add global parameter combination values
-			for k, v := range globalCombo {
 				instance.Params[k] = v
 			}
 
@@ -3230,6 +3231,29 @@ type OpenSCADVersion struct {
 	IsOutOfDate bool
 }
 
+// ProbeBOSL2 reports whether the local OpenSCAD install can resolve BOSL2/std.scad.
+func ProbeBOSL2(openscadPath string) (bool, error) {
+	tempDir, err := os.MkdirTemp("", "openscadgen-bosl2-*")
+	if err != nil {
+		return false, fmt.Errorf("create temp dir for BOSL2 probe: %w", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	probePath := filepath.Join(tempDir, "probe.scad")
+	probeBody := "include <BOSL2/std.scad>;\ncube(1);\n"
+	if err := os.WriteFile(probePath, []byte(probeBody), 0o644); err != nil {
+		return false, fmt.Errorf("write BOSL2 probe file: %w", err)
+	}
+
+	outputPath := filepath.Join(tempDir, "probe.stl")
+	cmd := exec.Command(openscadPath, "-o", outputPath, probePath)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return false, fmt.Errorf("BOSL2 not found in OpenSCAD libraries: %w\nOutput: %s", err, strings.TrimSpace(string(output)))
+	}
+	return true, nil
+}
+
 // findOpenSCAD finds the OpenSCAD executable and returns its version info
 func findOpenSCAD() (OpenSCADVersion, error) {
 	// Try to run openscad --version directly
@@ -3269,12 +3293,17 @@ version = "v0.1"
 
 export_name_format = "{designFileName}"
 
-# These params will be passed into all the generated designs
+# global_params will be passed into all the generated designs. 
+# Example height = [1,37,100] or text = "woah"
 global_params = { }
 
 [[openscadgen.input_paths]]
 path = "./{{projectName}}.scad"
 params = { }
+
+# [[openscadgen.instances]] allow for scoping input params (or [[openscadgen.param_sets]]) to specific designs 
+# [[openscadgen.instances]]
+# params = { height = 87 }
 
 [[openscadgen.images]]
 name = "nice"
@@ -3296,6 +3325,34 @@ path = "./{{projectName}}.scad"
 [[openscadgen.images]]
 name = "nice"
 param_filter = { renderType= "obj,vertSlice,horzSlice"}
+`
+
+var configTemplateExplainer = `[openscadgen]
+# Project name shown in reports and generated outputs.
+name = "{{projectName}}"
+# Optional human-readable description.
+description = ""
+
+# Version label used in export paths.
+version = "v0.1"
+
+# Controls how generated files are named.
+export_name_format = "{designFileName}"
+
+# Shared parameters available to all instances.
+# global_params = { height = [1,37,100] }
+
+[[openscadgen.input_paths]]
+# Path to the OpenSCAD source file for this project.
+path = "./{{projectName}}.scad"
+params = { }
+
+# Instances define the parameter combinations to generate.
+# [[openscadgen.instances]]
+# params = { height = 87 }
+
+[[openscadgen.images]]
+name = "nice"
 `
 
 func openScadTemplateExtended(projectNameUnderLined string) string {
@@ -3431,57 +3488,24 @@ func LogKeys(flags models.CmdFlags) {
 
 }
 
-func InitLogger(logFilePath string) error {
-	if logFilePath == "memory" {
-		logToMemory = true
-		logger = log.New(io.MultiWriter(os.Stdout, &logBuffer), "", log.Ldate|log.Ltime|log.Lshortfile)
-		return nil
-	}
-
-	//if config.IncludeExportLog {
-	logFile, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return err
-	}
-
-	multiWriter := io.MultiWriter(os.Stdout, logFile)
-	logger = log.New(multiWriter, "", log.Ldate|log.Ltime|log.Lshortfile)
-
-	if logToMemory {
-		// Flush the buffer to the log file
-		_, err := logFile.Write(logBuffer.Bytes())
-		if err != nil {
-			return err
-		}
-		logBuffer.Reset()
-		logToMemory = false
-	}
-	/*} else {
-		// Ensure we still log to console even when not logging to file
-		logger = log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile)
-	}*/
-
-	return nil
-}
-
 func LogKeyValuePair(key string, value string) {
-	logger.Printf(colorYellow+"%s: "+colorWhite+"\t\t\t\t%s"+colorReset, key, value)
+	LogInfof("%s: %s", key, value)
 }
 
 func logSkip(message string) {
-	logger.Printf(colorYellow+"%s"+colorReset, message)
+	LogWarnf("%s", message)
 }
 
-func LogWarn(message string, critical bool) {
+func LogWarnWithCritical(message string, critical bool) {
 	if critical {
-		logger.Printf(colorRed+"%s"+colorReset, message)
+		LogErrorf("%s", message)
 	} else {
-		logger.Printf(colorOrange+"%s"+colorReset, message)
+		LogWarnf("%s", message)
 	}
 }
 
 func logTip(message string) {
-	logger.Printf(colorCyan+"\t%s"+colorReset, message)
+	LogInfof("%s", message)
 }
 
 // Exclude symbols and use multiple letters if the number is greater than 26
@@ -3506,15 +3530,15 @@ func getPartIDLetter(stlIndex int) string {
 }
 
 func logCreation(message string) {
-	logger.Printf(colorGreen+"%s"+colorReset, message)
+	LogInfof("%s", message)
 }
 
 func logError(message string) {
-	logger.Printf(colorRed+"%s"+colorReset, message)
+	LogErrorf("%s", message)
 }
 
 func logStage(stage string) {
-	logger.Printf(colorBlue+"\n\n========== %s =========="+colorReset, stage)
+	LogStagef(stage, "starting")
 }
 
 func SetMetadata(fileName string, metadata map[string]string, config *models.Config) error {
@@ -3524,10 +3548,10 @@ func SetMetadata(fileName string, metadata map[string]string, config *models.Con
 	// Check if the file exists
 	_, err := os.Stat(fileName)
 	if os.IsNotExist(err) {
-		LogWarn(fmt.Sprintf("[SetMetadata] warning: file '%s' does not exist", fileName), false)
+		LogWarnWithCritical(fmt.Sprintf("[SetMetadata] warning: file '%s' does not exist", fileName), false)
 		return fmt.Errorf("warning: file '%s' does not exist", fileName)
 	} else if err != nil {
-		LogWarn(fmt.Sprintf("[SetMetadata] warning: error accessing file '%s': %v", fileName, err), false)
+		LogWarnWithCritical(fmt.Sprintf("[SetMetadata] warning: error accessing file '%s': %v", fileName, err), false)
 		return fmt.Errorf("error accessing file '%s': %v", fileName, err)
 	}
 
@@ -3543,7 +3567,7 @@ func SetMetadata(fileName string, metadata map[string]string, config *models.Con
 		for key, value := range metadata {
 			xattrKey := "user." + key
 			if err := xattr.Set(fileName, xattrKey, []byte(value)); err != nil {
-				LogWarn(fmt.Sprintf("warning: error setting xattr '%s' on file '%s': %v", key, fileName, err), false)
+				LogWarnWithCritical(fmt.Sprintf("warning: error setting xattr '%s' on file '%s': %v", key, fileName, err), false)
 				return fmt.Errorf("error setting xattr '%s' on file '%s': %v", key, fileName, err)
 			} else if config.Debug {
 				LogKeyValuePair("Set xattr", xattrKey)
@@ -3556,7 +3580,7 @@ func SetMetadata(fileName string, metadata map[string]string, config *models.Con
 			adsName := fileName + ":" + key
 			file, err := os.OpenFile(adsName, os.O_CREATE|os.O_RDWR, 0600)
 			if err != nil {
-				LogWarn(fmt.Sprintf("warning: error opening ADS '%s': %v", adsName, err), false)
+				LogWarnWithCritical(fmt.Sprintf("warning: error opening ADS '%s': %v", adsName, err), false)
 				return fmt.Errorf("error opening ADS '%s': %v", adsName, err)
 			} else if config.Debug {
 				log.Printf("📊 Set ADS: %s", adsName)
@@ -3565,7 +3589,7 @@ func SetMetadata(fileName string, metadata map[string]string, config *models.Con
 
 			_, err = file.Write([]byte(value))
 			if err != nil {
-				LogWarn(fmt.Sprintf("warning: error writing to ADS '%s': %v", adsName, err), false)
+				LogWarnWithCritical(fmt.Sprintf("warning: error writing to ADS '%s': %v", adsName, err), false)
 				return fmt.Errorf("error writing to ADS '%s': %v", adsName, err)
 			} else if config.Debug {
 				log.Printf("📊 Set ADS: %s with value: %s", adsName, value)
@@ -3573,7 +3597,7 @@ func SetMetadata(fileName string, metadata map[string]string, config *models.Con
 			fmt.Printf("Set ADS '%s' on file '%s' with value: %s\n", key, fileName, value)
 		}
 	default:
-		LogWarn(fmt.Sprintf("warning: unsupported operating system: %s", currentOS), false)
+		LogWarnWithCritical(fmt.Sprintf("warning: unsupported operating system: %s", currentOS), false)
 		return fmt.Errorf("unsupported operating system: %s", currentOS)
 	}
 
@@ -4075,6 +4099,9 @@ func BuildReportMeta(params models.BuildReportMetaParams, results models.Results
 		ServerFolder:          params.ServerFolder,
 		ServerFolderEncoded:   pageUrlInfo.ServerFolderEncoded,
 		Results:               results,
+	}
+	if params.Config != nil {
+		reportMeta.ConfigVersion = params.Config.Design.Version
 	}
 
 	return reportMeta

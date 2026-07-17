@@ -1,7 +1,6 @@
 package server
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -68,14 +67,14 @@ func (fw *FileWatcher) StartWatching(serverFolder string) error {
 		// configFile.Path is relative to serverFolder, so join them
 		fullConfigPath := filepath.Join(serverFolder, configFile.Path)
 		if err := fw.loadAndWatchConfig(fullConfigPath, serverFolder); err != nil {
-			log.Printf("Error loading config %s: %v", fullConfigPath, err)
+			pkg.LogWarnf("Error loading config %s: %v", fullConfigPath, err)
 			continue
 		}
 	}
 
 	// Process all loaded configs initially
 	for _, configInfo := range fw.configs {
-		log.Printf("Processing initial config: %s", configInfo.Path)
+		pkg.LogInfof("Processing initial config: %s", configInfo.Path)
 		StartProcessingJob(configInfo.Config)
 	}
 
@@ -83,7 +82,7 @@ func (fw *FileWatcher) StartWatching(serverFolder string) error {
 	go fw.watchLoop()
 	fw.isWatching = true
 
-	log.Printf("Started watching %d config files", len(fw.configs))
+	pkg.LogInfof("Started watching %d config files", len(fw.configs))
 	return nil
 }
 
@@ -99,7 +98,7 @@ func (fw *FileWatcher) StopWatching() {
 	close(fw.stopChan)
 	fw.watcher.Close()
 	fw.isWatching = false
-	log.Println("Stopped file watching")
+	pkg.LogInfof("Stopped file watching")
 }
 
 // loadAndWatchConfig loads a config file and starts watching it
@@ -132,7 +131,7 @@ func (fw *FileWatcher) loadAndWatchConfig(configPath string, serverFolder string
 
 	// Cache the config
 	fw.configs[configPath] = configInfo
-	log.Printf("Loaded and watching config: %s", configPath)
+		pkg.LogInfof("Loaded and watching config: %s", configPath)
 
 	return nil
 }
@@ -151,7 +150,7 @@ func (fw *FileWatcher) watchLoop() {
 			if !ok {
 				return
 			}
-			log.Printf("File watcher error: %v", err)
+			pkg.LogErrorf("File watcher error: %v", err)
 
 		case <-fw.stopChan:
 			return
@@ -181,7 +180,7 @@ func (fw *FileWatcher) handleFileEvent(event fsnotify.Event) {
 	// Check if file was actually modified
 	fileInfo, err := os.Stat(event.Name)
 	if err != nil {
-		log.Printf("Error checking file modification: %v", err)
+		pkg.LogWarnf("Error checking file modification: %v", err)
 		return
 	}
 
@@ -189,7 +188,7 @@ func (fw *FileWatcher) handleFileEvent(event fsnotify.Event) {
 		return // No actual change
 	}
 
-	log.Printf("Config file changed: %s", event.Name)
+	pkg.LogInfof("Config file changed: %s", event.Name)
 	fw.handleConfigChange(event.Name)
 }
 
@@ -203,14 +202,14 @@ func (fw *FileWatcher) handleConfigChange(configPath string) {
 	cmdFlags := models.CmdFlags{ConfigFile: configPath, Server: true, ServerFolder: serverFolder}
 	newConfig, _, err := pkg.LoadConfigFromFile(cmdFlags)
 	if err != nil {
-		log.Printf("Error loading changed config %s: %v", configPath, err)
+		pkg.LogWarnf("Error loading changed config %s: %v", configPath, err)
 		return
 	}
 
 	// Get file info for new modification time
 	fileInfo, err := os.Stat(configPath)
 	if err != nil {
-		log.Printf("Error getting file info: %v", err)
+		pkg.LogWarnf("Error getting file info: %v", err)
 		return
 	}
 
@@ -220,7 +219,7 @@ func (fw *FileWatcher) handleConfigChange(configPath string) {
 	fw.mu.Unlock()
 
 	if oldConfigInfo == nil {
-		log.Printf("No old config found for %s", configPath)
+		pkg.LogWarnf("No old config found for %s", configPath)
 		return
 	}
 
@@ -237,15 +236,15 @@ func (fw *FileWatcher) handleConfigChange(configPath string) {
 	// Compare and log changes
 	changes := fw.compareConfigs(oldConfigInfo.Config, newConfig)
 	if len(changes) > 0 {
-		log.Printf("Config changes detected in %s:", configPath)
+		pkg.LogInfof("Config changes detected in %s:", configPath)
 		for _, change := range changes {
-			log.Printf("  - %s", change)
+			pkg.LogInfof("  - %s", change)
 		}
 		// Trigger regeneration for the changed config
-		log.Printf("Starting processing for changed config: %s", configPath)
+		pkg.LogStagef("watcher", "Starting processing for changed config: %s", configPath)
 		StartProcessingJob(newConfig)
 	} else {
-		log.Printf("No meaningful changes detected in %s", configPath)
+		pkg.LogInfof("No meaningful changes detected in %s", configPath)
 	}
 }
 

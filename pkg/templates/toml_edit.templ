@@ -1,23 +1,21 @@
 package templates
 
 import (
-	"strings"
 	"fmt"
 	"github.com/kiwikid/openscadgen/pkg/models"
+	"strings"
 )
-
-
 
 templ TOMLEditForm(editFormConfig *models.EditConfigParams) {
 	<!DOCTYPE html>
 	<html lang="en">
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Edit TOML File</title>
-		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
-		<link rel="stylesheet" href="/static/js/edit_area.css" type="text/css" media="screen" />
-		<style>
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>Edit TOML File</title>
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
+			<link rel="stylesheet" href="/static/js/edit_area.css" type="text/css" media="screen"/>
+			<style>
 			body {
 				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 				margin: 0;
@@ -128,38 +126,35 @@ templ TOMLEditForm(editFormConfig *models.EditConfigParams) {
 				margin-top: 5px;
 			}
 		</style>
-	</head>
-	<body>[[TOMLEditForm]]
-		<div class="container">
-			<h1>Edit TOML File</h1>
-			<a class="button is-warning" href={ templ.SafeURL(fmt.Sprintf("/?config=%s", editFormConfig.ConfigFilePathEncoded)) }>Cancel</a>
-			<div class="file-path">{ strings.TrimPrefix(editFormConfig.ConfigFilePath, "/") }</div>
-			
-			if editFormConfig.ErrorMsg != nil {
-				@editFormConfig.ErrorMsg
-			}
-			
-			<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/api/edit?config_path=%s&server_folder=%s", editFormConfig.ConfigFilePathEncoded, editFormConfig.ServerFolderEncoded)) }>
-				<!--<input type="hidden" id="content" name="content" value="" />-->
-				<div class="help-text">
-					# Optional: Camera positions for image generation
+		</head>
+		<body>
+			[[TOMLEditForm]]
+			<div class="container">
+				<h1>Edit TOML File</h1>
+				<a class="button is-warning" href={ templ.SafeURL(fmt.Sprintf("/?config=%s", editFormConfig.ConfigFilePathEncoded)) }>Cancel</a>
+				<div class="file-path">{ strings.TrimPrefix(editFormConfig.ConfigFilePath, "/") }</div>
+				if editFormConfig.ErrorMsg != nil {
+					@editFormConfig.ErrorMsg
+				}
+				<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/api/edit?config_path=%s&server_folder=%s", editFormConfig.ConfigFilePathEncoded, editFormConfig.ServerFolderEncoded)) }>
+					<!--<input type="hidden" id="content" name="content" value="" />-->
+					<div class="help-text">
+						# Optional: Camera positions for image generation
 						[[openscadgen.images]]
 						name = &#34;string&#34;                   # Name of the camera position
 						coord = &#34;string&#34;                  # Camera coordinates (x,y,z,rotx,roty,rotz,distance)
 						image_size = &#34;string&#34;             # Optional, image dimensions (width,height)
-						param_filter = {}                 # Optional, filter parameters for this camera
-
-				</div>
-				<div class="buttons">
-					<a href={ templ.SafeURL(fmt.Sprintf("/?config_path=%s&server_folder=%s", editFormConfig.ConfigFilePathEncoded, editFormConfig.ServerFolderEncoded)) } class="button is-alert">Cancel</a>
-					<button type="submit" class="button is-success" disabled>Save Changes (not yet implemented)</button>
-				</div>
-				<textarea id="editarea" style="height: 350px; width: 100%;" id="content" name="content">{ editFormConfig.Content }</textarea>
-			</form>
-		</div>
-		
-		<script type="text/javascript" src="/static/js/edit_area_full.js"></script>
-		<script type="text/javascript">
+						param_filter = {  } # Optional, filter parameters for this camera
+					</div>
+					<div class="buttons">
+						<a href={ templ.SafeURL(fmt.Sprintf("/?config_path=%s&server_folder=%s", editFormConfig.ConfigFilePathEncoded, editFormConfig.ServerFolderEncoded)) } class="button is-alert">Cancel</a>
+						<button type="submit" class="button is-success" disabled>Save Changes (not yet implemented)</button>
+					</div>
+					<textarea id="editarea" style="height: 350px; width: 100%;" id="content" name="content">{ editFormConfig.Content }</textarea>
+				</form>
+			</div>
+			<script type="text/javascript" src="/static/js/edit_area_full.js"></script>
+			<script type="text/javascript">
 			// Initialize EditArea
 			editAreaLoader.init({
 				id: "editarea",
@@ -190,6 +185,6 @@ templ TOMLEditForm(editFormConfig *models.EditConfigParams) {
 				saveContent();
 			});
 		</script>
-	</body>
+		</body>
 	</html>
 }

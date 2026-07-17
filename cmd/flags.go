@@ -30,6 +30,12 @@ func ParseFlags() models.CmdFlags {
 	flag.StringVar(&cmdFlags.InitProjectNameExtended, "new-extended", "", "Alias for -init-extended")
 	flag.StringVar(&cmdFlags.InitProjectNameExtended, "newe", "", "Alias for -new-extended")
 
+	initExplainerDesc := "Create a new project with the explainer starter template (same as -ix). Location flags same as -init."
+	flag.StringVar(&cmdFlags.InitProjectNameExplainer, "init-explainer", "", initExplainerDesc)
+	flag.StringVar(&cmdFlags.InitProjectNameExplainer, "ix", "", "Alias for -init-explainer")
+
+	flag.BoolVar(&cmdFlags.NoInput, "no-input", false, "Bypass interactive prompts and assume the default action")
+
 	initParentDesc := "Parent directory for a new project from -init/-i/-new or -ie/-newe (default: . or -sf folder when set)"
 	flag.StringVar(&cmdFlags.InitProjectParentDir, "init-dir", "", initParentDesc)
 	flag.StringVar(&cmdFlags.InitProjectParentDir, "id", "", "Alias for -init-dir")

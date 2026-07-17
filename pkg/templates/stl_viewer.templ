@@ -2,166 +2,153 @@ package templates
 
 import "github.com/kiwikid/openscadgen/pkg/models"
 
-
-
 templ STLViewer(params models.STLViewerParams) {
-
-		<div id="container" x-data="stlViewer()">
-
-            <input type="hidden" id="stlPath" value={ params.STLPath }>
-			<div id="loading">Loading STL... { params.STLPath }</div>
-			
-			<!-- Enhanced Controls Panel -->
-			<div id="controls" style="display: none;" class="controls-panel">
-				<div class="controls-header">
-					<h3>STL Viewer Controls</h3>
-					<button @click="toggleControls()" class="toggle-btn">Hide Controls</button>
-				</div>
-				
-				<div class="controls-content" x-show="showControls">
-					<!-- Material Controls -->
-					<div class="control-section">
-						<h4>Material</h4>
-						<div class="control-group">
-							<label>Color:</label>
-							<input type="color" x-model="materialColor" @input="updateMaterial()">
-						</div>
-						<div class="control-group">
-							<label>Wireframe:</label>
-							<input type="checkbox" x-model="wireframe" @change="updateMaterial()">
-						</div>
-						<div class="control-group">
-							<label>Shininess:</label>
-							<input type="range" min="0" max="200" x-model="shininess" @input="updateMaterial()">
-							<span x-text="shininess"></span>
-						</div>
-						<div class="control-group">
-							<label>Opacity:</label>
-							<input type="range" min="0" max="1" step="0.1" x-model="opacity" @input="updateMaterial()">
-							<span x-text="opacity"></span>
-						</div>
-					</div>
-
-					<!-- Lighting Controls -->
-					<div class="control-section">
-						<h4>Lighting</h4>
-						<div class="control-group">
-							<label>Ambient Light:</label>
-							<input type="range" min="0" max="2" step="0.1" x-model="ambientIntensity" @input="updateLighting()">
-							<span x-text="ambientIntensity"></span>
-						</div>
-						<div class="control-group">
-							<label>Directional Light:</label>
-							<input type="range" min="0" max="2" step="0.1" x-model="directionalIntensity" @input="updateLighting()">
-							<span x-text="directionalIntensity"></span>
-						</div>
-						<div class="control-group">
-							<label>Light Color:</label>
-							<input type="color" x-model="lightColor" @input="updateLighting()">
-						</div>
-						<div class="control-group">
-							<label>Light Position X:</label>
-							<input type="range" min="-100" max="100" x-model="lightPosition.x" @input="updateLighting()">
-							<span x-text="lightPosition.x"></span>
-						</div>
-						<div class="control-group">
-							<label>Light Position Y:</label>
-							<input type="range" min="-100" max="100" x-model="lightPosition.y" @input="updateLighting()">
-							<span x-text="lightPosition.y"></span>
-						</div>
-						<div class="control-group">
-							<label>Light Position Z:</label>
-							<input type="range" min="-100" max="100" x-model="lightPosition.z" @input="updateLighting()">
-							<span x-text="lightPosition.z"></span>
-						</div>
-					</div>
-
-					<!-- Camera Controls -->
-					<div class="control-section">
-						<h4>Camera</h4>
-						<div class="control-group">
-							<label>Auto Rotate:</label>
-							<input type="checkbox" x-model="autoRotate" @change="updateCamera()">
-						</div>
-						<div class="control-group">
-							<label>Rotation Speed:</label>
-							<input type="range" min="0.1" max="5" step="0.1" x-model="rotationSpeed" @input="updateCamera()">
-							<span x-text="rotationSpeed"></span>
-						</div>
-						<div class="control-group">
-							<label>Zoom Speed:</label>
-							<input type="range" min="0.1" max="5" step="0.1" x-model="zoomSpeed" @input="updateCamera()">
-							<span x-text="zoomSpeed"></span>
-						</div>
-						<div class="control-group">
-							<label>Pan Speed:</label>
-							<input type="range" min="0.1" max="5" step="0.1" x-model="panSpeed" @input="updateCamera()">
-							<span x-text="panSpeed"></span>
-						</div>
-					</div>
-
-					<!-- Rendering Controls -->
-					<div class="control-section">
-						<h4>Rendering</h4>
-						<div class="control-group">
-							<label>Background Color:</label>
-							<input type="color" x-model="backgroundColor" @input="updateBackground()">
-						</div>
-						<div class="control-group">
-							<label>Shadows:</label>
-							<input type="checkbox" x-model="shadows" @change="updateShadows()">
-						</div>
-						<div class="control-group">
-							<label>Antialias:</label>
-							<input type="checkbox" x-model="antialias" @change="updateRenderer()">
-						</div>
-					</div>
-
-					<!-- Model Controls -->
-					<div class="control-section">
-						<h4>Model</h4>
-						<div class="control-group">
-							<label>Scale:</label>
-							<input type="range" min="0.1" max="5" step="0.1" x-model="modelScale" @input="updateModel()">
-							<span x-text="modelScale"></span>
-						</div>
-						<div class="control-group">
-							<label>Position X:</label>
-							<input type="range" min="-50" max="50" x-model="modelPosition.x" @input="updateModel()">
-							<span x-text="modelPosition.x"></span>
-						</div>
-						<div class="control-group">
-							<label>Position Y:</label>
-							<input type="range" min="-50" max="50" x-model="modelPosition.y" @input="updateModel()">
-							<span x-text="modelPosition.y"></span>
-						</div>
-						<div class="control-group">
-							<label>Position Z:</label>
-							<input type="range" min="-50" max="50" x-model="modelPosition.z" @input="updateModel()">
-							<span x-text="modelPosition.z"></span>
-						</div>
-					</div>
-
-					<!-- Action Buttons -->
-					<div class="control-section">
-						<h4>Actions</h4>
-						<div class="control-group">
-							<button @click="resetCamera()" class="action-btn">Reset Camera</button>
-							<button @click="resetModel()" class="action-btn">Reset Model</button>
-							<button @click="resetAll()" class="action-btn">Reset All</button>
-						</div>
-					</div>
-				</div>
+	<div id="container" x-data="stlViewer()">
+		<input type="hidden" id="stlPath" value={ params.STLPath }/>
+		<div id="loading">Loading STL... { params.STLPath }</div>
+		<!-- Enhanced Controls Panel -->
+		<div id="controls" style="display: none;" class="controls-panel">
+			<div class="controls-header">
+				<h3>STL Viewer Controls</h3>
+				<button @click="toggleControls()" class="toggle-btn">Hide Controls</button>
 			</div>
-			
-			<div id="info" style="display: none;">
-				<div><strong>ID:</strong> { params.InstanceID }</div>
-				<div><strong>File:</strong> { params.STLPath }</div>
-				<div><strong>Controls:</strong> Left click + drag to rotate, Right click + drag to pan, Scroll to zoom</div>
+			<div class="controls-content" x-show="showControls">
+				<!-- Material Controls -->
+				<div class="control-section">
+					<h4>Material</h4>
+					<div class="control-group">
+						<label>Color:</label>
+						<input type="color" x-model="materialColor" @input="updateMaterial()"/>
+					</div>
+					<div class="control-group">
+						<label>Wireframe:</label>
+						<input type="checkbox" x-model="wireframe" @change="updateMaterial()"/>
+					</div>
+					<div class="control-group">
+						<label>Shininess:</label>
+						<input type="range" min="0" max="200" x-model="shininess" @input="updateMaterial()"/>
+						<span x-text="shininess"></span>
+					</div>
+					<div class="control-group">
+						<label>Opacity:</label>
+						<input type="range" min="0" max="1" step="0.1" x-model="opacity" @input="updateMaterial()"/>
+						<span x-text="opacity"></span>
+					</div>
+				</div>
+				<!-- Lighting Controls -->
+				<div class="control-section">
+					<h4>Lighting</h4>
+					<div class="control-group">
+						<label>Ambient Light:</label>
+						<input type="range" min="0" max="2" step="0.1" x-model="ambientIntensity" @input="updateLighting()"/>
+						<span x-text="ambientIntensity"></span>
+					</div>
+					<div class="control-group">
+						<label>Directional Light:</label>
+						<input type="range" min="0" max="2" step="0.1" x-model="directionalIntensity" @input="updateLighting()"/>
+						<span x-text="directionalIntensity"></span>
+					</div>
+					<div class="control-group">
+						<label>Light Color:</label>
+						<input type="color" x-model="lightColor" @input="updateLighting()"/>
+					</div>
+					<div class="control-group">
+						<label>Light Position X:</label>
+						<input type="range" min="-100" max="100" x-model="lightPosition.x" @input="updateLighting()"/>
+						<span x-text="lightPosition.x"></span>
+					</div>
+					<div class="control-group">
+						<label>Light Position Y:</label>
+						<input type="range" min="-100" max="100" x-model="lightPosition.y" @input="updateLighting()"/>
+						<span x-text="lightPosition.y"></span>
+					</div>
+					<div class="control-group">
+						<label>Light Position Z:</label>
+						<input type="range" min="-100" max="100" x-model="lightPosition.z" @input="updateLighting()"/>
+						<span x-text="lightPosition.z"></span>
+					</div>
+				</div>
+				<!-- Camera Controls -->
+				<div class="control-section">
+					<h4>Camera</h4>
+					<div class="control-group">
+						<label>Auto Rotate:</label>
+						<input type="checkbox" x-model="autoRotate" @change="updateCamera()"/>
+					</div>
+					<div class="control-group">
+						<label>Rotation Speed:</label>
+						<input type="range" min="0.1" max="5" step="0.1" x-model="rotationSpeed" @input="updateCamera()"/>
+						<span x-text="rotationSpeed"></span>
+					</div>
+					<div class="control-group">
+						<label>Zoom Speed:</label>
+						<input type="range" min="0.1" max="5" step="0.1" x-model="zoomSpeed" @input="updateCamera()"/>
+						<span x-text="zoomSpeed"></span>
+					</div>
+					<div class="control-group">
+						<label>Pan Speed:</label>
+						<input type="range" min="0.1" max="5" step="0.1" x-model="panSpeed" @input="updateCamera()"/>
+						<span x-text="panSpeed"></span>
+					</div>
+				</div>
+				<!-- Rendering Controls -->
+				<div class="control-section">
+					<h4>Rendering</h4>
+					<div class="control-group">
+						<label>Background Color:</label>
+						<input type="color" x-model="backgroundColor" @input="updateBackground()"/>
+					</div>
+					<div class="control-group">
+						<label>Shadows:</label>
+						<input type="checkbox" x-model="shadows" @change="updateShadows()"/>
+					</div>
+					<div class="control-group">
+						<label>Antialias:</label>
+						<input type="checkbox" x-model="antialias" @change="updateRenderer()"/>
+					</div>
+				</div>
+				<!-- Model Controls -->
+				<div class="control-section">
+					<h4>Model</h4>
+					<div class="control-group">
+						<label>Scale:</label>
+						<input type="range" min="0.1" max="5" step="0.1" x-model="modelScale" @input="updateModel()"/>
+						<span x-text="modelScale"></span>
+					</div>
+					<div class="control-group">
+						<label>Position X:</label>
+						<input type="range" min="-50" max="50" x-model="modelPosition.x" @input="updateModel()"/>
+						<span x-text="modelPosition.x"></span>
+					</div>
+					<div class="control-group">
+						<label>Position Y:</label>
+						<input type="range" min="-50" max="50" x-model="modelPosition.y" @input="updateModel()"/>
+						<span x-text="modelPosition.y"></span>
+					</div>
+					<div class="control-group">
+						<label>Position Z:</label>
+						<input type="range" min="-50" max="50" x-model="modelPosition.z" @input="updateModel()"/>
+						<span x-text="modelPosition.z"></span>
+					</div>
+				</div>
+				<!-- Action Buttons -->
+				<div class="control-section">
+					<h4>Actions</h4>
+					<div class="control-group">
+						<button @click="resetCamera()" class="action-btn">Reset Camera</button>
+						<button @click="resetModel()" class="action-btn">Reset Model</button>
+						<button @click="resetAll()" class="action-btn">Reset All</button>
+					</div>
+				</div>
 			</div>
 		</div>
-
-		<script>
+		<div id="info" style="display: none;">
+			<div><strong>ID:</strong> { params.InstanceID }</div>
+			<div><strong>File:</strong> { params.STLPath }</div>
+			<div><strong>Controls:</strong> Left click + drag to rotate, Right click + drag to pan, Scroll to zoom</div>
+		</div>
+	</div>
+	<script>
 			// Alpine.js data and methods
 			function stlViewer() {
 				return {
@@ -480,17 +467,17 @@ templ STLViewer(params models.STLViewerParams) {
 		</script>
 }
 
-templ STLViewerHeaderBody( params models.STLViewerParams) {
+templ STLViewerHeaderBody(params models.STLViewerParams) {
 	<html>
-	<head>
-		<meta charset="UTF-8"/>
-		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-		<title>STL Viewer</title>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-		<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
-		<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-		 @HeadLinks()
-		<style>
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>STL Viewer</title>
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+			<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+			<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+			@HeadLinks()
+			<style>
 			body { margin: 0; padding: 0; background: #2a2a2a; font-family: Arial, sans-serif; }
 			#container { position: relative; width: 100vw; height: 100vh; }
 			#loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 18px; z-index: 100; }
@@ -618,14 +605,13 @@ templ STLViewerHeaderBody( params models.STLViewerParams) {
 				max-width: 300px; 
 			}
 		</style>
-	</head>
-    <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-
-		<a class="button is-warning" href={ templ.SafeURL(params.PageUrlInfo.ConfigFileURL) }>Cancel</a>
-		<button href={ templ.SafeURL(params.PageUrlInfo.HomeURL) } class="button is-large">Home</button>	
-	</nav>
-     @STLViewer(params)
-	</body>
+		</head>
+		<body>
+			<nav class="navbar navbar-expand-lg navbar-light bg-light">
+				<a class="button is-warning" href={ templ.SafeURL(params.PageUrlInfo.ConfigFileURL) }>Cancel</a>
+				<button href={ templ.SafeURL(params.PageUrlInfo.HomeURL) } class="button is-large">Home</button>
+			</nav>
+			@STLViewer(params)
+		</body>
 	</html>
 }

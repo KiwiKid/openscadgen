@@ -11,7 +11,10 @@ examples/cup-holder-plus/export/*.stl
 latest_nightly.txt
 tmp/chat-harness/
 
+.gocache
+
 # Nix
 result
 .direnv
 .aider*
+.gitignore

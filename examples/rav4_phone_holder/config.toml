@@ -2,11 +2,11 @@
 name = "rav4_phone_holder"
 description = ""
 
-version = "v0.1"
+version = "v0.2"
 
-export_name_format = "{designFileName}_{bottomShelf}"
+export_name_format = "{designFileName}/{bottomShelf}/{partType}_{renderType}"
 
-global_params = { renderType = "obj", bottomShelf = "includeBottomShelf,noBottomShelf" }
+global_params = { renderType = "obj", bottomShelf = "includeBottomShelf,noBottomShelf", partType=["phoneMount", "plug", "all", "cordHolder", "joined", "wallMount"] }
 
 [[openscadgen.input_paths]]
 path = "./rav4_phone_holder.scad"

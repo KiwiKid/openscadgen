@@ -1,7 +1,7 @@
 
 
 	include <BOSL2/std.scad>;
-
+include <BOSL2/joiners.scad>;
 	$fa = .01;
 	$fs = $preview ? 5 : 1;
 	$fn = 200;
@@ -16,28 +16,58 @@
 	renderType = "obj";
     
     
-    bottomShelf = "includeBottomShelf";
+    partType = "plug"; //"plug"; // phoneMount cordHolder wallMount // all-car
+    bottomShelf = "includeBottomShelf"; //includeBottomShelf
     phoneHolderWidth = 40;
     phoneHolderHeight = 95;
     phoneSize = [phoneHolderHeight, phoneHolderWidth, 70];
     
     phoneCutoutHeight = 190;
-    phoneCutoutSize = [92, 28, phoneCutoutHeight];
+    phoneCutoutSize = [92, 31, phoneCutoutHeight];
     
     horzPhoneCutoutMove = [-phoneHolderHeight/2,0,0];
     
     
     phoneCutout2Size = [75, 32, 80];
-    cutoutMove = [0,2,8];
+    cutoutMove = [0,-2,8];
     
     wallSize = 2;
-    phoneRotate = [-15,0,-20];
+    phoneRotateZ = -22;
+    phoneRotateX = -15;
+    phoneRotate = [phoneRotateX,0,phoneRotateZ];
     
-    holderCubeHeight = 90;
-    holderCubeDepth = 30;
-    holderCubeSize = [65, holderCubeHeight, holderCubeDepth];
-    
+    holderCubeHeight = 95;
+    holderCubeWidth = 68;
+    holderCubeDepth = 31;
+    holderCubeSize = [holderCubeWidth, holderCubeHeight, holderCubeDepth];
+    holderHoleSize = [holderCubeWidth*0.90, holderCubeHeight*0.85, holderCubeDepth*0.7];
     phoneHolderCubeMove = [-30,phoneHolderWidth/2+35,0];
+    centralCordCutoutSize = [35,30,phoneHolderHeight*2];
+    
+    
+    //Slide 
+    slideJoinSlide = 100;
+    
+    slideJoinRotateZ = phoneRotateZ;
+   slideJoinRotateX = 90+phoneRotateX;
+
+    
+    
+    dovetailHeight = 10;
+    cutDepthPosition = dovetailHeight+2.1;
+    slideBlockDepth = 500;
+    slideBlockHeight =150;
+    
+    slideBlockWidth =200;
+    slideOffset = 30;
+    slideLargeWidth = 50;
+    
+        
+    dovetailSlope = 30;
+    
+    cordHoleSize = 5.1;
+    cordHoleScale = [1,2,1];
+    
     
 
 	module rav4_phone_holder(){
@@ -59,9 +89,27 @@
                 cuboid([95,35,shelfHeight], rounding=3);
             }
         
+        difference(){
         move(phoneHolderCubeMove)
-        
         cuboid(holderCubeSize, rounding=10);
+        
+        if(partType == "plug"){
+                    #move(phoneHolderCubeMove)
+            cuboid(holderHoleSize, rounding=10);
+            }
+        }
+        
+
+        
+        }
+        
+        
+        // charger cord holder hole
+        if(partType != "cordHolder"){
+            move([-55,25,0])
+            scale(cordHoleScale)
+            yrot(-5)
+            cyl(r=cordHoleSize, h=80);
         }
         
           
@@ -80,6 +128,7 @@
 		cuboid(phoneCutoutSize, rounding=3);
         
         
+        // Cutout to show screen
         rotate(phoneRotate)
         move(cutoutMove)
         fwd(10)
@@ -93,10 +142,12 @@
 		cuboid([20,30,60], rounding=3);
         
         
+        // Central plugged in cord hole
           rotate(phoneRotate)
      //   move(cutoutMove)
+
         fwd(10)
-		cuboid([40,25,120], rounding=2);
+		cuboid(centralCordCutoutSize, rounding=2);
         
         if (bottomShelf == "includeBottomShelf"){
         // shelf cutout
@@ -116,10 +167,132 @@
         
         
 	}
+    
+    
+    module dovetailJoiner(type="male"){
+             dovetail(type, slide=slideJoinSlide, width=18, height=dovetailHeight, back_width=slideLargeWidth, angle=20);
+             }
+    
+    
+    wallMountWidth = 25;
+    wallMountSize = [100,60,wallMountWidth];
+    screwOffset = 70;
+    module screwHole(){
+    
+      //  yrot(90)
+      up(dovetailHeight/2)
+        cyl(r=3.5, h=wallMountWidth-dovetailHeight+0.001, chamfer1=-2);
+    
+    }
+
+    module sideJoin(gender){
+        left(slideOffset)
+        down(cutDepthPosition)
+        if(gender=="male"){
+        
+            rotate([0,180,0])
+            down(dovetailHeight)
+            dovetailJoiner("male");
+         
+        up(slideBlockDepth/2+dovetailHeight)
+         cuboid([slideBlockWidth,slideBlockHeight,slideBlockDepth]);
+                
+        }else if(gender == "female"){
+        
+        down(slideBlockDepth/2-dovetailHeight+0.1)
+          diff("remove")
+        cuboid([slideBlockWidth,slideBlockHeight,slideBlockDepth])
+          tag("remove") attach(TOP) 
+          dovetailJoiner("female");
+        }
+    
+    }
 
 
     sliced(renderType=renderType) {
-        rav4_phone_holder();
+
+        if(partType == "plug" || partType == "all" || partType == "all-car"){
+        intersection(){        
+    
+       zrot(slideJoinRotateZ)
+        xrot(slideJoinRotateX)
+            sideJoin("female");
+            rav4_phone_holder();
+        }
+        }
+        
+        if(partType == "wallMount" || partType == "all"){
+            intersection(){
+                sideJoin("male");  
+                left(30)
+                difference(){
+                    cuboid(wallMountSize);
+                    union(){
+                        right(screwOffset)
+                        screwHole();
+                        left(screwOffset)
+                        screwHole();
+                        }
+                    }
+                    
+                    }
+                
+            }
+        
+        if(partType == "phoneMount" || partType == "all" || partType == "all-car"){
+        intersection(){
+          
+            
+       zrot(slideJoinRotateZ)
+        xrot(slideJoinRotateX)
+            sideJoin("male");
+            rav4_phone_holder();
+            }
+        }
+        
+        if(partType == "joined"){ 
+            rav4_phone_holder();
+        }
+        
+        if(partType == "cordHolder" || partType == "all"  || partType == "all-car"){
+        cordHolderHeight = 10;
+        cordSize = 3;
+        cutSize = 15;
+        cordHolderFitReduction = 0.95;
+        difference(){
+        intersection(){
+        
+            rav4_phone_holder();
+//            scale(cordHoleScale)
+       //     yrot(-5)
+        /*   xscale(cordHolderFitReduction)
+            yscale(cordHolderFitReduction)
+            #cyl(r=cordHoleSize, h=cordHolderHeight);
+          */  
+            
+            
+            move([-55,5,0])
+            scale(cordHoleScale)
+            yrot(-5)
+            cyl(r=cordHoleSize, h=80);
+            }
+            
+            
+            cutoutLength = 25;
+            move([-55,5,0])
+            scale(cordHoleScale)
+            
+            down(cutoutLength/4)
+            cyl(r=cordSize, h=cutoutLength);
+            
+            
+            move([-55,5,0])
+            left(cutSize/2)
+            down(cutoutLength/4)
+            cuboid([cutSize,5,cutoutLength]);
+            }
+        }
+        
     }
        
 

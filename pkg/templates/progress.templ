@@ -2,20 +2,19 @@ package templates
 
 import "fmt"
 
-
 templ CancelButton(id string) {
-    <button id="cancel-button" hx-swap-oob="true" class="button is-danger" hx-get={ fmt.Sprintf("/cancel?id=%s", id) }>Cancel</button>
+	<button id="cancel-button" hx-swap-oob="true" class="button is-danger" hx-get={ fmt.Sprintf("/cancel?id=%s", id) }>Cancel</button>
 }
 
 templ GetProgressHTML(id string) {
-     <div>
-        @CancelButton(id)
-    </div>
-    <div id="progress" hx-get={ fmt.Sprintf("/progress?id=%s", id) } hx-trigger="every 1s" hx-swap="outerHTML" class="notification is-info p-1 m-1" style="max-width: 300px;">Starting...
-        [GetProgressHTML]
-    </div>
-   
-    <script>
+	<div>
+		@CancelButton(id)
+	</div>
+	<div id="progress" hx-get={ fmt.Sprintf("/progress?id=%s", id) } hx-trigger="every 1s" hx-swap="outerHTML" class="notification is-info p-1 m-1" style="max-width: 300px;">
+		Starting...
+		[GetProgressHTML]
+	</div>
+	<script>
         // Handle completion by stopping polling
         document.body.addEventListener('htmx:afterRequest', function(evt) {
             const status = evt.detail.xhr.getResponseHeader('X-Progress-Status');
@@ -32,21 +31,20 @@ templ GetProgressHTML(id string) {
     </script>
 }
 
-
 templ AllComplete() {
-    <div id="progress-summary" hx-swap-oob="true" hx-swap="beforeend">All instances completed!</div>
-    <div id="progress" class="notification is-success">
-        <span class="icon">
-            <i class="fas fa-check-circle"></i>
-        </span>
-        <span>All instances completed!</span>
-    </div>
-    <div id="cancel-button" hx-swap-oob="true"></div>
+	<div id="progress-summary" hx-swap-oob="true" hx-swap="beforeend">All instances completed!</div>
+	<div id="progress" class="notification is-success">
+		<span class="icon">
+			<i class="fas fa-check-circle"></i>
+		</span>
+		<span>All instances completed!</span>
+	</div>
+	<div id="cancel-button" hx-swap-oob="true"></div>
 }
 
 templ InstanceUpdate(id string) {
-		<div id="progress" class="notification is-info" hx-get={ fmt.Sprintf("/progress?id=%s", id) } hx-trigger="every 1s" hx-swap="outerHTML"></div>
-		<script>
+	<div id="progress" class="notification is-info" hx-get={ fmt.Sprintf("/progress?id=%s", id) } hx-trigger="every 1s" hx-swap="outerHTML"></div>
+	<script>
             /*function poll() {
                 fetch(fmt.Sprintf('/progress?id=%s'), id).then(r => {
                     const status = r.headers.get('X-Progress-Status');
@@ -77,78 +75,83 @@ templ InstanceUpdate(id string) {
 }
 
 templ ProgressContainer(id string) {
-    <div id="progress-summary" hx-swap-oob="true">
-    <div class="is-loading"></div>
-        Starting...
-    </div>
-    <div id="progress-container" class="box m-3">
-        <div class="columns is-vcentered">
-            <div class="column">
-                <div id="progress" class="notification is-info" hx-get={ fmt.Sprintf("/progress?id=%s", id) } hx-trigger="every 1s" hx-swap="outerHTML">
-                    Starting...
-                </div>
-            </div>
-            <div class="column is-narrow">
-                <button id="cancel-button" class="button is-danger" hx-get={ fmt.Sprintf("/cancel?id=%s", id) } hx-swap-oob="true">
-                    Cancel
-                </button>
-            </div>
-        </div>
-    </div>
+	<div id="progress-summary" hx-swap-oob="true">
+		<div class="is-loading"></div>
+		Starting...
+	</div>
+	<div id="progress-container" class="box m-3">
+		<div class="columns is-vcentered">
+			<div class="column">
+				<div id="progress" class="notification is-info" hx-get={ fmt.Sprintf("/progress?id=%s", id) } hx-trigger="every 1s" hx-swap="outerHTML">
+					Starting...
+				</div>
+			</div>
+			<div class="column is-narrow">
+				<button id="cancel-button" class="button is-danger" hx-get={ fmt.Sprintf("/cancel?id=%s", id) } hx-swap-oob="true">
+					Cancel
+				</button>
+			</div>
+		</div>
+	</div>
 }
 
 templ ProgressUpdate(message string, id string, keepPolling bool) {
-    <div id="progress-summary" hx-swap-oob="true" class="is-1"><div class="is-loading"></div> { message }</div>
-    <div id="progress" class="notification is-info"
-    if keepPolling {
-        hx-get={ fmt.Sprintf("/progress?id=%s", id) } hx-trigger="every 1s" hx-swap="outerHTML"
-    }>
-        <div x-show="showDebug">
-            [ProgressUpdate - { fmt.Sprintf("%t", keepPolling) } ]
-        </div>
-        { message }
-    </div>
+	<div id="progress-summary" hx-swap-oob="true" class="is-1"><div class="is-loading"></div> { message }</div>
+	<div
+		id="progress"
+		class="notification is-info"
+		if keepPolling {
+			hx-get={ fmt.Sprintf("/progress?id=%s", id) }
+			hx-trigger="every 1s"
+			hx-swap="outerHTML"
+		}
+	>
+		<div x-show="showDebug">
+			[ProgressUpdate - { fmt.Sprintf("%t", keepPolling) } ]
+		</div>
+		{ message }
+	</div>
 }
 
 templ ProgressComplete() {
-    <div id="progress-summary" hx-swap-oob="true" class="is-1 has-text-success">
-        <span class="icon-text">
-            <span class="icon">
-                <i class="fas fa-check-circle"></i>
-            </span>
-            <span>All instances completed!</span>
-        </span>
-    </div>
-    <div id="progress" class="notification is-success">
-        <span class="icon">
-            <i class="fas fa-check-circle"></i>
-        </span>
-        <span>All instances completed!</span>
-    </div>
-    <div id="cancel-button" hx-swap-oob="true"></div>
+	<div id="progress-summary" hx-swap-oob="true" class="is-1 has-text-success">
+		<span class="icon-text">
+			<span class="icon">
+				<i class="fas fa-check-circle"></i>
+			</span>
+			<span>All instances completed!</span>
+		</span>
+	</div>
+	<div id="progress" class="notification is-success">
+		<span class="icon">
+			<i class="fas fa-check-circle"></i>
+		</span>
+		<span>All instances completed!</span>
+	</div>
+	<div id="cancel-button" hx-swap-oob="true"></div>
 }
 
 templ ProgressFailure(message string) {
-    <div id="progress-summary" hx-swap-oob="true" class="is-1 has-text-danger">
-        <span class="icon-text">
-            <span class="icon">
-                <i class="fas fa-circle-exclamation"></i>
-            </span>
-            <span>Processing failed</span>
-        </span>
-    </div>
-    <div id="progress" class="notification is-danger">
-        <strong>Processing failed</strong>
-        <pre style="white-space: pre-wrap; word-break: break-word; margin-top: 0.75rem; margin-bottom: 0;">{ message }</pre>
-    </div>
-    <div id="cancel-button" hx-swap-oob="true"></div>
+	<div id="progress-summary" hx-swap-oob="true" class="is-1 has-text-danger">
+		<span class="icon-text">
+			<span class="icon">
+				<i class="fas fa-circle-exclamation"></i>
+			</span>
+			<span>Processing failed</span>
+		</span>
+	</div>
+	<div id="progress" class="notification is-danger">
+		<strong>Processing failed</strong>
+		<pre style="white-space: pre-wrap; word-break: break-word; margin-top: 0.75rem; margin-bottom: 0;">{ message }</pre>
+	</div>
+	<div id="cancel-button" hx-swap-oob="true"></div>
 }
 
 templ InstanceStart(name string, instanceIndex int, instanceCount int, id string) {
-    <div id="progress-summary" hx-swap-oob="true" class="is-1">
-        <div class="fas fa-spinner"></div> { name } ({ fmt.Sprintf("%d/%d", instanceIndex, instanceCount) })
-    </div>
-    <div id="progress" class="notification is-info" hx-get={ fmt.Sprintf("/progress?id=%s", id) } hx-trigger="every 1s" hx-swap="outerHTML">
-        <div class="fas fa-spinner"></div> { name } ({ fmt.Sprintf("%d/%d", instanceIndex, instanceCount) })
-    </div>
+	<div id="progress-summary" hx-swap-oob="true" class="is-1">
+		<div class="fas fa-spinner"></div> { name } ({ fmt.Sprintf("%d/%d", instanceIndex, instanceCount) })
+	</div>
+	<div id="progress" class="notification is-info" hx-get={ fmt.Sprintf("/progress?id=%s", id) } hx-trigger="every 1s" hx-swap="outerHTML">
+		<div class="fas fa-spinner"></div> { name } ({ fmt.Sprintf("%d/%d", instanceIndex, instanceCount) })
+	</div>
 }

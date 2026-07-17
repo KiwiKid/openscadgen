@@ -20,16 +20,16 @@ func serverChatPageURL(serverFolder string) string {
 }
 
 templ EnterConfigPage(configFiles []models.ConfigFile, serverFolder string) {
-     <head>
-            <meta charset="UTF-8"/>
-            <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-            <base href="."/>
-            <title> OpenSCAD Generation - Pick a config file</title>
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
-            <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
-            <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-            @HeadLinks()
-            <script>
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<base href="."/>
+		<title>OpenSCAD Generation - Pick a config file</title>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
+		<script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
+		<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+		@HeadLinks()
+		<script>
                 (function() {
                     var darkMode = localStorage.getItem('darkMode');
                     if (darkMode === null) {
@@ -44,7 +44,7 @@ templ EnterConfigPage(configFiles []models.ConfigFile, serverFolder string) {
                     }
                 })();
             </script>
-            <script data-server-folder={ serverFolder }>
+		<script data-server-folder={ serverFolder }>
                 function setServerFolderOptions() {
                     const serverFolder = (document.querySelector('[data-server-folder]').getAttribute('data-server-folder') || '').trim();
                     if (!serverFolder) {
@@ -89,7 +89,7 @@ templ EnterConfigPage(configFiles []models.ConfigFile, serverFolder string) {
                     });
                 }
             </script>
-            <style>
+		<style>
                 :root {
                     --bg-color: #ffffff;
                     --text-color: #333333;
@@ -383,7 +383,7 @@ html, body {
                     word-break: break-all;
                 }
             </style>
-            <script>
+		<script>
             (function () {
                 function topFolderFromPath(p) {
                     if (!p) return 'root';
@@ -456,147 +456,147 @@ html, body {
                 });
             })();
             </script>
-        </head>
-
-        <body>
-            <div class="container">
-            <div class="level is-mobile mb-4">
-                <div class="level-left">
-                    <div class="level-item">
-                        <a href="/" class="button">Home</a>
-                    </div>
-                    <div class="level-item">
-                        <a href={ templ.SafeURL(serverChatPageURL(serverFolder)) } class="button is-light">AI Chat</a>
-                    </div>
-                </div>
-                <div class="level-right">
-                    <div class="level-item">
-                        @OpenSCADNavPlaceholder()
-                    </div>
-                </div>
-            </div>
-                <h1>openscadgen</h1>
-                
-                <!-- Watcher UI will be loaded here -->
-                <div id="watcher-status" hx-get="/api/watcher/ui" hx-trigger="load" hx-swap="outerHTML"></div>
-                
-
-                <details class="create-project-accordion box" style="max-width:720px;margin-bottom:1.5rem;">
-                    <summary>Create new project</summary>
-                    <p class="content is-size-7 mt-3 mb-4">Adds a new folder with <code>config.toml</code> and a starter <code>.scad</code> (same as CLI <code>-i</code> / <code>-ie</code>). The parent field defaults to the server folder for this page.</p>
-                    <form method="post" action="/">
-                        <input type="hidden" name="create_project" value="1"/>
-                        <div class="field">
-                            <label class="label" for="create-project-name">Project name</label>
-                            <div class="control">
-                                <input id="create-project-name" class="input" type="text" name="project_name" required placeholder="e.g. chip_clip"/>
-                            </div>
-                        </div>
-                        <div class="field">
-                            <label class="label" for="create-project-parent">Parent directory</label>
-                            <div class="control">
-                                if serverFolder != "" {
-                                    <input id="create-project-parent" class="input" type="text" name="project_parent" value={ serverFolder }/>
-                                } else {
-                                    <input id="create-project-parent" class="input" type="text" name="project_parent" required placeholder="Absolute path to folder that will contain the new project"/>
-                                }
-                            </div>
-                            <p class="help">New folder is created inside this directory (defaults from the server folder when you opened this list).</p>
-                        </div>
-                        <div class="field">
-                            <label class="checkbox">
-                                <input type="checkbox" name="project_extended" value="1"/>
-                                Extended template (BOSL2, <code>-ie</code> / <code>-newe</code>)
-                            </label>
-                        </div>
-                        <button type="submit" class="button is-primary">Create project</button>
-                    </form>
-                </details>
-
-                <hr/>
-                
-                <h2>Config Files</h2>
-                <div id="config-picker-root">
-                    <div class="config-desktop-toolbar">
-                        <div class="field mb-0">
-                            <label class="label" for="config-picker-group">Top-level folder</label>
-                            <div class="control">
-                                <div class="select">
-                                    <select id="config-picker-group" title="First path segment under the scanned folder">
-                                        <option value="all">All</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="field mb-0">
-                            <label class="label">Layout</label>
-                            <div class="control">
-                                <div class="buttons has-addons">
-                                    <button type="button" class="button is-small" id="cfg-layout-list">List</button>
-                                    <button type="button" class="button is-small" id="cfg-layout-grid">Grid</button>
-                                    <button type="button" class="button is-small" id="cfg-layout-large">Large</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="config-files-wrap" class="config-files-wrap fixed-grid has-4-cols">
-                        for _, configFile := range configFiles {
-                            <article class="config-file-card cell" data-config-path={ configFile.Path } title={ configFile.Path }>
-                                <a class="config-file-card__link is-size-6" href={ templ.SafeURL(configPickerPageURL(configFile, serverFolder)) }>
-                                    if configFile.PrimaryImagePath != "" {
-                                        <img
-                                            src={ templ.SafeURL(fmt.Sprintf("/images?config_path=%s", url.QueryEscape(configFile.PrimaryImagePath))) }
-                                            alt={ configFile.NiceName }
-                                            class="image-preview config-file-card__thumb"
-                                            loading="lazy"
-                                        />
-                                    } else {
-                                        <span class="config-file-card__no-img">No preview</span>
-                                    }
-                                    <div>
-                                        <div class="has-text-weight-semibold">{ configFile.NiceName }</div>
-                                        <div class="config-file-card__path">{ configFile.Path }</div>
-                                    </div>
-                                </a>
-                            </article>
-                        }
-                    </div>
-                </div>
-            </div>
-        </body>
+	</head>
+	<body>
+		<div class="container">
+			<div class="level is-mobile mb-4">
+				<div class="level-left">
+					<div class="level-item">
+						<a href="/" class="button">Home</a>
+					</div>
+					<div class="level-item">
+						<a href={ templ.SafeURL(serverChatPageURL(serverFolder)) } class="button is-light">AI Chat</a>
+					</div>
+				</div>
+				<div class="level-right">
+					<div class="level-item">
+						@OpenSCADNavPlaceholder()
+					</div>
+				</div>
+			</div>
+			<h1>openscadgen</h1>
+			<!-- Watcher UI will be loaded here -->
+			<div id="watcher-status" hx-get="/api/watcher/ui" hx-trigger="load" hx-swap="outerHTML"></div>
+			<details class="create-project-accordion box" style="max-width:720px;margin-bottom:1.5rem;">
+				<summary>Create new project</summary>
+				<p class="content is-size-7 mt-3 mb-4">Adds a new folder with <code>config.toml</code> and a starter <code>.scad</code> (same as CLI <code>-i</code> / <code>-ie</code>). The parent field defaults to the server folder for this page.</p>
+				<form method="post" action="/">
+					<input type="hidden" name="create_project" value="1"/>
+					<div class="field">
+						<label class="label" for="create-project-name">Project name</label>
+						<div class="control">
+							<input id="create-project-name" class="input" type="text" name="project_name" required placeholder="e.g. chip_clip"/>
+						</div>
+					</div>
+					<div class="field">
+						<label class="label" for="create-project-parent">Parent directory</label>
+						<div class="control">
+							if serverFolder != "" {
+								<input id="create-project-parent" class="input" type="text" name="project_parent" value={ serverFolder }/>
+							} else {
+								<input id="create-project-parent" class="input" type="text" name="project_parent" required placeholder="Absolute path to folder that will contain the new project"/>
+							}
+						</div>
+						<p class="help">New folder is created inside this directory (defaults from the server folder when you opened this list).</p>
+					</div>
+					<div class="field">
+						<label class="checkbox">
+							<input type="checkbox" name="project_extended" value="1"/>
+							Extended template (BOSL2, <code>-ie</code> / <code>-newe</code>)
+						</label>
+					</div>
+					<button type="submit" class="button is-primary">Create project</button>
+				</form>
+			</details>
+			<hr/>
+			<h2>Config Files</h2>
+			<div id="config-picker-root">
+				<div class="config-desktop-toolbar">
+					<div class="field mb-0">
+						<label class="label" for="config-picker-group">Top-level folder</label>
+						<div class="control">
+							<div class="select">
+								<select id="config-picker-group" title="First path segment under the scanned folder">
+									<option value="all">All</option>
+								</select>
+							</div>
+						</div>
+					</div>
+					<div class="field mb-0">
+						<label class="label">Layout</label>
+						<div class="control">
+							<div class="buttons has-addons">
+								<button type="button" class="button is-small" id="cfg-layout-list">List</button>
+								<button type="button" class="button is-small" id="cfg-layout-grid">Grid</button>
+								<button type="button" class="button is-small" id="cfg-layout-large">Large</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div id="config-files-wrap" class="config-files-wrap fixed-grid has-4-cols">
+					for _, configFile := range configFiles {
+						<article class="config-file-card cell" data-config-path={ configFile.Path } title={ configFile.Path }>
+							<a class="config-file-card__link is-size-6" href={ templ.SafeURL(configPickerPageURL(configFile, serverFolder)) }>
+								if configFile.PrimaryImagePath != "" {
+									<img
+										src={ templ.SafeURL(fmt.Sprintf("/images?config_path=%s", url.QueryEscape(configFile.PrimaryImagePath))) }
+										alt={ configFile.NiceName }
+										class="image-preview config-file-card__thumb"
+										loading="lazy"
+									/>
+								} else {
+									<span class="config-file-card__no-img">No preview</span>
+								}
+								<div>
+									<div class="has-text-weight-semibold">{ configFile.NiceName }</div>
+									<div class="config-file-card__path">{ configFile.Path }</div>
+								</div>
+							</a>
+						</article>
+					}
+				</div>
+			</div>
+		</div>
+	</body>
 }
 
 templ EnterConfig() {
-
-    <form action="/" method="post">
-        <input type="text" name="config_path" value="">
-        <details style="margin-top:1em;">
-            <summary style="cursor:pointer; color:#66aaff;">Advanced Options</summary>
-            <div style="margin-top:1em;">
-                <label><input type="checkbox" name="debug"> Debug</label><br>
-                <label><input type="checkbox" name="overwrite_existing"> Overwrite Existing</label><br>
-                <label><input type="checkbox" name="skip_render"> Skip Render</label><br>
-                <label><input type="checkbox" name="high_quality"> High Quality</label><br>
-                <label><input type="checkbox" name="low_quality"> Low Quality</label><br>
-                <label><input type="checkbox" name="concurrent"> Concurrent</label><br>
-                <label>Max Concurrent Requests: <input type="number" name="max_concurrent_requests" min="1" style="width:60px;"></label><br>
-            </div>
-        </details>
-        <input type="submit" value="Enter">
-    </form>
+	<form action="/" method="post">
+		<input type="text" name="config_path" value=""/>
+		<details style="margin-top:1em;">
+			<summary style="cursor:pointer; color:#66aaff;">Advanced Options</summary>
+			<div style="margin-top:1em;">
+				<label><input type="checkbox" name="debug"/> Debug</label>
+				<br/>
+				<label><input type="checkbox" name="overwrite_existing"/> Overwrite Existing</label>
+				<br/>
+				<label><input type="checkbox" name="skip_render"/> Skip Render</label>
+				<br/>
+				<label><input type="checkbox" name="high_quality"/> High Quality</label>
+				<br/>
+				<label><input type="checkbox" name="low_quality"/> Low Quality</label>
+				<br/>
+				<label><input type="checkbox" name="concurrent"/> Concurrent</label>
+				<br/>
+				<label>Max Concurrent Requests: <input type="number" name="max_concurrent_requests" min="1" style="width:60px;"/></label>
+				<br/>
+			</div>
+		</details>
+		<input type="submit" value="Enter"/>
+	</form>
 }
 
-templ ProjectFolderForm(warning templ.Component){
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-            <meta charset="UTF-8"/>
-            <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-            <base href="."/>
-            <title> OpenSCAD Generation - Pick a config file</title>
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
-            @HeadLinks()
-            <style>
+templ ProjectFolderForm(warning templ.Component) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<base href="."/>
+			<title>OpenSCAD Generation - Pick a config file</title>
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
+			@HeadLinks()
+			<style>
                 html, body {
                     height: 100%;
                 }
@@ -644,50 +644,45 @@ templ ProjectFolderForm(warning templ.Component){
                     margin-top: 0.75rem;
                 }
             </style>
-            </head>
-    <body>
-        <div class="container">
-            <div class="card">
-                <div class="card-content">
-                    <div style="display:flex;justify-content:flex-end;margin-bottom:0.75rem;">
-                        @OpenSCADNavPlaceholder()
-                    </div>
-                    <h1 class="title">Enter Project Folder Path</h1>
-                    <p class="subtitle intro">Point the server at a project folder that contains one or more <code>config.toml</code> files.</p>
-
-                    if warning != nil {
-                           @warning
-                    }
-                    
-                    <form id="folderForm">
-                        <div class="field">
-                            <label class="label">Full Path to Project Folder</label>
-                            <div class="control">
-                                <input type="text" id="fullPathInput" class="input" placeholder="e.g. /Users/you/making/openscad-project" required>
-                            </div>
-                            <p class="help">Use an absolute path to a folder that contains one or more <code>config.toml</code> files.</p>
-                        </div>
-                        <div class="field">
-                            <div class="control">
-                                <button type="submit" class="button is-primary is-fullwidth">Navigate to Server Folder</button>
-                            </div>
-                        </div>
-                    </form>
-                    
-                    <div class="error-message has-text-danger" id="errorMessage" style="display:none;"></div>
-                    <div class="success-message has-text-success" id="successMessage" style="display:none;"></div>
-
-                    <div class="recent-folders">
-                        <h2 class="subtitle is-6">Recent folders</h2>
-                        <p class="help">Pick one of the folders you’ve used before, or paste a new path above. Use × to drop a path from this list.</p>
-                        @ServerFolderOptionsComponent()
-                        <server-folder-options class="recent-folders-list"></server-folder-options>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <script>
+		</head>
+		<body>
+			<div class="container">
+				<div class="card">
+					<div class="card-content">
+						<div style="display:flex;justify-content:flex-end;margin-bottom:0.75rem;">
+							@OpenSCADNavPlaceholder()
+						</div>
+						<h1 class="title">Enter Project Folder Path</h1>
+						<p class="subtitle intro">Point the server at a project folder that contains one or more <code>config.toml</code> files.</p>
+						if warning != nil {
+							@warning
+						}
+						<form id="folderForm">
+							<div class="field">
+								<label class="label">Full Path to Project Folder</label>
+								<div class="control">
+									<input type="text" id="fullPathInput" class="input" placeholder="e.g. /Users/you/making/openscad-project" required/>
+								</div>
+								<p class="help">Use an absolute path to a folder that contains one or more <code>config.toml</code> files.</p>
+							</div>
+							<div class="field">
+								<div class="control">
+									<button type="submit" class="button is-primary is-fullwidth">Navigate to Server Folder</button>
+								</div>
+							</div>
+						</form>
+						<div class="error-message has-text-danger" id="errorMessage" style="display:none;"></div>
+						<div class="success-message has-text-success" id="successMessage" style="display:none;"></div>
+						<div class="recent-folders">
+							<h2 class="subtitle is-6">Recent folders</h2>
+							<p class="help">Pick one of the folders you’ve used before, or paste a new path above. Use × to drop a path from this list.</p>
+							@ServerFolderOptionsComponent()
+							<server-folder-options class="recent-folders-list"></server-folder-options>
+						</div>
+					</div>
+				</div>
+			</div>
+			<script>
         document.addEventListener('DOMContentLoaded', function() {
             const folderForm = document.getElementById('folderForm');
             const fullPathInput = document.getElementById('fullPathInput');
@@ -773,28 +768,27 @@ templ ProjectFolderForm(warning templ.Component){
             }
         });
         </script>
-    </body>
-
-</html>
+		</body>
+	</html>
 }
 
 templ Warning(message string) {
-    <div class="notification is-warning">
-        if strings.Contains(message, "\n") {
-            <pre style="white-space: pre-wrap; word-break: break-word; margin: 0; background: transparent; padding: 0;">{ message }</pre>
-        } else {
-            { message }
-        }
-    </div>
+	<div class="notification is-warning">
+		if strings.Contains(message, "\n") {
+			<pre style="white-space: pre-wrap; word-break: break-word; margin: 0; background: transparent; padding: 0;">{ message }</pre>
+		} else {
+			{ message }
+		}
+	</div>
 }
 
 templ ListConfig(configFiles []models.ConfigFile) {
-    <div class="container">
-        <h1>Config Files</h1>
-        <ul>
-           for _, configFile := range configFiles {
-            <li><a href={ templ.SafeURL(fmt.Sprintf("/?config=%s", configFile.Path)) }>{configFile.Path}</a></li>
-           }
-        </ul>
-    </div>
+	<div class="container">
+		<h1>Config Files</h1>
+		<ul>
+			for _, configFile := range configFiles {
+				<li><a href={ templ.SafeURL(fmt.Sprintf("/?config=%s", configFile.Path)) }>{ configFile.Path }</a></li>
+			}
+		</ul>
+	</div>
 }

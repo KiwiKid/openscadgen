@@ -1,0 +1,16 @@
+[openscadgen]
+name = "dont_use_door_indicator"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{renderType}"
+
+global_params = { renderType = "obj,vertSlice,horzSlice" }
+
+[[openscadgen.input_paths]]
+path = "./dont_use_door_indicator.scad"
+
+[[openscadgen.images]]
+name = "nice"
+param_filter = { renderType= "obj,vertSlice,horzSlice"}
