@@ -8,15 +8,25 @@ $fn = 200;
 
 wallDepth = 1;
 radius = 30;
-height = 30;
+height = 45;
 
 bowlHoles = "prismoidHoles"; // none
-holeOffset = 2;
+holeOffset = 9;
+holeSizeRatio = 8;
 
 module bowlShape(radius=radius){
 cyl(r=radius, h=height, anchor=BOTTOM, chamfer1=radius/5);
 
 }
+
+module holeSet(){
+up(height/2+2)
+            rot_copies(n=8, cp=[0, 0],delta=[radius-holeOffset,0,0]) 
+            
+            yrot(90)
+            zrot(45)
+            prismoid(size1=[height/holeSizeRatio+radius/holeSizeRatio,height/holeSizeRatio+radius/holeSizeRatio], size2=[height/holeSizeRatio+radius/holeSizeRatio,height/holeSizeRatio+radius/holeSizeRatio], h=14);
+            }
 
 module old_light_switch_cover_smart_light(bowlHoles="prismoidHoles"){
 	
@@ -27,12 +37,16 @@ module old_light_switch_cover_smart_light(bowlHoles="prismoidHoles"){
         
         
         if(bowlHoles == "prismoidHoles"){
-        up(height/2+2)
-            rot_copies(n=8, cp=[0, 0],delta=[radius-holeOffset,0,0]) 
+            holeSet();
             
-            yrot(90)
-            zrot(45)
-            prismoid(size1=[13,13], size2=[0,0], h=14);
+            up(10)
+            zrot(360/8/2)
+            holeSet();
+            
+            
+            down(10)
+            zrot(360/8/2)
+            holeSet();
         }
         }
     

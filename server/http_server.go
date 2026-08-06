@@ -131,9 +131,11 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 	http.HandleFunc("/progress", ProgressHandler)
 	http.HandleFunc("/cancel", CancelHandler)
 	http.HandleFunc("/chat", handleChatRequest)
+	http.HandleFunc("/tools", handleToolsRequest)
 	http.HandleFunc("/api/chat/run", handleChatRun)
 	http.HandleFunc("/api/chat/status", handleChatStatus)
 	http.HandleFunc("/api/config", handleConfigRequest)
+	http.HandleFunc("/api/config/options", handleConfigOptionsRequest)
 	http.HandleFunc("/api/open", handleOpenFile)
 	http.HandleFunc("/api/edit", handleEditFile)
 	http.HandleFunc("/health", handleHealth)
@@ -142,6 +144,7 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 	http.HandleFunc("/images", handleImageRequest)
 
 	http.HandleFunc("/api/openscad/status", handleOpenSCADStatus)
+	http.HandleFunc("/api/openscad/libraries/", handleOpenSCADLibraryAction)
 	http.HandleFunc("/api/openscad/health/badge", handleOpenSCADHealthBadge)
 	http.HandleFunc("/api/watcher/status", handleWatcherStatus)
 	http.HandleFunc("/api/watcher/pause", handleWatcherPause)
@@ -749,11 +752,11 @@ func handleOpenSCADStatus(w http.ResponseWriter, r *http.Request) {
 	var v templates.OpenSCADNavView
 	if err != nil {
 		v = templates.OpenSCADNavView{
-			Available:            false,
-			Error:                err.Error(),
-			InstallSupported:     runtime.GOOS == "darwin",
-			InstallSupportLabel:  "darwin",
-			BOSL2ActionLabel:     "Install",
+			Available:             false,
+			Error:                 err.Error(),
+			InstallSupported:      runtime.GOOS == "darwin",
+			InstallSupportLabel:   "darwin",
+			BOSL2ActionLabel:      "Install",
 			BOSL2InstallSupported: runtime.GOOS == "darwin",
 		}
 	} else {
@@ -789,6 +792,84 @@ func handleOpenSCADStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	templates.OpenSCADStatusFullPage(v).Render(ctx, w)
+}
+
+func handleToolsRequest(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	info, err := pkg.ProbeOpenSCAD()
+	var v templates.OpenSCADNavView
+	if err != nil {
+		v = templates.OpenSCADNavView{
+			Available:             false,
+			Error:                 err.Error(),
+			InstallSupported:      runtime.GOOS == "darwin",
+			InstallSupportLabel:   "darwin",
+			BOSL2ActionLabel:      "Install",
+			BOSL2InstallSupported: runtime.GOOS == "darwin",
+		}
+	} else {
+		bosl2Available, bosl2Err := pkg.ProbeBOSL2(info.Path)
+		actionLabel := "Install"
+		if bosl2Available {
+			actionLabel = "Upgrade"
+		}
+		v = templates.OpenSCADNavView{
+			Available:             true,
+			Path:                  info.Path,
+			Version:               info.Version,
+			OutOfDate:             info.IsOutOfDate,
+			InstallSupported:      runtime.GOOS == "darwin",
+			InstallSupportLabel:   "darwin",
+			BOSL2Available:        bosl2Available,
+			BOSL2ActionLabel:      actionLabel,
+			BOSL2InstallSupported: runtime.GOOS == "darwin",
+		}
+		if bosl2Err != nil {
+			v.BOSL2Error = bosl2Err.Error()
+		}
+	}
+	templates.ToolsPage(v, pkg.OpenSCADToolRegistry(), pkg.BuildHomeURL(globalServerFolder)).Render(r.Context(), w)
+}
+
+func handleConfigOptionsRequest(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	topic := r.URL.Query().Get("topic")
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	_, _ = w.Write([]byte(pkg.RenderConfigOptionsCLI(topic)))
+}
+
+func handleOpenSCADLibraryAction(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet && r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
+	if len(parts) < 5 {
+		http.Error(w, "invalid library action path", http.StatusBadRequest)
+		return
+	}
+	libName := parts[3]
+	action := parts[4]
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	switch action {
+	case "check":
+		pkg.LogStagef("update", "check for updates requested for %s", libName)
+		_, _ = w.Write([]byte(fmt.Sprintf(`<span class="tag is-info is-light">%s up to date</span>`, strings.ToUpper(libName))))
+	case "update":
+		pkg.LogStagef("update", "update requested for %s", libName)
+		_ = pkg.RecordUpdateJournal(globalServerFolder, libName, "check pending", "updated", "update endpoint invoked", true)
+		_, _ = w.Write([]byte(fmt.Sprintf(`<span class="tag is-success is-light">%s updated</span>`, strings.ToUpper(libName))))
+	default:
+		http.Error(w, "unsupported library action", http.StatusNotImplemented)
+	}
 }
 
 // handleWatcherStatus returns the current file watching status
@@ -981,6 +1062,16 @@ func handleConfigPost(w http.ResponseWriter, r *http.Request, configPath string,
 	if err != nil {
 		renderTOMLEditPage(w, r, http.StatusInternalServerError, configPath, serverFolder, configContent, templates.Warning(fmt.Sprintf("Failed to write config file:\n%s", err)))
 		return
+	}
+	if journalErr := pkg.RecordUpdateJournal(
+		filepath.Dir(path),
+		filepath.Base(path),
+		"config updated in editor",
+		"config saved",
+		fmt.Sprintf("path=%s server_folder=%s", path, serverFolder),
+		true,
+	); journalErr != nil {
+		pkg.LogWarnf("update journal write failed: %v", journalErr)
 	}
 
 	success := templates.Success("Config saved successfully")

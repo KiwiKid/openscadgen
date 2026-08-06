@@ -1,0 +1,22 @@
+[openscadgen]
+name = "stablizer_foot"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{renderType}_{connectorType}"
+
+# global_params will be passed into all the generated designs. 
+# Example height = [1,37,100] or text = "woah"
+global_params = { renderType = ["obj", "horzSlice"], connectorType=["LnoBlocks", "L"] }
+
+[[openscadgen.input_paths]]
+path = "./stablizer_foot.scad"
+params = { }
+
+# [[openscadgen.instances]] allow for scoping input params (or [[openscadgen.param_sets]]) to specific designs 
+# [[openscadgen.instances]]
+# params = { height = 87 }
+
+[[openscadgen.images]]
+name = "nice"

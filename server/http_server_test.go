@@ -232,6 +232,23 @@ func TestHandleHealth(t *testing.T) {
 	}
 }
 
+func TestHandleConfigOptionsRequestFiltersTopic(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/api/config/options?topic=images", nil)
+	rr := httptest.NewRecorder()
+	handleConfigOptionsRequest(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rr.Code)
+	}
+	body := rr.Body.String()
+	if !strings.Contains(body, "[openscadgen].images") {
+		t.Fatalf("expected images option in response, got %q", body)
+	}
+	if strings.Contains(body, "[openscadgen].name") {
+		t.Fatalf("expected non-images options to be filtered out, got %q", body)
+	}
+}
+
 func TestHandleConfigGetReadErrorRendersHTML(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/api/config", nil)
 	rr := httptest.NewRecorder()

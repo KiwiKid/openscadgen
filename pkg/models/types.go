@@ -84,6 +84,7 @@ type CmdFlags struct {
 	IncludeExportLog             bool   `json:"include_export_log"`
 	OverwriteExisting            bool   `json:"overwrite_existing"`
 	ShowMan                      bool   `json:"show_man"`
+	ShowConfigOptions            bool   `json:"show_config_options"`
 	Server                       bool   `json:"server"`
 	ServerModeConfigFile         string ``
 	ServerFolder                 string `json:"server_folder"`
@@ -94,6 +95,7 @@ type CmdFlags struct {
 	InitProjectNameExplainer     string `json:"init_project_name_explainer"`
 	InitProjectParentDir         string `json:"init_project_parent_dir"`
 	NoInput                      bool   `json:"no_input"`
+	ConfigOptionsTopic           string `json:"config_options_topic"`
 	ConfigFile                   string `json:"config_file"`
 	SkipRender                   bool   `json:"skip_render"`
 	SkipReadme                   bool   `json:"skip_readme"`
@@ -110,6 +112,7 @@ type CmdFlags struct {
 	LowQuality                   bool   `json:"low_quality"`
 	EnableFileWatcher            bool   `json:"enable_file_watcher"`
 	DeleteExportSTLsDir          string `json:"delete_export_stls_dir"`
+	DangerouslySkipPermissions   bool   `json:"dangerously_skip_permissions"`
 }
 
 type OutputPaths struct {
@@ -141,6 +144,7 @@ type Config struct {
 	OverwriteExisting            bool   //`flag:"ow"`
 	SkipReadme                   bool   //`flag:"skip-readme"`
 	CustomOpenSCADCommand        string //`flag:"cmd"`
+	DangerouslySkipPermissions   bool
 	Concurrent                   bool   //`flag:"p"`
 	MaxConcurrentRequests        int    //`flag:"pn"`
 	IncludePartIDLetter          bool   //`flag:"pid"`
@@ -158,6 +162,7 @@ type Config struct {
 	InitProjectNameExtended      string
 	InitProjectNameExplainer     string
 	NoInput                      bool
+	ConfigOptionsTopic           string
 }
 
 type InputPath struct {

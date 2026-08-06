@@ -6,25 +6,25 @@ $fs = $preview ? 5 : 1;
 $fn = 200;
 
 
-pipeRadius = 5.5;
+pipeRadius = 6.7;
 
-height = 80;
+height = 100;
 
-middleSectionGap = 20;
-connectorOverlap = 25;
-middleWallThickness = 2.5;
+middleSectionGap = 60;
+connectorOverlap = 35;
+middleWallThickness = 1;
 
-wallSize =0.8;
+wallSize =1.5;
 cut_direction = FRONT; // Try FRONT, LEFT, RIGHT, UP, or DOWN
-cut_offset = 4;       // Distance to shift the cut plane from center
-middleGapRadius = pipeRadius+middleWallThickness;
+cut_offset = 5;       // Distance to shift the cut plane from center
+middleGapRadius = 9;
 
 gripAmount = 2.2 ;
 
 module middleGap(middleGapRadius=middleGapRadius,middleSectionGap=middleSectionGap){
 //middle  blocker
-    ycopies(3, sp=[0,0,0]){
-        cyl(r=middleGapRadius, h=middleSectionGap);
+    ycopies(1, sp=[0,0,0], n=10){
+        cyl(r=middleGapRadius, h=middleSectionGap, chamfer=5);
     }
     }
 
@@ -42,7 +42,7 @@ difference(){
     
 
     difference(){
-   tube(middleSectionGap+connectorOverlap, ir=pipeRadius+wallSize, wall=middleWallThickness);
+   tube(middleSectionGap+connectorOverlap, ir=pipeRadius+wallSize, or=middleGapRadius+wallSize, ochamfer=7);
    
    
     middleGap(middleSectionGap=middleSectionGap);

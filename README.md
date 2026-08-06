@@ -305,7 +305,16 @@ This starts the server at http://localhost:6767 serving the projects in the moun
 -ix, -init-explainer string  Initialize with a more verbose starter config
 -no-input             Skip interactive init prompts
 -custom-openscad-command string  Custom OpenSCAD command to use
+-dangerously-skip-permissions    Allow unsafe OpenSCAD settings such as custom command paths and extra command arguments
 ```
+
+Use `-dangerously-skip-permissions` only when you trust the config and the OpenSCAD binary you are about to run. The main risks are:
+- Arbitrary code execution if a custom command points at a malicious binary or wrapper script
+- Privilege escalation if the binary path resolves to a more privileged interpreter or launcher
+- Shell injection risk from custom command strings and command-line argument pass-through
+- Unsafe file access or exfiltration from OpenSCAD scripts that can read local resources through imported files or libraries
+
+The flag is intentionally narrow. It does not disable normal validation, and it should only be needed for features that require trusted execution.
 
 ### Project Initialization
 Use `-init` to quickly create a new project structure. On a first project, the CLI will prompt to use the explainer starter template and will auto-accept after 10 seconds:

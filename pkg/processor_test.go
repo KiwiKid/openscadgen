@@ -306,6 +306,77 @@ func TestGetOutputPaths(t *testing.T) {
 	}
 }
 
+func TestLoadConfigRejectsUnsafeOpenSCADSettingsWithoutOverride(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "openscadgen-unsafe-config-*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	scadPath := filepath.Join(tempDir, "design.scad")
+	if err := os.WriteFile(scadPath, []byte("// test"), 0o644); err != nil {
+		t.Fatalf("Failed to write scad file: %v", err)
+	}
+
+	configPath := filepath.Join(tempDir, "config.toml")
+	configBody := fmt.Sprintf(`
+[openscadgen]
+name = "unsafe-test"
+input_path = %q
+export_name_format = "unsafe-test"
+
+custom_openscad_args = "--enable=extrude"
+`, scadPath)
+	if err := os.WriteFile(configPath, []byte(configBody), 0o644); err != nil {
+		t.Fatalf("Failed to write config file: %v", err)
+	}
+
+	_, _, err = LoadConfigFromFile(models.CmdFlags{ConfigFile: configPath})
+	if err == nil {
+		t.Fatalf("Expected LoadConfigFromFile to reject unsafe settings without override")
+	}
+	if got := err.Error(); !strings.Contains(got, "dangerously-skip-permissions") {
+		t.Fatalf("Expected error to mention override flag, got %q", got)
+	}
+}
+
+func TestLoadConfigAllowsUnsafeOpenSCADSettingsWithOverride(t *testing.T) {
+	tempDir, err := os.MkdirTemp("", "openscadgen-safe-config-*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	scadPath := filepath.Join(tempDir, "design.scad")
+	if err := os.WriteFile(scadPath, []byte("// test"), 0o644); err != nil {
+		t.Fatalf("Failed to write scad file: %v", err)
+	}
+
+	configPath := filepath.Join(tempDir, "config.toml")
+	configBody := fmt.Sprintf(`
+[openscadgen]
+name = "unsafe-test"
+input_path = %q
+export_name_format = "unsafe-test"
+
+custom_openscad_args = "--enable=extrude"
+`, scadPath)
+	if err := os.WriteFile(configPath, []byte(configBody), 0o644); err != nil {
+		t.Fatalf("Failed to write config file: %v", err)
+	}
+
+	cfg, _, err := LoadConfigFromFile(models.CmdFlags{
+		ConfigFile:                 configPath,
+		DangerouslySkipPermissions: true,
+	})
+	if err != nil {
+		t.Fatalf("Expected LoadConfigFromFile to allow unsafe settings with override, got %v", err)
+	}
+	if !cfg.DangerouslySkipPermissions {
+		t.Fatalf("Expected config to retain override flag")
+	}
+}
+
 func TestLoadConfigFromFile_InvalidToml_ReturnsFatalErrThird(t *testing.T) {
 	tmpDir := t.TempDir()
 	path := filepath.Join(tmpDir, "config.toml")

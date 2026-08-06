@@ -112,6 +112,8 @@ docker run --rm -v $(pwd):/app openscadgen:dev just test
 - `GO_ENV`: Set to `development` or `production`
 - `OPENSCAD_PATH`: Custom OpenSCAD executable path (if needed)
 
+If you expose openscadgen on a public server, avoid custom OpenSCAD command paths and extra argument injection unless you explicitly launch with `--dangerously-skip-permissions`.
+
 ## Volume Mounts
 
 ### Development

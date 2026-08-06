@@ -2193,11 +2193,9 @@ html, body {
 							</button>
 							if reportMeta.IsServerMode {
 								<a href={ templ.SafeURL(reportMeta.HomeURL) } class="button is-large">Home</a>
-                            }
-								<a class="navbar-brand">{ config.Design.Name }</a>
-                                
-							</div>
-                            
+							}
+							<a class="navbar-brand">{ config.Design.Name }</a>
+						</div>
 						<div class="global-header__search">
 							<input type="text" class="input" x-model="filters.searchQuery" placeholder="Search instances, STLs, and output paths..."/>
 						</div>
@@ -2231,6 +2229,9 @@ html, body {
 								if reportMeta.IsServerMode {
 									<li class="nav-item" :class="{ active: navSelected === 'json' }">
 										<a class="nav-link" @click="navSelected = 'json'">Config</a>
+									</li>
+									<li class="nav-item">
+										<a class="nav-link" href="/tools">Tools</a>
 									</li>
 									<li class="nav-item">
 										<a class="nav-link" hx-get={ templ.SafeURL(fmt.Sprintf("/api/config?config_path=%s&server_folder=%s", reportMeta.ConfigFilePathEncoded, reportMeta.ServerFolderEncoded)) } hx-target="#main-content" hx-swap="innerHTML" hx-push-url="true">Edit Config</a>
@@ -2556,9 +2557,9 @@ html, body {
 						<div class="container">
 							<div class="tabs is-centered is-fullwidth">
 								<ul>
-								<li :class="{ 'is-active': navSelected === 'instances' }">
-									<a @click="navSelected = 'instances'">Instances <span id="instances-count-bottom">{ fmt.Sprintf("(%d)", len(instances)) }</span></a>
-								</li>
+									<li :class="{ 'is-active': navSelected === 'instances' }">
+										<a @click="navSelected = 'instances'">Instances <span id="instances-count-bottom">{ fmt.Sprintf("(%d)", len(instances)) }</span></a>
+									</li>
 									if reportMode == "complete" {
 										<li :class="{ 'is-active': navSelected === 'stlResults' }">
 											<a @click="navSelected = 'stlResults'">STLs { fmt.Sprintf("(%d)", len(stlResults)) }</a>

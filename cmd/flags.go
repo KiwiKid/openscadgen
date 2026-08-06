@@ -18,6 +18,9 @@ func ParseFlags() models.CmdFlags {
 	flag.BoolVar(&cmdFlags.ShowMan, "man", false, "Display help message")
 	flag.BoolVar(&cmdFlags.ShowMan, "m", false, "Alias for -man")
 	flag.BoolVar(&cmdFlags.ShowMan, "h", false, "Alias for -man")
+	flag.BoolVar(&cmdFlags.ShowConfigOptions, "config-options", false, "Display config.toml options")
+	flag.BoolVar(&cmdFlags.ShowConfigOptions, "co", false, "Alias for -config-options")
+	flag.StringVar(&cmdFlags.ConfigOptionsTopic, "topic", "", "Filter config options by topic")
 
 	initDesc := "Create a new project folder (name or relative path, e.g. examples/my-part). Optional location: -init-dir, or -sf when starting the server in the same command."
 	flag.StringVar(&cmdFlags.InitProjectName, "init", "", initDesc)
@@ -79,6 +82,7 @@ func ParseFlags() models.CmdFlags {
 	flag.BoolVar(&cmdFlags.IncludePartIDLetter, "pid", false, "Include optional_part_id_letter variable in the call the openscad")
 
 	flag.StringVar(&cmdFlags.CustomOpenSCADCommand, "custom-openscad-command", "", "Custom OpenSCAD command to use")
+	flag.BoolVar(&cmdFlags.DangerouslySkipPermissions, "dangerously-skip-permissions", false, "Allow unsafe OpenSCAD execution settings such as custom command paths and extra command arguments")
 
 	flag.IntVar(&cmdFlags.OverrideFN, "fn", 0, "Override the default fn value (default none)")
 

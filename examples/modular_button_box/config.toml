@@ -1,0 +1,16 @@
+[openscadgen]
+name = "modular_button_box"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{renderType}_{partType}"
+
+global_params = { partType =[ "all", "frontWall", "sideWall", "box"] }
+
+[[openscadgen.input_paths]]
+path = "./modular_button_box.scad"
+
+[[openscadgen.images]]
+name = "nice"
+param_filter = { renderType= "obj,vertSlice,horzSlice"}

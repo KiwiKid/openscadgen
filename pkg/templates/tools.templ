@@ -1,0 +1,127 @@
+package templates
+
+import "fmt"
+
+type ToolLink struct {
+	Title                 string
+	Slug                  string
+	Description           string
+	URL                   string
+	External              bool
+	Badge                 string
+	Version               string
+	IsBOSL2InstallableLib bool
+	SupportsUpdateFlow    bool
+	CheckUpdatesURL       string
+	UpdateURL             string
+}
+
+templ ToolsPage(v OpenSCADNavView, tools []ToolLink, homeURL string) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>OpenSCADGen Tools</title>
+			@HeadLinks()
+			<style>
+				.tools-page {
+					max-width: 72rem;
+					margin: 0 auto;
+					padding: 1.5rem;
+				}
+				.tools-hero {
+					padding: 1.5rem;
+					border-radius: 1rem;
+					background: linear-gradient(135deg, rgba(0,102,204,0.12), rgba(0,0,0,0.02));
+					border: 1px solid rgba(0,0,0,0.08);
+					margin-bottom: 1.25rem;
+				}
+				.tools-grid {
+					display: grid;
+					grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+					gap: 1rem;
+				}
+				.tool-card {
+					height: 100%;
+					border: 1px solid rgba(0,0,0,0.08);
+					border-radius: 0.9rem;
+					padding: 1rem;
+					background: rgba(255,255,255,0.9);
+				}
+				.tool-card__meta {
+					display: flex;
+					gap: 0.5rem;
+					flex-wrap: wrap;
+					margin-top: 0.75rem;
+				}
+			</style>
+		</head>
+		<body>
+			<div class="tools-page">
+				<div class="is-flex is-justify-content-space-between is-align-items-center mb-4" style="gap: 1rem; flex-wrap: wrap;">
+					<div class="buttons are-small">
+						<a class="button is-light" href={ templ.SafeURL(homeURL) }>Home</a>
+					</div>
+					@OpenSCADNavWidget(v)
+				</div>
+				<section class="tools-hero">
+					<p class="title is-3 mb-2">Tools</p>
+					<p class="subtitle is-6 mb-0">A short list of utilities and libraries that pair well with OpenSCADGen.</p>
+				</section>
+				<div class="tools-grid">
+					for _, tool := range tools {
+						<article class="tool-card">
+							<div class="is-flex is-justify-content-space-between is-align-items-start" style="gap: 1rem;">
+								<div>
+									<p class="title is-5 mb-2">{ tool.Title }</p>
+									<p class="content is-small">{ tool.Description }</p>
+								</div>
+								if tool.Badge != "" {
+									<span class="tag is-info is-light">{ tool.Badge }</span>
+								}
+							</div>
+							<div class="tool-card__meta">
+								if tool.IsBOSL2InstallableLib {
+									<span class="tag is-success is-light">Installable</span>
+								}
+								if tool.Version != "" {
+									<span class="tag is-info is-light">{ tool.Version }</span>
+								}
+								<a
+									class="button is-link is-light is-small"
+									href={ templ.SafeURL(tool.URL) }
+									if tool.External {
+										target="_blank"
+										rel="noreferrer"
+									}
+								>{ fmt.Sprintf("Open %s", tool.Title) }</a>
+								if tool.SupportsUpdateFlow && tool.CheckUpdatesURL != "" {
+									<button
+										type="button"
+										class="button is-small is-light"
+										hx-get={ templ.SafeURL(tool.CheckUpdatesURL) }
+										hx-target={ templ.SafeURL("#tool-update-state-" + tool.Slug) }
+										hx-swap="innerHTML"
+									>Check for updates</button>
+								}
+								if tool.SupportsUpdateFlow && tool.UpdateURL != "" {
+									<button
+										type="button"
+										class="button is-small is-warning is-light"
+										hx-post={ templ.SafeURL(tool.UpdateURL) }
+										hx-target={ templ.SafeURL("#tool-update-state-" + tool.Slug) }
+										hx-swap="innerHTML"
+									>Update</button>
+								}
+								if tool.IsBOSL2InstallableLib {
+									<span id={ fmt.Sprintf("tool-update-state-%s", tool.Slug) } class="has-text-grey is-size-7"></span>
+								}
+							</div>
+						</article>
+					}
+				</div>
+			</div>
+		</body>
+	</html>
+}

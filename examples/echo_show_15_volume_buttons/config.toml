@@ -6,7 +6,7 @@ version = "v0.1"
 
 export_name_format = "{designFileName}_{renderType}"
 
-global_params = { renderType = "normal,vertSlice,horzSlice" }
+global_params = { renderType = "normal,leavers" }
 
 [[openscadgen.images]]
 name = "nice"

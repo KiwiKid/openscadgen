@@ -1391,6 +1391,11 @@ func editProjectFileTool(projectRoot string, requestedPath string, oldText strin
 	if err := os.WriteFile(targetAbs, []byte(updated), info.Mode().Perm()); err != nil {
 		return nil, err
 	}
+	if shouldJournalProjectWrite(targetRel) {
+		if err := pkg.RecordUpdateJournal(filepath.Dir(targetAbs), filepath.Base(targetAbs), "file edited", "file saved", fmt.Sprintf("path=%s replace_all=%t", filepath.ToSlash(targetRel), replaceAll), true); err != nil {
+			pkg.LogWarnf("update journal write failed: %v", err)
+		}
+	}
 
 	count := strings.Count(content, oldText)
 	if !replaceAll && count > 1 {
@@ -1420,12 +1425,22 @@ func writeProjectFileTool(projectRoot string, requestedPath string, content stri
 	if err := os.WriteFile(targetAbs, []byte(content), mode); err != nil {
 		return nil, err
 	}
+	if shouldJournalProjectWrite(targetRel) {
+		if err := pkg.RecordUpdateJournal(filepath.Dir(targetAbs), filepath.Base(targetAbs), "file written", "file saved", fmt.Sprintf("path=%s", filepath.ToSlash(targetRel)), true); err != nil {
+			pkg.LogWarnf("update journal write failed: %v", err)
+		}
+	}
 
 	return map[string]any{
 		"ok":            true,
 		"path":          filepath.ToSlash(targetRel),
 		"bytes_written": len(content),
 	}, nil
+}
+
+func shouldJournalProjectWrite(targetRel string) bool {
+	base := filepath.Base(targetRel)
+	return strings.EqualFold(filepath.Ext(targetRel), ".toml") || strings.EqualFold(base, "config.toml")
 }
 
 func gitStatusTool(ctx context.Context, projectRoot string) (map[string]any, error) {

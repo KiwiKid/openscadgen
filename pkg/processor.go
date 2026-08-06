@@ -210,6 +210,7 @@ To create a new version:
 ```sh
 git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
+git push && git push --tags
 */
 const VERSION = "v2.8.4"
 
@@ -1654,6 +1655,7 @@ func LoadConfig(configData string, flags models.CmdFlags, configPath string) (*m
 	conf.MaxConcurrentRequests = flags.MaxConcurrentRequests
 	conf.IncludePartIDLetter = flags.IncludePartIDLetter
 	conf.SetBuildInfoInFileAttributes = flags.SetBuildInfoInFileAttributes
+	conf.DangerouslySkipPermissions = flags.DangerouslySkipPermissions
 
 	conf.StopOnError = flags.StopOnError
 	conf.ConfigFile = configPath
@@ -1673,6 +1675,7 @@ func LoadConfig(configData string, flags models.CmdFlags, configPath string) (*m
 	conf.SkipReadme = flags.SkipReadme
 	conf.OverwriteExisting = flags.OverwriteExisting
 	conf.CustomOpenSCADCommand = flags.CustomOpenSCADCommand
+	conf.DangerouslySkipPermissions = flags.DangerouslySkipPermissions
 
 	conf.TotalQueuedInstances = 0
 	if flags.CustomOpenSCADOutputFormat != "" {
@@ -1716,6 +1719,10 @@ func LoadConfig(configData string, flags models.CmdFlags, configPath string) (*m
 		if !strings.Contains(conf.Design.ExportNameFormat, paramName) {
 			LogWarnWithCritical(fmt.Sprintf("ExportNameFormat contains param: \n\n -\t(%s)\n\n that is not in the params. Include every param in the export_name_format (in the format '{param_name}') to ensure all instances are generated to unique files.", paramName), true)
 		}
+	}
+
+	if err := validateUnsafeOpenSCADSettings(&conf); err != nil {
+		return nil, nil, err
 	}
 
 	openSCADVersion, err := findOpenSCAD()
@@ -1802,6 +1809,26 @@ func LoadConfig(configData string, flags models.CmdFlags, configPath string) (*m
 	}	*/
 
 	return &conf, warning, nil
+}
+
+func validateUnsafeOpenSCADSettings(conf *models.Config) error {
+	var riskySettings []string
+
+	if strings.TrimSpace(conf.CustomOpenSCADCommand) != "" {
+		riskySettings = append(riskySettings, "custom_openscad_command")
+	}
+	if strings.TrimSpace(conf.Design.CustomOpenSCADArgs) != "" {
+		riskySettings = append(riskySettings, "custom_openscad_args")
+	}
+
+	if len(riskySettings) == 0 || conf.DangerouslySkipPermissions {
+		return nil
+	}
+
+	return fmt.Errorf(
+		"unsafe OpenSCAD settings require --dangerously-skip-permissions: %s",
+		strings.Join(riskySettings, ", "),
+	)
 }
 
 func ProcessFolder(folder string, cmdFlags models.CmdFlags) ([]models.ProcessResult, error) {
@@ -3820,7 +3847,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 	}
 
 	// Build OpenSCAD command
-	openscadCmd := FindOpenSCAD()
+	openscadCmd := resolveOpenSCADCommand(config)
 	if openscadCmd == "" {
 		return result, fmt.Errorf("openscad command not found")
 	}
@@ -4006,6 +4033,13 @@ func FindOpenSCAD() string {
 		log.Fatalf("OpenSCAD not found in PATH. (%+v)", err)
 	}
 	return path
+}
+
+func resolveOpenSCADCommand(config *models.Config) string {
+	if config != nil && strings.TrimSpace(config.CustomOpenSCADCommand) != "" {
+		return strings.TrimSpace(config.CustomOpenSCADCommand)
+	}
+	return FindOpenSCAD()
 }
 
 func BuildHomeURL(serverFolder string) string {
@@ -4371,7 +4405,7 @@ func generateImage(instance *models.InstanceConfig, config *models.Config, camer
 		}
 	*/
 	// Find OpenSCAD executable
-	openscadCmd := FindOpenSCAD()
+	openscadCmd := resolveOpenSCADCommand(config)
 	if openscadCmd == "" {
 		return imageResult, "", fmt.Errorf("OpenSCAD not found")
 	}

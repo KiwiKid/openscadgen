@@ -20,7 +20,7 @@ include <BOSL2/screws.scad>;
 
     wallSize = 3;
 
-    rubbishBagRadius = 45;
+    rubbishBagRadius = 50;
     rubbishBagLength = 150;
     
     
@@ -46,7 +46,7 @@ include <BOSL2/screws.scad>;
     
     flatOffset = 6;
     
-    screwOffset = 22;
+    screwOffset = 25;
     
     patternRepeatCount = 8;
     patternRotate = 18;
@@ -57,11 +57,26 @@ include <BOSL2/screws.scad>;
     
     
     edgeDepth = 15;
+    wedgePointness  = 5;
+    
+    teethMove = [-wedgePointness,0,0];
+    teeth2Move = [wedgePointness,0,-3];
+    
+    
     
     module screwHole(){
     
-        yrot(90)
-        cyl(r=1.8, h=3.1, chamfer1=-1);
+    screwdriverHoleHeight = rubbishBagRadius*2.3;
+    screwdriverHoleRadius = 4;
+    
+        yrot(90){
+        up(2.5)
+        cyl(r=1.8, h=3.5, chamfer1=-1);
+        
+        // screwdriverhole
+        down(screwdriverHoleHeight/2)
+        cyl(r=screwdriverHoleRadius, h=screwdriverHoleHeight);
+        }
     
     }
     
@@ -77,12 +92,25 @@ include <BOSL2/screws.scad>;
     
     module rod(left_handed=false){
      threaded_rod(
-        d = rubbishBagRadius*2.0,      // 100mm Outer Diameter
+        d = rubbishBagRadius*2.1,      // 100mm Outer Diameter
         l = rubbishBagLength,       // Length
-        pitch = 16,    // Size of individual ridges (easy to print)
+        pitch = 10,    // Size of individual ridges (easy to print)
         starts = 4,    // 4 parallel tracks! Effective pitch (lead) is 24mm!
         left_handed = left_handed
         );
+    }
+    
+    module teeth(){
+    teethCount = 20;
+    teethHeight = 20;
+    teethBuffer = 13;
+    xrot(90)
+    yrot(90)
+        ycopies((rubbishBagLength-teethBuffer)/teethCount, n=teethCount){
+        xrot(0)
+        wedge([2, 5, wedgePointness]);
+        }
+    
     }
 
 	module rubbish_bag_holder(){
@@ -149,14 +177,24 @@ include <BOSL2/screws.scad>;
                 up(2)
                 scale([0.5,1.5,1])
                  cuboid(slotSize);
-        }
+                 
+                      }
+               zrot(slotRotate)
+                move(slotMove+teethMove)
+                 teeth();
+                 
+                 zrot(slotRotate)
+                move(slotMove+teeth2Move)
+                zrot(180)
+                 teeth();
+   
         
-                zrot(slotRotate)
+           /*     zrot(slotRotate)
                 move(slotMove)
                 fwd(supportToCenter)
                 zrot(-supportRotate)
                cuboid(supportSize, rounding=0.5, edges=[FWD,BACK]);
-               
+               */
         
          intersection(){
             cyl(r=rubbishBagRadius, h=rubbishBagLength);

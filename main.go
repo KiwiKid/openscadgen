@@ -89,6 +89,10 @@ func main() {
 		pkg.ShowMan()
 		return
 	}
+	if cmdFlags.ShowConfigOptions {
+		fmt.Print(pkg.RenderConfigOptionsCLI(cmdFlags.ConfigOptionsTopic))
+		return
+	}
 
 	if cmdFlags.DeleteExportSTLsDir != "" {
 		files, err := pkg.FindExportSTLFiles(cmdFlags.DeleteExportSTLsDir)
