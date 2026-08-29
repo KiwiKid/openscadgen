@@ -7,6 +7,73 @@ import (
 	"github.com/kiwikid/openscadgen/pkg/models"
 )
 
+templ EditPreviewSummaryGrid(items []models.EditPreviewSummary) {
+	<div class="columns is-multiline mt-3">
+		for _, item := range items {
+			<div class="column is-3">
+				<div class="box">
+					<p class="heading">{ item.Label }</p>
+					<p class="title is-5">{ item.Value }</p>
+				</div>
+			</div>
+		}
+	</div>
+}
+
+templ EditPreviewSectionList(sections []models.EditPreviewSection) {
+	for _, section := range sections {
+		<div class="box mb-4">
+			<div class="level is-mobile mb-2">
+				<div class="level-left">
+					<div>
+						<p class="title is-6 mb-1">{ section.Title }</p>
+						<p class="subtitle is-7">{ section.Description }</p>
+					</div>
+				</div>
+				<div class="level-right">
+					<div class="tags has-addons">
+						<span class="tag is-light">{ section.CountLabel }</span>
+						<span class="tag is-info">Preview</span>
+					</div>
+				</div>
+			</div>
+			<div class="content">
+				for _, item := range section.Items {
+					<div class="mb-3">
+						<p class="has-text-weight-semibold mb-1">{ item.Title }</p>
+						<p class="is-size-7 has-text-grey mb-1">{ item.Subtitle }</p>
+						<p class="is-size-7">{ item.Description }</p>
+					</div>
+				}
+			</div>
+			if len(section.Controls) > 0 {
+				<div class="mt-4">
+					<p class="is-size-7 has-text-weight-semibold mb-2">Annotated controls</p>
+					<div class="columns is-multiline">
+						for _, control := range section.Controls {
+							<div class="column is-6">
+								<div class="box is-shadowless has-background-light">
+									<div class="level is-mobile mb-1">
+										<div class="level-left">
+											<p class="has-text-weight-semibold is-size-7">{ control.Label }</p>
+										</div>
+										<div class="level-right">
+											<button type="button" class="button is-small is-info is-light" data-config-path={ control.Path }>+</button>
+										</div>
+									</div>
+									<p class="is-size-7 has-text-grey mb-1">{ control.Path }</p>
+									<p class="is-size-7 mb-1">{ control.Description }</p>
+									<pre class="is-size-7">{ control.Example }</pre>
+								</div>
+							</div>
+						}
+					</div>
+				</div>
+			}
+		</div>
+	}
+}
+
 templ EditConfigPanel(editFormConfig *models.EditConfigParams) {
 	<div class="container">
 		<div class="level is-mobile mb-4">
@@ -24,19 +91,34 @@ templ EditConfigPanel(editFormConfig *models.EditConfigParams) {
 		if editFormConfig.ErrorMsg != nil {
 			@editFormConfig.ErrorMsg
 		}
+		if len(editFormConfig.PreviewSummary) > 0 {
+			@EditPreviewSummaryGrid(editFormConfig.PreviewSummary)
+		}
 		<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/api/edit?config_path=%s&server_folder=%s", editFormConfig.ConfigFilePathEncoded, editFormConfig.ServerFolderEncoded)) } hx-post={ templ.SafeURL(fmt.Sprintf("/api/edit?config_path=%s&server_folder=%s", editFormConfig.ConfigFilePathEncoded, editFormConfig.ServerFolderEncoded)) } hx-target="#main-content" hx-swap="innerHTML">
-			<div class="help-text">
-				# Optional: Camera positions for image generation
-				[[openscadgen.images]]
-				name = &#34;string&#34;                   # Name of the camera position
-				coord = &#34;string&#34;                  # Camera coordinates (x,y,z,rotx,roty,rotz,distance)
-				image_size = &#34;string&#34;             # Optional, image dimensions (width,height)
-				param_filter = {  } # Optional, filter parameters for this camera
-			</div>
 			<div class="buttons">
-				<button type="submit" class="button is-success">Save Changes</button>
+				<button type="submit" class="button is-info" name="action" value="recheck">Re-check</button>
+				<button type="submit" class="button is-success" name="action" value="save">Save Changes</button>
 			</div>
-			<textarea id="editarea" style="height: 350px; width: 100%;" id="content" name="content">{ editFormConfig.Content }</textarea>
+			<details>
+				<summary>Full config</summary>
+				<textarea id="editarea" style="height: 350px; width: 100%;" id="content" name="content">{ editFormConfig.Content }</textarea>
+			</details>
 		</form>
+		if len(editFormConfig.PreviewWarnings) > 0 {
+			<div class="notification is-warning mt-4">
+				<p class="has-text-weight-semibold mb-2">Preview warnings</p>
+				<ul>
+					for _, warning := range editFormConfig.PreviewWarnings {
+						<li>{ warning }</li>
+					}
+				</ul>
+			</div>
+		}
+		if editFormConfig.IsPreview {
+			<div class="mt-5">
+				<h2 class="title is-5">Config Sections</h2>
+				@EditPreviewSectionList(editFormConfig.PreviewSections)
+			</div>
+		}
 	</div>
 }

@@ -1,6 +1,9 @@
 package pkg
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestConfigOptionPathsCoverSchema(t *testing.T) {
 	want := map[string]struct{}{
@@ -67,5 +70,30 @@ func TestConfigOptionPathsCoverSchema(t *testing.T) {
 		if _, ok := want[path]; !ok {
 			t.Fatalf("unexpected config option path: %s", path)
 		}
+	}
+}
+
+func TestConfigOptionsImagesDescriptionsIncludePresets(t *testing.T) {
+	opts := ListConfigOptions("images")
+	var imagesDesc, instanceImagesDesc, coordDesc string
+	for _, opt := range opts {
+		switch opt.Path {
+		case "[openscadgen].images":
+			imagesDesc = opt.Description
+		case "[openscadgen.instances].images":
+			instanceImagesDesc = opt.Description
+		case "[openscadgen.images].coord":
+			coordDesc = opt.Description
+		}
+	}
+
+	if !strings.Contains(imagesDesc, "top / down: 0,0,0,0,0,0,300") {
+		t.Fatalf("expected top preset details in [openscadgen].images description, got %q", imagesDesc)
+	}
+	if !strings.Contains(instanceImagesDesc, "nice-100 through nice-1000") {
+		t.Fatalf("expected nice preset range in [openscadgen.instances].images description, got %q", instanceImagesDesc)
+	}
+	if !strings.Contains(coordDesc, "custom 7-value OpenSCAD camera string") {
+		t.Fatalf("expected coord guidance in [openscadgen.images].coord description, got %q", coordDesc)
 	}
 }

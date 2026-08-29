@@ -1,0 +1,23 @@
+[openscadgen]
+name = "simple_cylinder"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{renderType}_{mode}"
+
+
+[[openscadgen.input_paths]]
+path = "./simple_cylinder.scad"
+
+[[openscadgen.instances]]
+params = { mode = ["tube", "cup", "dowelPattern"]}
+
+[[openscadgen.instances]]
+params = { mode = "decagon", wallSize=4, subMode = ["obj", "sizer"], innerRadius = 15 }
+
+[[openscadgen.instances]]
+params = { mode = "dowel", wallSize=-1, cylHeight = 30 }
+
+[[openscadgen.images]]
+name = "nice"

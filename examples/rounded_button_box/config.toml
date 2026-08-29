@@ -2,15 +2,29 @@
 name = "rounded_button_box"
 description = ""
 
-version = "v0.2"
+version = "v0.5"
 
-export_name_format = "{designFileName}_{section}_row{rowCount}_col{colCount}"  
+export_name_format = "{designFileName}/row{rowCount}_col{colCount}/{section}"  
 
-global_params = { section=["top", "bottom", "all", "singleBox", "topCorner"], rowCount=[3,4,5], colCount = [3,4,5,6,7, 8] }
+global_params = { section=["buttonJiggleBorder", "top", "bottom",   "all", "cordPlugBottom", "cordPlugSide", "wallMount", "wallMount-withSpace-bottom", "wallMount-withSpace-top", "wallMount-withSpace-all", "cordPlugNoHolesSide", "cordPlugNoHolesBottom"], rowCount=[3,4,5,6,7,8,9,10], colCount = [3,4,5,6,7,8] }
 
 [[openscadgen.input_paths]]
 path = "./rounded_button_box.scad"
 
+# [[openscadgen.instances]]
+# export_name_format = "{designFileName}/sizing/{section}"
+# params = { section = ["devSingleBox", "devTopSample", "devTopCorner",  "all", "buttonJiggleBorder"] }
+
+
+# export_name_format = "{designFileName}/sizing/{section}" withSpaceExtraSpace = 600;
+# params = { section = ["devSingleBox", "devTopSample", "devTopCorner",  "all", "buttonJiggleBorder"] }
+
+
+
 [[openscadgen.images]]
 name = "nice"
+param_filter = { section= "all"}
+
+[[openscadgen.images]]
+name = "back"
 param_filter = { section= "all"}

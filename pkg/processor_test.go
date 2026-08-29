@@ -2424,6 +2424,75 @@ params = { iName = "small-stubby-holder", wedgeOut = 4, holderLength = 15, holeD
 	}
 }
 
+func TestValidateInstancesReportsMissingExportNameFormatParam(t *testing.T) {
+	config := &models.Config{
+		Design: models.DesignConfig{ExportNameFormat: "{designFileName}_{renderType}_{mode}"},
+	}
+	instances := []models.InstanceConfig{
+		{
+			RunOutputPathV3: "export/simple_cylinder_decagon.stl",
+			Params: map[string]interface{}{
+				"designFileName": "simple_cylinder",
+				"renderType":     "stl",
+				"mode":           "decagon",
+				"subMode":        "obj",
+			},
+		},
+		{
+			RunOutputPathV3: "export/simple_cylinder_decagon.stl",
+			Params: map[string]interface{}{
+				"designFileName": "simple_cylinder",
+				"renderType":     "stl",
+				"mode":           "decagon",
+				"subMode":        "sizer",
+			},
+		},
+	}
+
+	errors := ValidateInstances(instances, config)
+	if len(errors) != 1 {
+		t.Fatalf("expected one validation error, got %d", len(errors))
+	}
+	if !strings.Contains(errors[0].Message, "REQUIRED EXPORT NAME FIELD MISSING: {subMode}") {
+		t.Fatalf("expected missing {subMode} diagnostic, got: %s", errors[0].Message)
+	}
+}
+
+func TestProcessServerModeStopsOnDuplicateExportPath(t *testing.T) {
+	tmpDir := t.TempDir()
+	scadPath := filepath.Join(tmpDir, "shape.scad")
+	if err := os.WriteFile(scadPath, []byte("cube(1);\n"), 0o644); err != nil {
+		t.Fatalf("write scad: %v", err)
+	}
+
+	configPath := filepath.Join(tmpDir, "config.toml")
+	configContent := `[openscadgen]
+name = "duplicate-export"
+input_path = "shape.scad"
+version = "v0.1"
+export_name_format = "{designFileName}_{mode}"
+
+[[openscadgen.instances]]
+params = { mode = "decagon", subMode = ["obj", "sizer"] }
+`
+	if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+
+	config, _, err := LoadConfigFromFile(models.CmdFlags{ConfigFile: configPath, Server: true})
+	if err != nil {
+		t.Fatalf("LoadConfigFromFile: %v", err)
+	}
+
+	_, err = Process(config, &NoopProgress{}, nil, Operations{GenerateReport: false}, true)
+	if err == nil {
+		t.Fatal("expected server processing to stop on duplicate export path")
+	}
+	if !strings.Contains(err.Error(), "REQUIRED EXPORT NAME FIELD MISSING: {subMode}") {
+		t.Fatalf("expected missing {subMode} diagnostic, got: %s", err)
+	}
+}
+
 func TestHTMLProgressReport(t *testing.T) {
 	// Save and restore original logger after test
 	originalLogger := logger
@@ -2516,7 +2585,7 @@ func TestHTMLProgressReport(t *testing.T) {
 	}
 
 	// Generate HTML report
-	htmlContent, outputFile, err := GenerateOutputReport(config, instances, stlResults, imageResults, tmpDir, true, time.Second*2)
+	htmlContent, outputFile, err := GenerateOutputReport(config, instances, stlResults, imageResults, tmpDir, true, "", time.Second*2)
 	if err != nil {
 		t.Fatalf("Failed to generate HTML report: %v", err)
 	}

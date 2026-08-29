@@ -4,13 +4,12 @@ description = ""
 
 version = "v0.1"
 
-export_name_format = "{designFileName}_{renderType}"
+export_name_format = "{designFileName}_{width}"
 
-global_params = { renderType = "obj,vertSlice,horzSlice" }
+global_params = { width=[10,30,50] }
 
 [[openscadgen.input_paths]]
 path = "./hinge_hanging.scad"
 
 [[openscadgen.images]]
 name = "nice"
-param_filter = { renderType= "obj,vertSlice,horzSlice"}

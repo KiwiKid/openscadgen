@@ -1,3 +1,5 @@
+include <BOSL2/std.scad>;
+
 $fa = 2;
 $fs = 0.25;
 Extra_Mount_Depth = 4;
@@ -9,7 +11,7 @@ module nut_hole()
 		for(i = [0:(360 / 3):359])
 		{
 			rotate([0, 0, i])
-				cube([4.6765, 8.1, 5], center = true);
+				cuboid([4.6765, 8.1, 5], anchor=CENTER);
 		}
 }
 
@@ -19,14 +21,14 @@ module flap(Width)
 	union()
 	{
 		translate([3.5, (-7.5), 0])
-			cube([4 + Extra_Mount_Depth, 15, Width]);
+			cuboid([4 + Extra_Mount_Depth, 15, Width], anchor=[-1,-1,-1]);
 
 
 		translate([0, (-7.5), 0])
-			cube([7.5 + Extra_Mount_Depth, 4, Width]);
+			cuboid([7.5 + Extra_Mount_Depth, 4, Width], anchor=[-1,-1,-1]);
 
 		translate([0, 3.5, 0])
-			cube([7.5 + Extra_Mount_Depth, 4, Width]);
+			cuboid([7.5 + Extra_Mount_Depth, 4, Width], anchor=[-1,-1,-1]);
 
 		difference()
 		{

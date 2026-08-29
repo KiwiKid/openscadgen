@@ -1,0 +1,16 @@
+[openscadgen]
+name = "door_handle_cover"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{intersect}"
+
+global_params = { intersect = [true, false] }
+
+[[openscadgen.input_paths]]
+path = "./door_handle_cover.scad"
+params = { }
+
+[[openscadgen.images]]
+name = "nice"

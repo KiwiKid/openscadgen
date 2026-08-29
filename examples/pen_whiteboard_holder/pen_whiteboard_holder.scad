@@ -47,15 +47,15 @@ holderDepth = 40;
             
             down(penHolderDown)
             rotate([90,0,0])
-            cyl(h=holderHeight+0.01, d=penDiameter, center=true);
+            cyl(h=holderHeight+0.01, d=penDiameter, anchor=CENTER);
 
             left(magnetHoleOffset)
             down(magnetHoleZOffset)
-            cyl(h=magnetHoleDepth, d=magnetHoleDiameter, center=true);
+            cyl(h=magnetHoleDepth, d=magnetHoleDiameter, anchor=CENTER);
 
             right(magnetHoleOffset)
             down(magnetHoleZOffset)
-            #cyl(h=magnetHoleDepth, d=magnetHoleDiameter, center=true);
+            #cyl(h=magnetHoleDepth, d=magnetHoleDiameter, anchor=CENTER);
         }
         
 	}
@@ -87,12 +87,12 @@ module sliced(
     module horz_slice(raw=false) {
         if (raw) {
             translate(horzSlicePos)
-                cube([sliceSize, sliceSize, sliceThickness], center=false);
+                cuboid([sliceSize, sliceSize, sliceThickness], anchor=[-1,-1,-1]);
         } else {
             intersection() {
                 children();
                 translate(horzSlicePos)
-                    cube([sliceSize, sliceSize, sliceThickness], center=false);
+                    cuboid([sliceSize, sliceSize, sliceThickness], anchor=[-1,-1,-1]);
             }
         }
     }
@@ -100,12 +100,12 @@ module sliced(
     module vert_slice(raw=false) {
         if (raw) {
             translate(vertSlicePos)
-                cube([sliceThickness, sliceSize, sliceSize], center=false);
+                cuboid([sliceThickness, sliceSize, sliceSize], anchor=[-1,-1,-1]);
         } else {
             intersection() {
                 children();
                 translate(vertSlicePos)
-                    cube([sliceThickness, sliceSize, sliceSize], center=false);
+                    cuboid([sliceThickness, sliceSize, sliceSize], anchor=[-1,-1,-1]);
             }
         }
     }

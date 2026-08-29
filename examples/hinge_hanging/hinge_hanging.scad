@@ -46,10 +46,13 @@ thickness_multipliers = [
     1.0
 ]; 
 
+
+width = 30;
+
 	module hinge_hanging(){
 
  path_sweep(
-        shape=rect([5, 6], rounding=1, center=true), 
+        shape=rect([5, width], rounding=1, anchor=CENTER), 
         path=flat_heart_path, 
       //  scale=thickness_multipliers, 
         closed=false, 
@@ -84,12 +87,12 @@ module sliced(
     module horz_slice(raw=false) {
         if (raw) {
             translate(horzSlicePos)
-                cube([sliceSize, sliceSize, sliceThickness], center=false);
+                cuboid([sliceSize, sliceSize, sliceThickness], anchor=[-1,-1,-1]);
         } else {
             intersection() {
                 children();
                 translate(horzSlicePos)
-                    cube([sliceSize, sliceSize, sliceThickness], center=false);
+                    cuboid([sliceSize, sliceSize, sliceThickness], anchor=[-1,-1,-1]);
             }
         }
     }
@@ -97,12 +100,12 @@ module sliced(
     module vert_slice(raw=false) {
         if (raw) {
             translate(vertSlicePos)
-                cube([sliceThickness, sliceSize, sliceSize], center=false);
+                cuboid([sliceThickness, sliceSize, sliceSize], anchor=[-1,-1,-1]);
         } else {
             intersection() {
                 children();
                 translate(vertSlicePos)
-                    cube([sliceThickness, sliceSize, sliceSize], center=false);
+                    cuboid([sliceThickness, sliceSize, sliceSize], anchor=[-1,-1,-1]);
             }
         }
     }

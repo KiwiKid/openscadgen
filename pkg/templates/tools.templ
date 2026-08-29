@@ -16,7 +16,7 @@ type ToolLink struct {
 	UpdateURL             string
 }
 
-templ ToolsPage(v OpenSCADNavView, tools []ToolLink, homeURL string) {
+templ ToolsPage(v OpenSCADNavView, tools []ToolLink, homeURL string, showAI bool) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -71,6 +71,9 @@ templ ToolsPage(v OpenSCADNavView, tools []ToolLink, homeURL string) {
 				</section>
 				<div class="tools-grid">
 					for _, tool := range tools {
+						if !showAI && (tool.Title == "AI Chat" || tool.Badge == "AI") {
+							continue
+						}
 						<article class="tool-card">
 							<div class="is-flex is-justify-content-space-between is-align-items-start" style="gap: 1rem;">
 								<div>

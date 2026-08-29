@@ -25,7 +25,9 @@ import (
 var configFiles []models.ConfigFile
 var fileWatcher *FileWatcher
 var fileWatcherEnabled bool
+var aiToolsEnabled bool
 var globalServerFolder string
+var startOpenSCADFile = openOpenSCADFile
 
 type ServerInfo struct {
 	Port    string
@@ -83,6 +85,7 @@ func tryListenOnPort(port string, portWasSpecified bool) (net.Listener, string, 
 
 // StartServer starts the HTTP server with the specified folder for config files
 func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(port string) error) ServerInfo {
+	aiToolsEnabled = cmdFlags.ShowAI
 	port := ":8080"
 	if cmdFlags.ServerPort != 0 {
 		port = fmt.Sprintf(":%d", cmdFlags.ServerPort)
@@ -137,6 +140,7 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 	http.HandleFunc("/api/config", handleConfigRequest)
 	http.HandleFunc("/api/config/options", handleConfigOptionsRequest)
 	http.HandleFunc("/api/open", handleOpenFile)
+	http.HandleFunc("/api/openscad/open", handleOpenSCADFile)
 	http.HandleFunc("/api/edit", handleEditFile)
 	http.HandleFunc("/health", handleHealth)
 
@@ -392,7 +396,7 @@ func handleGETRequest(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		configEntry := templates.EnterConfigPage(configFiles, globalServerFolder)
+		configEntry := templates.EnterConfigPage(configFiles, globalServerFolder, aiToolsEnabled)
 		configEntry.Render(context.Background(), w)
 	} else {
 
@@ -443,6 +447,7 @@ func handleGETRequest(w http.ResponseWriter, r *http.Request) {
 
 		reportMeta := pkg.BuildReportMeta(models.BuildReportMetaParams{
 			IsServerMode:         true,
+			ShowAI:               aiToolsEnabled,
 			ConfigFilePath:       decodedConfigEntryPath,
 			ServerFolder:         globalServerFolder,
 			Config:               config,
@@ -649,8 +654,10 @@ func handlePUTRequest(w http.ResponseWriter, r *http.Request) {
 
 	config, _, err := pkg.LoadConfigFromFile(cmdFlags)
 	if err != nil {
-		warning := templates.Warning(fmt.Sprintf("LoadConfigFromFileError: %v \n\n (ConfigFile: %s, ServerFolder: %s)", err, cmdFlags.ConfigFile, cmdFlags.ServerFolder))
-		warning.Render(context.Background(), w)
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusBadRequest)
+		templates.ReportAlert(fmt.Sprintf("LoadConfigFromFileError:\n%s", err)).Render(context.Background(), w)
+		templates.Warning("Could not start processing because the config could not be loaded. See the alert above.").Render(context.Background(), w)
 		return
 	}
 
@@ -832,7 +839,7 @@ func handleToolsRequest(w http.ResponseWriter, r *http.Request) {
 			v.BOSL2Error = bosl2Err.Error()
 		}
 	}
-	templates.ToolsPage(v, pkg.OpenSCADToolRegistry(), pkg.BuildHomeURL(globalServerFolder)).Render(r.Context(), w)
+	templates.ToolsPage(v, pkg.OpenSCADToolRegistry(), pkg.BuildHomeURL(globalServerFolder), aiToolsEnabled).Render(r.Context(), w)
 }
 
 func handleConfigOptionsRequest(w http.ResponseWriter, r *http.Request) {
@@ -966,6 +973,227 @@ func buildEditConfigParams(configPath string, serverFolder string, content strin
 		Content:               content,
 		ErrorMsg:              errorMsg,
 	}
+}
+
+func buildConfigEditPreview(configPath string, serverFolder string, content string) (*models.Config, []models.InstanceConfig, []string, templ.Component) {
+	config, warn, err := pkg.LoadConfig(content, models.CmdFlags{
+		ConfigFile:   configPath,
+		ServerFolder: serverFolder,
+		Server:       true,
+	}, configPath)
+	if err != nil {
+		return nil, nil, nil, templates.Warning(fmt.Sprintf("Invalid config:\n%s", err))
+	}
+
+	instances, instErr := pkg.GenerateInstanceConfigs(config)
+	if instErr != nil {
+		return config, nil, nil, templates.Warning(fmt.Sprintf("Failed to generate instances:\n%s", instErr))
+	}
+
+	var warnings []string
+	if warn != nil {
+		warnings = append(warnings, warn.Error())
+	}
+
+	if runErrors := pkg.ValidateInstances(instances, config); len(runErrors) > 0 {
+		for _, runErr := range runErrors {
+			warnings = append(warnings, runErr.Message)
+		}
+	}
+
+	return config, instances, warnings, nil
+}
+
+func buildEditPreviewSections(config *models.Config, instances []models.InstanceConfig) ([]models.EditPreviewSection, []models.EditPreviewSummary) {
+	if config == nil {
+		return nil, nil
+	}
+
+	summary := []models.EditPreviewSummary{
+		{Label: "Instances", Value: fmt.Sprintf("%d", len(config.Design.ConfiguredInstanceConfig))},
+		{Label: "Param sets", Value: fmt.Sprintf("%d", len(config.Design.ParamSets))},
+		{Label: "Images", Value: fmt.Sprintf("%d", len(config.Design.ExportImages))},
+		{Label: "Input paths", Value: fmt.Sprintf("%d", len(config.GetInputPaths()))},
+	}
+
+	sections := []models.EditPreviewSection{
+		{
+			Title:       "export_name_format",
+			Description: "Template used to name generated exports and detect duplicates.",
+			Items: []models.EditPreviewSectionItem{{
+				Title: func() string {
+					if config.Design.ExportNameFormat != "" {
+						return config.Design.ExportNameFormat
+					}
+					return "No export_name_format set"
+				}(),
+				Subtitle:    "current value",
+				Description: "This drives output naming and should cover every varying parameter.",
+			}},
+		},
+		{
+			Title:       "instances",
+			Description: "Configured instance blocks that expand into generated outputs.",
+			CountLabel:  fmt.Sprintf("%d configured block(s)", len(config.Design.ConfiguredInstanceConfig)),
+			HasItems:    len(config.Design.ConfiguredInstanceConfig) > 0,
+		},
+		{
+			Title:       "param_sets",
+			Description: "Reusable parameter bundles that instances and input paths can reference.",
+			CountLabel:  fmt.Sprintf("%d defined", len(config.Design.ParamSets)),
+			HasItems:    len(config.Design.ParamSets) > 0,
+		},
+		{
+			Title:       "images",
+			Description: "Top-level preview cameras applied to the generated instances.",
+			CountLabel:  fmt.Sprintf("%d defined", len(config.Design.ExportImages)),
+			HasItems:    len(config.Design.ExportImages) > 0,
+		},
+		{
+			Title:       "global_params",
+			Description: "Parameters merged into every generated instance by default.",
+			CountLabel:  fmt.Sprintf("%d defined", len(config.Design.GlobalParams)),
+			HasItems:    len(config.Design.GlobalParams) > 0,
+		},
+		{
+			Title:       "input_paths",
+			Description: "Source OpenSCAD files or path groups used to generate instances.",
+			CountLabel:  fmt.Sprintf("%d defined", len(config.GetInputPaths())),
+			HasItems:    len(config.GetInputPaths()) > 0,
+		},
+	}
+
+	for i := range sections {
+		switch sections[i].Title {
+		case "export_name_format":
+			sections[i].Controls = []models.EditPreviewControl{{
+				Label:       "export_name_format",
+				Path:        "[openscadgen].export_name_format",
+				Example:     `export_name_format = "{designFileName}_{paramSet}"`,
+				Description: "Template used to name generated exports and detect duplicates.",
+			}}
+		case "instances":
+			sections[i].Controls = []models.EditPreviewControl{
+				{Label: "instances", Path: "[openscadgen].instances", Example: `[[openscadgen.instances]]\nname = "default"\nparams = { width = 100 }`, Description: "Add another instance block."},
+				{Label: "instance.name", Path: "[openscadgen.instances].name", Example: `name = "left"`, Description: "Human-readable instance name."},
+				{Label: "instance.params", Path: "[openscadgen.instances].params", Example: `params = { side = "left" }`, Description: "Per-instance parameters."},
+				{Label: "instance.param_sets", Path: "[openscadgen.instances].param_sets", Example: `param_sets = "wide,tall"`, Description: "Reuse named param sets for an instance."},
+				{Label: "instance.images", Path: "[openscadgen.instances].images", Example: `[[openscadgen.instances.images]]\nname = "front"`, Description: "Attach instance-specific image exports."},
+			}
+		case "param_sets":
+			sections[i].Controls = []models.EditPreviewControl{
+				{Label: "param_sets", Path: "[openscadgen].param_sets", Example: `[[openscadgen.param_sets]]\nname = "wide"\nparams = { width = 120 }`, Description: "Add another reusable parameter set."},
+				{Label: "param_set.name", Path: "[openscadgen.param_sets].name", Example: `name = "wide"`, Description: "Name of the reusable bundle."},
+				{Label: "param_set.params", Path: "[openscadgen.param_sets].params", Example: `params = { width = 120 }`, Description: "Values included in the bundle."},
+			}
+		case "images":
+			sections[i].Controls = []models.EditPreviewControl{
+				{Label: "images", Path: "[openscadgen].images", Example: `[[openscadgen.images]]\nname = "front"\ncoord = "0,0,0"`, Description: "Add a top-level preview image camera."},
+				{Label: "image.name", Path: "[openscadgen.images].name", Example: `name = "front"`, Description: "Name of the image preset."},
+				{Label: "image.coord", Path: "[openscadgen.images].coord", Example: `coord = "0,0,0"`, Description: "Camera coordinates or preset direction."},
+				{Label: "image.image_size", Path: "[openscadgen.images].image_size", Example: `image_size = "1200x1200"`, Description: "Optional per-camera image size."},
+				{Label: "image.param_filter", Path: "[openscadgen.images].param_filter", Example: `param_filter = { finish = "matte" }`, Description: "Filter images to matching params only."},
+				{Label: "preset directions", Path: "[openscadgen].images", Example: `top, front, back, left, right, nice`, Description: "Use presets like top / front / back / side / nice, or a custom 7-value camera string."},
+			}
+		case "global_params":
+			sections[i].Controls = []models.EditPreviewControl{
+				{Label: "global_params", Path: "[openscadgen].global_params", Example: `global_params = { wall = 2.4 }`, Description: "Add global parameters shared by every instance."},
+			}
+		case "input_paths":
+			sections[i].Controls = []models.EditPreviewControl{
+				{Label: "input_paths", Path: "[openscadgen].input_paths", Example: `[[openscadgen.input_paths]]\npath = "./part.scad"`, Description: "Add another input source."},
+				{Label: "input_path.path", Path: "[openscadgen.input_paths].path", Example: `path = "./part.scad"`, Description: "Path to an OpenSCAD source file."},
+				{Label: "input_path.export_name_format", Path: "[openscadgen.input_paths].export_name_format", Example: `export_name_format = "{designFileName}_{paramSet}"`, Description: "Override naming for just this input path."},
+			}
+		}
+
+		switch sections[i].Title {
+		case "instances":
+			items := make([]models.EditPreviewSectionItem, 0, len(config.Design.ConfiguredInstanceConfig))
+			for _, inst := range config.Design.ConfiguredInstanceConfig {
+				items = append(items, models.EditPreviewSectionItem{
+					Title:       inst.Name,
+					Subtitle:    fmt.Sprintf("param_sets=%s skip_images=%v", inst.ParamSets, inst.SkipImages),
+					Description: inst.Description,
+				})
+			}
+			sections[i].Items = items
+		case "param_sets":
+			items := make([]models.EditPreviewSectionItem, 0, len(config.Design.ParamSets))
+			for _, set := range config.Design.ParamSets {
+				items = append(items, models.EditPreviewSectionItem{
+					Title:       set.Name,
+					Subtitle:    fmt.Sprintf("%d param(s)", len(set.Params)),
+					Description: "",
+				})
+			}
+			sections[i].Items = items
+		case "images":
+			items := make([]models.EditPreviewSectionItem, 0, len(config.Design.ExportImages))
+			for _, img := range config.Design.ExportImages {
+				items = append(items, models.EditPreviewSectionItem{
+					Title:       img.CameraName,
+					Subtitle:    img.CameraCoordinates,
+					Description: img.ImageSize,
+				})
+			}
+			sections[i].Items = items
+		case "global_params":
+			items := make([]models.EditPreviewSectionItem, 0, len(config.Design.GlobalParams))
+			for name, value := range config.Design.GlobalParams {
+				items = append(items, models.EditPreviewSectionItem{
+					Title:       name,
+					Subtitle:    fmt.Sprintf("%T", value),
+					Description: fmt.Sprintf("%v", value),
+				})
+			}
+			sections[i].Items = items
+		case "input_paths":
+			items := make([]models.EditPreviewSectionItem, 0, len(config.GetInputPaths()))
+			for _, inputPath := range config.GetInputPaths() {
+				items = append(items, models.EditPreviewSectionItem{
+					Title:       inputPath.Path,
+					Subtitle:    inputPath.ExportNameFormat,
+					Description: inputPath.ParamSets,
+				})
+			}
+			sections[i].Items = items
+		case "export_name_format":
+			sections[i].Items = []models.EditPreviewSectionItem{{
+				Title:       config.Design.ExportNameFormat,
+				Subtitle:    "format string",
+				Description: "Used for duplicate-path detection and export naming.",
+			}}
+		}
+		if len(sections[i].Items) == 0 {
+			sections[i].Items = []models.EditPreviewSectionItem{{
+				Title:       "No entries yet",
+				Description: "This section can grow into a configurable block with a + control.",
+			}}
+		}
+	}
+
+	if len(instances) > 0 {
+		sections = append(sections, models.EditPreviewSection{
+			Title:       "generated_instances",
+			Description: "The concrete instances produced by the current config.",
+			CountLabel:  fmt.Sprintf("%d generated", len(instances)),
+			HasItems:    true,
+			Items: func() []models.EditPreviewSectionItem {
+				items := make([]models.EditPreviewSectionItem, 0, len(instances))
+				for _, instance := range instances {
+					items = append(items, models.EditPreviewSectionItem{
+						Title:       instance.AutoName,
+						Subtitle:    instance.Name,
+						Description: instance.Description,
+					})
+				}
+				return items
+			}(),
+		})
+	}
+
+	return sections, summary
 }
 
 func renderTOMLEditPage(w http.ResponseWriter, r *http.Request, statusCode int, configPath string, serverFolder string, content string, message templ.Component) {
@@ -1238,6 +1466,128 @@ func handleOpenFile(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func decodeBase64QueryValue(r *http.Request, name string) (string, error) {
+	value := r.URL.Query().Get(name)
+	if value == "" {
+		return "", fmt.Errorf("missing %q query parameter", name)
+	}
+	decoded, err := base64.StdEncoding.DecodeString(value)
+	if err != nil {
+		return "", fmt.Errorf("invalid %q query parameter", name)
+	}
+	return string(decoded), nil
+}
+
+func pathWithinDir(path, dir string) bool {
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return false
+	}
+	absDir, err := filepath.Abs(dir)
+	if err != nil {
+		return false
+	}
+	resolvedPath, err := filepath.EvalSymlinks(absPath)
+	if err == nil {
+		absPath = resolvedPath
+	}
+	resolvedDir, err := filepath.EvalSymlinks(absDir)
+	if err == nil {
+		absDir = resolvedDir
+	}
+	rel, err := filepath.Rel(absDir, absPath)
+	return err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
+}
+
+func openOpenSCADFile(path string) error {
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "darwin":
+		cmd = exec.Command("open", "-a", "OpenSCAD", path)
+	case "linux":
+		cmd = exec.Command("openscad", path)
+	case "windows":
+		cmd = exec.Command("OpenSCAD", path)
+	default:
+		return fmt.Errorf("unsupported operating system")
+	}
+	return cmd.Start()
+}
+
+// handleOpenSCADFile opens a configured SCAD source in OpenSCAD. Both the config and
+// source file must resolve within the active server folder, and the source must be
+// explicitly referenced by that config.
+func handleOpenSCADFile(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	configRef, err := decodeBase64QueryValue(r, "config_path")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	serverFolder, err := decodeBase64QueryValue(r, "server_folder")
+	if err != nil || strings.TrimSpace(serverFolder) == "" {
+		http.Error(w, "a server folder is required to open a SCAD file", http.StatusBadRequest)
+		return
+	}
+	sourceRef, err := decodeBase64QueryValue(r, "source_path")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	configPath := resolveConfigPath(configRef, serverFolder)
+	if !pathWithinDir(configPath, serverFolder) {
+		http.Error(w, "config file must be inside the server folder", http.StatusForbidden)
+		return
+	}
+	config, _, err := pkg.LoadConfigFromFile(models.CmdFlags{ConfigFile: configPath, ServerFolder: serverFolder, Server: true})
+	if err != nil {
+		http.Error(w, fmt.Sprintf("load config: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	configured := false
+	for _, input := range config.GetInputPaths() {
+		if strings.EqualFold(filepath.Ext(input.Path), ".scad") && filepath.Clean(input.Path) == filepath.Clean(sourceRef) {
+			configured = true
+			break
+		}
+	}
+	if !configured {
+		http.Error(w, "source file is not a configured .scad input", http.StatusForbidden)
+		return
+	}
+
+	sourcePath := sourceRef
+	if !filepath.IsAbs(sourcePath) {
+		sourcePath = filepath.Join(filepath.Dir(configPath), sourcePath)
+	}
+	if !pathWithinDir(sourcePath, serverFolder) {
+		http.Error(w, "source file must be inside the server folder", http.StatusForbidden)
+		return
+	}
+	info, err := os.Stat(sourcePath)
+	if err != nil {
+		http.Error(w, "source file not found", http.StatusNotFound)
+		return
+	}
+	if info.IsDir() {
+		http.Error(w, "source path must be a file", http.StatusBadRequest)
+		return
+	}
+	if err := startOpenSCADFile(sourcePath); err != nil {
+		http.Error(w, fmt.Sprintf("open in OpenSCAD: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_ = templates.Success(fmt.Sprintf("Opened %s in OpenSCAD", filepath.Base(sourcePath))).Render(r.Context(), w)
+}
+
 // handleEditFile handles GET and POST requests for editing TOML files
 func handleEditFile(w http.ResponseWriter, r *http.Request) {
 	filePathEncoded := r.URL.Query().Get("config_path")
@@ -1311,6 +1661,7 @@ func handleEditPost(w http.ResponseWriter, r *http.Request, filePath string, ser
 	}
 
 	content := r.FormValue("content")
+	action := strings.ToLower(strings.TrimSpace(r.FormValue("action")))
 	if content == "" {
 		error := templates.Warning("Content cannot be empty")
 		// Show form with error
@@ -1320,35 +1671,27 @@ func handleEditPost(w http.ResponseWriter, r *http.Request, filePath string, ser
 		return
 	}
 
-	// Validate TOML by attempting to decode it
-	var testConfig models.Config
-	metadata, err := toml.Decode(content, &testConfig)
-	if err != nil {
-		errorMsg := templates.Warning("Invalid TOML:\n" + pkg.FormatTOMLDecodeError(content, err))
-		// Show form with validation error
+	config, instances, warnings, errorMsg := buildConfigEditPreview(filePath, serverFolder, content)
+	if errorMsg != nil {
 		configParams := buildEditConfigParams(filePath, serverFolder, content, errorMsg)
 		editForm := templates.TOMLEditForm(&configParams)
 		editForm.Render(r.Context(), w)
 		return
 	}
 
-	// Check for undecoded keys (invalid fields)
-	undecoded := metadata.Undecoded()
-	if len(undecoded) > 0 {
-		var invalidFields []string
-		for _, key := range undecoded {
-			invalidFields = append(invalidFields, key.String())
-		}
-		errorMsg := templates.Warning(fmt.Sprintf("Invalid fields in config: %v", invalidFields))
-		// Show form with validation error
-		configParams := buildEditConfigParams(filePath, serverFolder, content, errorMsg)
-		editForm := templates.TOMLEditForm(&configParams)
+	if action == "recheck" || action == "preview" {
+		configParams := buildEditConfigParams(filePath, serverFolder, content, nil)
+		configParams.PreviewInstances = instances
+		configParams.PreviewWarnings = warnings
+		configParams.IsPreview = true
+		configParams.PreviewSections, configParams.PreviewSummary = buildEditPreviewSections(config, instances)
+		editForm := templates.EditConfigPanel(&configParams)
 		editForm.Render(r.Context(), w)
 		return
 	}
 
 	// Write the content to the file
-	err = os.WriteFile(filePath, []byte(content), 0644)
+	err := os.WriteFile(filePath, []byte(content), 0644)
 	if err != nil {
 		errorMsg := templates.Warning(fmt.Sprintf("Failed to save file: %v", err))
 		// Show form with save error
@@ -1359,7 +1702,11 @@ func handleEditPost(w http.ResponseWriter, r *http.Request, filePath string, ser
 	}
 	success := templates.Success("File saved successfully")
 	configParams := buildEditConfigParams(filePath, serverFolder, content, success)
-	editForm := templates.TOMLEditForm(&configParams)
+	configParams.PreviewInstances = instances
+	configParams.PreviewWarnings = warnings
+	configParams.IsPreview = true
+	configParams.PreviewSections, configParams.PreviewSummary = buildEditPreviewSections(config, instances)
+	editForm := templates.EditConfigPanel(&configParams)
 	editForm.Render(r.Context(), w)
 }
 

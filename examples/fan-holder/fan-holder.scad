@@ -46,7 +46,7 @@ horzOffset = 10;
       fwd(sliceSize)
       left(sliceSize)
       up(horzOffset)
-      #cube([1000,1000,0.3]);
+      #cuboid([1000,1000,0.3], anchor=[-1,-1,-1]);
       }
   }else if(renderType =="vert-slice"){
        intersection(){
@@ -55,7 +55,7 @@ horzOffset = 10;
           fwd(sliceSize)
           left(sliceSize)
           down(offsetSize)
-          #cube([1000,1000,0.3]);
+          #cuboid([1000,1000,0.3], anchor=[-1,-1,-1]);
       }
   }else{ 
   

@@ -19,7 +19,7 @@ func serverChatPageURL(serverFolder string) string {
 	return fmt.Sprintf("/chat?server_folder=%s", url.QueryEscape(base64.StdEncoding.EncodeToString([]byte(serverFolder))))
 }
 
-templ EnterConfigPage(configFiles []models.ConfigFile, serverFolder string) {
+templ EnterConfigPage(configFiles []models.ConfigFile, serverFolder string, showAI bool) {
 	<head>
 		<meta charset="UTF-8"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -465,7 +465,12 @@ html, body {
 						<a href="/" class="button">Home</a>
 					</div>
 					<div class="level-item">
-						<a href={ templ.SafeURL(serverChatPageURL(serverFolder)) } class="button is-light">AI Chat</a>
+						if showAI {
+							<a href={ templ.SafeURL(serverChatPageURL(serverFolder)) } class="button is-light">AI Chat</a>
+						}
+					</div>
+					<div class="level-item">
+						<a href="/tools" class="button is-light">Tools</a>
 					</div>
 				</div>
 				<div class="level-right">

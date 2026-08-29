@@ -296,6 +296,7 @@ func GenerateInstanceConfigs(config *models.Config) ([]models.InstanceConfig, er
 
 type Operations struct {
 	GenerateReport bool
+	ReportMode     string
 }
 
 func Process(config *models.Config, progress ProgressReporter, cancel <-chan struct{}, operations Operations, isServerMode bool) (models.ProcessResult, error) {
@@ -368,7 +369,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 		log.Printf("[DEBUG] Total instances generated: %d", len(instances))
 	}
 
-	errors := validateInstances(instances, config)
+	errors := ValidateInstances(instances, config)
 	if len(errors) > 0 {
 		logError("Validation of generated instances failed:")
 		for _, error := range errors {
@@ -376,6 +377,9 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 			for k, v := range error.KVPs {
 				LogKeyValuePair(k, v)
 			}
+		}
+		if isServerMode {
+			return models.ProcessResult{}, fmt.Errorf("generated-instance validation failed:\n%s", errors[0].Message)
 		}
 		if !config.StopOnError {
 			if !config.Server {
@@ -535,7 +539,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 	models.SortInstanceConfigsByAutoName(instances)
 
 	if operations.GenerateReport {
-		_, location, genReportErr := GenerateOutputReport(config, instances, stlResults, allImageResults, exportLoc, operations.GenerateReport, totalTime)
+		_, location, genReportErr := GenerateOutputReport(config, instances, stlResults, allImageResults, exportLoc, operations.GenerateReport, operations.ReportMode, totalTime)
 		if genReportErr != nil {
 			if config.StopOnError {
 				log.Printf("Warning: failed to generate output report: %v", genReportErr)
@@ -563,16 +567,16 @@ type RunError struct {
 	KVPs      map[string]string
 }
 
-func validateInstances(instances []models.InstanceConfig, config *models.Config) []RunError {
+func ValidateInstances(instances []models.InstanceConfig, config *models.Config) []RunError {
 	if config.Debug {
 		logStage("Validating instances")
 	}
 
 	instanceParamCount := make(map[string]int)
 	errors := []RunError{}
-	exportPaths := make(map[string]bool)
+	exportPaths := make(map[string]models.InstanceConfig)
 	for _, instance := range instances {
-		if _, exists := exportPaths[instance.RunOutputPathV3]; exists {
+		if firstInstance, exists := exportPaths[instance.RunOutputPathV3]; exists {
 
 			var paramStr string = "\n"
 			for k, v := range instance.Params {
@@ -582,9 +586,19 @@ func validateInstances(instances []models.InstanceConfig, config *models.Config)
 
 			LogKeyValuePair("Validation", fmt.Sprintf("%s: %+v", instance.RunOutputPathV3, exists))
 
+			missingParams := missingExportNameFormatParams(firstInstance.Params, instance.Params, config.Design.ExportNameFormat)
+			missingParamsMessage := ""
+			if len(missingParams) > 0 {
+				placeholders := make([]string, len(missingParams))
+				for i, param := range missingParams {
+					placeholders[i] = fmt.Sprintf("{%s}", param)
+				}
+				missingParamsMessage = fmt.Sprintf("\n\n==================================================\nREQUIRED EXPORT NAME FIELD MISSING: %s\n==================================================\nAdd %s to export_name_format so these instances have unique paths.", strings.Join(placeholders, ", "), strings.Join(placeholders, " and "))
+			}
+
 			errors = append(errors, RunError{
 				ErrorCode: RunErrorCode_DuplicateExportPath,
-				Message:   fmt.Sprintf("Run Stopped as the export_name_format in the config file will result in duplicate export path: \n\n\t%s. \n\n Ensure the export_name_format includes all parameters (in {curlyBrackets}) that are different between instances. \n\nAnother common cause is including commas in parameters by mistake. \n\n If you param value has commas you would like to ignore, add `ignore_comma_in_params = [\"content\"]` to this [[openscadgen.instances]] tag ", instance.RunOutputPathV3),
+				Message:   fmt.Sprintf("Run Stopped as the export_name_format in the config file will result in duplicate export path: \n\n\t%s.%s \n\n Ensure the export_name_format includes all parameters (in {curlyBrackets}) that are different between instances. \n\nAnother common cause is including commas in parameters by mistake. \n\n If you param value has commas you would like to ignore, add `ignore_comma_in_params = [\"content\"]` to this [[openscadgen.instances]] tag ", instance.RunOutputPathV3, missingParamsMessage),
 				KVPs: map[string]string{
 					"DuplicatePath":    instance.RunOutputPathV3,
 					"ConfigFile":       config.ConfigFile,
@@ -595,13 +609,38 @@ func validateInstances(instances []models.InstanceConfig, config *models.Config)
 				},
 			})
 		}
-		exportPaths[instance.RunOutputPathV3] = true
+		exportPaths[instance.RunOutputPathV3] = instance
 	}
 
 	if len(errors) > 0 {
 		return errors
 	}
 	return nil
+}
+
+// missingExportNameFormatParams returns the differing parameters that are not
+// represented by a placeholder in exportNameFormat. These parameters explain
+// why two instances resolve to the same export path.
+func missingExportNameFormatParams(first, duplicate map[string]interface{}, exportNameFormat string) []string {
+	allParamNames := make(map[string]struct{}, len(first)+len(duplicate))
+	for paramName := range first {
+		allParamNames[paramName] = struct{}{}
+	}
+	for paramName := range duplicate {
+		allParamNames[paramName] = struct{}{}
+	}
+
+	missingParams := make([]string, 0)
+	for paramName := range allParamNames {
+		if reflect.DeepEqual(first[paramName], duplicate[paramName]) {
+			continue
+		}
+		if !strings.Contains(exportNameFormat, fmt.Sprintf("{%s}", paramName)) {
+			missingParams = append(missingParams, paramName)
+		}
+	}
+	sort.Strings(missingParams)
+	return missingParams
 }
 
 func clearExportFolder(config *models.Config, outputPaths models.OutputPaths) {
@@ -3267,7 +3306,7 @@ func ProbeBOSL2(openscadPath string) (bool, error) {
 	defer os.RemoveAll(tempDir)
 
 	probePath := filepath.Join(tempDir, "probe.scad")
-	probeBody := "include <BOSL2/std.scad>;\ncube(1);\n"
+	probeBody := "include <BOSL2/std.scad>;\ncuboid(1);\n"
 	if err := os.WriteFile(probePath, []byte(probeBody), 0o644); err != nil {
 		return false, fmt.Errorf("write BOSL2 probe file: %w", err)
 	}
@@ -3320,17 +3359,11 @@ version = "v0.1"
 
 export_name_format = "{designFileName}"
 
-# global_params will be passed into all the generated designs. 
-# Example height = [1,37,100] or text = "woah"
 global_params = { }
 
 [[openscadgen.input_paths]]
 path = "./{{projectName}}.scad"
 params = { }
-
-# [[openscadgen.instances]] allow for scoping input params (or [[openscadgen.param_sets]]) to specific designs 
-# [[openscadgen.instances]]
-# params = { height = 87 }
 
 [[openscadgen.images]]
 name = "nice"
@@ -3382,44 +3415,20 @@ params = { }
 name = "nice"
 `
 
-func openScadTemplateExtended(projectNameUnderLined string) string {
-	return fmt.Sprintf(`
-
-	include <BOSL2/std.scad>;
-
-	$fa = .01;
-	$fs = $preview ? 5 : 1;
-	$fn = 200;
-
-	/*
-	renderType:
-	use to print a test slice and confirm sizing before printing:
-	 - "horzSlice" - horizontal slices (default)
-	 - "vertSlice" - vertical slices
-	 - "all" - the whole object
-	*/
-	renderType = "obj";
-
-
-	module %s(){
-		cuboid([100,100,100]);
+func openScadLibraryPath(projectPath string) string {
+	libPath := filepath.Join(filepath.Dir(projectPath), "openscad-lib", "openscadgen-core.scad")
+	rel, err := filepath.Rel(projectPath, libPath)
+	if err != nil {
+		return "../openscad-lib/openscadgen-core.scad"
 	}
+	return filepath.ToSlash(rel)
+}
 
+const openScadCoreLibrary = `// Shared helpers for OpenSCADGen starter projects.
+// Include this from generated designs when you want slice previews.
 
-    sliced(renderType=renderType) {
-        %s();
-    }
-       
+include <BOSL2/std.scad>;
 
-
-
-
-
-
-
-
-	
-     
 module sliced(
     renderType = "horzSlice",        // "horzSlice", "vertSlice", or "all"
     sliceSize = 1000,
@@ -3428,16 +3437,15 @@ module sliced(
     horzSlicePos = [-500, -500, 0],
     vertSlicePos = [0, -500, -500]
 ) {
-   
     module horz_slice(raw=false) {
         if (raw) {
             translate(horzSlicePos)
-                cube([sliceSize, sliceSize, sliceThickness], center=false);
+                cuboid([sliceSize, sliceSize, sliceThickness], anchor=[-1,-1,-1]);
         } else {
             intersection() {
                 children();
                 translate(horzSlicePos)
-                    cube([sliceSize, sliceSize, sliceThickness], center=false);
+                    cuboid([sliceSize, sliceSize, sliceThickness], anchor=[-1,-1,-1]);
             }
         }
     }
@@ -3445,22 +3453,22 @@ module sliced(
     module vert_slice(raw=false) {
         if (raw) {
             translate(vertSlicePos)
-                cube([sliceThickness, sliceSize, sliceSize], center=false);
+                cuboid([sliceThickness, sliceSize, sliceSize], anchor=[-1,-1,-1]);
         } else {
             intersection() {
                 children();
                 translate(vertSlicePos)
-                    cube([sliceThickness, sliceSize, sliceSize], center=false);
+                    cuboid([sliceThickness, sliceSize, sliceSize], anchor=[-1,-1,-1]);
             }
         }
     }
 
     if (renderType == "horzSlice") {
-        horz_slice(raw=showRawSlices){
+        horz_slice(raw=showRawSlices) {
             children();
         }
     } else if (renderType == "vertSlice") {
-        vert_slice(raw=showRawSlices){
+        vert_slice(raw=showRawSlices) {
             children();
         }
     } else if (renderType == "all") {
@@ -3474,23 +3482,67 @@ module sliced(
         children();
     }
 }
+`
 
-`, projectNameUnderLined, projectNameUnderLined)
+func openScadTemplateExtended(projectNameUnderLined string) string {
+	return fmt.Sprintf(`include <BOSL2/std.scad>;
+
+$fn = 100;                   // Default facet count for smooth circular geometry
+
+// Render Quality Controls
+// Fast low-res preview (F5) vs. smooth high-res final render (F6)
+$fa = $preview ? 12 : 2;     // Minimum angle (degrees)
+$fs = $preview ? 2 : 0.3;    // Minimum fragment size (mm)
+
+// 3. BOSL2 Printer Tolerances
+// Added clearance for 3D-printed joints, holes, and press-fits (in mm)
+$slop = 0.2; 
+
+// =================================================================
+// CUSTOMIZER PARAMETERS
+// =================================================================
+/* [General Dimensions] */
+length = 50;
+width  = 30;
+height = 20;
+
+/* [Advanced Options] */
+wall_thickness = 2.0;
+
+// =================================================================
+// DERIVED CONSTANTS & CALCULATIONS
+// =================================================================
+inner_length = length - (2 * wall_thickness);
+inner_width  = width  - (2 * wall_thickness);
+
+// =================================================================
+// MODEL
+// =================================================================
+include <%s>;
+
+// Use "horzSlice" or "vertSlice" to inspect a printable cross-section,
+// "all" to show the object and both slice planes, or "obj" for the model.
+renderType = "obj";
+
+module %s(){
+    cuboid([100,100,100]);
+}
+
+sliced(renderType=renderType) {
+    %s();
+}
+
+`, openScadLibraryPath(filepath.Join(".", projectNameUnderLined)), projectNameUnderLined, projectNameUnderLined)
 }
 
 var openScadTemplate = func(projectNameUnderLined string) string {
-	return fmt.Sprintf(`
-include <BOSL2/std.scad>;
+	return fmt.Sprintf(`include <BOSL2/std.scad>;
 
-$fa = .01;
-$fs = $preview ? 5 : 1;
-$fn = 200;
-
+$fn = 100;
 
 module %s(){
-	cuboid([10,10,10]);
+	cuboid([10,10,10], anchor=CENTER);
 }
-
 
 %s();
 `, projectNameUnderLined, projectNameUnderLined)
@@ -4126,6 +4178,7 @@ func BuildReportMeta(params models.BuildReportMetaParams, results models.Results
 	reportMeta := models.ReportMeta{
 		HomeURL:               BuildHomeURL(params.ServerFolder),
 		IsServerMode:          params.IsServerMode,
+		ShowAI:                params.ShowAI,
 		TotalQueuedInstances:  params.TotalQueuedInstances,
 		ConfigFilePath:        params.ConfigFilePath,
 		ConfigFilePathEncoded: pageUrlInfo.ConfigFilePathEncoded,
@@ -4141,7 +4194,7 @@ func BuildReportMeta(params models.BuildReportMetaParams, results models.Results
 	return reportMeta
 }
 
-func GenerateOutputReport(config *models.Config, instances []models.InstanceConfig, stlResults []models.GenerateSTLResult, imageResults []models.GenerateImageResult, outputDir string, toFile bool, totalTimeTaken time.Duration) (templ.Component, string, error) {
+func GenerateOutputReport(config *models.Config, instances []models.InstanceConfig, stlResults []models.GenerateSTLResult, imageResults []models.GenerateImageResult, outputDir string, toFile bool, reportMode string, totalTimeTaken time.Duration) (templ.Component, string, error) {
 	logStage("Generating HTML report")
 	if config.Debug && toFile {
 		LogKeyValuePair("Generating HTML report at", outputDir)
@@ -4185,12 +4238,13 @@ func GenerateOutputReport(config *models.Config, instances []models.InstanceConf
 
 	reportMeta := BuildReportMeta(models.BuildReportMetaParams{
 		IsServerMode:   false,
+		ShowAI:         false,
 		ConfigFilePath: "",
 		ServerFolder:   "",
 	}, models.Results{
 		TimeTake: totalTimeTaken,
 	})
-	htmlContent := templates.Report("complete", config, instances, outputFile, stlResults, imageResults, allParamNames, reportMeta, totalTimeTaken, nil)
+	htmlContent := templates.Report(reportMode, config, instances, outputFile, stlResults, imageResults, allParamNames, reportMeta, totalTimeTaken, nil)
 
 	var htmlFile *os.File
 	var err error

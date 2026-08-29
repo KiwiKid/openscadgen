@@ -209,7 +209,7 @@ union(){
       wedge_with_box(); 
       fwd(500)
       left(500)
-      cube([1000,1000,0.3]);
+      cuboid([1000,1000,0.3], anchor=[-1,-1,-1]);
       }
   }else if(renderType =="vert-slice"){
        intersection(){
@@ -218,7 +218,7 @@ union(){
           fwd(500)
           left(500)
           down(50)
-          cube([1000,1000,0.3]);
+          cuboid([1000,1000,0.3], anchor=[-1,-1,-1]);
       }
   }else{ 
   

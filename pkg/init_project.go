@@ -5,11 +5,15 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
 	"github.com/kiwikid/openscadgen/pkg/models"
 )
+
+const initTemplateDir = "openscad-init-templates"
+const initDefaultTemplateFile = "default.toml"
 
 var initProjectNameReplacements = map[string]string{
 	" ":  "_",
@@ -108,12 +112,68 @@ func ChooseInitTemplate(f models.CmdFlags, parentDir string) (bool, error) {
 	return false, nil
 }
 
+func resolveInitTemplatePath(templateName string) (string, error) {
+	name := strings.TrimSpace(templateName)
+	if name == "" || name == "basic" {
+		return "", nil
+	}
+	if name == "extended" {
+		name = initDefaultTemplateFile
+	}
+	cleanName := filepath.Clean(name)
+	_, file, _, ok := runtime.Caller(0)
+	searchDir := "."
+	if ok {
+		searchDir = filepath.Dir(filepath.Dir(file))
+	}
+	for {
+		templatePath := filepath.Join(searchDir, initTemplateDir, cleanName)
+		if st, err := os.Stat(templatePath); err == nil {
+			if st.IsDir() {
+				return "", fmt.Errorf("template path is a directory: %s", templatePath)
+			}
+			return templatePath, nil
+		} else if !os.IsNotExist(err) {
+			return "", fmt.Errorf("stat template file %s: %w", templatePath, err)
+		}
+		parent := filepath.Dir(searchDir)
+		if parent == searchDir {
+			break
+		}
+		searchDir = parent
+	}
+	return "", fmt.Errorf("template file not found: %s/%s", initTemplateDir, cleanName)
+}
+
+func readInitTemplate(templateName string) (string, error) {
+	templatePath, err := resolveInitTemplatePath(templateName)
+	if err != nil {
+		return "", err
+	}
+	if templatePath == "" {
+		return configTemplate, nil
+	}
+	data, err := os.ReadFile(templatePath)
+	if err != nil {
+		return "", fmt.Errorf("read template file %s: %w", templatePath, err)
+	}
+	return string(data), nil
+}
+
+func renderInitTemplate(templateBody string, tokens map[string]string) string {
+	out := templateBody
+	for token, value := range tokens {
+		out = strings.ReplaceAll(out, token, value)
+	}
+	return out
+}
+
 // InitConfigInParent creates a project directory from projectName inside parentDir.
 // It preserves the original boolean API used by existing call sites.
 func InitConfigInParent(parentDir, projectName string, extended bool) error {
-	template := "basic"
+	template := ""
 	if extended {
-		template = "extended"
+		template = initDefaultTemplateFile
 	}
 	return InitConfigInParentWithTemplate(parentDir, projectName, template)
 }
@@ -165,17 +225,23 @@ func InitConfigInParentWithTemplate(parentDir, projectName string, template stri
 	sanitizedLeaf := filepath.Base(sanitizedRel)
 	projectNameUnderLined := strings.NewReplacer(" ", "_").Replace(sanitizedLeaf)
 
-	var configBody string
-	switch template {
-	case "extended":
-		configBody = configTemplateExtended
-	case "explainer":
-		configBody = configTemplateExplainer
-	default:
-		configBody = configTemplate
-	}
+	useExtendedTemplate := filepath.Base(strings.TrimSpace(template)) == initDefaultTemplateFile || strings.TrimSpace(template) == "extended"
 
-	configBody = strings.ReplaceAll(configBody, "{{projectName}}", projectNameUnderLined)
+	configBody := configTemplate
+	if strings.TrimSpace(template) != "" {
+		var err error
+		configBody, err = readInitTemplate(template)
+		if err != nil {
+			logError(fmt.Sprintf("Failed to load init template: %s", err))
+			return err
+		}
+	}
+	configBody = renderInitTemplate(configBody, map[string]string{
+		"{{projectName}}":         projectNameUnderLined,
+		"<projectName>":           projectNameUnderLined,
+		"<projectNameUnderLined>": projectNameUnderLined,
+		"<projectPath>":           projectPath,
+	})
 
 	configPath := filepath.Join(projectPath, "config.toml")
 	configFile, err := os.Create(configPath)
@@ -200,7 +266,7 @@ func InitConfigInParentWithTemplate(parentDir, projectName string, template stri
 	}
 	defer scadFile.Close()
 
-	if template == "extended" {
+	if useExtendedTemplate {
 		_, err = scadFile.WriteString(openScadTemplateExtended(projectNameUnderLined))
 		if err != nil {
 			logError(fmt.Sprintf("Failed to write template to scad file: %s", err))
@@ -214,6 +280,20 @@ func InitConfigInParentWithTemplate(parentDir, projectName string, template stri
 		}
 	}
 	logCreation(fmt.Sprintf("Wrote template to scad file: %s", scadPath))
+
+	if useExtendedTemplate {
+		libDir := filepath.Join(parentDir, "openscad-lib")
+		if err := os.MkdirAll(libDir, 0o755); err != nil {
+			logError(fmt.Sprintf("Failed to create library directory: %s", err))
+			return fmt.Errorf("create library dir: %w", err)
+		}
+		libPath := filepath.Join(libDir, "openscadgen-core.scad")
+		if err := os.WriteFile(libPath, []byte(openScadCoreLibrary), 0o644); err != nil {
+			logError(fmt.Sprintf("Failed to write library file: %s", err))
+			return fmt.Errorf("write library: %w", err)
+		}
+		logCreation(fmt.Sprintf("Wrote shared OpenSCAD library: %s", libPath))
+	}
 
 	logCreation(fmt.Sprintf("Project Successfully Initialized: %s", sanitizedRel))
 	LogKeyValuePair("Project Path", projectPath)

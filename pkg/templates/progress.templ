@@ -6,8 +6,15 @@ templ CancelButton(id string) {
 	<button id="cancel-button" hx-swap-oob="true" class="button is-danger" hx-get={ fmt.Sprintf("/cancel?id=%s", id) }>Cancel</button>
 }
 
+templ CurrentProcessJobID(id string) {
+	<script>
+		window.ogCurrentProcessJobId = "{ id }";
+	</script>
+}
+
 templ GetProgressHTML(id string) {
 	<div>
+		@CurrentProcessJobID(id)
 		@CancelButton(id)
 	</div>
 	<div id="progress" hx-get={ fmt.Sprintf("/progress?id=%s", id) } hx-trigger="every 1s" hx-swap="outerHTML" class="notification is-info p-1 m-1" style="max-width: 300px;">
@@ -79,6 +86,7 @@ templ ProgressContainer(id string) {
 		<div class="is-loading"></div>
 		Starting...
 	</div>
+	@CurrentProcessJobID(id)
 	<div id="progress-container" class="box m-3">
 		<div class="columns is-vcentered">
 			<div class="column">
@@ -140,8 +148,8 @@ templ ProgressFailure(message string) {
 			<span>Processing failed</span>
 		</span>
 	</div>
-	<div id="progress" class="notification is-danger">
-		<strong>Processing failed</strong>
+	<div id="progress" class="notification is-warning">
+		<strong>Config validation failed</strong>
 		<pre style="white-space: pre-wrap; word-break: break-word; margin-top: 0.75rem; margin-bottom: 0;">{ message }</pre>
 	</div>
 	<div id="cancel-button" hx-swap-oob="true"></div>

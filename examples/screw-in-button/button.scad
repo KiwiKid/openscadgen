@@ -70,7 +70,7 @@ difference(){
     sphere(button_radius);
         
     translate([-cube_side_length+button_radius, -button_radius, -cube_size[2]-button_width])
-    cube(cube_size);
+    cuboid(cube_size, anchor=[-1,-1,-1]);
     
     
     translate([0, 0, -100])
@@ -83,7 +83,7 @@ difference(){
         tube(or=screw_head_hole_radius_size, ir=0, h=all_the_way, $fn=6, rounding_fn=64, rounding=0.1);
     } else if(holeType == "square") {
         translate([0, 0, squareHoleHeight/2+5])
-        prismoid(size1=[squareHoleSize,squareHoleSize], size2=[squareHoleSize+squareHoleTopDiff,squareHoleSize+squareHoleTopDiff], h=squareHoleHeight, center=true);
+        prismoid(size1=[squareHoleSize,squareHoleSize], size2=[squareHoleSize+squareHoleTopDiff,squareHoleSize+squareHoleTopDiff], h=squareHoleHeight, anchor=CENTER);
       //  cuboid([squareHoleSize,squareHoleSize, all_the_way]);
     }
     

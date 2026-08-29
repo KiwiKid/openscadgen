@@ -50,7 +50,7 @@ module hex_with_cylinder() {
         // Side thru cutout extender
         rotate([90,90,0])
         left(cutout_down)
-        cube([50,side_thru_cutout_diameter,100], anchor=BOTTOM, center=true);
+        cuboid([50,side_thru_cutout_diameter,100], anchor=BOTTOM);
         */
         
         // Bottom cutout
@@ -59,7 +59,7 @@ module hex_with_cylinder() {
          
        /*  translate(cubeTranslate)
          rotate([0,-cubeRotate,0])
-         cube(bottom_cube);*/
+         cuboid(bottom_cube);*/
         }
     }
 }

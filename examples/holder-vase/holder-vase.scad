@@ -86,7 +86,7 @@ module vase(wall_thickness=2, floor_thickness=50, wall_bump_rate=40, height=60) 
         // Clean cut at the top using a cylinder
         translate([0, 0, last_point.z])
         rotate(base_rotate)
-        cylinder(h=200, r=top_radius * 2, center=true);
+        cylinder(h=200, r=top_radius * 2, anchor=CENTER);
     }
 }
 
@@ -108,12 +108,12 @@ module sliced(
     module horz_slice(raw=false) {
         if (raw) {
             translate(horzSlicePos)
-                cube([sliceSize, sliceSize, sliceThickness], center=false);
+                cuboid([sliceSize, sliceSize, sliceThickness], anchor=[-1,-1,-1]);
         } else {
             intersection() {
                 children();
                 translate(horzSlicePos)
-                    cube([sliceSize, sliceSize, sliceThickness], center=false);
+                    cuboid([sliceSize, sliceSize, sliceThickness], anchor=[-1,-1,-1]);
             }
         }
     }
@@ -121,12 +121,12 @@ module sliced(
     module vert_slice(raw=false) {
         if (raw) {
             translate(vertSlicePos)
-                cube([sliceThickness, sliceSize, sliceSize], center=false);
+                cuboid([sliceThickness, sliceSize, sliceSize], anchor=[-1,-1,-1]);
         } else {
             intersection() {
                 children();
                 translate(vertSlicePos)
-                    cube([sliceThickness, sliceSize, sliceSize], center=false);
+                    cuboid([sliceThickness, sliceSize, sliceSize], anchor=[-1,-1,-1]);
             }
         }
     }

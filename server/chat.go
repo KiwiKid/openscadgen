@@ -302,6 +302,7 @@ func makeChatPageData(r *http.Request, history []models.ChatMessage, auth chatAu
 
 	return models.ChatPageData{
 		Title:                   title,
+		ShowAI:                  aiToolsEnabled,
 		Messages:                history,
 		HistoryJSON:             string(historyJSON),
 		Draft:                   draft,

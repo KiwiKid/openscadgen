@@ -33,6 +33,15 @@ clean:
 # Build and test everything
 all: generate build test
 
+# Build the GitHub Pages site output
+build-site ignore="rounded_button_box,stablizer_foot":
+    go run . --build-site --build-site-ignore-sections "{{ignore}}"
+
+# Rebuild the GitHub Pages site from a clean output directory
+build-site-clean ignore="rounded_button_box,stablizer_foot":
+    rm -rf pages
+    just build-site "{{ignore}}"
+
 # Install dependencies
 deps:
     go mod tidy

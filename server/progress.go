@@ -178,6 +178,7 @@ func (h *HTMLProgressReporter) FinishInstance() {
 
 		reportMeta := pkg.BuildReportMeta(models.BuildReportMetaParams{
 			IsServerMode:         true,
+			ShowAI:               h.config.ShowAI,
 			ConfigFilePath:       h.config.ConfigFile,
 			ServerFolder:         h.config.ServerFolder,
 			Instances:            h.instances,
@@ -234,7 +235,9 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 
 	config, _, err := pkg.LoadConfigFromFile(flags)
 	if err != nil {
-		http.Error(w, "Error loading config: "+err.Error(), http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusBadRequest)
+		templates.Warning(fmt.Sprintf("Error loading config:\n%s", err)).Render(r.Context(), w)
 		return
 	}
 

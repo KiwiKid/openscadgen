@@ -1,0 +1,16 @@
+[openscadgen]
+name = "pully_wheel"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}"
+
+global_params = { }
+
+[[openscadgen.input_paths]]
+path = "./pully_wheel.scad"
+params = { }
+
+[[openscadgen.images]]
+name = "nice"

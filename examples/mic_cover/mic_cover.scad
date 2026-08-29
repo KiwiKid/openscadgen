@@ -109,12 +109,12 @@ module sliced(
     module horz_slice(raw=false) {
         if (raw) {
             translate(horzSlicePos)
-                cube([sliceSize, sliceSize, sliceThickness], center=false);
+                cuboid([sliceSize, sliceSize, sliceThickness], anchor=[-1,-1,-1]);
         } else {
             intersection() {
                 children();
                 translate(horzSlicePos)
-                    cube([sliceSize, sliceSize, sliceThickness], center=false);
+                    cuboid([sliceSize, sliceSize, sliceThickness], anchor=[-1,-1,-1]);
             }
         }
     }
@@ -122,12 +122,12 @@ module sliced(
     module vert_slice(raw=false) {
         if (raw) {
             translate(vertSlicePos)
-                cube([sliceThickness, sliceSize, sliceSize], center=false);
+                cuboid([sliceThickness, sliceSize, sliceSize], anchor=[-1,-1,-1]);
         } else {
             intersection() {
                 children();
                 translate(vertSlicePos)
-                    cube([sliceThickness, sliceSize, sliceSize], center=false);
+                    cuboid([sliceThickness, sliceSize, sliceSize], anchor=[-1,-1,-1]);
             }
         }
     }

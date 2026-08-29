@@ -65,16 +65,16 @@ if(cup_holders_mode == "justFourLargerHolders"){
 
 
 
-module roundedCube(size = [10, 10, 10], radius = 2, center = false) {
+module roundedCube(size = [10, 10, 10], radius = 2, anchor=[-1,-1,-1]) {
     // Calculate adjustment for Minkowski thickness
     extra = $mode == "simple" ? 0 : radius;
     translate(center ? -[size[0]/2 + extra, size[1]/2 + extra, size[2]/2 + extra] : [extra, extra, extra])
     
     if ($mode == "simple") {
-        cube(size, center = false);
+        cuboid(size, anchor=[-1,-1,-1]);
     } else if ($mode == "rounded") {
         minkowski() {
-            cube(size - [2 * radius, 2 * radius, 2 * radius], center = false);
+            cuboid(size - [2 * radius, 2 * radius, 2 * radius], anchor=[-1,-1,-1]);
             sphere(radius);
         }
     } else {
@@ -82,7 +82,7 @@ module roundedCube(size = [10, 10, 10], radius = 2, center = false) {
     }
 }
 
-module roundedCylinder(h = 20, d1 = 10, d2 = 10, radius = 2, center = false) {
+module roundedCylinder(h = 20, d1 = 10, d2 = 10, radius = 2, anchor=[-1,-1,-1]) {
     // Compute outer dimensions (same for both modes)
     outer_h = h + 2 * radius;
     outer_d1 = d1 + 2 * radius;
@@ -92,10 +92,10 @@ module roundedCylinder(h = 20, d1 = 10, d2 = 10, radius = 2, center = false) {
     translate(center ? -[max(outer_d1, outer_d2) / 2, max(outer_d1, outer_d2) / 2, outer_h / 2] : [0, 0, 0])
     
     if ($mode == "simple") {
-        cylinder(h = h, d1 = d1, d2 = d2, center = false);
+        cylinder(h = h, d1 = d1, d2 = d2, anchor=[-1,-1,-1]);
     } else if ($mode == "rounded") {
         minkowski() {
-            cylinder(h = h, d1 = d1, d2 = d2, center = false);
+            cylinder(h = h, d1 = d1, d2 = d2, anchor=[-1,-1,-1]);
             sphere(radius);
         }
     } else {
@@ -111,7 +111,7 @@ module cupHolder(){
         cylinder(h=in_car_cup_holder_height,d1=in_car_cup_holder_bottom_diameter, d2=in_car_cup_holder_top_diameter);
            translate([-50,1,-70])
         rotate([0,in_car_cup_holder_make_print_easier_cutout_angle,0])
-        cube(200, 100, 200);
+        cuboid([200, 100, 200], anchor=[-1,-1,-1]);
         
        }
         
@@ -158,7 +158,7 @@ module cupHolder(){
         if (cup_holders_mode == "twoLargerHolders") {
         // Center Phone Cutout
         translate([5, 7, in_car_cup_holder_height+60])
-        #roundedCube([180, 52, 90], center=true);
+        #roundedCube([180, 52, 90], anchor=CENTER);
         } else if (cup_holders_mode == "oneLargerHolderOneSmallerHolder") {
          
          translate([-90, -20, in_car_cup_holder_height+phone_holder_floor_depth+10])
@@ -167,7 +167,7 @@ module cupHolder(){
         
         
         translate([phone_holder2_offset, 8, phone_holder_depth+phone_holder_floor_depth+20])
-        roundedCube([20, 60, 90], center=true);
+        roundedCube([20, 60, 90], anchor=CENTER);
         } else if(cup_holders_mode == "justFourLargerHolders"){
              
         
@@ -208,7 +208,7 @@ cutoutLength = 150;
             cylinder(200,5,5);
             rotate([90,0,0])
             translate([-1.5,4,0])
-            cube([5, 15, 200]);
+            cuboid([5, 15, 200], anchor=[-1,-1,-1]);
          }
             
             

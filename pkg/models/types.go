@@ -93,6 +93,7 @@ type CmdFlags struct {
 	InitProjectName              string `json:"init_project_name"`
 	InitProjectNameExtended      string `json:"init_project_name_extended"`
 	InitProjectNameExplainer     string `json:"init_project_name_explainer"`
+	InitProjectTemplate          string `json:"init_project_template"`
 	InitProjectParentDir         string `json:"init_project_parent_dir"`
 	NoInput                      bool   `json:"no_input"`
 	ConfigOptionsTopic           string `json:"config_options_topic"`
@@ -111,8 +112,13 @@ type CmdFlags struct {
 	HighQuality                  bool   `json:"high_quality"`
 	LowQuality                   bool   `json:"low_quality"`
 	EnableFileWatcher            bool   `json:"enable_file_watcher"`
+	ShowAI                       bool   `json:"show_ai"`
 	DeleteExportSTLsDir          string `json:"delete_export_stls_dir"`
 	DangerouslySkipPermissions   bool   `json:"dangerously_skip_permissions"`
+	BuildPages                   bool   `json:"build_pages"`
+	PagesOutputDir               string `json:"pages_output_dir"`
+	BuildSite                    bool   `json:"build_site"`
+	BuildSiteIgnoreSections      string `json:"build_site_ignore_sections"`
 }
 
 type OutputPaths struct {
@@ -156,11 +162,13 @@ type Config struct {
 	ServerFolder                 string //`flag:"sf"`
 	ServerModeConfigFile         string
 	EnableFileWatcher            bool //`flag:"efw"`
+	ShowAI                       bool
 	OpenSCADVersion              string
 	OpenScadGenVersion           string
 	InitProjectName              string
 	InitProjectNameExtended      string
 	InitProjectNameExplainer     string
+	InitProjectTemplate          string
 	NoInput                      bool
 	ConfigOptionsTopic           string
 }
@@ -496,6 +504,7 @@ type Results struct {
 }
 type BuildReportMetaParams struct {
 	IsServerMode         bool
+	ShowAI               bool
 	TotalQueuedInstances int
 	ConfigFilePath       string
 	ServerFolder         string
@@ -528,10 +537,43 @@ type EditConfigParams struct {
 	Content               string
 	ErrorMsg              templ.Component
 	InstanceCountLabel    string
+	PreviewInstances      []InstanceConfig
+	PreviewWarnings       []string
+	IsPreview             bool
+	PreviewSections       []EditPreviewSection
+	PreviewSummary        []EditPreviewSummary
+}
+
+type EditPreviewSection struct {
+	Title       string
+	Description string
+	CountLabel  string
+	HasItems    bool
+	Items       []EditPreviewSectionItem
+	Controls    []EditPreviewControl
+}
+
+type EditPreviewSectionItem struct {
+	Title       string
+	Subtitle    string
+	Description string
+}
+
+type EditPreviewControl struct {
+	Label       string
+	Path        string
+	Example     string
+	Description string
+}
+
+type EditPreviewSummary struct {
+	Label string
+	Value string
 }
 
 type ReportMeta struct {
 	IsServerMode          bool
+	ShowAI                bool
 	TotalQueuedInstances  int
 	HomeURL               string
 	ConfigFilePath        string
@@ -550,6 +592,7 @@ type ChatMessage struct {
 
 type ChatPageData struct {
 	Title                   string
+	ShowAI                  bool
 	Messages                []ChatMessage
 	HistoryJSON             string
 	Draft                   string

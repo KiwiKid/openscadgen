@@ -1,0 +1,24 @@
+[openscadgen]
+name = "bolt_sizer"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}/{textSize}/{mode}"
+
+global_params = { }
+
+[[openscadgen.input_paths]]
+path = "./bolt_sizer.scad"
+
+
+[[openscadgen.instances]]
+params = {  mode = "box,box-noText,text", textSize=5, textShift=2.5 }
+
+[[openscadgen.instances]]
+params = { mode = "logo,bottomRender,text,centerBox", textSize=3, textShift=3.5 }
+
+
+[[openscadgen.images]]
+name = "nice"
+param_filter = { renderType= "obj"}

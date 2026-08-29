@@ -32,6 +32,7 @@ func ParseFlags() models.CmdFlags {
 	flag.StringVar(&cmdFlags.InitProjectNameExtended, "ie", "", "Alias for -init-extended")
 	flag.StringVar(&cmdFlags.InitProjectNameExtended, "new-extended", "", "Alias for -init-extended")
 	flag.StringVar(&cmdFlags.InitProjectNameExtended, "newe", "", "Alias for -new-extended")
+	flag.StringVar(&cmdFlags.InitProjectTemplate, "t", "", "Template file name under openscad-init-templates/ to use with -ie")
 
 	initExplainerDesc := "Create a new project with the explainer starter template (same as -ix). Location flags same as -init."
 	flag.StringVar(&cmdFlags.InitProjectNameExplainer, "init-explainer", "", initExplainerDesc)
@@ -58,6 +59,10 @@ func ParseFlags() models.CmdFlags {
 	deleteDirDesc := "Directory to scan for export/ folders and list .stl files for deletion (confirm required)"
 	flag.StringVar(&cmdFlags.DeleteExportSTLsDir, "delete-export-stls-dir", "", deleteDirDesc)
 	flag.StringVar(&cmdFlags.DeleteExportSTLsDir, "d", "", "Alias for -delete-export-stls-dir")
+	flag.BoolVar(&cmdFlags.BuildPages, "build-pages", false, "Build a GitHub Pages-ready copy of examples/ and bols2otropolis/ into the pages/ folder")
+	flag.StringVar(&cmdFlags.PagesOutputDir, "pages-output-dir", "pages", "Destination directory for -build-pages output")
+	flag.BoolVar(&cmdFlags.BuildSite, "build-site", false, "Build all example and bols2otropolis reports in GitHub Pages mode, then assemble the pages/ folder")
+	flag.StringVar(&cmdFlags.BuildSiteIgnoreSections, "build-site-ignore-sections", "", "Comma-separated path sections to skip when building the site")
 
 	flag.BoolVar(&cmdFlags.Version, "version", false, "just output the openscadgen and openscad version number")
 	flag.BoolVar(&cmdFlags.Version, "v", false, "Alias for -version")
@@ -104,6 +109,7 @@ func ParseFlags() models.CmdFlags {
 
 	flag.BoolVar(&cmdFlags.EnableFileWatcher, "enable-file-watcher", false, "[NOT YET IMPLEMENTED] sEnable file watchers to automatically regenerate on changes (default false)")
 	flag.BoolVar(&cmdFlags.EnableFileWatcher, "efw", false, "Alias for -enable-file-watcher")
+	flag.BoolVar(&cmdFlags.ShowAI, "ai", false, "Show AI tools in server mode")
 
 	flag.Parse()
 

@@ -57,3 +57,37 @@ func TestInstanceCardV2RendersFailedOpenSCADDetails(t *testing.T) {
 		}
 	}
 }
+
+func TestReportRendersOpenSCADButtonsForConfiguredSCADFiles(t *testing.T) {
+	config := &models.Config{Design: models.DesignConfig{
+		Name:             "example",
+		Version:          "v0.1",
+		ExportNameFormat: "{designFileName}",
+		InputPaths: []models.InputPath{
+			{Path: "./first.scad"},
+			{Path: "./first.scad"},
+			{Path: "nested/second.scad"},
+			{Path: "notes.txt"},
+		},
+	}}
+	reportMeta := models.ReportMeta{
+		IsServerMode:          true,
+		ConfigFilePathEncoded: "Y29uZmlnLnRvbWw=",
+		ServerFolderEncoded:   "cHJvamVjdHM=",
+	}
+
+	var rendered strings.Builder
+	if err := Report("view", config, nil, "", nil, nil, nil, reportMeta, 0, nil).Render(context.Background(), &rendered); err != nil {
+		t.Fatalf("render report: %v", err)
+	}
+	body := rendered.String()
+	if count := strings.Count(body, "Open first.scad"); count != 1 {
+		t.Fatalf("expected one nav button for first.scad, got %d\nbody=%s", count, body)
+	}
+	if !strings.Contains(body, "Open second.scad") || !strings.Contains(body, "Open in OpenSCAD") {
+		t.Fatalf("expected OpenSCAD buttons for configured SCAD files\nbody=%s", body)
+	}
+	if strings.Contains(body, "notes.txt") {
+		t.Fatalf("non-SCAD input must not render an OpenSCAD button\nbody=%s", body)
+	}
+}

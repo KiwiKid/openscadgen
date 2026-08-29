@@ -16,6 +16,79 @@ import (
 	"github.com/kiwikid/openscadgen/pkg/models"
 )
 
+func TestHandleOpenSCADFileOpensConfiguredSCADOnly(t *testing.T) {
+	serverFolder := t.TempDir()
+	configPath := filepath.Join(serverFolder, "config.toml")
+	firstSCAD := filepath.Join(serverFolder, "first.scad")
+	secondSCAD := filepath.Join(serverFolder, "second.scad")
+	for _, path := range []string{firstSCAD, secondSCAD} {
+		if err := os.WriteFile(path, []byte("cube(1);\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	config := `[openscadgen]
+name = "example"
+version = "v0.1"
+export_name_format = "{designFileName}"
+
+[[openscadgen.input_paths]]
+path = "./first.scad"
+
+[[openscadgen.input_paths]]
+path = "./second.scad"
+`
+	if err := os.WriteFile(configPath, []byte(config), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	var opened string
+	originalStarter := startOpenSCADFile
+	startOpenSCADFile = func(path string) error {
+		opened = path
+		return nil
+	}
+	t.Cleanup(func() { startOpenSCADFile = originalStarter })
+
+	makeRequest := func(sourcePath string) *httptest.ResponseRecorder {
+		query := make(url.Values)
+		query.Set("config_path", base64.StdEncoding.EncodeToString([]byte(configPath)))
+		query.Set("server_folder", base64.StdEncoding.EncodeToString([]byte(serverFolder)))
+		query.Set("source_path", base64.StdEncoding.EncodeToString([]byte(sourcePath)))
+		req := httptest.NewRequest(http.MethodPost, "/api/openscad/open?"+query.Encode(), nil)
+		rr := httptest.NewRecorder()
+		handleOpenSCADFile(rr, req)
+		return rr
+	}
+
+	if rr := makeRequest("./first.scad"); rr.Code != http.StatusOK {
+		t.Fatalf("expected configured SCAD to open, got %d: %s", rr.Code, rr.Body.String())
+	}
+	if opened != firstSCAD {
+		t.Fatalf("opened %q, want %q", opened, firstSCAD)
+	}
+
+	opened = ""
+	if rr := makeRequest("./not-configured.scad"); rr.Code != http.StatusForbidden {
+		t.Fatalf("expected unconfigured SCAD to be rejected, got %d: %s", rr.Code, rr.Body.String())
+	}
+	if opened != "" {
+		t.Fatalf("unconfigured source started OpenSCAD for %q", opened)
+	}
+
+	if rr := makeRequest("../outside.scad"); rr.Code != http.StatusForbidden {
+		t.Fatalf("expected path outside the server folder to be rejected, got %d: %s", rr.Code, rr.Body.String())
+	}
+}
+
+func TestHandleOpenSCADFileRequiresPOST(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/api/openscad/open", nil)
+	rr := httptest.NewRecorder()
+	handleOpenSCADFile(rr, req)
+	if rr.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("expected 405, got %d: %s", rr.Code, rr.Body.String())
+	}
+}
+
 func TestHandleImageRequest(t *testing.T) {
 	// Create a temporary test image file
 	tempDir := t.TempDir()
@@ -146,6 +219,41 @@ params = { size = 2 }
 	expectedRedirect := pkg.BuildPageUrl(configPath, tempDir).PageURL
 	if got := rr.Header().Get("HX-Redirect"); got != expectedRedirect {
 		t.Fatalf("expected HX-Redirect %q, got %q", expectedRedirect, got)
+	}
+}
+
+func TestHandlePUTRequestReturnsConfigValidationError(t *testing.T) {
+	tempDir := t.TempDir()
+	configPath := filepath.Join(tempDir, "config.toml")
+	scadPath := filepath.Join(tempDir, "sample.scad")
+
+	if err := os.WriteFile(scadPath, []byte("cube([1,1,1]);\n"), 0o644); err != nil {
+		t.Fatalf("failed to write scad file: %v", err)
+	}
+	if err := os.WriteFile(configPath, []byte("[openscadgen\n"), 0o644); err != nil {
+		t.Fatalf("failed to write invalid config: %v", err)
+	}
+
+	formData := make(url.Values)
+	formData.Set("config_path", base64.StdEncoding.EncodeToString([]byte(configPath)))
+	formData.Set("server_folder", base64.StdEncoding.EncodeToString([]byte(tempDir)))
+	formData.Set("raw_config_file", base64.StdEncoding.EncodeToString([]byte("[openscadgen\n")))
+
+	req := httptest.NewRequest(http.MethodPut, "/", strings.NewReader(formData.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+
+	handlePUTRequest(rr, req)
+
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d body=%q", rr.Code, rr.Body.String())
+	}
+	body := rr.Body.String()
+	if !strings.Contains(body, "LoadConfigFromFileError") {
+		t.Fatalf("expected detailed load error, got %q", body)
+	}
+	if !strings.Contains(body, "Source context") && !strings.Contains(body, "line 1") {
+		t.Fatalf("expected TOML error details, got %q", body)
 	}
 }
 

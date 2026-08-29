@@ -149,13 +149,13 @@ if (partType == "halves" || partType == "topHalf" || partType == "bottomHalf") {
         union() {
             // Main flat dividing wall (lower half block)
             translate([0, 0, -25]) 
-                cube([binSize.x + 20, tab_thickness, 50], anchor=CENTER);
+                cuboid([binSize.x + 20, tab_thickness, 50], anchor=CENTER);
             
             // Loop across the X axis to generate interlocking teeth
             // Steps by double the width to leave precise spacing for the opposite side
             for (x = [-binSize.x/2 : tab_width*2 : binSize.x/2]) {
                 translate([x + tab_width/2, 0, 0])
-                    cube([tab_width, tab_thickness, tab_height*2], anchor=CENTER);
+                    cuboid([tab_width, tab_thickness, tab_height*2], anchor=CENTER);
             }
         }
     }

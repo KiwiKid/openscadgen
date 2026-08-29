@@ -13,13 +13,13 @@
 	module cine_log_35_travel_case(caseScale){
     scale(caseScale)
         union(){
-		import("geprc-cinelog-30-v3-case-model_files/cinelog30v3boxlid.stl", center=true);
+		import("geprc-cinelog-30-v3-case-model_files/cinelog30v3boxlid.stl", anchor=CENTER);
         
         left(400)
-        import("geprc-cinelog-30-v3-case-model_files/cinelog30v3boxclasp.stl", center=true);
+        import("geprc-cinelog-30-v3-case-model_files/cinelog30v3boxclasp.stl", anchor=CENTER);
         
         right(400)
-        import("geprc-cinelog-30-v3-case-model_files/cinelog30v3box.stl", center=true);
+        import("geprc-cinelog-30-v3-case-model_files/cinelog30v3box.stl", anchor=CENTER);
         }
 
 	}
@@ -54,13 +54,13 @@ module sliced(
         if (raw) {
             rotate(horzSliceRotate)
             translate(horzSlicePos)
-                cube([sliceSize, sliceSize, sliceThickness], center=false);
+                cuboid([sliceSize, sliceSize, sliceThickness], anchor=[-1,-1,-1]);
         } else {
             intersection() {
                 children();
                 rotate(horzSliceRotate)
                 translate(horzSlicePos)
-                    cube([sliceSize, sliceSize, sliceThickness], center=false);
+                    cuboid([sliceSize, sliceSize, sliceThickness], anchor=[-1,-1,-1]);
             }
         }
     }
@@ -69,13 +69,13 @@ module sliced(
         if (raw) {
             rotate(vertSliceRotate)
             translate(vertSlicePos)
-                cube([sliceThickness, sliceSize, sliceSize], center=false);
+                cuboid([sliceThickness, sliceSize, sliceSize], anchor=[-1,-1,-1]);
         } else {
             intersection() {
                 children();
                    rotate(vertSliceRotate)
                 translate(vertSlicePos)
-                    cube([sliceThickness, sliceSize, sliceSize], center=false);
+                    cuboid([sliceThickness, sliceSize, sliceSize], anchor=[-1,-1,-1]);
             }
         }
     }

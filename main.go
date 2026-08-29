@@ -22,6 +22,11 @@ func main() {
 			cmdFlags.ConfigFile = envCfg
 		}
 	}
+	if !cmdFlags.ShowAI {
+		if strings.EqualFold(strings.TrimSpace(os.Getenv("OPENSCADGEN_AI_ON")), "true") {
+			cmdFlags.ShowAI = true
+		}
+	}
 
 	// Initialize logger before loading config
 	if err := pkg.InitLogger("memory"); err != nil {
@@ -51,14 +56,17 @@ func main() {
 			stageLabel = "explainer project"
 		case cmdFlags.InitProjectNameExtended != "":
 			name = strings.TrimSpace(cmdFlags.InitProjectNameExtended)
-			template = "extended"
+			template = strings.TrimSpace(cmdFlags.InitProjectTemplate)
+			if template == "" {
+				template = "default.toml"
+			}
 			stageLabel = "extended project"
 		default:
 			if chosen, err := pkg.ChooseInitTemplate(cmdFlags, parent); err != nil {
 				pkg.LogErrorf("init project: %v", err)
 				os.Exit(1)
 			} else if chosen {
-				template = "explainer"
+				template = "default.toml"
 				stageLabel = "explainer project"
 			}
 		}
@@ -128,6 +136,23 @@ func main() {
 			return
 		}
 		pkg.LogInfof("Deleted %d files.", len(res.Deleted))
+		return
+	}
+
+	if cmdFlags.BuildPages || cmdFlags.BuildSite {
+		if cmdFlags.BuildSite {
+			if err := pkg.BuildSite(".", cmdFlags.PagesOutputDir, cmdFlags); err != nil {
+				pkg.LogErrorf("BuildSite Error: %v", err)
+				os.Exit(1)
+			}
+			pkg.LogInfof("Built GitHub Pages site in %s", cmdFlags.PagesOutputDir)
+			return
+		}
+		if err := pkg.BuildPagesSite(".", cmdFlags.PagesOutputDir); err != nil {
+			pkg.LogErrorf("BuildPages Error: %v", err)
+			os.Exit(1)
+		}
+		pkg.LogInfof("Built GitHub Pages output in %s", cmdFlags.PagesOutputDir)
 		return
 	}
 
