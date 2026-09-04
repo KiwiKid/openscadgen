@@ -15,19 +15,22 @@
 	*/
 	renderType = "obj";
 
-spinnerWidth = 2;
-spinnerLength = 80;
-spinnerThickness = 30;
+spinnerWidth = 1.5;
+spinnerLength = 90;
+spinnerThickness = 3;
 spinnerRounding = 1;
 
 holderWidth = 18;
+holderOuterWidth = 10;
+holderOuterGapOffset = 1;
+holderClickerBarOffset=  2;
 
 holderWall = 12;
 holderHeight = 40 ;
 
 snakePieceThickness = 25;
 
-snakeCurveLength = 10; 
+snakeCurveLength = 0; 
 
 spinnerOffset = 18;
 
@@ -35,7 +38,7 @@ spinnerOffset = 18;
 module screw_holder(){
  rotate([90,0,0]){
             difference(){
-                cyl(d=holderWidth, h=spinnerThickness+holderHeight, rounding1=3);
+                cyl(d=holderOuterWidth, h=spinnerThickness+holderHeight, rounding1=3);
                 cyl(d=holderWidth-holderWall, h=spinnerThickness+holderHeight+0.001, chamfer1=-2);
                 
             
@@ -59,23 +62,24 @@ module screw_holder(){
 	module spin_clicker(){
 
 
-        fwd(spinnerLength/2+snakeCurveLength+spinnerOffset)
-       snakePiece();
+       // fwd(spinnerLength/2+snakeCurveLength+spinnerOffset)
+      // snakePiece();
 
+		cuboid([spinnerWidth,spinnerLength,spinnerThickness], rounding=.3)
 
-		cuboid([spinnerWidth,spinnerLength,spinnerThickness])
-
-
-            attach(FWD){            
-            up(5)
+        up(spinnerThickness/3.5)
+            fwd(holderOuterWidth-holderClickerBarOffset)
+            attach(FWD){         
+                up(holderOuterGapOffset)
+            up(holderOuterWidth/2-holderOuterGapOffset)
             fwd(holderHeight/2)
-            up(snakeCurveLength*2+spinnerOffset)
-            #screw_holder();
+          //  up(snakeCurveLength*2+spinnerOffset)
+            screw_holder();
             
             
-            up(holderWidth)
+            up(-holderOuterWidth/2+holderOuterGapOffset)
             fwd(holderHeight/2)
-            up(snakeCurveLength*2+spinnerOffset)
+       //     up(snakeCurveLength*2+spinnerOffset)
             screw_holder();
             }
            

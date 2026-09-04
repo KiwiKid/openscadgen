@@ -1,7 +1,9 @@
 package server
 
 import (
+	"context"
 	"encoding/base64"
+	"fmt"
 	"html"
 	"net/http"
 	"net/http/httptest"
@@ -15,6 +17,110 @@ import (
 	"github.com/kiwikid/openscadgen/pkg"
 	"github.com/kiwikid/openscadgen/pkg/models"
 )
+
+func TestHandleOpenSCADInstallUsesRequestedReleaseChannel(t *testing.T) {
+	originalInstall := installOpenSCAD
+	t.Cleanup(func() { installOpenSCAD = originalInstall })
+
+	var installedNightly bool
+	installOpenSCAD = func(_ context.Context, nightly bool) error {
+		installedNightly = nightly
+		return nil
+	}
+	request := func(form url.Values) *httptest.ResponseRecorder {
+		req := httptest.NewRequest(http.MethodPost, "/api/openscad/install", strings.NewReader(form.Encode()))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		req.Header.Set("HX-Target", "tools-results-content")
+		rr := httptest.NewRecorder()
+		handleOpenSCADInstall(rr, req)
+		return rr
+	}
+
+	if rr := request(url.Values{"install_nightly": {"true"}}); rr.Code != http.StatusOK {
+		t.Fatalf("expected nightly install to succeed, got %d: %s", rr.Code, rr.Body.String())
+	}
+	if !installedNightly {
+		t.Fatal("expected the checked nightly option to request a nightly install")
+	}
+
+	if rr := request(url.Values{}); rr.Code != http.StatusOK {
+		t.Fatalf("expected stable install to succeed, got %d: %s", rr.Code, rr.Body.String())
+	}
+	if installedNightly {
+		t.Fatal("expected an unchecked nightly option to request a stable install")
+	}
+}
+
+func TestHandleOpenSCADInstallRequiresPOST(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/api/openscad/install", nil)
+	rr := httptest.NewRecorder()
+	handleOpenSCADInstall(rr, req)
+
+	if rr.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("expected 405, got %d: %s", rr.Code, rr.Body.String())
+	}
+}
+
+func TestHandleOpenSCADLibraryActionInstallsBOSL2(t *testing.T) {
+	originalInstall := installBOSL2
+	originalServerFolder := globalServerFolder
+	t.Cleanup(func() {
+		installBOSL2 = originalInstall
+		globalServerFolder = originalServerFolder
+	})
+	installed := false
+	installBOSL2 = func(_ context.Context) error {
+		installed = true
+		return nil
+	}
+	globalServerFolder = t.TempDir()
+
+	req := httptest.NewRequest(http.MethodPost, "/api/openscad/libraries/bosl2/update", nil)
+	req.Header.Set("HX-Target", "tools-results-content")
+	rr := httptest.NewRecorder()
+	handleOpenSCADLibraryAction(rr, req)
+
+	if !installed {
+		t.Fatal("expected BOSL2 installer to run")
+	}
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, body = %s", rr.Code, rr.Body.String())
+	}
+	if !strings.Contains(rr.Body.String(), `class="message is-success"`) {
+		t.Fatalf("expected full results response, got %s", rr.Body.String())
+	}
+	if !strings.Contains(rr.Body.String(), "BOSL2 installed") || !strings.Contains(rr.Body.String(), `class="message is-success"`) {
+		t.Fatalf("unexpected response: %s", rr.Body.String())
+	}
+}
+
+func TestHandleOpenSCADLibraryActionRejectsGETUpdate(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/api/openscad/libraries/bosl2/update", nil)
+	rr := httptest.NewRecorder()
+	handleOpenSCADLibraryAction(rr, req)
+
+	if rr.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("status = %d, body = %s", rr.Code, rr.Body.String())
+	}
+}
+
+func TestHandleOpenSCADLibraryActionShowsManualCommandAfterInstallFailure(t *testing.T) {
+	originalInstall := installBOSL2
+	t.Cleanup(func() { installBOSL2 = originalInstall })
+	installBOSL2 = func(_ context.Context) error { return fmt.Errorf("download timed out") }
+
+	req := httptest.NewRequest(http.MethodPost, "/api/openscad/libraries/bosl2/update", nil)
+	req.Header.Set("HX-Target", "tools-results-content")
+	rr := httptest.NewRecorder()
+	handleOpenSCADLibraryAction(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, body = %s", rr.Code, rr.Body.String())
+	}
+	if !strings.Contains(rr.Body.String(), "download timed out") || !strings.Contains(rr.Body.String(), "Copy command") || !strings.Contains(rr.Body.String(), "set -e") || !strings.Contains(rr.Body.String(), "git clone --depth 1") {
+		t.Fatalf("expected manual recovery command, got %s", rr.Body.String())
+	}
+}
 
 func TestHandleOpenSCADFileOpensConfiguredSCADOnly(t *testing.T) {
 	serverFolder := t.TempDir()
@@ -219,6 +325,52 @@ params = { size = 2 }
 	expectedRedirect := pkg.BuildPageUrl(configPath, tempDir).PageURL
 	if got := rr.Header().Get("HX-Redirect"); got != expectedRedirect {
 		t.Fatalf("expected HX-Redirect %q, got %q", expectedRedirect, got)
+	}
+}
+
+func TestHandleEditPostBlocksSaveForBlockingInstanceValidation(t *testing.T) {
+	tempDir := t.TempDir()
+	configPath := filepath.Join(tempDir, "config.toml")
+	if err := os.WriteFile(filepath.Join(tempDir, "sample.scad"), []byte("cube(1);\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	original := `[openscadgen]
+name = "sample"
+version = "v0.1"
+export_name_format = "{designFileName}"
+
+[[openscadgen.input_paths]]
+path = "./sample.scad"
+`
+	invalid := original + `
+[[openscadgen.instances]]
+name = "first"
+params = { size = 1 }
+
+[[openscadgen.instances]]
+name = "second"
+params = { size = 2 }
+`
+	if err := os.WriteFile(configPath, []byte(original), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	form := url.Values{"content": {invalid}, "action": {"save"}}
+	req := httptest.NewRequest(http.MethodPost, "/api/edit", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rr := httptest.NewRecorder()
+	handleEditPost(rr, req, configPath, tempDir)
+
+	body := rr.Body.String()
+	if !strings.Contains(body, "Save-blocking error") || !strings.Contains(body, "disabled") {
+		t.Fatalf("expected blocking feedback and disabled save, got %q", body)
+	}
+	got, err := os.ReadFile(configPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != original {
+		t.Fatalf("blocking dry run wrote the config:\n%s", got)
 	}
 }
 
@@ -443,6 +595,32 @@ func TestProgressHandlerHTMLErrorBatchRendersFailureAndCard(t *testing.T) {
 	}
 	if !strings.Contains(body, `id="instance-test"`) {
 		t.Fatalf("expected instance card HTML in response, got %q", body)
+	}
+}
+
+func TestProgressHandlerCompletedHTMLBatchRendersFinalInstanceCard(t *testing.T) {
+	id := "job-complete-html"
+	updates := make(chan string, 1)
+	updates <- `html:<div id="instance-chip_cover_sliced_chipWidth535" hx-swap-oob="true">render error</div>`
+
+	mu.Lock()
+	progressMap[id] = updates
+	resultMap[id] = models.ProcessResult{}
+	mu.Unlock()
+
+	req := httptest.NewRequest(http.MethodGet, "/progress?id="+id, nil)
+	rr := httptest.NewRecorder()
+	ProgressHandler(rr, req)
+
+	if rr.Header().Get("X-Progress-Status") != "complete" {
+		t.Fatalf("expected complete status, got %q", rr.Header().Get("X-Progress-Status"))
+	}
+	body := rr.Body.String()
+	if !strings.Contains(body, "All instances completed!") {
+		t.Fatalf("expected completion update, got %q", body)
+	}
+	if !strings.Contains(body, `id="instance-chip_cover_sliced_chipWidth535"`) {
+		t.Fatalf("expected final instance OOB card in response, got %q", body)
 	}
 }
 

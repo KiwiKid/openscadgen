@@ -1,11 +1,11 @@
 
 
 	include <BOSL2/std.scad>;
-    include <BOSL2/hooks.scad>;
+    include <BOSL2/hooks.scad>; 
     
     trayWallThickness = 2;
     trayThickness = 3;
-    traySize = [150,50,trayThickness];
+    traySize = [180,50,trayThickness];
     
     coffeeCupShift = 60;
     coffeeCupTopRadius = 20;
@@ -15,7 +15,8 @@
     coffeeCupWallDepth = 2;
     coffeeCupSink = 10;
     
-    insideTraySize = [10,10,10];
+    trayDown = 10;
+    insideTraySize = [30,30,30];
     
     
     
@@ -40,10 +41,11 @@
     
     module middle_tray(mode="middleCutout"){
     difference(){
-        cuboid(insideTraySize);
+        cuboid(insideTraySize, anchor=BOT);
          if(mode == "middleCutout"){
         up(trayWallThickness)
-        cuboid(insideTraySize);
+
+            cuboid(insideTraySize-[1,0,0], anchor=BOT);
           }
         
     
@@ -53,14 +55,17 @@
 module coffee_holder_tray(){
     difference(){
 	cube(traySize, center=true);
-    #middle_tray();
-    down(coffeeCupSink)
+    down(coffeeCupSink){
+    middle_tray(mode="noCutout");
+
     coffee_cups(mode="noCutout");
     }
+    }
     
-    down(coffeeCupSink)
+    down(coffeeCupSink){
         coffee_cups(mode="middleCutout");
-       #middle_tray();
+       middle_tray();
+       }
         
 }
 

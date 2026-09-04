@@ -1,0 +1,25 @@
+[openscadgen]
+name = "chip_cover"
+description = ""
+
+version = "v0.2"
+
+export_name_format = "{designFileName}_{mode}_chipWidth{chipWidth}_{chipLength}_{chipHeight}"
+
+[[openscadgen.input_paths]]
+path = "./chip_cover.scad"
+params = { }
+
+
+
+[[openscadgen.instances]]
+params = { mode = ["sliced", "all"], chipWidth = 40, chipLength = 60, chipHeight =  25, railUp = 8 }
+
+[[openscadgen.instances]]
+params = {mode = ["sliced", "all"], chipWidth = 53.5, chipLength = 74, chipHeight = 40 }
+
+[[openscadgen.instances]]
+params = { mode = "wallOnly", chipWidth = 53.5, chipLength = 74, chipHeight = 40 }
+
+[[openscadgen.images]]
+name = "nice"

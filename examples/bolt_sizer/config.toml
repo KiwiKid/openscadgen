@@ -4,7 +4,7 @@ description = ""
 
 version = "v0.1"
 
-export_name_format = "{designFileName}/{textSize}/{mode}"
+export_name_format = "{designFileName}_{mode}"
 
 global_params = { }
 
@@ -13,12 +13,7 @@ path = "./bolt_sizer.scad"
 
 
 [[openscadgen.instances]]
-params = {  mode = "box,box-noText,text", textSize=5, textShift=2.5 }
-
-[[openscadgen.instances]]
-params = { mode = "logo,bottomRender,text,centerBox", textSize=3, textShift=3.5 }
-
+params = { mode = "box,text,bottomRender,bottomRenderBox,logo,glueJig,glueJoinerSquare" }
 
 [[openscadgen.images]]
 name = "nice"
-param_filter = { renderType= "obj"}

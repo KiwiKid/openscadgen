@@ -39,13 +39,25 @@ templ EditPreviewSectionList(sections []models.EditPreviewSection) {
 			</div>
 			<div class="content">
 				for _, item := range section.Items {
-					<div class="mb-3">
-						<p class="has-text-weight-semibold mb-1">{ item.Title }</p>
-						<p class="is-size-7 has-text-grey mb-1">{ item.Subtitle }</p>
-						<p class="is-size-7">{ item.Description }</p>
+					<div class="mb-3 level is-mobile">
+						<div class="level-left">
+							<div>
+								<p class="has-text-weight-semibold mb-1">{ item.Title }</p>
+								<p class="is-size-7 has-text-grey mb-1">{ item.Subtitle }</p>
+								<p class="is-size-7">{ item.Description }</p>
+							</div>
+						</div>
+						if section.Title == "instances" || section.Title == "param_sets" || section.Title == "images" {
+							<div class="level-right">
+								<button type="button" class="button is-small is-light" data-config-editor-edit={ section.Title } data-config-editor-name={ item.Title }>Edit</button>
+							</div>
+						}
 					</div>
 				}
 			</div>
+			if section.Title == "instances" || section.Title == "param_sets" || section.Title == "images" {
+				<button type="button" class="button is-small is-link is-light mt-2" data-config-editor-add={ section.Title }>Add { strings.TrimSuffix(section.Title, "s") }</button>
+			}
 			if len(section.Controls) > 0 {
 				<div class="mt-4">
 					<p class="is-size-7 has-text-weight-semibold mb-2">Annotated controls</p>
@@ -95,23 +107,62 @@ templ EditConfigPanel(editFormConfig *models.EditConfigParams) {
 			@EditPreviewSummaryGrid(editFormConfig.PreviewSummary)
 		}
 		<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/api/edit?config_path=%s&server_folder=%s", editFormConfig.ConfigFilePathEncoded, editFormConfig.ServerFolderEncoded)) } hx-post={ templ.SafeURL(fmt.Sprintf("/api/edit?config_path=%s&server_folder=%s", editFormConfig.ConfigFilePathEncoded, editFormConfig.ServerFolderEncoded)) } hx-target="#main-content" hx-swap="innerHTML">
+			<div id="quick-config-editor" class="box is-hidden">
+				<div class="level is-mobile">
+					<div class="level-left"><p id="quick-config-editor-title" class="title is-6 mb-0">Add configuration</p></div>
+					<div class="level-right"><button type="button" id="quick-config-editor-cancel" class="delete" aria-label="Close"></button></div>
+				</div>
+				<p class="is-size-7 has-text-grey mb-3">This simple editor updates only the selected TOML block. Parameter fields use TOML inline-table syntax.</p>
+				<input id="quick-config-editor-type" type="hidden"/>
+				<input id="quick-config-editor-original-name" type="hidden"/>
+				<div class="columns is-multiline">
+					<div class="column is-4"><label class="label is-small">Name</label><input id="quick-name" class="input" type="text"/></div>
+					<div class="column is-8" data-config-fields="instances,param_sets"><label class="label is-small">Parameters</label><input id="quick-params" class="input" type="text" placeholder="{ width = 120 }"/></div>
+					<div class="column is-6" data-config-fields="instances"><label class="label is-small">Description</label><input id="quick-description" class="input" type="text"/></div>
+					<div class="column is-6" data-config-fields="instances"><label class="label is-small">Param sets</label><input id="quick-param-sets" class="input" type="text" placeholder="wide,tall"/></div>
+					<div class="column is-6" data-config-fields="instances"><label class="label is-small">Export name format</label><input id="quick-export-name-format" class="input" type="text"/></div>
+					<div class="column is-6" data-config-fields="instances"><label class="checkbox mt-5"><input id="quick-skip-images" type="checkbox"/> Skip images</label></div>
+					<div class="column is-4" data-config-fields="images"><label class="label is-small">Camera coordinate / preset</label><input id="quick-coord" class="input" type="text" placeholder="nice"/></div>
+					<div class="column is-4" data-config-fields="images"><label class="label is-small">Image size</label><input id="quick-image-size" class="input" type="text" placeholder="1200x1200"/></div>
+					<div class="column is-4" data-config-fields="images"><label class="label is-small">Type</label><input id="quick-image-type" class="input" type="text" placeholder="all_instances"/></div>
+					<div class="column is-12" data-config-fields="images"><label class="label is-small">Parameter filter</label><input id="quick-param-filter" class="input" type="text" placeholder='{ finish = "matte" }'/></div>
+				</div>
+				<button type="button" id="quick-config-editor-apply" class="button is-link">Apply to dry run</button>
+			</div>
 			<div class="buttons">
-				<button type="submit" class="button is-info" name="action" value="recheck">Re-check</button>
-				<button type="submit" class="button is-success" name="action" value="save">Save Changes</button>
+				<button id="config-recheck" type="submit" class="button is-info" name="action" value="recheck">Re-check</button>
+				<button
+					type="submit"
+					class="button is-success"
+					name="action"
+					value="save"
+					if !editFormConfig.IsPreview || editFormConfig.SaveBlocked {
+						disabled
+					}
+				>Save Changes</button>
 			</div>
 			<details>
 				<summary>Full config</summary>
-				<textarea id="editarea" style="height: 350px; width: 100%;" id="content" name="content">{ editFormConfig.Content }</textarea>
+				<textarea id="config-content" style="height: 350px; width: 100%;" name="content">{ editFormConfig.Content }</textarea>
 			</details>
 		</form>
-		if len(editFormConfig.PreviewWarnings) > 0 {
-			<div class="notification is-warning mt-4">
-				<p class="has-text-weight-semibold mb-2">Preview warnings</p>
-				<ul>
-					for _, warning := range editFormConfig.PreviewWarnings {
-						<li>{ warning }</li>
+		if len(editFormConfig.PreviewFeedback) > 0 {
+			<div class="mt-4">
+				for _, feedback := range editFormConfig.PreviewFeedback {
+					if feedback.IsSaveBlocking {
+						<div class="notification is-danger">
+							<p class="has-text-weight-semibold">
+								Save-blocking error
+							</p>
+							<p style="white-space: pre-wrap;">{ feedback.Message }</p>
+						</div>
+					} else {
+						<div class="notification is-warning">
+							<p class="has-text-weight-semibold">Warning</p>
+							<p style="white-space: pre-wrap;">{ feedback.Message }</p>
+						</div>
 					}
-				</ul>
+				}
 			</div>
 		}
 		if editFormConfig.IsPreview {
@@ -120,5 +171,55 @@ templ EditConfigPanel(editFormConfig *models.EditConfigParams) {
 				@EditPreviewSectionList(editFormConfig.PreviewSections)
 			</div>
 		}
+		<script>
+			(() => {
+				const source = document.getElementById('config-content');
+				const editor = document.getElementById('quick-config-editor');
+				if (!source || !editor) return;
+				const field = (id) => document.getElementById(id);
+				const escapeToml = (value) => `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+				const topLevelHeader = (type) => `[[openscadgen.${type}]]`;
+				function blocks(type) {
+					const lines = source.value.split('\n'); const result = []; let start = -1;
+					for (let i = 0; i <= lines.length; i++) {
+						const isHeader = i < lines.length && lines[i].trim() === topLevelHeader(type);
+						const isOtherTopLevel = i < lines.length && /^\[\[openscadgen\.(instances|param_sets|images)\]\]$/.test(lines[i].trim());
+						if (start >= 0 && (i === lines.length || (isOtherTopLevel && !isHeader))) { result.push({ start, end: i, lines: lines.slice(start, i) }); start = -1; }
+						if (isHeader) { if (start >= 0) result.push({ start, end: i, lines: lines.slice(start, i) }); start = i; }
+					}
+					if (start >= 0) result.push({ start, end: lines.length, lines: lines.slice(start) }); return result;
+				}
+				function value(lines, key) { const match = lines.join('\n').match(new RegExp(`^${key}\\s*=\\s*(.+)$`, 'm')); return match ? match[1].trim() : ''; }
+				function stringValue(lines, key) { const raw = value(lines, key); const match = raw.match(/^"(.*)"$/); return match ? match[1].replace(/\\"/g, '"').replace(/\\\\/g, '\\') : ''; }
+				function setValue(lines, key, raw) { const re = new RegExp(`^${key}\\s*=.*$`); const at = lines.findIndex(line => re.test(line)); if (!raw) { if (at >= 0) lines.splice(at, 1); return; } if (at >= 0) lines[at] = `${key} = ${raw}`; else lines.push(`${key} = ${raw}`); }
+				function open(type, name) {
+					field('quick-config-editor-type').value = type; field('quick-config-editor-original-name').value = name || '';
+					const record = name && blocks(type).find(block => stringValue(block.lines, 'name') === name);
+					const lines = record ? record.lines : [];
+					field('quick-config-editor-title').textContent = `${name ? 'Edit' : 'Add'} ${type.replace('_', ' ').replace(/s$/, '')}`;
+					field('quick-name').value = stringValue(lines, 'name'); field('quick-params').value = value(lines, 'params');
+					field('quick-description').value = stringValue(lines, 'description'); field('quick-param-sets').value = stringValue(lines, 'param_sets');
+					field('quick-export-name-format').value = stringValue(lines, 'export_name_format'); field('quick-skip-images').checked = value(lines, 'skip_images') === 'true';
+					field('quick-coord').value = stringValue(lines, 'coord'); field('quick-image-size').value = stringValue(lines, 'image_size'); field('quick-image-type').value = stringValue(lines, 'type'); field('quick-param-filter').value = value(lines, 'param_filter');
+					document.querySelectorAll('[data-config-fields]').forEach(el => el.classList.toggle('is-hidden', !el.dataset.configFields.split(',').includes(type)));
+					editor.classList.remove('is-hidden'); editor.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+				}
+				function apply() {
+					const type = field('quick-config-editor-type').value; const originalName = field('quick-config-editor-original-name').value; const name = field('quick-name').value.trim();
+					if (!type || !name) { field('quick-name').focus(); return; }
+					let target = originalName && blocks(type).find(block => stringValue(block.lines, 'name') === originalName);
+					const lines = target ? [...target.lines] : [topLevelHeader(type)];
+					setValue(lines, 'name', escapeToml(name));
+					if (type === 'instances') { setValue(lines, 'description', field('quick-description').value.trim() && escapeToml(field('quick-description').value.trim())); setValue(lines, 'params', field('quick-params').value.trim()); setValue(lines, 'param_sets', field('quick-param-sets').value.trim() && escapeToml(field('quick-param-sets').value.trim())); setValue(lines, 'export_name_format', field('quick-export-name-format').value.trim() && escapeToml(field('quick-export-name-format').value.trim())); setValue(lines, 'skip_images', field('quick-skip-images').checked ? 'true' : ''); }
+					if (type === 'param_sets') setValue(lines, 'params', field('quick-params').value.trim());
+					if (type === 'images') { setValue(lines, 'coord', field('quick-coord').value.trim() && escapeToml(field('quick-coord').value.trim())); setValue(lines, 'image_size', field('quick-image-size').value.trim() && escapeToml(field('quick-image-size').value.trim())); setValue(lines, 'type', field('quick-image-type').value.trim() && escapeToml(field('quick-image-type').value.trim())); setValue(lines, 'param_filter', field('quick-param-filter').value.trim()); }
+					const all = source.value.split('\n'); if (target) all.splice(target.start, target.end - target.start, ...lines); else { if (all.length && all[all.length - 1].trim()) all.push(''); all.push(...lines); } source.value = all.join('\n');
+					field('config-recheck').click();
+				}
+				document.querySelectorAll('[data-config-editor-add]').forEach(button => button.addEventListener('click', () => open(button.dataset.configEditorAdd)));
+				document.querySelectorAll('[data-config-editor-edit]').forEach(button => button.addEventListener('click', () => open(button.dataset.configEditorEdit, button.dataset.configEditorName)));
+				field('quick-config-editor-cancel').addEventListener('click', () => editor.classList.add('is-hidden')); field('quick-config-editor-apply').addEventListener('click', apply);
+			})();
+		</script>
 	</div>
 }

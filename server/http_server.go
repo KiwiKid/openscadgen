@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"html"
 	"net"
 	"net/http"
 	"net/url"
@@ -28,6 +29,22 @@ var fileWatcherEnabled bool
 var aiToolsEnabled bool
 var globalServerFolder string
 var startOpenSCADFile = openOpenSCADFile
+var installOpenSCAD = installOpenSCADWithHomebrew
+var installBOSL2 = pkg.InstallOrUpgradeBOSL2
+
+const bosl2ManualInstallCommand = `set -e
+mkdir -p "$HOME/.local/share/OpenSCAD/libraries"
+cd "$HOME/.local/share/OpenSCAD/libraries"
+if [ -d BOSL2 ]; then mv BOSL2 "BOSL2.backup-$(date +%s)"; fi
+git clone --depth 1 https://github.com/BelfrySCAD/BOSL2.git`
+
+func openSCADManualInstallCommand(installNightly bool) string {
+	formula := "openscad"
+	if installNightly {
+		formula = "openscad@snapshot"
+	}
+	return "brew install " + formula
+}
 
 type ServerInfo struct {
 	Port    string
@@ -148,6 +165,7 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 	http.HandleFunc("/images", handleImageRequest)
 
 	http.HandleFunc("/api/openscad/status", handleOpenSCADStatus)
+	http.HandleFunc("/api/openscad/install", handleOpenSCADInstall)
 	http.HandleFunc("/api/openscad/libraries/", handleOpenSCADLibraryAction)
 	http.HandleFunc("/api/openscad/health/badge", handleOpenSCADHealthBadge)
 	http.HandleFunc("/api/watcher/status", handleWatcherStatus)
@@ -801,6 +819,55 @@ func handleOpenSCADStatus(w http.ResponseWriter, r *http.Request) {
 	templates.OpenSCADStatusFullPage(v).Render(ctx, w)
 }
 
+func installOpenSCADWithHomebrew(ctx context.Context, installNightly bool) error {
+	if runtime.GOOS != "darwin" {
+		return fmt.Errorf("OpenSCAD installation is currently supported on macOS only")
+	}
+
+	brewPath, err := exec.LookPath("brew")
+	if err != nil {
+		return fmt.Errorf("Homebrew is required to install OpenSCAD: %w", err)
+	}
+
+	formula := "openscad"
+	if installNightly {
+		formula = "openscad@snapshot"
+	}
+	args := []string{"install", formula}
+	if exec.CommandContext(ctx, brewPath, "list", "--versions", formula).Run() == nil {
+		args[0] = "upgrade"
+	}
+	output, err := exec.CommandContext(ctx, brewPath, args...).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("Homebrew %s %s failed: %w\n%s", args[0], formula, err, strings.TrimSpace(string(output)))
+	}
+	return nil
+}
+
+func handleOpenSCADInstall(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid install request", http.StatusBadRequest)
+		return
+	}
+
+	installNightly := r.Form.Get("install_nightly") == "true"
+	if err := installOpenSCAD(r.Context(), installNightly); err != nil {
+		pkg.LogWarnf("OpenSCAD installation failed: %v", err)
+		writeToolActionResult(w, r, "is-danger", "OpenSCAD installation failed", err.Error(), openSCADManualInstallCommand(installNightly))
+		return
+	}
+
+	installedVersion := "stable OpenSCAD"
+	if installNightly {
+		installedVersion = "the latest OpenSCAD nightly"
+	}
+	writeToolActionResult(w, r, "is-success", "OpenSCAD installed", fmt.Sprintf("Installed %s. Reload the page to refresh its status.", installedVersion), "")
+}
+
 func handleToolsRequest(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -853,10 +920,6 @@ func handleConfigOptionsRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleOpenSCADLibraryAction(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet && r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
 	parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
 	if len(parts) < 5 {
 		http.Error(w, "invalid library action path", http.StatusBadRequest)
@@ -868,15 +931,52 @@ func handleOpenSCADLibraryAction(w http.ResponseWriter, r *http.Request) {
 
 	switch action {
 	case "check":
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
 		pkg.LogStagef("update", "check for updates requested for %s", libName)
-		_, _ = w.Write([]byte(fmt.Sprintf(`<span class="tag is-info is-light">%s up to date</span>`, strings.ToUpper(libName))))
+		writeToolActionResult(w, r, "is-info", fmt.Sprintf("%s availability checked", strings.ToUpper(libName)), "OpenSCADGen checked the configured local library support.", "")
 	case "update":
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
 		pkg.LogStagef("update", "update requested for %s", libName)
-		_ = pkg.RecordUpdateJournal(globalServerFolder, libName, "check pending", "updated", "update endpoint invoked", true)
-		_, _ = w.Write([]byte(fmt.Sprintf(`<span class="tag is-success is-light">%s updated</span>`, strings.ToUpper(libName))))
+		if libName != "bosl2" {
+			http.Error(w, "library installation is not implemented for this library", http.StatusNotImplemented)
+			return
+		}
+		if runtime.GOOS != "darwin" {
+			writeToolActionResult(w, r, "is-warning", "BOSL2 installation is not supported on this platform", "BOSL2 installation is currently supported on macOS only.", "")
+			return
+		}
+		if err := installBOSL2(r.Context()); err != nil {
+			pkg.LogWarnf("BOSL2 installation failed: %v", err)
+			writeToolActionResult(w, r, "is-danger", "BOSL2 installation failed", err.Error(), bosl2ManualInstallCommand)
+			return
+		}
+		if err := pkg.RecordUpdateJournal(globalServerFolder, libName, "installed library", "BOSL2 installed", "downloaded official BOSL2 source archive", true); err != nil {
+			pkg.LogWarnf("BOSL2 update journal write failed: %v", err)
+		}
+		writeToolActionResult(w, r, "is-success", "BOSL2 installed", "Downloaded and validated the official BOSL2 source archive. Reload OpenSCAD to use the updated library.", "")
 	default:
 		http.Error(w, "unsupported library action", http.StatusNotImplemented)
 	}
+}
+
+func writeToolActionResult(w http.ResponseWriter, r *http.Request, colour, summary, details, manualCommand string) {
+	summary = html.EscapeString(summary)
+	details = html.EscapeString(details)
+	if r.Header.Get("HX-Target") != "tools-results-content" {
+		_, _ = fmt.Fprintf(w, `<span class="has-text-%s">%s</span>`, colour, summary)
+		return
+	}
+	manualFix := ""
+	if manualCommand != "" {
+		manualFix = fmt.Sprintf(`<hr><h3 class="title is-5">Manual fix</h3><p class="mb-2">Run this in Terminal, then reload OpenSCAD:</p><div class="code-block"><button class="button is-small is-info" onclick="navigator.clipboard.writeText(this.parentElement.querySelector('pre code').textContent)">Copy command</button><pre><code>%s</code></pre></div>`, html.EscapeString(manualCommand))
+	}
+	_, _ = fmt.Fprintf(w, `<article class="message %s"><div class="message-header"><p>%s</p></div><div class="message-body"><pre style="white-space:pre-wrap;word-break:break-word;background:transparent;padding:0;margin:0">%s</pre>%s</div></article>`, colour, summary, details, manualFix)
 }
 
 // handleWatcherStatus returns the current file watching status
@@ -975,7 +1075,7 @@ func buildEditConfigParams(configPath string, serverFolder string, content strin
 	}
 }
 
-func buildConfigEditPreview(configPath string, serverFolder string, content string) (*models.Config, []models.InstanceConfig, []string, templ.Component) {
+func buildConfigEditPreview(configPath string, serverFolder string, content string) (*models.Config, []models.InstanceConfig, []models.EditValidationFeedback, templ.Component) {
 	config, warn, err := pkg.LoadConfig(content, models.CmdFlags{
 		ConfigFile:   configPath,
 		ServerFolder: serverFolder,
@@ -990,18 +1090,41 @@ func buildConfigEditPreview(configPath string, serverFolder string, content stri
 		return config, nil, nil, templates.Warning(fmt.Sprintf("Failed to generate instances:\n%s", instErr))
 	}
 
-	var warnings []string
+	var feedback []models.EditValidationFeedback
 	if warn != nil {
-		warnings = append(warnings, warn.Error())
+		feedback = append(feedback, models.EditValidationFeedback{Message: warn.Error()})
 	}
 
 	if runErrors := pkg.ValidateInstances(instances, config); len(runErrors) > 0 {
 		for _, runErr := range runErrors {
-			warnings = append(warnings, runErr.Message)
+			feedback = append(feedback, models.EditValidationFeedback{
+				Message:        runErr.Message,
+				IsSaveBlocking: runErr.IsSaveBlocking,
+			})
 		}
 	}
 
-	return config, instances, warnings, nil
+	return config, instances, feedback, nil
+}
+
+func previewConfigEditParams(configPath string, serverFolder string, content string) models.EditConfigParams {
+	params := buildEditConfigParams(configPath, serverFolder, content, nil)
+	config, instances, feedback, errorMsg := buildConfigEditPreview(configPath, serverFolder, content)
+	params.ErrorMsg = errorMsg
+	params.PreviewInstances = instances
+	params.PreviewFeedback = feedback
+	params.IsPreview = errorMsg == nil
+	params.PreviewSections, params.PreviewSummary = buildEditPreviewSections(config, instances)
+	if errorMsg != nil {
+		params.SaveBlocked = true
+	}
+	for _, item := range feedback {
+		if item.IsSaveBlocking {
+			params.SaveBlocked = true
+			break
+		}
+	}
+	return params
 }
 
 func buildEditPreviewSections(config *models.Config, instances []models.InstanceConfig) ([]models.EditPreviewSection, []models.EditPreviewSummary) {
@@ -1258,7 +1381,13 @@ func handleConfigGet(w http.ResponseWriter, r *http.Request, configPath string, 
 		return
 	}
 
-	renderTOMLEditPage(w, r, http.StatusOK, configPath, serverFolder, string(content), nil)
+	params := previewConfigEditParams(configPath, serverFolder, string(content))
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if r.Header.Get("HX-Request") == "true" {
+		templates.EditConfigPanel(&params).Render(r.Context(), w)
+		return
+	}
+	templates.TOMLEditForm(&params).Render(r.Context(), w)
 }
 
 // handleConfigPost validates TOML and updates the config file
@@ -1671,22 +1800,9 @@ func handleEditPost(w http.ResponseWriter, r *http.Request, filePath string, ser
 		return
 	}
 
-	config, instances, warnings, errorMsg := buildConfigEditPreview(filePath, serverFolder, content)
-	if errorMsg != nil {
-		configParams := buildEditConfigParams(filePath, serverFolder, content, errorMsg)
-		editForm := templates.TOMLEditForm(&configParams)
-		editForm.Render(r.Context(), w)
-		return
-	}
-
-	if action == "recheck" || action == "preview" {
-		configParams := buildEditConfigParams(filePath, serverFolder, content, nil)
-		configParams.PreviewInstances = instances
-		configParams.PreviewWarnings = warnings
-		configParams.IsPreview = true
-		configParams.PreviewSections, configParams.PreviewSummary = buildEditPreviewSections(config, instances)
-		editForm := templates.EditConfigPanel(&configParams)
-		editForm.Render(r.Context(), w)
+	configParams := previewConfigEditParams(filePath, serverFolder, content)
+	if action == "recheck" || action == "preview" || action == "" || configParams.SaveBlocked {
+		templates.EditConfigPanel(&configParams).Render(r.Context(), w)
 		return
 	}
 
@@ -1701,11 +1817,8 @@ func handleEditPost(w http.ResponseWriter, r *http.Request, filePath string, ser
 		return
 	}
 	success := templates.Success("File saved successfully")
-	configParams := buildEditConfigParams(filePath, serverFolder, content, success)
-	configParams.PreviewInstances = instances
-	configParams.PreviewWarnings = warnings
-	configParams.IsPreview = true
-	configParams.PreviewSections, configParams.PreviewSummary = buildEditPreviewSections(config, instances)
+	configParams = previewConfigEditParams(filePath, serverFolder, content)
+	configParams.ErrorMsg = success
 	editForm := templates.EditConfigPanel(&configParams)
 	editForm.Render(r.Context(), w)
 }

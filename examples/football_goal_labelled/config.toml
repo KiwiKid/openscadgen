@@ -1,0 +1,23 @@
+[openscadgen]
+name = "football_goal_labelled"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{playerName}_{mode}"
+
+global_params = { mode=["all", "text"]}
+
+
+[[openscadgen.instances]]
+params = { playerName = "Greg", playerNameLength = 30 }
+
+[[openscadgen.instances]]
+params = { playerName = "Campbell", playerNameLength = 50 }
+
+[[openscadgen.input_paths]]
+path = "./football_goal_labelled.scad"
+params = { }
+
+[[openscadgen.images]]
+name = "nice"

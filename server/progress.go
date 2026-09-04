@@ -363,12 +363,15 @@ func ProgressHandler(w http.ResponseWriter, r *http.Request) {
 				templates.ProgressFailure(errMsg).Render(context.Background(), w)
 				w.Write([]byte(htmlContent))
 			} else if hasResult {
-				log.Printf("ProgressHandler: Returning progress complete")
-				// Return OOB updates for completion
+				log.Printf("ProgressHandler: Returning progress complete with %d instance OOB update(s)", len(htmlUpdates))
+				// The final instance completion can arrive after Process has stored its
+				// result. Keep its OOB card in this terminal response; otherwise the
+				// card (and any render error it contains) is silently discarded.
 				progressComplete := templates.ProgressComplete()
 				w.Header().Set("Content-Type", "text/html")
 				w.Header().Set("X-Progress-Status", "complete")
 				progressComplete.Render(context.Background(), w)
+				w.Write([]byte(htmlContent))
 			} else {
 				log.Printf("ProgressHandler: Returning progress update for instance: %s", progressMsg)
 				// Return progress update and instance HTML as OOB updates

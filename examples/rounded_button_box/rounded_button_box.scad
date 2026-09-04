@@ -84,7 +84,8 @@ echo(boxWidth);
 /// "holder-wall-mounted" 
     topOffset  = sectionHeight/2;
     bottomOffset = -sectionHeight/2;
-     section="wallMount-withSpace-all"; //  "buttonJiggleBorder"; //bottom all devTopCorner  devTopSample devSingleBox cordPlugSide cordPlugBottom cordPlugNoHoleBottom holder 
+     section="wallMount"; //  "buttonJiggleBorder"; //bottom all devTopCorner  devTopSample devSingleBox cordPlugSide cordPlugBottom cordPlugNoHoleBottom holder 
+     wallMountMode = "wmTop";
      
      
      // wallMount-withSpace-withBox wallMount-withSpace-withWillBox
@@ -106,6 +107,7 @@ cylinder_radius = boxWidth*2;
     holderWedgeSize = [boxWidth,20, 20];
     holderBarSize = [boxWidth,30, 3];
     floorMode = "floor";
+    
     
     screwRadius = 2;
     screwChamfer = 2;
@@ -164,11 +166,15 @@ cutoutSize = [boxDepth+2, boxWidth-sideWallSize*2, boxHeight-wallSize*2];
         
         move(screwHoleMove)
         screw_hole();*/
-        }
+
    /*     back(holderBarSize[1]/2)
         down(holderWedgeSize[2]/2-holderBarSize[2]/2)
         cuboid(holderBarSize);
         */
+            dovetailCutoutSize = [40, boxWidth-sideWallSize*2, 45];
+    dovetailCutoutMove = [20,0,boxHeight/2];
+
+                  }
         
     }
     alignmentHoleRadius = 1.85;
@@ -245,39 +251,121 @@ module screw_set(screwHoleLength=screwHoleLength){
         }
 }
 
-wallMountCutoutLipHeight = 12;
+
+module wall_mount_with_wedge(){
+cuboid(wallMountCubeSize, rounding=1);
+/*scale([1.5,0.97,1.5])
+        rotate([0,0,90])
+        move([-boxWidth/2, -2, 40])
+        rotate([-90,0,0])
+       wedge(holderWedgeSize);*/
+}
+backWallSize = 6;
+topWallSize = 4;
+//sideWallSize =4;
+
+wallMountCutoutLipHeight = 4;
 
 wallMountShiftUp = 100;
-wallMountWidth = 55;
-wallMountHeight = 120;
-wallMountCubeSize = [cutoutSize[0]-wallMountWidth,cutoutSize[1],wallMountHeight];
-wallMountCutoutSize = [(cutoutSize[0]-wallMountWidth)*0.9, cutoutSize[1]*0.98,wallMountHeight];
-module wall_mount(){
-    difference(){
-        up(boxHeight/2-wallMountHeight/2-3)
-        right(wallMountWidth/2-1.001)
-        difference(){
-        cuboid(wallMountCubeSize);
-        left(5)
-        down(wallMountCutoutLipHeight)
-            cuboid(wallMountCutoutSize, rounding=5);
-            
+wallMountWidth = 60;
+wallMountBoxShift = 18;
+//wallMountHeight = 120;
+wallMountCubeSize = [wallMountWidth-0.02,cutoutSize[1]+sideWallSize*2,boxHeight-0.01];
+wallMountCutoutSize = [(wallMountWidth), cutoutSize[1]-sideWallSize*2,boxHeight-topWallSize*2-0.5];
 
-        }
-        rotate([0,0,90])
-                move([-boxWidth/2, -boxDepth/2, boxHeight/2-wallSize])
-                rotate([-90,0,0])
-               wedge(holderWedgeSize);
-                
-                
-                screw_set();
-        }
+module wall_mount_raw(){
+difference(){
+//        up(boxHeight/2)
+ //   right(wallMountWidth*2)
+    //right(wallMountWidth*2+31)
+    right(wallMountWidth)
+    difference(){
+
+    wall_mount_with_wedge();
+    left(backWallSize)
+   // down(topWallSize)
+        cuboid(wallMountCutoutSize, chamfer=5, except_edges=LEFT);
+        
+        up(40)
+        left(wallMountBoxShift+22)
+        #cuboid([wallMountCutoutSize[0],wallMountCutoutSize[1]*0.97,wallMountCutoutSize[2]]);
+        
+
+    }
+//    rotate([0,0,90])
+   /*         move([-boxWidth/2, -boxDepth/2, boxHeight/2-wallSize])
+            rotate([-90,0,0])
+           wedge(holderWedgeSize);
+           
+           up(boxHeight/2)
+           right(wallMountCutoutSize[0]-wallMountWidth+16)
+            cuboid([20,boxWidth*0.7, 40]);*/
+            down(80)
+            zcopies(boxHeight/2, 2){
+            right(wallMountWidth-backWallSize/2)
+            screw_set();
+            }
+            
+            // bottom hole cutouts
+           right(14)
+            down(boxHeight/2)
+            ycopies(boxWidth, 2){
+               xcyl(r=30,h=45, chamfer=10);
+            }
+            
+    }
 }
 
-withSpaceExtraSpace = 80;
-wallMountWithSpaceBackThickness = 1;
 
+withSpaceExtraSpace = 15;
+wallMountWithSpaceBackThickness = 1;
 wallMountWithSpaceCubeSize = [withSpaceExtraSpace,boxWidth-0.001,boxHeight-0.001];
+    mask_size = max(wallMountWithSpaceCubeSize) * 3;
+
+module joiner_mask(joinerRightOffset=20) {
+        union() {
+            // Main solid cutting block for the bottom volume
+            down(mask_size / 2)
+                cuboid([mask_size, mask_size, mask_size], anchor=CENTER);
+
+            // 3D Male Dovetail Joiner along the seam
+            right(joinerRightOffset)
+                
+                xcopies(25, n=4) 
+                dovetail(
+                    "male", 
+                    width = 14, 
+                    height = 10, 
+                    angle = 20, 
+                    slide = mask_size,
+                    $slop = 0.15
+                );
+        }
+    }
+
+// wallMountMode = "wmTop" "wmBottom"
+module wall_mount(wallMountMode="all", cutOffset=15){
+wallMountJoinerOffset = 40;
+    if(wallMountMode == "wmTop"){
+difference() {
+            
+        wall_mount_raw();
+            up(cutOffset) 
+                joiner_mask(joinerRightOffset=wallMountJoinerOffset);
+        }
+    } else if(wallMountMode == "wmBottom"){
+
+        intersection() {
+            wall_mount_raw();
+            up(cutOffset) 
+                joiner_mask(joinerRightOffset=wallMountJoinerOffset);
+        }
+    } else {
+        wall_mount_raw();
+    }
+}
+
+
 
 wallMountWithSpaceTopWidth = 25;
 
@@ -293,7 +381,9 @@ module wall_mount_with_space(cutOffset = 0, part = "all", wallMountExtraDepth=wi
     
     bottomHoleRadius = 15;
     bottomHoleLeft = -60;
-    bottomHoleMove = [23, bottomHoleLeft, -boxHeight/2];
+    bottomHoleMove = [30, bottomHoleLeft, -boxHeight/2];
+    
+
     
     module raw_part() {
         difference() {
@@ -324,6 +414,8 @@ module wall_mount_with_space(cutOffset = 0, part = "all", wallMountExtraDepth=wi
                     move(bottomHoleMove)
                         zcyl(r=bottomHoleRadius, h=20);
                     }
+                    
+                 
                 
                 
                     
@@ -333,32 +425,15 @@ module wall_mount_with_space(cutOffset = 0, part = "all", wallMountExtraDepth=wi
         /*        left(80)
                 fwd(150)
                 #cuboid([300,300,350]);*/
+                
+                 
         }
     }
 
     // Dynamic bounding size for the cutting plane
-    mask_size = max(wallMountWithSpaceCubeSize) * 3;
 
     // 2. Solid 3D Cut Mask
-    module joiner_mask() {
-        union() {
-            // Main solid cutting block for the bottom volume
-            down(mask_size / 2)
-                cuboid([mask_size, mask_size, mask_size], anchor=CENTER);
-
-            // 3D Male Dovetail Joiner along the seam
-            right(20)
-                
-                xcopies(25, n=4) 
-                dovetail(
-                    "male", 
-                    width = 14, 
-                    height = 10, 
-                    angle = 20, 
-                    slide = mask_size,
-                );
-        }
-    }
+    
 
     // 3. Render Selection Logic
     if (part == "all") {
@@ -383,6 +458,7 @@ module wall_mount_with_space(cutOffset = 0, part = "all", wallMountExtraDepth=wi
 }
 
 
+
 module dovetail_connector(){
 dovetailWidthOffset = 75;
 dovetailWidth = boxDepth+50-dovetailWidthOffset;
@@ -394,11 +470,11 @@ rotate([90,0,0])
    left(dovetailMoveFwd)
   cuboid([dovetailWidth+dovetailWidthOffset,sectionHeight,boxWidth]){
     attach(BACK) 
-    dovetail("male", slide=boxWidth, width=dovetailWidth, height=dovetailHeight, chamfer=1);
+    dovetail("male", slide=boxWidth, width=dovetailWidth, height=dovetailHeight, chamfer=1, $slop = 0.15);
     
     tag("remove")
     attach(FRONT) 
-    dovetail("female", slide=boxWidth, width=dovetailWidth, height=dovetailHeight,chamfer=1);
+    dovetail("female", slide=boxWidth, width=dovetailWidth, height=dovetailHeight,chamfer=1, $slop = 0.15);
   }
 
 }
@@ -415,7 +491,7 @@ holeLocation = [boxDepth/2, -boxWidth/2+cordHoleCornerOffset, -boxHeight/2+wallS
 holeLocationTwo = [boxDepth/2, -boxWidth/2+sideWallSize/2, -boxHeight/2+wallSize/2+cordHoleCornerOffset];
 
 module hole_shape(gender="male", plugDepth=2){
-    dovetail(gender,h=10, w=12, slide=plugDepth,  radius=1);
+    dovetail(gender,h=10, w=12, slide=plugDepth,  radius=1, $slop = 0.15);
     }
 
     
@@ -576,7 +652,25 @@ buttonSquareHole = [52,buttonSquareHoleWidth,buttonSquareHoleHeight];
         } else if(section == "cordPlugNoHolesBottom"){
             cord_hole(mode="plugNoHoles", plugDepth=wallSize);
         } else if(section == "wallMount"){
-            wall_mount();
+            
+              difference(){
+            wall_mount(wallMountMode=wallMountMode);
+        //    down(-2)
+            right(wallMountBoxShift)
+            rounded_button_box();
+            
+            }
+            
+        } else if(section == "wallMount-all"){
+        difference(){
+        union(){
+            wall_mount(wallMountMode="wmTop");
+            wall_mount(wallMountMode="wmBottom");
+            }
+             right(wallMountBoxShift)
+            rounded_button_box();
+            }
+        rounded_button_box();
        } else if(section == "wallMount-withSpace-all" || section == "all") {      
             wall_mount_with_space(part="all"); //part="all" | "top" | "bottom"
         }else if(section == "wallMount-withSpace-withBox") {

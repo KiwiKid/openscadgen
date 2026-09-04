@@ -129,6 +129,16 @@ coord = "0,0,0,90,0,0,600"
 
 This adds preview images from multiple angles for each generated STL.
 
+To additionally create one montage that shows every instance from the same camera, set the image type to `all_instances`:
+
+```toml
+[[openscadgen.images]]
+name = "nice"
+type = "all_instances"
+```
+
+This keeps the individual `nice` previews and writes `all-instances-nice.png` in the export version folder.
+
 ## Using Parameter Sets
 
 For more complex designs, parameter sets help organize related parameters:

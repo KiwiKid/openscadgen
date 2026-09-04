@@ -16,6 +16,8 @@ import (
 
 type ExportCameraCoordinates struct {
 	CameraName         string                 `toml:"name"`
+	ImageType          string                 `toml:"type"`
+	ExportNameFormat   string                 `toml:"export_name_format"`
 	CameraCoordinates  string                 `toml:"coord"`
 	ImageSize          string                 `toml:"image_size"`
 	ParamFilter        map[string]interface{} `toml:"param_filter"`
@@ -41,7 +43,7 @@ type DesignConfig struct {
 	Version                    string                    `toml:"version"`
 	NoPartIDLetter             bool                      `toml:"no_part_id_letter"`
 	RunType                    string                    `toml:"run_type"` // 'clearAndCreate', 'appendOrOverwrite'
-	ExportNameFormat           string                    `toml:"export_name_format" validate:"required,min=1"`
+	ExportNameFormat           string                    `toml:"export_name_format" validate:"omitempty,min=1"`
 	GlobalParams               map[string]interface{}    `toml:"global_params"`
 	ParamSets                  []ParamSet                `toml:"param_sets"`
 	CustomOpenSCADOutputFormat string                    `toml:"custom_openscad_output_format"`
@@ -63,6 +65,7 @@ func (d *DesignConfig) ClearVersion(version string) string {
 type ConfiguredInstanceConfig struct {
 	Name                string                    `toml:"name"`
 	Description         string                    `toml:"description,omitempty"`
+	ExportNameFormat    string                    `toml:"export_name_format"`
 	Params              map[string]interface{}    `toml:"params"`
 	ParamSets           string                    `toml:"param_sets"`      // comma separated list of param sets to use
 	ParamsNumberated    map[string]interface{}    `toml:"params_numbered"` // comma separated list of keys to number
@@ -538,10 +541,19 @@ type EditConfigParams struct {
 	ErrorMsg              templ.Component
 	InstanceCountLabel    string
 	PreviewInstances      []InstanceConfig
-	PreviewWarnings       []string
+	PreviewFeedback       []EditValidationFeedback
+	SaveBlocked           bool
 	IsPreview             bool
 	PreviewSections       []EditPreviewSection
 	PreviewSummary        []EditPreviewSummary
+}
+
+// EditValidationFeedback is returned by the server-mode config dry run.  The
+// client renders it directly and must not offer a save while a blocking item is
+// present.  The server repeats that check before writing the file.
+type EditValidationFeedback struct {
+	Message        string
+	IsSaveBlocking bool
 }
 
 type EditPreviewSection struct {

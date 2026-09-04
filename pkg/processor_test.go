@@ -406,6 +406,46 @@ func TestLoadConfigFromFile_InvalidToml_ReturnsFatalErrThird(t *testing.T) {
 	}
 }
 
+func TestLoadConfigAcceptsInstanceExportNameFormat(t *testing.T) {
+	config := `[openscadgen]
+name = "test"
+input_path = "design.scad"
+
+[[openscadgen.instances]]
+export_name_format = "{designFileName}_{size}"
+`
+
+	loaded, _, err := LoadConfig(config, models.CmdFlags{}, "config.toml")
+	if err != nil {
+		t.Fatalf("expected config to load, got %v", err)
+	}
+	if got := loaded.Design.ConfiguredInstanceConfig[0].ExportNameFormat; got != "{designFileName}_{size}" {
+		t.Fatalf("expected instance export name format to be decoded, got %q", got)
+	}
+}
+
+func TestLoadConfigRequiresResolvedExportNameFormatForEveryInstance(t *testing.T) {
+	config := `[openscadgen]
+name = "test"
+input_path = "design.scad"
+
+[[openscadgen.instances]]
+name = "formatted"
+export_name_format = "{designFileName}_{name}"
+
+[[openscadgen.instances]]
+name = "missing"
+`
+
+	_, _, err := LoadConfig(config, models.CmdFlags{}, "config.toml")
+	if err == nil {
+		t.Fatal("expected config with an unresolved export name format to fail")
+	}
+	if !strings.Contains(err.Error(), `no export_name_format is configured for instance "missing" and input path "design.scad"`) {
+		t.Fatalf("expected resolved-format validation error, got %v", err)
+	}
+}
+
 func TestLoadConfigFromFile_DirectoryArg_UsesConfigToml(t *testing.T) {
 	tmpDir := t.TempDir()
 	projectDir := filepath.Join(tmpDir, "my_project")
@@ -2424,13 +2464,72 @@ params = { iName = "small-stubby-holder", wedgeOut = 4, holderLength = 15, holeD
 	}
 }
 
+func TestGenerateInstancesResolvesExportNameFormatOverrides(t *testing.T) {
+	config := &models.Config{
+		ConfigFile: filepath.Join(t.TempDir(), "config.toml"),
+		Design: models.DesignConfig{
+			ExportNameFormat: "project_{name}",
+		},
+	}
+	inputPath := models.InputPath{Path: "design.scad", ExportNameFormat: "input_{name}"}
+
+	tests := []struct {
+		name     string
+		instance models.ConfiguredInstanceConfig
+		input    models.InputPath
+		want     string
+	}{
+		{
+			name:     "project format is the default",
+			instance: models.ConfiguredInstanceConfig{Name: "default"},
+			input:    models.InputPath{Path: "design.scad"},
+			want:     "project_{name}",
+		},
+		{
+			name:     "input path format overrides project format",
+			instance: models.ConfiguredInstanceConfig{Name: "input"},
+			input:    inputPath,
+			want:     "input_{name}",
+		},
+		{
+			name: "instance format overrides input path format",
+			instance: models.ConfiguredInstanceConfig{
+				Name:             "instance",
+				ExportNameFormat: "instance_{name}",
+			},
+			input: inputPath,
+			want:  "instance_{name}",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			instances, _, err := GenerateInstances(config, tt.instance, tt.input)
+			if err != nil {
+				t.Fatalf("GenerateInstances returned an error: %v", err)
+			}
+			if len(instances) != 1 {
+				t.Fatalf("expected one generated instance, got %d", len(instances))
+			}
+			if got := instances[0].ExportNameFormat; got != tt.want {
+				t.Errorf("resolved export format = %q, want %q", got, tt.want)
+			}
+			wantPathSuffix := "export/" + strings.ReplaceAll(tt.want, "{name}", tt.instance.Name) + ".stl"
+			if !strings.HasSuffix(instances[0].RunOutputPathV3, wantPathSuffix) {
+				t.Errorf("generated export path = %q, want suffix %q", instances[0].RunOutputPathV3, wantPathSuffix)
+			}
+		})
+	}
+}
+
 func TestValidateInstancesReportsMissingExportNameFormatParam(t *testing.T) {
 	config := &models.Config{
 		Design: models.DesignConfig{ExportNameFormat: "{designFileName}_{renderType}_{mode}"},
 	}
 	instances := []models.InstanceConfig{
 		{
-			RunOutputPathV3: "export/simple_cylinder_decagon.stl",
+			RunOutputPathV3:  "export/simple_cylinder_decagon.stl",
+			ExportNameFormat: "{designFileName}_{renderType}_{mode}",
 			Params: map[string]interface{}{
 				"designFileName": "simple_cylinder",
 				"renderType":     "stl",
@@ -2439,7 +2538,8 @@ func TestValidateInstancesReportsMissingExportNameFormatParam(t *testing.T) {
 			},
 		},
 		{
-			RunOutputPathV3: "export/simple_cylinder_decagon.stl",
+			RunOutputPathV3:  "export/simple_cylinder_decagon.stl",
+			ExportNameFormat: "{designFileName}_{renderType}_{mode}",
 			Params: map[string]interface{}{
 				"designFileName": "simple_cylinder",
 				"renderType":     "stl",
@@ -2455,6 +2555,9 @@ func TestValidateInstancesReportsMissingExportNameFormatParam(t *testing.T) {
 	}
 	if !strings.Contains(errors[0].Message, "REQUIRED EXPORT NAME FIELD MISSING: {subMode}") {
 		t.Fatalf("expected missing {subMode} diagnostic, got: %s", errors[0].Message)
+	}
+	if got := errors[0].KVPs["exportNameFormat"]; got != "{designFileName}_{renderType}_{mode}" {
+		t.Fatalf("duplicate diagnostic used export format %q, want the instance override", got)
 	}
 }
 
@@ -3077,6 +3180,43 @@ func TestGetImagePath(t *testing.T) {
 	}
 }
 
+func TestImageOutputBasePath(t *testing.T) {
+	configDir := t.TempDir()
+	config := &models.Config{
+		ConfigFile: filepath.Join(configDir, "config.toml"),
+		Design: models.DesignConfig{
+			Version:      "v0.1",
+			GlobalParams: map[string]interface{}{},
+		},
+	}
+	instance := models.InstanceConfig{
+		Name:               "default",
+		Params:             map[string]interface{}{"designFileName": "part", "name": "default"},
+		RunOutputPathV3:    filepath.Join(configDir, "export", "v0.1", "nested", "part.stl"),
+		RunOutputImagePath: filepath.Join(configDir, "export", "v0.1", "nested", "part"),
+		IgnoredParams:      []string{},
+	}
+
+	t.Run("defaults to img folder while preserving the STL relative path", func(t *testing.T) {
+		basePath := imageOutputBasePath(config, instance, models.ExportCameraCoordinates{})
+		if want := filepath.Join(configDir, "img", "v0.1", "nested", "part"); basePath != want {
+			t.Fatalf("image output base path = %q, want %q", basePath, want)
+		}
+	})
+
+	t.Run("image export_name_format overrides the image relative path", func(t *testing.T) {
+		camera := models.ExportCameraCoordinates{CameraName: "nice", ExportNameFormat: "previews/{designFileName}_{name}"}
+		basePath := imageOutputBasePath(config, instance, camera)
+		if want := filepath.Join(configDir, "img", "v0.1", "previews", "part_default"); basePath != want {
+			t.Fatalf("image output base path = %q, want %q", basePath, want)
+		}
+		images := makePresetReplacement(basePath, camera)
+		if want := filepath.Join(configDir, "img", "v0.1", "previews", "part_default-nice.png"); images[0].RunOutputImagePath != want {
+			t.Fatalf("image output path = %q, want %q", images[0].RunOutputImagePath, want)
+		}
+	})
+}
+
 func TestCheckRegexPattern(t *testing.T) {
 	tests := []struct {
 		name                     string
@@ -3220,5 +3360,47 @@ func TestCheckRegexPattern(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestPreflightBOSL2SkipsProjectsWithoutBOSL2(t *testing.T) {
+	dir := t.TempDir()
+	scadPath := filepath.Join(dir, "plain.scad")
+	if err := os.WriteFile(scadPath, []byte("cube(1);\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	called := false
+	err := preflightBOSL2(&models.Config{
+		ConfigFile: filepath.Join(dir, "config.toml"),
+		Design:     models.DesignConfig{InputPaths: []models.InputPath{{Path: scadPath}}},
+	}, "openscad", func(string) (bool, error) {
+		called = true
+		return false, fmt.Errorf("should not run")
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if called {
+		t.Fatal("BOSL2 probe ran for a project that does not import BOSL2")
+	}
+}
+
+func TestPreflightBOSL2ReturnsOneActionableFailure(t *testing.T) {
+	dir := t.TempDir()
+	scadPath := filepath.Join(dir, "bosl2.scad")
+	if err := os.WriteFile(scadPath, []byte("include <BOSL2/std.scad>;\ncuboid(1);\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	err := preflightBOSL2(&models.Config{
+		ConfigFile: filepath.Join(dir, "config.toml"),
+		Design:     models.DesignConfig{InputPaths: []models.InputPath{{Path: scadPath}}},
+	}, "openscad", func(string) (bool, error) {
+		return false, fmt.Errorf("BOSL2/std.scad includes itself")
+	})
+	if err == nil {
+		t.Fatal("expected BOSL2 preflight failure")
+	}
+	if !strings.Contains(err.Error(), "BOSL2/std.scad includes itself") || !strings.Contains(err.Error(), "Tools > BOSL2 > Update") {
+		t.Fatalf("expected actionable BOSL2 error, got %v", err)
 	}
 }

@@ -1,0 +1,51 @@
+[openscadgen]
+name = "zero_trophy"
+description = "A personalised trophy with a cuboid base, engraved wedge, and interchangeable number or camp-chair top."
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{trophyMode}_{printMode}_{renderType}"
+
+global_params = { mode = "all", renderType = "obj", trophyMode = "number", printMode = "assembled", baseText="Bailey boys 2026", baseText2="0 Goals, 0 Assists" }
+
+[[openscadgen.input_paths]]
+path = "./zero_trophy.scad"
+
+[[openscadgen.instances]]
+ignore_comma_in_params = ["baseText2"]
+
+[[openscadgen.instances]]
+params = { trophyMode = "campChair", printMode = "chairStandalone" }
+ignore_comma_in_params = ["baseText2"]
+
+[[openscadgen.images]]
+name = "nice-far"
+image_size = "1200,900"
+param_filter = { trophyMode = "number", renderType= "obj" }
+
+[[openscadgen.images]]
+name = "front-far"
+image_size = "1200,900"
+param_filter = { trophyMode = "number", renderType= "obj" }
+
+[[openscadgen.images]]
+name = "side"
+coord = "0,0,0,0,90,0,800"
+image_size = "1200,900"
+param_filter = { trophyMode = "number", renderType= "obj" }
+
+[[openscadgen.images]]
+name = "front"
+image_size = "1200,900"
+param_filter = { trophyMode = "campChair", printMode = "chairStandalone", renderType= "obj" }
+
+[[openscadgen.images]]
+name = "side"
+coord = "0,0,0,0,90,0,500"
+image_size = "1200,900"
+param_filter = { trophyMode = "campChair", printMode = "chairStandalone", renderType= "obj" }
+
+[[openscadgen.images]]
+name = "nice"
+image_size = "1200,900"
+param_filter = { trophyMode = "campChair", printMode = "chairStandalone", renderType= "obj" }

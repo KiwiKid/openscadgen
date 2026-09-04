@@ -304,6 +304,9 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 	if config.Debug {
 		logStage("=== Processing === ")
 	}
+	if err := preflightBOSL2(config, resolveOpenSCADCommand(config), ProbeBOSL2); err != nil {
+		return models.ProcessResult{}, err
+	}
 
 	// Get output paths
 	outputPaths := getOutputPaths(config)
@@ -519,6 +522,12 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 		}, processErr
 	}
 
+	montageResults, err := generateAllInstancesMontages(config, allImageResults)
+	if err != nil {
+		return models.ProcessResult{}, err
+	}
+	allImageResults = append(allImageResults, montageResults...)
+
 	configDirectory := filepath.Dir(config.ConfigFile)
 	exportLoc := filepath.Join(configDirectory, "export", config.Design.Version)
 
@@ -561,10 +570,53 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 	}, nil
 }
 
+// preflightBOSL2 prevents a missing or broken BOSL2 installation from causing
+// every configured instance to fail independently. It only probes projects
+// whose configured source directly imports BOSL2; projects without that
+// dependency do not need a local BOSL2 installation.
+func preflightBOSL2(config *models.Config, openscadPath string, probe func(string) (bool, error)) error {
+	inputPath, usesBOSL2 := firstBOSL2Input(config)
+	if !usesBOSL2 {
+		return nil
+	}
+	if strings.TrimSpace(openscadPath) == "" {
+		return fmt.Errorf("BOSL2 preflight for %s could not find the OpenSCAD command", inputPath)
+	}
+	available, err := probe(openscadPath)
+	if available && err == nil {
+		return nil
+	}
+	if err == nil {
+		err = fmt.Errorf("BOSL2/std.scad could not be resolved")
+	}
+	return fmt.Errorf("BOSL2 preflight failed for %s: %w\nRepair it in Tools > BOSL2 > Update, then run this config again", inputPath, err)
+}
+
+func firstBOSL2Input(config *models.Config) (string, bool) {
+	if config == nil {
+		return "", false
+	}
+	for _, input := range config.GetInputPaths() {
+		path := input.Path
+		if !filepath.IsAbs(path) {
+			path = getAbsPath(config.ConfigFile, path)
+		}
+		contents, err := os.ReadFile(path)
+		if err != nil {
+			continue
+		}
+		if strings.Contains(string(contents), "BOSL2/") {
+			return path, true
+		}
+	}
+	return "", false
+}
+
 type RunError struct {
-	ErrorCode RunErrorCode
-	Message   string
-	KVPs      map[string]string
+	ErrorCode      RunErrorCode
+	Message        string
+	KVPs           map[string]string
+	IsSaveBlocking bool
 }
 
 func ValidateInstances(instances []models.InstanceConfig, config *models.Config) []RunError {
@@ -586,7 +638,11 @@ func ValidateInstances(instances []models.InstanceConfig, config *models.Config)
 
 			LogKeyValuePair("Validation", fmt.Sprintf("%s: %+v", instance.RunOutputPathV3, exists))
 
-			missingParams := missingExportNameFormatParams(firstInstance.Params, instance.Params, config.Design.ExportNameFormat)
+			exportNameFormat := instance.ExportNameFormat
+			if exportNameFormat == "" {
+				exportNameFormat = config.Design.ExportNameFormat
+			}
+			missingParams := missingExportNameFormatParams(firstInstance.Params, instance.Params, exportNameFormat)
 			missingParamsMessage := ""
 			if len(missingParams) > 0 {
 				placeholders := make([]string, len(missingParams))
@@ -603,10 +659,11 @@ func ValidateInstances(instances []models.InstanceConfig, config *models.Config)
 					"DuplicatePath":    instance.RunOutputPathV3,
 					"ConfigFile":       config.ConfigFile,
 					"InstanceCount":    fmt.Sprintf("%d", len(instances)),
-					"exportNameFormat": config.Design.ExportNameFormat,
+					"exportNameFormat": exportNameFormat,
 					"prams":            paramStr,
 					"paramCount":       fmt.Sprintf("%+v", instanceParamCount),
 				},
+				IsSaveBlocking: true,
 			})
 		}
 		exportPaths[instance.RunOutputPathV3] = instance
@@ -1138,6 +1195,8 @@ var PRESET_images = []models.ExportCameraCoordinates{
 func MakeExportImage(instance *models.InstanceConfig, camera models.ExportCameraCoordinates) models.ExportCameraCoordinates {
 	return models.ExportCameraCoordinates{
 		CameraName:         camera.CameraName,
+		ImageType:          camera.ImageType,
+		ExportNameFormat:   camera.ExportNameFormat,
 		CameraCoordinates:  camera.CameraCoordinates,
 		ImageSize:          camera.ImageSize,
 		ParamFilter:        camera.ParamFilter,
@@ -1270,7 +1329,7 @@ func populateExportImages(config *models.Config, instances []models.InstanceConf
 				continue
 			}
 
-			exportImages := makePresetReplacement(instances[i].RunOutputPathV3, exportImage)
+			exportImages := makePresetReplacement(imageOutputBasePath(config, instances[i], exportImage), exportImage)
 			if len(exportImages) > 0 {
 				allExportImages = append(allExportImages, exportImages...)
 			}
@@ -1279,7 +1338,9 @@ func populateExportImages(config *models.Config, instances []models.InstanceConf
 		// Then add instance-specific export images if they exist
 		for _, configuredInstance := range config.Design.ConfiguredInstanceConfig {
 			if configuredInstance.Name == instances[i].Name && len(configuredInstance.ExportImages) > 0 {
-				allExportImages = append(allExportImages, configuredInstance.ExportImages...)
+				for _, exportImage := range configuredInstance.ExportImages {
+					allExportImages = append(allExportImages, makePresetReplacement(imageOutputBasePath(config, instances[i], exportImage), exportImage)...)
+				}
 			}
 		}
 
@@ -1291,6 +1352,28 @@ func populateExportImages(config *models.Config, instances []models.InstanceConf
 	}
 
 	return instances, nil
+}
+
+// imageOutputBasePath returns the path before the camera suffix and .png extension.
+// Images live under img/<version> by default, mirroring the STL layout below
+// export/<version>. A camera's export_name_format can replace that relative
+// name/path while retaining the img/<version> root.
+func imageOutputBasePath(config *models.Config, instance models.InstanceConfig, camera models.ExportCameraCoordinates) string {
+	configDir := filepath.Dir(config.ConfigFile)
+	version := strings.ReplaceAll(config.Design.Version, " ", "_")
+
+	if camera.ExportNameFormat != "" {
+		format := strings.ReplaceAll(camera.ExportNameFormat, "{instanceName}", "{name}")
+		basePath := path.Join(configDir, "img", version, format)
+		return models.MakeFileNameReplacements(config.Design.GlobalParams, instance.Params, instance.IgnoredParams, basePath, config.Design.Version, instance.Params["designFileName"].(string), config.Quality, instance.Name, instance.PartIDLetter)
+	}
+
+	exportFolder := filepath.Join(configDir, "export", version)
+	relativeSTLPath, err := filepath.Rel(exportFolder, instance.RunOutputPathV3)
+	if err != nil || strings.HasPrefix(relativeSTLPath, "..") {
+		return filepath.Join(configDir, "img", version, filepath.Base(instance.RunOutputImagePath))
+	}
+	return filepath.Join(configDir, "img", version, strings.TrimSuffix(relativeSTLPath, filepath.Ext(relativeSTLPath)))
 }
 
 // CameraPreset defines the base camera settings for different views
@@ -1371,12 +1454,18 @@ func generateCameraCoordinates(direction, distanceKey string) string {
 
 func makePresetReplacement(runOutputPath string, exportImage models.ExportCameraCoordinates) []models.ExportCameraCoordinates {
 	if exportImage.CameraName == "all" {
-		return PRESET_images
+		images := make([]models.ExportCameraCoordinates, 0, len(PRESET_images))
+		for _, preset := range PRESET_images {
+			preset.RunOutputImagePath = GetImagePath(runOutputPath, preset.CameraName)
+			images = append(images, preset)
+		}
+		return images
 	} else if strings.HasPrefix(exportImage.CameraName, "all") && len(strings.Split(exportImage.CameraName, "-")) == 2 {
 		suffix := strings.Split(exportImage.CameraName, "-")[1]
 		nearPresetImages := make([]models.ExportCameraCoordinates, 0)
 		for _, cm := range PRESET_images {
 			if strings.HasSuffix(cm.CameraName, suffix) {
+				cm.RunOutputImagePath = GetImagePath(runOutputPath, cm.CameraName)
 				nearPresetImages = append(nearPresetImages, cm)
 			}
 		}
@@ -1387,6 +1476,8 @@ func makePresetReplacement(runOutputPath string, exportImage models.ExportCamera
 		return []models.ExportCameraCoordinates{
 			{
 				CameraName:         exportImage.CameraName,
+				ImageType:          exportImage.ImageType,
+				ExportNameFormat:   exportImage.ExportNameFormat,
 				CameraCoordinates:  exportImage.CameraCoordinates,
 				ImageSize:          exportImage.ImageSize,
 				ParamFilter:        exportImage.ParamFilter,
@@ -1407,6 +1498,8 @@ func makePresetReplacement(runOutputPath string, exportImage models.ExportCamera
 		return []models.ExportCameraCoordinates{
 			{
 				CameraName:         exportImage.CameraName,
+				ImageType:          exportImage.ImageType,
+				ExportNameFormat:   exportImage.ExportNameFormat,
 				CameraCoordinates:  coordinates,
 				ImageSize:          exportImage.ImageSize,
 				ParamFilter:        exportImage.ParamFilter,
@@ -1421,6 +1514,8 @@ func makePresetReplacement(runOutputPath string, exportImage models.ExportCamera
 			return []models.ExportCameraCoordinates{
 				{
 					CameraName:         exportImage.CameraName,
+					ImageType:          exportImage.ImageType,
+					ExportNameFormat:   exportImage.ExportNameFormat,
 					CameraCoordinates:  preset.CameraCoordinates,
 					ImageSize:          preset.ImageSize,
 					ParamFilter:        exportImage.ParamFilter,
@@ -1650,6 +1745,12 @@ func LoadConfig(configData string, flags models.CmdFlags, configPath string) (*m
 		log.Printf(colorRed+"Failed to validate config [%s]: %v"+colorReset, configPath, err)
 		return nil, nil, fmt.Errorf("failed to validate config file [%s]: %w", configPath, err)
 	}
+	if err := validateResolvedExportNameFormats(&conf); err != nil {
+		return nil, nil, fmt.Errorf("failed to validate config file [%s]: %w", configPath, err)
+	}
+	if err := validateImageTypes(conf.Design.ExportImages); err != nil {
+		return nil, nil, fmt.Errorf("failed to validate config file [%s]: %w", configPath, err)
+	}
 
 	var warning error
 	for _, exportImage := range conf.Design.ExportImages {
@@ -1743,23 +1844,6 @@ func LoadConfig(configData string, flags models.CmdFlags, configPath string) (*m
 		conf.Design.RunType = "clearAndCreate"
 	}
 
-	exportNameFormat := getExportNameFormat(&conf)
-
-	exportNameFormatParams := getExportNameFormatParams(exportNameFormat)
-
-	if flags.Debug {
-		logStage("DEBUG Validating: export_name_format params")
-	}
-	for _, paramName := range exportNameFormatParams {
-		if flags.Debug {
-			LogKeyValuePair("Param name to confirm", paramName)
-			LogKeyValuePair("ExportNameFormat", exportNameFormat)
-		}
-		if !strings.Contains(conf.Design.ExportNameFormat, paramName) {
-			LogWarnWithCritical(fmt.Sprintf("ExportNameFormat contains param: \n\n -\t(%s)\n\n that is not in the params. Include every param in the export_name_format (in the format '{param_name}') to ensure all instances are generated to unique files.", paramName), true)
-		}
-	}
-
 	if err := validateUnsafeOpenSCADSettings(&conf); err != nil {
 		return nil, nil, err
 	}
@@ -1848,6 +1932,17 @@ func LoadConfig(configData string, flags models.CmdFlags, configPath string) (*m
 	}	*/
 
 	return &conf, warning, nil
+}
+
+func validateImageTypes(images []models.ExportCameraCoordinates) error {
+	for _, image := range images {
+		switch image.ImageType {
+		case "", "instance", allInstancesImageType:
+		default:
+			return fmt.Errorf("invalid images.type %q; supported values are instance and %s", image.ImageType, allInstancesImageType)
+		}
+	}
+	return nil
 }
 
 func validateUnsafeOpenSCADSettings(conf *models.Config) error {
@@ -2023,31 +2118,37 @@ func generateReadme(config *models.Config, dynamicInstances []*models.InstanceCo
 
 }
 
-func getExportNameFormat(config *models.Config) string {
-
-	exportNameFormat := config.Design.ExportNameFormat
-	if exportNameFormat == "" {
-		log.Printf("Export name format is not set, defaulting to '{instanceName}'")
-		exportNameFormat = "{instanceName}"
+func resolveExportNameFormat(config *models.Config, configuredInstanceConfig models.ConfiguredInstanceConfig, inputPath models.InputPath) string {
+	if configuredInstanceConfig.ExportNameFormat != "" {
+		return configuredInstanceConfig.ExportNameFormat
 	}
-
-	return exportNameFormat
+	if inputPath.ExportNameFormat != "" {
+		return inputPath.ExportNameFormat
+	}
+	return config.Design.ExportNameFormat
 }
 
-func getExportNameFormatParams(exportNameFormat string) []string {
-	var params []string
-	parts := strings.Split(exportNameFormat, "{")
+func validateResolvedExportNameFormats(config *models.Config) error {
+	configuredInstances := config.Design.ConfiguredInstanceConfig
+	if len(configuredInstances) == 0 {
+		configuredInstances = []models.ConfiguredInstanceConfig{{Name: "default"}}
+	}
 
-	// Skip first part before any {
-	for i := 1; i < len(parts); i++ {
-		// Split on } to get just the param name
-		paramPart := strings.Split(parts[i], "}")
-		if len(paramPart) > 0 {
-			params = append(params, paramPart[0])
+	for _, configuredInstance := range configuredInstances {
+		for _, inputPath := range config.GetInputPaths() {
+			if strings.TrimSpace(resolveExportNameFormat(config, configuredInstance, inputPath)) != "" {
+				continue
+			}
+
+			instanceName := configuredInstance.Name
+			if instanceName == "" {
+				instanceName = "unnamed"
+			}
+			return fmt.Errorf("no export_name_format is configured for instance %q and input path %q; set it in [[openscadgen.instances]], [[openscadgen.input_paths]], or [openscadgen]", instanceName, inputPath.Path)
 		}
 	}
 
-	return params
+	return nil
 }
 
 // Helper function to parse a single parameter value
@@ -2980,7 +3081,7 @@ func GenerateInstances(config *models.Config, configuredInstanceConfig models.Co
 			if len(configuredInstanceConfig.Name) > 0 {
 				instance.Params["name"] = configuredInstanceConfig.Name
 			}
-			exportNameFormat := strings.ReplaceAll(config.Design.ExportNameFormat, "{instanceName}", "{name}")
+			exportNameFormat := strings.ReplaceAll(resolveExportNameFormat(config, configuredInstanceConfig, inputPath), "{instanceName}", "{name}")
 			versionSafe := strings.ReplaceAll(config.Design.Version, " ", "_")
 			instance.Params["version"] = versionSafe
 
@@ -2991,6 +3092,7 @@ func GenerateInstances(config *models.Config, configuredInstanceConfig models.Co
 					log.Printf("[DEBUG] No export_name_format set, using default: %s", exportNameFormat)
 				}
 			}
+			instance.ExportNameFormat = exportNameFormat
 			//exportName := formatExportName(exportNameFormat, instance.Params, ignoredParams)
 
 			// Normalize versionSafe to use underscores for both spaces and dots
@@ -3313,6 +3415,7 @@ func ProbeBOSL2(openscadPath string) (bool, error) {
 
 	outputPath := filepath.Join(tempDir, "probe.stl")
 	cmd := exec.Command(openscadPath, "-o", outputPath, probePath)
+	cmd.Env = managedOpenSCADEnvironment()
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return false, fmt.Errorf("BOSL2 not found in OpenSCAD libraries: %w\nOutput: %s", err, strings.TrimSpace(string(output)))
@@ -3988,6 +4091,7 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 
 	// Run command through shell
 	cmd := exec.Command("sh", "-c", commandStr)
+	cmd.Env = managedOpenSCADEnvironment()
 
 	if config.Debug {
 		log.Printf("[DEBUG] About to execute OpenSCAD command")
@@ -4443,11 +4547,16 @@ func generateImage(instance *models.InstanceConfig, config *models.Config, camer
 	paths := instance.GetInstancePaths(config)
 
 	// Create output path for PNG
-	if instance.RunOutputImagePath == "" {
-		log.Panic("RunOutputImagePath is empty")
+	outputImgPath := camera.RunOutputImagePath
+	if outputImgPath == "" {
+		if instance.RunOutputImagePath == "" {
+			log.Panic("RunOutputImagePath is empty")
+		}
+		outputImgPath = GetImagePath(instance.RunOutputImagePath, camera.CameraName)
 	}
-
-	outputImgPath := GetImagePath(instance.RunOutputImagePath, camera.CameraName)
+	if err := os.MkdirAll(filepath.Dir(outputImgPath), 0o755); err != nil {
+		return imageResult, "", fmt.Errorf("create image output directory: %w", err)
+	}
 	if !config.Quiet && config.Debug {
 		LogKeyValuePair("outputPath", outputImgPath)
 	}
@@ -4509,6 +4618,7 @@ func generateImage(instance *models.InstanceConfig, config *models.Config, camer
 	imgStartTime := time.Now()
 	// Create the command
 	cmd := exec.Command(openscadCmd, args...)
+	cmd.Env = managedOpenSCADEnvironment()
 
 	if config.Debug {
 		logStage("Running Image generation")

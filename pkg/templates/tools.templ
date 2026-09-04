@@ -14,6 +14,9 @@ type ToolLink struct {
 	SupportsUpdateFlow    bool
 	CheckUpdatesURL       string
 	UpdateURL             string
+	SupportsInstallFlow   bool
+	InstallURL            string
+	InstallNightlyDefault bool
 }
 
 templ ToolsPage(v OpenSCADNavView, tools []ToolLink, homeURL string, showAI bool) {
@@ -54,6 +57,9 @@ templ ToolsPage(v OpenSCADNavView, tools []ToolLink, homeURL string, showAI bool
 					gap: 0.5rem;
 					flex-wrap: wrap;
 					margin-top: 0.75rem;
+				}
+				.tools-results {
+					margin-top: 1.5rem;
 				}
 			</style>
 		</head>
@@ -99,31 +105,58 @@ templ ToolsPage(v OpenSCADNavView, tools []ToolLink, homeURL string, showAI bool
 										rel="noreferrer"
 									}
 								>{ fmt.Sprintf("Open %s", tool.Title) }</a>
-								if tool.SupportsUpdateFlow && tool.CheckUpdatesURL != "" {
+								if tool.Slug == "bosl2" && !v.BOSL2InstallSupported {
+									<span class="has-text-grey is-size-7">BOSL2 installation is currently supported on macOS only.</span>
+								} else if tool.SupportsUpdateFlow && tool.CheckUpdatesURL != "" {
 									<button
 										type="button"
 										class="button is-small is-light"
 										hx-get={ templ.SafeURL(tool.CheckUpdatesURL) }
-										hx-target={ templ.SafeURL("#tool-update-state-" + tool.Slug) }
+										hx-target="#tools-results-content"
 										hx-swap="innerHTML"
 									>Check for updates</button>
 								}
-								if tool.SupportsUpdateFlow && tool.UpdateURL != "" {
+								if !(tool.Slug == "bosl2" && !v.BOSL2InstallSupported) && tool.SupportsUpdateFlow && tool.UpdateURL != "" {
 									<button
 										type="button"
 										class="button is-small is-warning is-light"
 										hx-post={ templ.SafeURL(tool.UpdateURL) }
-										hx-target={ templ.SafeURL("#tool-update-state-" + tool.Slug) }
+										hx-target="#tools-results-content"
 										hx-swap="innerHTML"
 									>Update</button>
 								}
+								if tool.SupportsInstallFlow && tool.InstallURL != "" {
+									if v.InstallSupported {
+										<form
+											class="is-flex is-align-items-center is-flex-wrap-wrap"
+											style="gap: 0.5rem;"
+											hx-post={ templ.SafeURL(tool.InstallURL) }
+											hx-target="#tools-results-content"
+											hx-swap="innerHTML"
+										>
+											<label class="checkbox is-size-7">
+												<input type="checkbox" name="install_nightly" value="true" checked={ tool.InstallNightlyDefault }/>
+												Install latest nightly
+											</label>
+											<button type="submit" class="button is-small is-primary">Install OpenSCAD</button>
+										</form>
+									} else {
+										<span class="has-text-grey is-size-7">OpenSCAD installation is currently supported on macOS only.</span>
+									}
+								}
 								if tool.IsBOSL2InstallableLib {
-									<span id={ fmt.Sprintf("tool-update-state-%s", tool.Slug) } class="has-text-grey is-size-7"></span>
+									<span class="has-text-grey is-size-7">Results appear below.</span>
 								}
 							</div>
 						</article>
 					}
 				</div>
+				<section class="tools-results" aria-labelledby="tools-results-heading">
+					<h2 id="tools-results-heading" class="title is-4">Results</h2>
+					<div id="tools-results-content" class="notification is-light">
+						Run an install, upgrade, or compatibility check to see its result here.
+					</div>
+				</section>
 			</div>
 		</body>
 	</html>

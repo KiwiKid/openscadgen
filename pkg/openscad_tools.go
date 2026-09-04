@@ -10,6 +10,16 @@ import "github.com/kiwikid/openscadgen/pkg/templates"
 func OpenSCADToolRegistry() []templates.ToolLink {
 	return []templates.ToolLink{
 		{
+			Title:                 "OpenSCAD",
+			Slug:                  "openscad",
+			Description:           "The OpenSCAD application and command-line renderer used by OpenSCADGen. The latest nightly snapshot is selected by default.",
+			URL:                   "/api/openscad/status",
+			Badge:                 "Required",
+			SupportsInstallFlow:   true,
+			InstallURL:            "/api/openscad/install",
+			InstallNightlyDefault: true,
+		},
+		{
 			Title:                 "BOSL2",
 			Slug:                  "bosl2",
 			Description:           "Core helper library for many OpenSCAD models. OpenSCADGen can probe whether it is available locally.",
