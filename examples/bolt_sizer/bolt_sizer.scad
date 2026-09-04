@@ -17,8 +17,8 @@ $slop = 0.2;
 // =================================================================
 
 /* [Render Controls] */
-// Select the generated object: box, box-noText, text, bottomRenderBox, bottomRender, centerBox, logo, glueJig, glueJoinerSquare, or all.
-mode = "text"; //bottomRenderBoxHeight
+// Select the generated object: box, topBox, box-full-bottomModifier, box-noText, text, bottomRenderBox, bottomRender, centerBox, logo, glueJig, glueJoinerSquare, or all.
+mode = "box"; //bottomRenderBoxHeight
 textMode = "text"; // Set to "noText" to omit the top labels.
 renderType = "obj";
 
@@ -90,6 +90,12 @@ bottomRenderModifierZeroHeight = 1.15;
 bottomRenderModifierHeight = -bottomRenderModifierZeroHeight-0;
 // Cut the image-relief cavity into the sliced bottom box.
 bottomRenderBoxWithText = true;
+
+// The full-box logo is only recessed into the first part of the bottom face.
+// Its separately exported modifier extends roughly two 0.2 mm print layers
+// into the box so a slicer can assign it a second colour.
+bottomLogoCutoutDepth = 0.05;
+bottomLogoModifierHeight = 0.4;
 
 logoScaleAdjust = 0.53;
 logoShiftRight = 0;
@@ -369,6 +375,27 @@ module bottomRenderAtFloor() {
         bottomRender(textHeight = bottomRenderTextHeight);
 }
 
+// The matching bottom colour-modifier is the existing relief flipped into the
+// box.  Clipping it gives the full box a shallow visible recess while keeping
+// the modifier thick enough for two layers above that recess.
+module bottomLogoModifier(height = bottomLogoModifierHeight) {
+    intersection() {
+        // The flipped legacy relief's base starts 0.6 mm above the floor.
+        // Move it back to Z=0 before limiting its in-box depth.
+        down(0.6)
+            rotate([180, 0, 0])
+                bottomRenderAtFloor();
+        cuboid([100, 100, height], anchor = BOT);
+    }
+}
+
+module bottomLogoCutout(depth = bottomLogoCutoutDepth) {
+    intersection() {
+        bottomLogoModifier();
+        cuboid([100, 100, depth], anchor = BOT);
+    }
+}
+
 // The lower slice removed from the main box and exported as the logo base.
 module bottomRenderBoxBase() {
     intersection() {
@@ -408,6 +435,15 @@ module boxWithBottomRenderCutout() {
         bottomRenderBoxBase();
 
       //  glueSquareCutout();
+    }
+}
+
+// Full body used by the normal box render.  Unlike topBox, this retains its
+// bottom and receives only a 0.05 mm logo recess.
+module fullBoxWithBottomLogoCutout() {
+    difference() {
+        bolt_sizer(mode = "box", withBottomRenderCutout = false);
+        bottomLogoCutout();
     }
 }
 
@@ -536,7 +572,7 @@ back(globalSizerSize[1]/2-10){
                 }
 }
 
-	module bolt_sizer(mode=mode, textMode="text"){
+	module bolt_sizer(mode=mode, textMode="text", withBottomRenderCutout=true){
     if(mode != "text" && mode != "glueJoinerSquare" && mode != "bottomRender" && mode != "centerBox"){
 		difference(){
         union(){
@@ -578,7 +614,8 @@ back(globalSizerSize[1]/2-10){
             if(textMode != "noText"){
 
               text_holes(height=textHeight);
-              bottomRender(textHeight=bottomRenderTextHeight, textDepth=bottomRenderUp);
+              if(withBottomRenderCutout)
+                bottomRender(textHeight=bottomRenderTextHeight, textDepth=bottomRenderUp);
 
             }
 
@@ -622,13 +659,24 @@ sizerHeight = 10;
         }*/
        echo(mode);
    if(mode == "all"){
-        boxWithBottomRenderCutout();
+        fullBoxWithBottomLogoCutout();
 
        #bolt_sizer(mode="text");
-       bolt_sizer(mode="bottomRender");
+       bottomLogoModifier();
 
   } else if(mode == "box"){
+    // Keep the full body and its matching logo modifier as separate solids
+    // for multi-colour slicer imports.
+    fullBoxWithBottomLogoCutout();
+    bottomLogoModifier();
+
+  } else if(mode == "topBox"){
+    // Legacy top section: intended for the separate bottomRenderBox insert.
     boxWithBottomRenderCutout();
+
+  } else if(mode == "box-full-bottomModifier"){
+    // Export only the upside-down, two-layer bottom logo modifier.
+    bottomLogoModifier();
 
   } else if(mode == "glueJig"){
     glueJig();

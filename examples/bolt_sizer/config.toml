@@ -13,7 +13,23 @@ path = "./bolt_sizer.scad"
 
 
 [[openscadgen.instances]]
-params = { mode = "box,text,bottomRender,bottomRenderBox,logo,glueJig,glueJoinerSquare" }
+params = { mode = "box,topBox,box-full-bottomModifier,text,bottomRender,bottomRenderBox,logo,glueJig,glueJoinerSquare" }
 
 [[openscadgen.images]]
 name = "nice"
+param_filter = { mode = "box,topBox,box-full-bottomModifier" }
+
+# Inspect the assembled full box from the faces that matter for the new
+# bottom-logo treatment.  The modifier also receives an isometric export
+# above, making its separate geometry easy to compare with the underside.
+[[openscadgen.images]]
+name = "top"
+param_filter = { mode = "box" }
+
+[[openscadgen.images]]
+name = "bottom"
+param_filter = { mode = "box" }
+
+[[openscadgen.images]]
+name = "side"
+param_filter = { mode = "box" }

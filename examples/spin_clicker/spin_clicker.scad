@@ -16,14 +16,15 @@
 	renderType = "obj";
 
 spinnerWidth = 1.5;
-spinnerLength = 90;
+spinnerLength = 92;
 spinnerThickness = 3;
 spinnerRounding = 1;
+flatBottomHeight = -2.5;
 
 holderWidth = 18;
-holderOuterWidth = 10;
+holderOuterWidth = 13;
 holderOuterGapOffset = 1;
-holderClickerBarOffset=  2;
+holderClickerBarOffset=  2.1;
 
 holderWall = 12;
 holderHeight = 40 ;
@@ -41,31 +42,56 @@ module screw_holder(){
                 cyl(d=holderOuterWidth, h=spinnerThickness+holderHeight, rounding1=3);
                 cyl(d=holderWidth-holderWall, h=spinnerThickness+holderHeight+0.001, chamfer1=-2);
                 
-            
             }
             
             }
 
 }
 
- // a series of points that will create a snaking curve back and forth
-        module snakePiece(height=spinnerThickness){
-                path = [for (a=[0:30:900]) [a-180, 60*sin(a)]];
+    textSize = 5;
+    textDepth = 6; // Extrusion depth cutting into the wall
+  //  cylRadius = 43; // Distance from cylinder center to text surface
+    textRadius = 8.7;
+        gap = holderOuterWidth-1; // Distance between cylinder centers
 
-        down(spinnerThickness/2)
-            scale([0.15,0.04,1])
-            rotate([0,0,90])
-                linear_extrude(height=spinnerThickness){
-                stroke(path, width=snakePieceThickness, endcaps="round", joint_angle=0, joint_width=5);
-            };
+textCutoutLengthOffset = 1.8;
+
+module textGroup(textRotate=90, skipIndex=3) {
+
+    
+    
+    zrot_copies(n=4, r=textRadius, subrot=true) {
+    if($idx != skipIndex){
+    rotate([0,textRotate,0])
+        text3d("Spin to Win", size=textSize, h=textDepth, font="Arial Rounded MT Bold", center=true);
         }
+    }
+}
+module textCutout() {
+    
+    textCenterRotate = [0, 0, 0];
+    textCenterMove = [0, -spinnerLength/2 - holderOuterWidth+textCutoutLengthOffset, -holderHeight/2];
+
+    rotate(textCenterRotate)
+    move(textCenterMove) {
+        // Top cylinder group
+        translate([0, gap / 2, 0])
+        textGroup(skipIndex=3);
+        
+        // Bottom cylinder group (Mirrored)
+        translate([0, -gap / 2, 0])
+        mirror([0, 0, 0])
+        textGroup(skipIndex=1);
+    }
+}
 	module spin_clicker(){
 
-
+    difference(){
+    intersection(){
        // fwd(spinnerLength/2+snakeCurveLength+spinnerOffset)
       // snakePiece();
 
-		cuboid([spinnerWidth,spinnerLength,spinnerThickness], rounding=.3)
+		cuboid([spinnerWidth,spinnerLength,spinnerThickness], rounding=.3, anchor=BOT)
 
         up(spinnerThickness/3.5)
             fwd(holderOuterWidth-holderClickerBarOffset)
@@ -82,8 +108,16 @@ module screw_holder(){
        //     up(snakeCurveLength*2+spinnerOffset)
             screw_holder();
             }
-           
+          
+          flatBottomBoxSize = [1000,1000,100];
+          
+          down(flatBottomHeight)
+          cuboid(flatBottomBoxSize, anchor=TOP);
+          }
+          textCutout();
 	}
+    
+    }
 
 
     sliced(renderType=renderType) {
