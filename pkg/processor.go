@@ -36,7 +36,10 @@ import (
 func ShowMan() {
 	flag.PrintDefaults()
 }
-func getOutputPaths(config *models.Config) models.OutputPaths {
+
+// GetOutputPaths returns the versioned export root shared by STL, image, report,
+// and server rendering code.
+func GetOutputPaths(config *models.Config) models.OutputPaths {
 	// Get the directory containing the config file - this is our anchor point
 	configDir := filepath.Dir(config.ConfigFile)
 
@@ -212,7 +215,7 @@ git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 git push && git push --tags
 */
-const VERSION = "v2.8.4"
+const VERSION = "v2.9.0"
 
 type Version struct {
 	OpenSCADGen string
@@ -309,7 +312,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 	}
 
 	// Get output paths
-	outputPaths := getOutputPaths(config)
+	outputPaths := GetOutputPaths(config)
 
 	// Create export folder if it doesn't exist
 	if err := os.MkdirAll(outputPaths.ExportFolderPath, 0755); err != nil {
@@ -1355,25 +1358,26 @@ func populateExportImages(config *models.Config, instances []models.InstanceConf
 }
 
 // imageOutputBasePath returns the path before the camera suffix and .png extension.
-// Images live under img/<version> by default, mirroring the STL layout below
-// export/<version>. A camera's export_name_format can replace that relative
-// name/path while retaining the img/<version> root.
+// Images live under export/<version>/img by default, beside the report and STL
+// exports for that version. A camera's export_name_format can replace that
+// relative name/path while retaining the versioned img root.
 func imageOutputBasePath(config *models.Config, instance models.InstanceConfig, camera models.ExportCameraCoordinates) string {
 	configDir := filepath.Dir(config.ConfigFile)
 	version := strings.ReplaceAll(config.Design.Version, " ", "_")
+	imageRoot := filepath.Join(configDir, "export", version, "img")
 
 	if camera.ExportNameFormat != "" {
 		format := strings.ReplaceAll(camera.ExportNameFormat, "{instanceName}", "{name}")
-		basePath := path.Join(configDir, "img", version, format)
+		basePath := path.Join(imageRoot, format)
 		return models.MakeFileNameReplacements(config.Design.GlobalParams, instance.Params, instance.IgnoredParams, basePath, config.Design.Version, instance.Params["designFileName"].(string), config.Quality, instance.Name, instance.PartIDLetter)
 	}
 
 	exportFolder := filepath.Join(configDir, "export", version)
 	relativeSTLPath, err := filepath.Rel(exportFolder, instance.RunOutputPathV3)
 	if err != nil || strings.HasPrefix(relativeSTLPath, "..") {
-		return filepath.Join(configDir, "img", version, filepath.Base(instance.RunOutputImagePath))
+		return filepath.Join(imageRoot, filepath.Base(instance.RunOutputImagePath))
 	}
-	return filepath.Join(configDir, "img", version, strings.TrimSuffix(relativeSTLPath, filepath.Ext(relativeSTLPath)))
+	return filepath.Join(imageRoot, strings.TrimSuffix(relativeSTLPath, filepath.Ext(relativeSTLPath)))
 }
 
 // CameraPreset defines the base camera settings for different views

@@ -474,7 +474,7 @@ func handleGETRequest(w http.ResponseWriter, r *http.Request) {
 		}, models.Results{
 			TimeTake: 0,
 		})
-		report := templates.Report("view", config, instances, "", []models.GenerateSTLResult{}, []models.GenerateImageResult{}, []string{}, reportMeta, 0, warning)
+		report := templates.Report("view", config, instances, pkg.GetOutputPaths(config).ExportFolderPath, []models.GenerateSTLResult{}, []models.GenerateImageResult{}, []string{}, reportMeta, 0, warning)
 		report.Render(context.Background(), w)
 	}
 }

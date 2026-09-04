@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -78,39 +77,9 @@ func (h *HTMLProgressReporter) Error(err error) {
 func (h *HTMLProgressReporter) Construct(instances []models.InstanceConfig, nonSkippedInstances int) {
 	h.instances = instances
 
-	// Calculate output path similar to pkg.getOutputPaths
-	configDir := filepath.Dir(h.config.ConfigFile)
-	versionPath := h.config.Design.Version
-	var designName string
-	if len(h.config.GetInputPaths()) > 0 {
-		designName = strings.TrimSuffix(filepath.Base(h.config.GetInputPaths()[0].Path), ".scad")
-	} else {
-		designName = "test_design"
-	}
-
-	exportNameFormat := h.config.Design.ExportNameFormat
-	hasExportPrefix := strings.HasPrefix(exportNameFormat, "export/") || strings.HasPrefix(exportNameFormat, "/export")
-
-	var baseDir string
-	if len(h.config.GetInputPaths()) > 0 {
-		inputPath := h.config.GetInputPaths()[0].Path
-		if filepath.IsAbs(inputPath) {
-			baseDir = filepath.Dir(inputPath)
-		} else {
-			baseDir = configDir
-		}
-	} else {
-		baseDir = configDir
-	}
-
-	var baseExportPath string
-	if hasExportPrefix {
-		baseExportPath = baseDir
-	} else {
-		baseExportPath = filepath.Join(baseDir, "export", versionPath, designName)
-	}
-
-	h.outputPath = filepath.Join(baseExportPath, "export", versionPath)
+	// Keep live OOB cards rooted at the same versioned export directory as the
+	// persisted report and generated image files.
+	h.outputPath = pkg.GetOutputPaths(h.config).ExportFolderPath
 
 	var instanceCount int
 	paramSet := make(map[string]bool)

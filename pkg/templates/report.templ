@@ -8,8 +8,11 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/kiwikid/openscadgen/pkg/models"
 	"net/url"
+	"os"
 	"path/filepath"
+	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -98,9 +101,11 @@ templ DebugAlpineState(condition string, label string) {
 
 // Helper function to get relative image path
 func getRelativeImagePath(outputPath string, exportFolderPath string) string {
-	// Remove the export folder path prefix and any leading slashes
-	relativePath := strings.TrimPrefix(outputPath, exportFolderPath)
-	return strings.TrimPrefix(relativePath, "/")
+	relativePath, err := filepath.Rel(exportFolderPath, outputPath)
+	if err != nil {
+		return filepath.Base(outputPath)
+	}
+	return filepath.ToSlash(relativePath)
 }
 
 func instanceImageVersion(instance models.InstanceConfig) string {
@@ -110,23 +115,35 @@ func instanceImageVersion(instance models.InstanceConfig) string {
 	return fmt.Sprintf("%d", instance.CompletedAt.UnixNano())
 }
 
-func buildServerImageURL(outputPath string, exportFolderPath string, version string) string {
+func buildServerImageURL(outputPath string, serverFolder string, version string) string {
 	params := url.Values{}
-	params.Set("config_path", "/"+getRelativeImagePath(outputPath, exportFolderPath))
+	serverRoot := serverFolder
+	if serverRoot == "" {
+		serverRoot, _ = os.Getwd()
+	}
+	if absoluteRoot, err := filepath.Abs(serverRoot); err == nil {
+		serverRoot = absoluteRoot
+	}
+	if relativePath, err := filepath.Rel(serverRoot, outputPath); err == nil && relativePath != ".." && !strings.HasPrefix(relativePath, ".."+string(filepath.Separator)) {
+		params.Set("config_path", filepath.ToSlash(relativePath))
+	} else {
+		// A file outside the configured server root cannot be addressed relatively.
+		params.Set("config_path", outputPath)
+	}
 	if version != "" {
 		params.Set("v", version)
 	}
 	return "/images?" + params.Encode()
 }
 
-func buildReportImageURL(reportMode string, outputPath string, exportFolderPath string, version string) string {
+func buildReportImageURL(reportMode string, outputPath string, exportFolderPath string, serverFolder string, version string) string {
 	if reportMode == "pages" {
-		return "/" + getRelativeImagePath(outputPath, exportFolderPath)
+		return getRelativeImagePath(outputPath, exportFolderPath)
 	}
-	if reportMode == "server" {
-		return buildServerImageURL(outputPath, exportFolderPath, version)
+	if reportMode == "server" || reportMode == "view" || reportMode == "complete" {
+		return buildServerImageURL(outputPath, serverFolder, version)
 	}
-	return fmt.Sprintf("file:///%s", getRelativeImagePath(outputPath, exportFolderPath))
+	return "file://" + filepath.ToSlash(outputPath)
 }
 
 // Helper function to sort STL results by name first, then alphabetically
@@ -160,6 +177,71 @@ func getJSONAttr(v interface{}) string {
 		return "{}"
 	}
 	return string(b)
+}
+
+// getInstanceAppliedParams returns the parameters used by the STL render when
+// available. This omits input-path parameters that were configured to be
+// ignored during rendering.
+func getInstanceAppliedParams(instance models.InstanceConfig) map[string]interface{} {
+	for _, result := range instance.STLResults {
+		if len(result.AppliedParams) > 0 {
+			return result.AppliedParams
+		}
+	}
+	return instance.Params
+}
+
+func openSCADValue(value interface{}) string {
+	if value == nil {
+		return "undef"
+	}
+
+	if stringValue, ok := value.(string); ok {
+		// Keep this consistent with generateSTL: these two string values are
+		// passed to OpenSCAD as boolean literals rather than quoted strings.
+		if stringValue == "true" || stringValue == "false" {
+			return stringValue
+		}
+		return strconv.Quote(stringValue)
+	}
+
+	v := reflect.ValueOf(value)
+	for v.Kind() == reflect.Interface {
+		if v.IsNil() {
+			return "undef"
+		}
+		v = v.Elem()
+	}
+
+	switch v.Kind() {
+	case reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr,
+		reflect.Float32, reflect.Float64:
+		return fmt.Sprint(value)
+	case reflect.Slice, reflect.Array:
+		values := make([]string, v.Len())
+		for i := 0; i < v.Len(); i++ {
+			values[i] = openSCADValue(v.Index(i).Interface())
+		}
+		return "[" + strings.Join(values, ", ") + "]"
+	default:
+		// OpenSCAD has no map literal. Quoting unexpected values produces valid
+		// OpenSCAD and is safer than copying a value that cannot be pasted back.
+		return strconv.Quote(fmt.Sprint(value))
+	}
+}
+
+func openSCADParams(params map[string]interface{}) string {
+	var assignments []string
+	for _, name := range getSortedParamNames(params) {
+		// generateSTL deliberately does not pass the configuration-only version
+		// field through to OpenSCAD.
+		if name == "version" {
+			continue
+		}
+		assignments = append(assignments, fmt.Sprintf("%s = %s;", name, openSCADValue(params[name])))
+	}
+	return strings.Join(assignments, "\n")
 }
 
 func getFailedSTLResults(instance models.InstanceConfig) []models.GenerateSTLResult {
@@ -593,9 +675,9 @@ templ InstanceSlimRow(instance models.InstanceConfig, outputPath string, reportM
                                 for _, imageResult := range instance.ImageResults {
                                     <div class="column is-narrow">
                                         if reportMeta.IsServerMode {
-                                            <img src={ buildReportImageURL(reportMode, imageResult.OutputPath, outputPath, instanceImageVersion(imageResult.InstanceConfig)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, imageResult.CameraName) } class="image-preview" />
+											<img src={ buildReportImageURL(reportMode, imageResult.OutputPath, outputPath, reportMeta.ServerFolder, instanceImageVersion(imageResult.InstanceConfig)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, imageResult.CameraName) } class="image-preview" />
                                         }else {
-                                            <img src={ buildReportImageURL(reportMode, imageResult.OutputPath, outputPath, instanceImageVersion(imageResult.InstanceConfig)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, imageResult.CameraName) } class="image-preview" />
+											<img src={ buildReportImageURL(reportMode, imageResult.OutputPath, outputPath, reportMeta.ServerFolder, instanceImageVersion(imageResult.InstanceConfig)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, imageResult.CameraName) } class="image-preview" />
                                         }
                                     </div>
                                 }
@@ -720,17 +802,17 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
 					if len(instance.ImageResults) > 0 {
 						for _, images := range instance.ImageResults {
 							if reportMeta.IsServerMode {
-								<img src={ buildReportImageURL(reportMode, images.OutputPath, outputPath, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview"/>
+								<img src={ buildReportImageURL(reportMode, images.OutputPath, outputPath, reportMeta.ServerFolder, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview"/>
 							} else {
-								<img src={ buildReportImageURL(reportMode, images.OutputPath, outputPath, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview"/>
+								<img src={ buildReportImageURL(reportMode, images.OutputPath, outputPath, reportMeta.ServerFolder, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview"/>
 							}
 						}
 					} else if len(instance.ExportImages) > 0 {
 						for _, images := range instance.ExportImages {
 							if reportMeta.IsServerMode {
-								<img src={ buildReportImageURL(reportMode, images.RunOutputImagePath, outputPath, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview"/>
+								<img src={ buildReportImageURL(reportMode, images.RunOutputImagePath, outputPath, reportMeta.ServerFolder, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview"/>
 							} else {
-								<img src={ buildReportImageURL(reportMode, images.RunOutputImagePath, outputPath, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview"/>
+								<img src={ buildReportImageURL(reportMode, images.RunOutputImagePath, outputPath, reportMeta.ServerFolder, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview"/>
 							}
 						}
 					}
@@ -741,6 +823,13 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
 					</div>
 				}
 				<div class="instance-card-v2__actions">
+					<button
+						class="button is-small is-light"
+						type="button"
+						title="Copy the parameters used for this instance as OpenSCAD assignments"
+						data-openscad-params={ openSCADParams(getInstanceAppliedParams(instance)) }
+						onclick="navigator.clipboard.writeText(this.dataset.openscadParams)"
+					>Copy params</button>
 					if reportMeta.IsServerMode {
 						<a class="button is-small is-light" href={ buildPreviewSTLFileUrl(instance, reportMeta) } target="_blank">Open STL</a>
 					}
@@ -831,17 +920,17 @@ templ InstanceRowV3(instance models.InstanceConfig, outputPath string, reportMod
 			if len(instance.ImageResults) > 0 {
 				for _, images := range instance.ImageResults {
 					if reportMeta.IsServerMode {
-						<img src={ buildReportImageURL(reportMode, images.OutputPath, outputPath, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32"/>
+						<img src={ buildReportImageURL(reportMode, images.OutputPath, outputPath, reportMeta.ServerFolder, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32"/>
 					} else {
-						<img src={ buildReportImageURL(reportMode, images.OutputPath, outputPath, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32"/>
+						<img src={ buildReportImageURL(reportMode, images.OutputPath, outputPath, reportMeta.ServerFolder, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32"/>
 					}
 				}
 			} else if len(instance.ExportImages) > 0 {
 				for _, images := range instance.ExportImages {
 					if reportMeta.IsServerMode {
-						<img src={ buildReportImageURL(reportMode, images.RunOutputImagePath, outputPath, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32"/>
+						<img src={ buildReportImageURL(reportMode, images.RunOutputImagePath, outputPath, reportMeta.ServerFolder, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32"/>
 					} else {
-						<img src={ buildReportImageURL(reportMode, images.RunOutputImagePath, outputPath, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32"/>
+						<img src={ buildReportImageURL(reportMode, images.RunOutputImagePath, outputPath, reportMeta.ServerFolder, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image is-32x32"/>
 					}
 				}
 			} else {
@@ -2561,12 +2650,12 @@ html, body {
 													</details>
 													if imageResult.Error == "" {
 														<img
-															src={ buildReportImageURL(reportMode, imageResult.OutputPath, outputPath, instanceImageVersion(imageResult.InstanceConfig)) }
+															src={ buildReportImageURL(reportMode, imageResult.OutputPath, outputPath, reportMeta.ServerFolder, instanceImageVersion(imageResult.InstanceConfig)) }
 															alt={ fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName) }
 															class="image-preview"
 															onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"
 														/>
-														<div class="image-error" style="display: none;">Image failed to load: { buildReportImageURL(reportMode, imageResult.OutputPath, outputPath, instanceImageVersion(imageResult.InstanceConfig)) }</div>
+														<div class="image-error" style="display: none;">Image failed to load: { buildReportImageURL(reportMode, imageResult.OutputPath, outputPath, reportMeta.ServerFolder, instanceImageVersion(imageResult.InstanceConfig)) }</div>
 													} else {
 														<span class="tag is-danger">Failed: { imageResult.Error }</span>
 													}
@@ -2843,12 +2932,12 @@ templ AddImageResult(imageResult models.GenerateImageResult, outputPath string, 
 		<td>
 			if imageResult.Error == "" {
 				<img
-					src={ buildReportImageURL(reportMode, imageResult.OutputPath, outputPath, instanceImageVersion(imageResult.InstanceConfig)) }
+					src={ buildReportImageURL(reportMode, imageResult.OutputPath, outputPath, "", instanceImageVersion(imageResult.InstanceConfig)) }
 					alt={ fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName) }
 					class="image-preview"
 					onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"
 				/>
-				<div class="image-error" style="display: none;">Image failed to load: { buildReportImageURL(reportMode, imageResult.OutputPath, outputPath, instanceImageVersion(imageResult.InstanceConfig)) }</div>
+				<div class="image-error" style="display: none;">Image failed to load: { buildReportImageURL(reportMode, imageResult.OutputPath, outputPath, "", instanceImageVersion(imageResult.InstanceConfig)) }</div>
 			} else {
 				<span class="tag is-danger">Failed</span>
 			}

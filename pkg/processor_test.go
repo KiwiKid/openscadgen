@@ -263,7 +263,7 @@ func TestGetOutputPaths(t *testing.T) {
 
 			// Reset log buffer between test cases
 			logBuffer.Reset()
-			result := getOutputPaths(&tc.config)
+			result := GetOutputPaths(&tc.config)
 
 			// Cannot compare log paths directly due to timestamp, so check other fields
 			if tc.name == "with_specified_output_path" {
@@ -3197,9 +3197,9 @@ func TestImageOutputBasePath(t *testing.T) {
 		IgnoredParams:      []string{},
 	}
 
-	t.Run("defaults to img folder while preserving the STL relative path", func(t *testing.T) {
+	t.Run("defaults to the versioned export img folder while preserving the STL relative path", func(t *testing.T) {
 		basePath := imageOutputBasePath(config, instance, models.ExportCameraCoordinates{})
-		if want := filepath.Join(configDir, "img", "v0.1", "nested", "part"); basePath != want {
+		if want := filepath.Join(configDir, "export", "v0.1", "img", "nested", "part"); basePath != want {
 			t.Fatalf("image output base path = %q, want %q", basePath, want)
 		}
 	})
@@ -3207,11 +3207,11 @@ func TestImageOutputBasePath(t *testing.T) {
 	t.Run("image export_name_format overrides the image relative path", func(t *testing.T) {
 		camera := models.ExportCameraCoordinates{CameraName: "nice", ExportNameFormat: "previews/{designFileName}_{name}"}
 		basePath := imageOutputBasePath(config, instance, camera)
-		if want := filepath.Join(configDir, "img", "v0.1", "previews", "part_default"); basePath != want {
+		if want := filepath.Join(configDir, "export", "v0.1", "img", "previews", "part_default"); basePath != want {
 			t.Fatalf("image output base path = %q, want %q", basePath, want)
 		}
 		images := makePresetReplacement(basePath, camera)
-		if want := filepath.Join(configDir, "img", "v0.1", "previews", "part_default-nice.png"); images[0].RunOutputImagePath != want {
+		if want := filepath.Join(configDir, "export", "v0.1", "img", "previews", "part_default-nice.png"); images[0].RunOutputImagePath != want {
 			t.Fatalf("image output path = %q, want %q", images[0].RunOutputImagePath, want)
 		}
 	})
