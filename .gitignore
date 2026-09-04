@@ -6,6 +6,7 @@ openscadgen
 *.stl
 *.3mf
 **/*.stl
+examples/sitting_on_the_shoulders_of_giants/raw-input-files/the-hulk-bust-model_files.zip
 examples/cup-holder-plus/export/*.stl
 *_templ.go
 latest_nightly.txt
