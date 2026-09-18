@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log/slog"
 	"log"
+	"log/slog"
 	"os"
 	"sync"
 )
@@ -70,8 +70,8 @@ type colorHandler struct {
 func newColorHandler(out io.Writer) slog.Handler { return &colorHandler{out: out} }
 
 func (h *colorHandler) Enabled(_ context.Context, _ slog.Level) bool { return true }
-func (h *colorHandler) WithAttrs(attrs []slog.Attr) slog.Handler      { return h }
-func (h *colorHandler) WithGroup(name string) slog.Handler            { return h }
+func (h *colorHandler) WithAttrs(attrs []slog.Attr) slog.Handler     { return h }
+func (h *colorHandler) WithGroup(name string) slog.Handler           { return h }
 
 func (h *colorHandler) Handle(_ context.Context, r slog.Record) error {
 	h.mu.Lock()

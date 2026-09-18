@@ -12,7 +12,7 @@ services:
     environment:
       - GO_ENV=development
       - CONFIG_FILE=/app/config/dev.toml
-    command: ["sh", "-c", "templ generate && go run . -c /app/config/dev.toml -sf ./examples/ -p 6767"]
+    command: ["sh", "-c", "templ generate && go run . -c /app/config/dev.toml -sf ./examples/ -p 6767 --server-address 0.0.0.0"]
     stdin_open: true
     tty: true
     profiles:
@@ -31,7 +31,7 @@ services:
     environment:
       - GO_ENV=production
       - CONFIG_FILE=/app/config/prod.toml
-    command: ["openscadgen", "-c", "/app/config/prod.toml", "-sf", "/app/examples", "-p", "6767"]
+    command: ["openscadgen", "-c", "/app/config/prod.toml", "-sf", "/app/examples", "-p", "6767", "--server-address", "0.0.0.0"]
     restart: unless-stopped
     profiles:
       - prod

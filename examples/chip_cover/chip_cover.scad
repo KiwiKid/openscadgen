@@ -4,35 +4,39 @@ $fn = 100;
 
 mode = "obj"; // "obj" "sliced"
 
-chipFloorSize = 0.8;
+chipFloorSize = 1;
 
-chipSideSize = 1.5;
+chipSideSize = 2;
  chipWidth = 42; // 
  chipLength = 60; 
  
- chipHeight =  25;
+ chipCoverHeight =  25;
 
-chipSize = [chipLength-3,chipWidth+chipSideSize,chipHeight-1];
+chipSize = [chipLength-3,chipWidth+chipSideSize,chipCoverHeight-1];
 cutoutRadius = 6;
-chipCutoutSize = [chipLength,chipWidth,chipHeight];
+chipCutoutSize = [chipLength,chipWidth,chipCoverHeight];
 
 holeCount = 4;
-cutoutCirclesUp = chipHeight-cutoutRadius+1;
+cutoutCirclesUp = chipCoverHeight-cutoutRadius+1;
 
 
-railHeight = 3;
+chipRailHeight = 3;
 railUp = 8;
 railDepth = 3;
 railChamfer = 3;
 railInnerChamfer = 1;
 
 module rail(){
+    intersection(){
 up(railUp)
 rotate([90,90,0])
     difference(){
-        cuboid([railHeight, chipSize[0]-10,chipSize[1]-chipSideSize], chamfer=-railChamfer,);
-        cuboid([ railHeight+0.01, chipSize[0]+100,chipSize[1]-railDepth-chipSideSize], chamfer=railInnerChamfer);
+        cuboid([chipRailHeight, chipSize[0]-10, chipWidth + railDepth], chamfer=-railChamfer,);
+        cuboid([chipRailHeight + 0.01, chipSize[0]+100, chipWidth], chamfer=railInnerChamfer);
         }
+
+    cuboid(chipSize);
+    }
         
 }
 
@@ -126,9 +130,9 @@ union(){
  chipWidth = 43; // 
  chipLength = 60; 
  
- chipHeight =  30;
+ chipCoverHeight =  30;
  */
-wallOnlySectionMove = [10,chipWidth/2,chipHeight-12];
+wallOnlySectionMove = [10,chipWidth/2,chipCoverHeight-12];
 wallOnlySection = [100,1,50];
 
 if(mode == "sliced"){
@@ -148,6 +152,5 @@ intersection(){
 } else {
 chip_cover();
 }
-
 
 

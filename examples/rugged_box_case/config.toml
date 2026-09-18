@@ -1,0 +1,25 @@
+[openscadgen]
+name = "rugged_box_case"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{part}"
+
+global_params = { }
+
+[[openscadgen.input_paths]]
+path = "./rugged_box_case.scad"
+params = { }
+
+[[openscadgen.instances]]
+params = { part="box", Render_Box=true, Render_Lid=false  }
+
+[[openscadgen.instances]]
+params = { part="lid", Render_Lid=true, Render_Box=false }
+
+[[openscadgen.instances]]
+params = { part="all", Render_Lid=true, Render_Box=true }
+
+[[openscadgen.images]]
+name = "nice"

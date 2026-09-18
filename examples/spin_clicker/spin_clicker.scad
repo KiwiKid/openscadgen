@@ -49,9 +49,9 @@ module screw_holder(){
 }
 
     textSize = 5;
-    textDepth = 6; // Extrusion depth cutting into the wall
+    textDepth = 8; // Extrusion depth cutting into the wall
   //  cylRadius = 43; // Distance from cylinder center to text surface
-    textRadius = 8.7;
+    textRadius = 9.4;
         gap = holderOuterWidth-1; // Distance between cylinder centers
 
 textCutoutLengthOffset = 1.8;
@@ -121,6 +121,7 @@ module textCutout() {
 
 
     sliced(renderType=renderType) {
+  //left_half()
         spin_clicker();
     }
        

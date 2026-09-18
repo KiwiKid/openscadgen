@@ -1,0 +1,16 @@
+[openscadgen]
+name = "holder_with_charger_mount"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}"
+
+global_params = { }
+
+[[openscadgen.input_paths]]
+path = "./holder_with_charger_mount.scad"
+params = { }
+
+[[openscadgen.images]]
+name = "nice"

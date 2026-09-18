@@ -146,6 +146,79 @@ func buildReportImageURL(reportMode string, outputPath string, exportFolderPath 
 	return "file://" + filepath.ToSlash(outputPath)
 }
 
+func diagnosticImagePaths(results []models.GeometryTestResult) []string {
+	paths := make([]string, 0, len(results))
+	seen := make(map[string]bool)
+	for _, result := range results {
+		if result.DiagnosticImagePath != "" && !seen[result.DiagnosticImagePath] {
+			seen[result.DiagnosticImagePath] = true
+			paths = append(paths, result.DiagnosticImagePath)
+		}
+	}
+	return paths
+}
+
+func reportFavicon(config *models.Config, imageResults []models.GenerateImageResult, reportMeta models.ReportMeta) string {
+	label := "OG"
+	if config != nil {
+		base := ""
+		if config.ConfigFile != "" {
+			base = filepath.Base(filepath.Dir(config.ConfigFile))
+		}
+		if base == "" && len(config.GetInputPaths()) > 0 {
+			base = filepath.Base(filepath.Dir(config.GetInputPaths()[0].Path))
+		}
+		base = strings.TrimSpace(base)
+		if base != "" {
+			runes := []rune(base)
+			if len(runes) > 2 {
+				runes = runes[:2]
+			}
+			label = strings.ToUpper(string(runes))
+		}
+		if config.Design.Favicon != "" {
+			faviconPath := config.Design.Favicon
+			if !filepath.IsAbs(faviconPath) && config.ConfigFile != "" {
+				faviconPath = filepath.Join(filepath.Dir(config.ConfigFile), faviconPath)
+			}
+			if data, err := os.ReadFile(faviconPath); err == nil {
+				mime := "image/png"
+				switch strings.ToLower(filepath.Ext(faviconPath)) {
+				case ".jpg", ".jpeg":
+					mime = "image/jpeg"
+				case ".gif":
+					mime = "image/gif"
+				case ".webp":
+					mime = "image/webp"
+				}
+				return faviconSVG("data:"+mime+";base64,"+base64.StdEncoding.EncodeToString(data), "")
+			}
+		}
+	}
+	for _, result := range imageResults {
+		if strings.EqualFold(result.CameraName, "nice") || strings.EqualFold(result.CameraName, "primary") {
+			if data, err := os.ReadFile(result.OutputPath); err == nil {
+				return faviconSVG("data:image/png;base64,"+base64.StdEncoding.EncodeToString(data), "")
+			}
+		}
+	}
+	if len(imageResults) > 0 {
+		if data, err := os.ReadFile(imageResults[0].OutputPath); err == nil {
+			return faviconSVG("data:image/png;base64,"+base64.StdEncoding.EncodeToString(data), "")
+		}
+	}
+	return faviconSVG("", label)
+}
+
+func faviconSVG(imageHref string, label string) string {
+	content := fmt.Sprintf(`<text x="50%%" y="56%%" text-anchor="middle" dominant-baseline="middle" font-family="system-ui,sans-serif" font-size="42" font-weight="700" fill="#fff">%s</text>`, label)
+	if imageHref != "" {
+		content = `<image href="` + imageHref + `" x="10" y="10" width="80" height="80" preserveAspectRatio="xMidYMid slice" clip-path="url(#circle)"/>`
+	}
+	svg := `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><clipPath id="circle"><circle cx="50" cy="50" r="39"/></clipPath></defs><circle cx="50" cy="50" r="48" fill="#27364b"/><circle cx="50" cy="50" r="43" fill="none" stroke="#67d5c5" stroke-width="4"/>` + content + `</svg>`
+	return "data:image/svg+xml;base64," + base64.StdEncoding.EncodeToString([]byte(svg))
+}
+
 // Helper function to sort STL results by name first, then alphabetically
 func sortSTLResults(results []models.GenerateSTLResult) []models.GenerateSTLResult {
 	sorted := make([]models.GenerateSTLResult, len(results))
@@ -189,6 +262,14 @@ func getInstanceAppliedParams(instance models.InstanceConfig) map[string]interfa
 		}
 	}
 	return instance.Params
+}
+
+func getInstanceTestResults(instance models.InstanceConfig) []models.GeometryTestResult {
+	var results []models.GeometryTestResult
+	for _, stlResult := range instance.STLResults {
+		results = append(results, stlResult.Tests...)
+	}
+	return results
 }
 
 func openSCADValue(value interface{}) string {
@@ -596,110 +677,58 @@ func buildPreviewSTLFileUrl(instance models.InstanceConfig, reportMeta models.Re
 	return templ.SafeURL(fmt.Sprintf("file://%s", []byte(instance.InputConfigFilePathRelative)))
 }
 
-templ InstanceSlimRow(instance models.InstanceConfig, outputPath string, reportMode string, allParamNames []string, reportMeta models.ReportMeta) {
-	<div class="is-full-width" id={ fmt.Sprintf("instance-slim-row-%s", instance.UniqueID) }>
-		<details>
-			<summary class="columns">
-				<div class="column is-narrow">
-					{ instance.AutoName }
-				</div>
-				<div class="column is-narrow">
-					{ instance.Description }
-				</div>
-				for _, stlResult := range instance.STLResults {
-					<div class="column is-narrow">
-						{ stlResult.Error }
-					</div>
+func buildOpenSTLFolderURL(instance models.InstanceConfig) templ.SafeURL {
+	outputPath := instance.RunOutputPathV3
+	if !filepath.IsAbs(outputPath) {
+		outputPath = filepath.Join(filepath.Dir(instance.InputConfigFilePath), outputPath)
+	}
+	return templ.SafeURL((&url.URL{Scheme: "file", Path: filepath.Dir(outputPath)}).String())
+}
+
+templ InstanceDetails(instance models.InstanceConfig, outputPath string) {
+	<details class="instance-card-v2__details">
+		<summary>
+			<span class="instance-card-v2__details-title">Render details</span>
+			<span class="instance-card-v2__details-hint">Applied params and command output</span>
+			<i class="fas fa-chevron-down instance-card-v2__details-chevron" aria-hidden="true"></i>
+		</summary>
+		<div class="instance-card-v2__details-panel">
+			<div class="instance-card-v2__detail-meta">
+				if instance.IsComplete {
+					<div><strong>Completed:</strong> { instance.CompletedAt.Format("2006-01-02 15:04") }</div>
 				}
-				<div class="column is-narrow">
-					{ instance.SkippedReason }
-				</div>
-				<div class="column is-narrow">
-					{ instance.ConfigError }
-				</div>
-				<div class="column is-narrow">
-					<i class="fas fa-cog"></i>
-				</div>
-			</summary>
-			<div class="card">
-				<div class="card-content">
-					<div class="media">
-						<div class="media-content">
-							if instance.SkippedReason != "" {
-								<p class="has-text-warning"><strong>Skipped:</strong> { instance.SkippedReason }</p>
-							}
-							if instance.SkippedImageReason != "" {
-								<p class="has-text-warning"><strong>Skipped Image Reason:</strong> { instance.SkippedImageReason }</p>
-							}
-							if instance.ConfigError != "" {
-								<p class="has-text-danger"><strong>Error:</strong> { instance.ConfigError }</p>
-							}
-							<div class="columns is-multiline"></div>
-							@RenderParams(instance.Params) {
-								if instance.SkippedReason != "" {
-									<p class="has-text-warning"><strong>Skipped:</strong> { instance.SkippedReason }</p>
-								}
-								<div class="fixed-grid has-4-cols">
-									<div class="grid is-multiline">
-										for _, paramName := range allParamNames {
-											if value, ok := instance.Params[paramName]; ok {
-												<div class="cell is-one-third"><strong>{ paramName }:</strong> { fmt.Sprintf("%v", value) }</div>
-											}
-										}
-									</div>
-								</div>
-							}
-							<details>
-								<summary>
-									Command Output
-								</summary>
-								if instance.STLResults != nil && len(instance.STLResults) > 0 {
-									for _, stlResult := range instance.STLResults {
-										/*    @RenderParams(stlResult.AppliedParams)*/
-										<details>
-											if stlResult.Error != "" {
-												<summary class="has-text-danger">{ stlResult.InstanceConfig.AutoName }: { stlResult.Error }</summary>
-											} else {
-												<summary class="has-text-success">[{ formatDuration(stlResult.TimeTaken) }] - { stlResult.InstanceConfig.AutoName } </summary>
-											}
-											@CodeBlock(stlResult.Command, true, false, "Copy Command")
-										</details>
-										@CodeBlock(stlResult.OutputLog, true, false, "Copy Command Output")
-									}
-								} else {
-									<p>No STL results</p>
-								}
-								/*if instance.ImageResults != nil && len(instance.ImageResults) > 0 {
-
-                                    <div class="columns">
-                                for _, imageResult := range instance.ImageResults {
-                                    <div class="column is-narrow">
-                                        if reportMeta.IsServerMode {
-											<img src={ buildReportImageURL(reportMode, imageResult.OutputPath, outputPath, reportMeta.ServerFolder, instanceImageVersion(imageResult.InstanceConfig)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, imageResult.CameraName) } class="image-preview" />
-                                        }else {
-											<img src={ buildReportImageURL(reportMode, imageResult.OutputPath, outputPath, reportMeta.ServerFolder, instanceImageVersion(imageResult.InstanceConfig)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, imageResult.CameraName) } class="image-preview" />
-                                        }
-                                    </div>
-                                }
-                                </div>
-
-                                
-                                for _, imageResult := range instance.ImageResults {
-                                    @CodeBlock(imageResult.CommandOutput, true, false)
-                                    @RenderParams(imageResult.AppliedParams)
-                                }
-                            } else if instance.SkippedImageReason != "" {
-                                <p class="has-text-warning"><strong>Skipped Image Reason:</strong> { instance.SkippedImageReason }</p>
-                            } else {
-                                <p>No image results</p>
-                            }*/
-							</details>
-						</div>
-					</div>
-				</div>
+				<div><strong>Output file:</strong> { getRelativePath(instance.RunOutputPathV3, outputPath) }</div>
+				if instance.SkippedReason != "" {
+					<div class="has-text-warning"><strong>Skipped:</strong> { instance.SkippedReason }</div>
+				}
 			</div>
-		</details>
-	</div>
+			@RenderParams(getInstanceAppliedParams(instance))
+			if len(instance.STLResults) > 0 {
+				<details class="instance-card-v2__command-output">
+					<summary>Command output</summary>
+					<div class="instance-card-v2__command-output-panel">
+						for _, stlResult := range instance.STLResults {
+							<details>
+								if stlResult.Error != "" {
+									<summary class="has-text-danger">{ stlResult.InstanceConfig.AutoName }: { stlResult.Error }</summary>
+								} else {
+									<summary>{ stlResult.InstanceConfig.AutoName } ({ formatDuration(stlResult.TimeTaken) })</summary>
+								}
+								if stlResult.Command != "" {
+									<p class="instance-card-v2__detail-label">OpenSCAD command</p>
+									@CodeBlock(stlResult.Command, true, false, "Copy Command")
+								}
+								if outputLog := getSTLErrorLog(stlResult); outputLog != "" {
+									<p class="instance-card-v2__detail-label">Command output</p>
+									@CodeBlock(outputLog, true, false, "Copy Command Output")
+								}
+							</details>
+						}
+					</div>
+				</details>
+			}
+		</div>
+	</details>
 }
 
 templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMode string, allParamNames []string, reportMeta models.ReportMeta) {
@@ -751,6 +780,17 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
 	>
 		<div class="card instance-card-v2">
 			<div class="card-content instance-card-v2__inner">
+				<div class="instance-card-v2__thumb">
+					if len(instance.ImageResults) > 0 {
+						for _, images := range instance.ImageResults {
+							<img src={ buildReportImageURL(reportMode, images.OutputPath, outputPath, reportMeta.ServerFolder, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview"/>
+						}
+					} else if len(instance.ExportImages) > 0 {
+						for _, images := range instance.ExportImages {
+							<img src={ buildReportImageURL(reportMode, images.RunOutputImagePath, outputPath, reportMeta.ServerFolder, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview"/>
+						}
+					}
+				</div>
 				<div class="instance-card-v2__body">
 					<div class="media instance-card-v2__head">
 						<div class="media-content">
@@ -761,16 +801,27 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
 						</div>
 					</div>
 					<div class="content instance-card-v2__meta">
-						if instance.IsComplete {
-							<p class="has-text-success instance-card-v2__line"><i class="fas fa-check-circle"></i> { instance.CompletedAt.Format("15:04") } { instance.CompletedAt.Format("2006-01-02") }</p>
-						}
-						if instance.SkippedReason != "" {
-							<p class="has-text-warning instance-card-v2__line"><strong>Skipped:</strong> { instance.SkippedReason }</p>
+						if testResults := getInstanceTestResults(instance); len(testResults) > 0 {
+							<div class="tags mb-2" aria-label="Test results">
+								for _, testResult := range testResults {
+									if testResult.Passed {
+										<a class="tag is-success is-light" href={ fmt.Sprintf("#instance-%s", instance.UniqueID) } title={ fmt.Sprintf("View %s test results for %s", testResult.Type, instance.AutoName) }>{ testResult.Type } passed</a>
+									} else {
+										<a class="tag is-danger is-light" href={ fmt.Sprintf("#instance-%s", instance.UniqueID) } title={ testResult.Message }>{ testResult.Type } failed</a>
+									}
+								}
+							</div>
 						}
 						if instance.SkippedImageReason != "" {
-							<p class="has-text-warning instance-card-v2__line"><strong>Image:</strong> { instance.SkippedImageReason }</p>
+							<details class="instance-card-v2__warning">
+								<summary
+									class="has-text-warning"
+									title={ instance.SkippedImageReason }
+									aria-label={ instance.SkippedImageReason }
+								><i class="fas fa-exclamation-triangle" aria-hidden="true"></i></summary>
+								<div class="instance-card-v2__warning-panel">{ instance.SkippedImageReason }</div>
+							</details>
 						}
-						<p class="instance-card-v2__line instance-card-v2__path"><span class="has-text-weight-semibold">Output:</span> { getRelativePath(instance.RunOutputPathV3, outputPath) }</p>
 						if instance.ConfigError != "" {
 							if failedSTLResults := getFailedSTLResults(instance); len(failedSTLResults) > 0 {
 								<details class="instance-card-v2__error-details">
@@ -798,28 +849,9 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
 						}
 					</div>
 				</div>
-				<div class="instance-card-v2__thumb">
-					if len(instance.ImageResults) > 0 {
-						for _, images := range instance.ImageResults {
-							if reportMeta.IsServerMode {
-								<img src={ buildReportImageURL(reportMode, images.OutputPath, outputPath, reportMeta.ServerFolder, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview"/>
-							} else {
-								<img src={ buildReportImageURL(reportMode, images.OutputPath, outputPath, reportMeta.ServerFolder, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview"/>
-							}
-						}
-					} else if len(instance.ExportImages) > 0 {
-						for _, images := range instance.ExportImages {
-							if reportMeta.IsServerMode {
-								<img src={ buildReportImageURL(reportMode, images.RunOutputImagePath, outputPath, reportMeta.ServerFolder, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview"/>
-							} else {
-								<img src={ buildReportImageURL(reportMode, images.RunOutputImagePath, outputPath, reportMeta.ServerFolder, instanceImageVersion(instance)) } alt={ fmt.Sprintf("Preview of %s from %s", instance.Name, images.CameraName) } class="image-preview"/>
-							}
-						}
-					}
-				</div>
 				if instance.IsComplete {
 					<div class="instance-card-v2__extras">
-						@InstanceSlimRow(instance, outputPath, reportMode, allParamNames, reportMeta)
+						@InstanceDetails(instance, outputPath)
 					</div>
 				}
 				<div class="instance-card-v2__actions">
@@ -832,6 +864,7 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
 					>Copy params</button>
 					if reportMeta.IsServerMode {
 						<a class="button is-small is-light" href={ buildPreviewSTLFileUrl(instance, reportMeta) } target="_blank">Open STL</a>
+						<a class="button is-small is-light" href={ buildOpenSTLFolderURL(instance) } target="_blank">Open Folder</a>
 					}
 					if reportMeta.IsServerMode {
 						<a class="button is-small is-light" href={ buildPreviewSTLURL(instance, reportMeta) } target="_blank">Preview STL</a>
@@ -842,6 +875,7 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
 							data-og-process-form="instance"
 							hx-put="/"
 							hx-target="#process-status"
+							hx-indicator="find [data-og-process-indicator]"
 							hx-on::before-request="window.ogMarkProcessButtonLoading(this)"
 						>
 							<input type="hidden" name="config_path" value={ reportMeta.ConfigFilePathEncoded }/>
@@ -951,6 +985,7 @@ templ InstanceRowV3(instance models.InstanceConfig, outputPath string, reportMod
 					data-og-process-form="instance"
 					hx-put="/"
 					hx-target="#process-status"
+					hx-indicator="find [data-og-process-indicator]"
 					hx-on::before-request="window.ogMarkProcessButtonLoading(this)"
 				>
 					<input type="hidden" name="config_path" value={ reportMeta.ConfigFilePathEncoded }/>
@@ -1158,6 +1193,7 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
 					OpenSCAD Generation Report
 				}
 			</title>
+			<link rel="icon" type="image/svg+xml" href={ reportFavicon(config, imageResults, reportMeta) }/>
 			@HeadLinks()
 			<script>
         function alpineReportData() {
@@ -1446,6 +1482,10 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
                 document.querySelector('form[data-og-process-form="slim"]');
         }
 
+        function ogIsPrimaryProcessForm(formEl) {
+            return formEl && (formEl.dataset.ogProcessForm === 'full' || formEl.dataset.ogProcessForm === 'slim');
+        }
+
         function ogApplyPendingProcess(formEl, fields) {
             if (!formEl || !fields) {
                 return;
@@ -1511,20 +1551,29 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
             if (!formEl) {
                 return;
             }
-            ogRememberPendingProcess(formEl);
+            // Only the page-level form can be safely replayed after an
+            // HX-Redirect. Replaying an instance form into that form changes
+            // a one-instance job into a page-level job and can cause a
+            // redirect/retry flicker loop.
+            if (ogIsPrimaryProcessForm(formEl)) {
+                ogRememberPendingProcess(formEl);
+            }
             const submitButton = formEl.querySelector('[data-og-process-submit]');
             const cancelButton = formEl.querySelector('[data-og-process-cancel]');
             if (!submitButton || !cancelButton) {
                 return;
             }
-            submitButton.classList.add('is-hidden');
-            submitButton.classList.add('og-process-button--loading');
+            formEl.querySelectorAll('[data-og-process-submit]').forEach((button) => {
+                button.disabled = true;
+                button.classList.add('og-process-button--loading');
+            });
             cancelButton.classList.remove('is-hidden');
             cancelButton.disabled = false;
             formEl.dataset.ogProcessState = 'loading';
             const indicator = formEl.querySelector('[data-og-process-indicator]');
             if (indicator) {
                 indicator.classList.remove('og-process-indicator--failed');
+                indicator.classList.add('og-process-indicator--active');
                 const text = indicator.querySelector('.og-process-indicator__text');
                 if (text) {
                     text.textContent = 'Processing...';
@@ -1552,6 +1601,7 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
             formEl.dataset.ogProcessState = 'failed';
             const indicator = formEl.querySelector('[data-og-process-indicator]');
             if (indicator) {
+                indicator.classList.remove('og-process-indicator--active');
                 indicator.classList.add('og-process-indicator--failed');
                 const text = indicator.querySelector('.og-process-indicator__text');
                 if (text) {
@@ -1564,15 +1614,19 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
             const scope = root && typeof root.querySelectorAll === 'function' ? root : document;
             scope.querySelectorAll('.og-process-button--loading').forEach((button) => {
                 button.classList.remove('og-process-button--loading');
-                button.removeAttribute('aria-busy');
-            });
-            scope.querySelectorAll('[data-og-process-cancel]').forEach((button) => {
-                button.classList.add('is-hidden');
                 button.disabled = false;
                 button.removeAttribute('aria-busy');
             });
-            scope.querySelectorAll('[data-og-process-submit]').forEach((button) => {
+            scope.querySelectorAll('[data-og-process-cancel]').forEach((button) => {
                 button.classList.remove('is-hidden');
+                button.disabled = true;
+                button.removeAttribute('aria-busy');
+            });
+            scope.querySelectorAll('[data-og-process-indicator]').forEach((indicator) => {
+                indicator.classList.remove('og-process-indicator--active');
+            });
+            scope.querySelectorAll('[data-og-process-submit]').forEach((button) => {
+                button.disabled = false;
             });
         }
 
@@ -1588,9 +1642,13 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
                 submitButton.removeAttribute('aria-busy');
             }
             if (cancelButton) {
-                cancelButton.classList.add('is-hidden');
-                cancelButton.disabled = false;
+                cancelButton.classList.remove('is-hidden');
+                cancelButton.disabled = true;
                 cancelButton.onclick = null;
+            }
+            const indicator = formEl.querySelector('[data-og-process-indicator]');
+            if (indicator) {
+                indicator.classList.remove('og-process-indicator--active');
             }
         }
 
@@ -1623,8 +1681,9 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
                 ogClearPendingProcess();
                 return;
             }
+            // A successful PUT only means the job was queued. Keep every
+            // process action disabled until progress reports completion.
             ogClearPendingProcess();
-            ogClearProcessButtonLoading(formEl);
         });
 
         document.addEventListener('htmx:responseError', function(evt) {
@@ -1720,6 +1779,7 @@ html, body {
                     --hover-bg: #23272e;
                     --error-color: #ff6f6f;
                     --success-color: #4caf50;
+                    color-scheme: dark;
                     color: var(--text-color) !important;
                 }
 
@@ -1742,6 +1802,28 @@ html, body {
                     padding: 20px;
                     background-color: var(--bg-color);
                     color: var(--text-color);
+                }
+                .config-summary {
+                    width: 100%;
+                    margin-top: 1.5rem;
+                    border-top: 1px solid var(--border-color);
+                    background: var(--card-bg);
+                }
+                .config-summary details {
+                    width: min(1200px, 100%);
+                    margin: 0 auto;
+                    padding: 0.75rem 1.25rem;
+                }
+                .config-summary summary {
+                    color: var(--text-color);
+                    font-size: 0.875rem;
+                }
+                .config-summary__body {
+                    padding-top: 0.75rem;
+                }
+                .config-summary__body h2 {
+                    margin: 1rem 0 0.5rem;
+                    font-size: 1rem;
                 }
                 .global-header {
                     position: sticky;
@@ -1787,6 +1869,32 @@ html, body {
                 }
                 .global-header__tabs {
                     width: 100%;
+                }
+                .og-report-layout {
+                    display: grid;
+                    grid-template-columns: minmax(0, 1fr) 220px;
+                    gap: 1.25rem;
+                    max-width: 1440px;
+                    margin: 0 auto;
+                    padding: 1rem;
+                }
+                .og-report-main { min-width: 0; }
+                .og-report-sidebar { position: sticky; top: 1rem; align-self: start; }
+                .og-report-sidebar .menu {
+                    background: var(--card-bg);
+                    border: 1px solid var(--border-color);
+                    border-radius: 6px;
+                    padding: 0.75rem;
+                }
+                .og-report-sidebar .menu-list a { color: var(--text-color); cursor: pointer; }
+                .og-report-sidebar .menu-list a.is-active { background: var(--accent-color); color: white; }
+                .og-breadcrumbs { margin-bottom: 0.75rem; }
+                .og-breadcrumbs a { cursor: pointer; }
+                @media (max-width: 900px) {
+                    .og-report-layout { display: block; padding: 0.75rem; }
+                    .og-report-sidebar { position: static; margin-bottom: 1rem; }
+                    .og-report-sidebar .menu-list { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+                    .og-report-sidebar .menu-list li { margin: 0; }
                 }
                 .global-header__advanced {
                     width: 100%;
@@ -1971,6 +2079,12 @@ html, body {
                     color: var(--error-color);
                     font-size: 0.9em;
                 }
+                .og-process-inline-indicator.og-process-indicator--active {
+                    display: inline-flex !important;
+                    align-items: center;
+                    gap: 0.35rem;
+                    font-size: 0.9em;
+                }
                 /* Instance layout modes (static export + server): toggled via og-layout--* on #instances-grid */
                 #instances-grid.og-layout--grid.columns.is-multiline {
                     display: flex;
@@ -2007,6 +2121,14 @@ html, body {
                     flex-wrap: wrap;
                     gap: 0.35rem;
                     align-items: center;
+                    width: 100%;
+                }
+                .instance-card-v2__thumb .image-preview {
+                    width: 100%;
+                    max-width: 100%;
+                    max-height: 320px;
+                    object-fit: contain;
+                    background: var(--card-bg);
                 }
                 .instance-card-v2__actions {
                     display: flex;
@@ -2016,6 +2138,33 @@ html, body {
                 }
                 .instance-card-v2__error-details {
                     margin: 0;
+                }
+                .instance-card-v2__warning {
+                    display: inline-block;
+                    position: relative;
+                    margin: 0;
+                }
+                .instance-card-v2__warning > summary {
+                    cursor: pointer;
+                    list-style: none;
+                }
+                .instance-card-v2__warning > summary::-webkit-details-marker {
+                    display: none;
+                }
+                .instance-card-v2__warning-panel {
+                    position: absolute;
+                    z-index: 2;
+                    top: calc(100% + 0.35rem);
+                    left: 0;
+                    min-width: 16rem;
+                    max-width: min(32rem, 80vw);
+                    padding: 0.5rem 0.65rem;
+                    border-radius: 0.25rem;
+                    background: var(--bulma-scheme-main, #fff);
+                    box-shadow: 0 0.25rem 0.75rem rgb(10 10 10 / 20%);
+                    color: var(--bulma-text, #363636);
+                    font-size: 0.8rem;
+                    line-height: 1.35;
                 }
                 .instance-card-v2__error-summary {
                     cursor: pointer;
@@ -2033,6 +2182,74 @@ html, body {
                     font-weight: 600;
                     margin-bottom: 0.2rem;
                 }
+                .instance-card-v2__extras {
+                    width: 100%;
+                }
+                .instance-card-v2__details {
+                    width: 100%;
+                    border: 1px solid var(--border-color);
+                    border-radius: 0.4rem;
+                    background: var(--hover-bg);
+                    overflow: hidden;
+                }
+                .instance-card-v2__details > summary {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.6rem;
+                    width: 100%;
+                    padding: 0.7rem 0.85rem;
+                    color: var(--text-color);
+                    cursor: pointer;
+                    list-style: none;
+                }
+                .instance-card-v2__details > summary::-webkit-details-marker {
+                    display: none;
+                }
+                .instance-card-v2__details-title {
+                    font-weight: 600;
+                }
+                .instance-card-v2__details-hint {
+                    color: var(--text-color);
+                    font-size: 0.82rem;
+                    opacity: 0.7;
+                }
+                .instance-card-v2__details-chevron {
+                    margin-left: auto;
+                    transition: transform 0.15s ease;
+                }
+                .instance-card-v2__details[open] .instance-card-v2__details-chevron {
+                    transform: rotate(180deg);
+                }
+                .instance-card-v2__details-panel {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.75rem;
+                    padding: 0.85rem;
+                    border-top: 1px solid var(--border-color);
+                    background: var(--card-bg);
+                }
+                .instance-card-v2__detail-meta {
+                    display: grid;
+                    gap: 0.3rem;
+                    font-size: 0.9rem;
+                }
+                .instance-card-v2__details .code-block {
+                    margin: 0;
+                }
+                .instance-card-v2__command-output > summary {
+                    font-weight: 600;
+                }
+                .instance-card-v2__command-output-panel {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.6rem;
+                    margin-top: 0.6rem;
+                }
+                .instance-card-v2__detail-label {
+                    margin: 0.6rem 0 0.2rem;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                }
                 #instances-grid.og-layout--list .instance-card-v2 {
                     margin-bottom: 0.2rem;
                 }
@@ -2047,7 +2264,8 @@ html, body {
                 }
                 #instances-grid.og-layout--list .instance-card-v2__thumb {
                     order: 1;
-                    flex: 0 0 auto;
+                    flex: 0 0 160px;
+                    width: 160px;
                     margin: 0 !important;
                 }
                 #instances-grid.og-layout--list .instance-card-v2__body {
@@ -2066,7 +2284,8 @@ html, body {
                     gap: 0.3rem;
                 }
                 #instances-grid.og-layout--list .instance-card-v2__extras {
-                    display: none !important;
+                    order: 4;
+                    flex: 0 0 100%;
                 }
                 #instances-grid.og-layout--list .instance-card-v2__head.media {
                     margin-bottom: 0 !important;
@@ -2100,14 +2319,16 @@ html, body {
                     max-width: 100%;
                 }
                 #instances-grid.og-layout--list .instance-card-v2__thumb .image-preview {
-                    max-width: 40px !important;
-                    max-height: 40px !important;
+                    width: 160px;
+                    max-width: 100% !important;
+                    max-height: 120px !important;
                 }
                 #instances-grid.og-layout--large > .column {
                     flex: none;
                     width: 100%;
                 }
-                #instances-grid.og-layout--large .image-preview {
+                #instances-grid.og-layout--large .instance-card-v2__thumb .image-preview {
+                    width: 100%;
                     max-width: 100%;
                     max-height: min(75vh, 720px);
                 }
@@ -2116,13 +2337,43 @@ html, body {
                     font-style: italic;
                     font-size: 0.9em;
                 }
-                /* Bulma default .button is light grey bg + dark text; forcing --text-color
-                   without fixing bg makes dark mode nearly white-on-white. */
+                /* Bulma default buttons are light grey with dark text. In dark mode,
+                   keep every non-semantic button on the report palette. */
                 .button {
                     border: 1px solid var(--border-color) !important;
+                    font-size: 1.125rem;
+                    min-height: 2.75rem;
+                    padding: 0.5rem 1rem;
                 }
-                .dark .button:not(.is-primary):not(.is-link):not(.is-info):not(.is-success):not(.is-warning):not(.is-danger):not(.is-light):not(.is-dark):not(.is-white):not(.is-black):not(.is-text):not(.is-ghost) {
+                .button.is-small {
+                    font-size: 1rem;
+                    min-height: 2.5rem;
+                    padding: 0.4rem 0.8rem;
+                }
+                .button.is-large {
+                    font-size: 1.5rem;
+                    min-height: 3.25rem;
+                    padding: 0.65rem 1.25rem;
+                }
+                .dark .button:not(.is-primary):not(.is-link):not(.is-info):not(.is-success):not(.is-warning):not(.is-danger):not(.is-dark):not(.is-white):not(.is-black):not(.is-text):not(.is-ghost) {
                     background-color: var(--card-bg) !important;
+                    color: var(--text-color) !important;
+                }
+                .dark .input,
+                .dark .textarea,
+                .dark .select select {
+                    background-color: var(--card-bg) !important;
+                    border-color: var(--border-color) !important;
+                    color: var(--text-color) !important;
+                }
+                .dark .input::placeholder,
+                .dark .textarea::placeholder {
+                    color: var(--text-color) !important;
+                    opacity: 0.65;
+                }
+                .dark .checkbox,
+                .dark .radio,
+                .dark .label {
                     color: var(--text-color) !important;
                 }
                 pre, code {
@@ -2331,9 +2582,9 @@ html, body {
                 }
                 
                 .bottom-nav-toggle {
-                    background: none;
-                    border: none;
-                    color: var(--text-color);
+                    background-color: var(--card-bg);
+                    border: 1px solid var(--border-color);
+                    color: var(--text-color) !important;
                     font-size: 1.5rem;
                     cursor: pointer;
                     padding: 0.5rem;
@@ -2342,10 +2593,16 @@ html, body {
                 
                 .bottom-nav-toggle:hover {
                     transform: scale(1.1);
+                    background-color: var(--hover-bg);
                 }
                 
                 .bottom-nav-toggle .icon {
+                    color: inherit;
                     transition: transform 0.3s ease;
+                }
+
+                .bottom-nav-toggle .icon i {
+                    color: inherit;
                 }
                 
                 .bottom-nav.expanded .bottom-nav-toggle .icon {
@@ -2404,11 +2661,6 @@ html, body {
 									<li class="nav-item">
 										<a class="nav-link" hx-get={ templ.SafeURL(fmt.Sprintf("/api/config?config_path=%s&server_folder=%s", reportMeta.ConfigFilePathEncoded, reportMeta.ServerFolderEncoded)) } hx-target="#main-content" hx-swap="innerHTML" hx-push-url="true">Edit Config</a>
 									</li>
-									for _, sourcePath := range configuredOpenSCADPaths(config) {
-										<li class="nav-item">
-											<button class="button is-small is-link is-light" hx-post={ templ.SafeURL(openInOpenSCADURL(sourcePath, reportMeta)) } hx-target="#report-alerts" hx-swap="beforeend">Open { filepath.Base(sourcePath) }</button>
-										</li>
-									}
 									if reportMeta.ShowAI {
 										<li class="nav-item">
 											<a class="nav-link" hx-get={ templ.SafeURL(fmt.Sprintf("/chat?config=%s&server_folder=%s", url.QueryEscape(reportMeta.ConfigFilePathEncoded), url.QueryEscape(reportMeta.ServerFolderEncoded))) } hx-target="#main-content" hx-swap="innerHTML" hx-push-url="true">AI Chat</a>
@@ -2507,180 +2759,204 @@ html, body {
 					</div>
 				</nav>
 			</div>
-			<div class="container-fluid" id="main-content">
-				<!-- Main Content -->
-				<div class="container">
-					<div id="report-alerts">
-						if msg != nil {
-							@msg
+			<div class="og-report-layout" id="main-content">
+				<main class="og-report-main">
+					<nav class="breadcrumb og-breadcrumbs" aria-label="breadcrumbs">
+						<ul>
+							<li><a @click.prevent="navSelected = 'instances'; document.getElementById('section-instances')?.scrollIntoView({behavior: 'smooth'})">{ config.Design.Name }</a></li>
+							<li class="is-active"><a>Instances</a></li>
+						</ul>
+					</nav>
+					<!-- Main Content -->
+					<div class="container">
+						<div id="report-alerts">
+							if msg != nil {
+								@msg
+							}
+						</div>
+						if len(config.Design.Description) > 0 {
+							<pre style="white-space: pre-line">{ config.Design.Description }</pre>
 						}
-					</div>
-					if len(config.Design.Description) > 0 {
-						<pre style="white-space: pre-line">{ config.Design.Description }</pre>
-					}
-					if reportMeta.IsServerMode {
-						for _, sourcePath := range configuredOpenSCADPaths(config) {
-							<div class="is-flex is-align-items-center mb-2" style="gap:0.5rem;">
-								<span class="has-text-weight-semibold">{ sourcePath }</span>
-								<button class="button is-small is-link is-light" hx-post={ templ.SafeURL(openInOpenSCADURL(sourcePath, reportMeta)) } hx-target="#report-alerts" hx-swap="beforeend">Open in OpenSCAD</button>
-							</div>
+						if reportMeta.IsServerMode {
+							for _, sourcePath := range configuredOpenSCADPaths(config) {
+								<div class="is-flex is-align-items-center mb-2" style="gap:0.5rem;">
+									<span class="has-text-weight-semibold">{ sourcePath }</span>
+									<button class="button is-small is-link is-light" hx-post={ templ.SafeURL(openInOpenSCADURL(sourcePath, reportMeta)) } hx-target="#report-alerts" hx-swap="beforeend">Open in OpenSCAD</button>
+								</div>
+							}
 						}
-					}
-					@Collapsable(fmt.Sprintf("Instances (%d)", len(instances)), "instances", false, true) {
-						if len(instances) > 0 {
-							<div class="field is-grouped is-grouped-multiline mb-3 og-instance-toolbar" style="align-items: flex-end;">
-								<div class="control">
-									<label class="label">Layout</label>
-									<div class="buttons has-addons">
-										<button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'list'}" @click="instanceLayout = 'list'">List</button>
-										<button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'grid'}" @click="instanceLayout = 'grid'">Grid</button>
-										<button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'large'}" @click="instanceLayout = 'large'">Large</button>
+						@Collapsable(fmt.Sprintf("Instances (%d)", len(instances)), "instances", false, true) {
+							if len(instances) > 0 {
+								<div class="field is-grouped is-grouped-multiline mb-3 og-instance-toolbar" style="align-items: flex-end;">
+									<div class="control">
+										<label class="label">Layout</label>
+										<div class="buttons has-addons">
+											<button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'list'}" @click="instanceLayout = 'list'">List</button>
+											<button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'grid'}" @click="instanceLayout = 'grid'">Grid</button>
+											<button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'large'}" @click="instanceLayout = 'large'">Large</button>
+										</div>
 									</div>
 								</div>
-							</div>
-							<div id="instances-grid" class="columns is-multiline" :class="'og-layout--' + instanceLayout">
-								for _, instance := range instances {
-									@InstanceCardV2(instance, outputPath, reportMode, allParamNames, reportMeta)
-								}
-							</div>
-						} else {
-							<div class="is-danger">No Instances Generated</div>
+								<div id="instances-grid" class="columns is-multiline" :class="'og-layout--' + instanceLayout">
+									for _, instance := range instances {
+										@InstanceCardV2(instance, outputPath, reportMode, allParamNames, reportMeta)
+									}
+								</div>
+							} else {
+								<div class="is-danger">No Instances Generated</div>
+							}
+							<div class="my-2"></div>
 						}
-						<div class="my-2"></div>
-					}
-					@Collapsable(fmt.Sprintf("STLs (%d)", len(stlResults)), "stlResults", false, true) {
-						@JSONViewerWithStyle("STLs", stlResults)
-						if len(stlResults) > 0 {
-							<div class="columns is-multiline">
-								for _, stlResult := range sortSTLResults(stlResults) {
-									<div class="column is-full">
-										<div class="card">
-											<div class="card-content">
-												<div class="media">
-													<div class="media-content">
-														<p class="title is-4">{ stlResult.InstanceConfig.AutoName }</p>
-														if stlResult.Error != "" {
-															<p class="subtitle is-6 has-text-danger">{ stlResult.Error }</p>
-														} else {
-															<p class="subtitle is-6">Generated successfully</p>
-														}
-													</div>
-												</div>
-												<div class="content">
-													<p><strong>Time Taken:</strong> { fmt.Sprintf("%v", stlResult.TimeTaken) }</p>
-													if reportMeta.IsServerMode {
-														<p><strong>Output:</strong> <a href={ buildPreviewSTLURL(stlResult.InstanceConfig, reportMeta) } target="_blank">Preview STL</a></p>
-													}
-													if len(stlResult.AppliedParams) > 0 {
-														<p><strong>Applied Params 1:</strong></p>
-														@RenderParams(stlResult.AppliedParams)
-													} else {
-														<p><strong>Instance Params:</strong></p>
-														@CodeBlock(fmt.Sprintf("%v", stlResult.InstanceConfig.Params), true, false, "Copy Params")
-													}
-													<div x-show="showDebug">
-														<details>
-															<summary>Debug Info</summary>
-															<details>
-																<summary>Command</summary>
-																@CodeBlock(stlResult.Command, true, false, "Copy Command")
-															</details>
-															if stlResult.CommandOutput != "" {
-																<details>
-																	<summary>Command Output</summary>
-																	@CodeBlock(stlResult.CommandOutput, true, false, "Copy Command Output")
-																</details>
+						@Collapsable(fmt.Sprintf("STLs (%d)", len(stlResults)), "stlResults", false, true) {
+							@JSONViewerWithStyle("STLs", stlResults)
+							if len(stlResults) > 0 {
+								<div class="columns is-multiline">
+									for _, stlResult := range sortSTLResults(stlResults) {
+										<div class="column is-full">
+											<div class="card">
+												<div class="card-content">
+													<div class="media">
+														<div class="media-content">
+															<p class="title is-4">{ stlResult.InstanceConfig.AutoName }</p>
+															if stlResult.Error != "" {
+																<p class="subtitle is-6 has-text-danger">{ stlResult.Error }</p>
+															} else {
+																<p class="subtitle is-6">Generated successfully</p>
 															}
-														</details>
+														</div>
+													</div>
+													<div class="content">
+														<p><strong>Time Taken:</strong> { fmt.Sprintf("%v", stlResult.TimeTaken) }</p>
+														if reportMeta.IsServerMode {
+															<p><strong>Output:</strong> <a href={ buildPreviewSTLURL(stlResult.InstanceConfig, reportMeta) } target="_blank">Preview STL</a></p>
+														}
+														if len(stlResult.AppliedParams) > 0 {
+															<p><strong>Applied Params 1:</strong></p>
+															@RenderParams(stlResult.AppliedParams)
+														} else {
+															<p><strong>Instance Params:</strong></p>
+															@CodeBlock(fmt.Sprintf("%v", stlResult.InstanceConfig.Params), true, false, "Copy Params")
+														}
+														<div x-show="showDebug">
+															<details>
+																<summary>Debug Info</summary>
+																<details>
+																	<summary>Command</summary>
+																	@CodeBlock(stlResult.Command, true, false, "Copy Command")
+																</details>
+																if stlResult.CommandOutput != "" {
+																	<details>
+																		<summary>Command Output</summary>
+																		@CodeBlock(stlResult.CommandOutput, true, false, "Copy Command Output")
+																	</details>
+																}
+															</details>
+														</div>
 													</div>
 												</div>
 											</div>
 										</div>
-									</div>
-								}
-							</div>
-						} else {
-							<details>
-								<summary>No STL Generation Results</summary>
-								<div>
-									if config.RegexPattern != "" {
-										<div class="is-warning">[ Some may be skipped based on provided regex pattern: { config.RegexPattern } ]</div>
 									}
-									if config.MaxInstances > 0 {
-										<div>Max instances: { fmt.Sprintf("%d", config.MaxInstances) } blocked all instances from being generated?</div>
-									}
-									Add stl generation to the config file to generate stl files for each instance:
-									@CodeBlock(`
+								</div>
+							} else {
+								<details>
+									<summary>No STL Generation Results</summary>
+									<div>
+										if config.RegexPattern != "" {
+											<div class="is-warning">[ Some may be skipped based on provided regex pattern: { config.RegexPattern } ]</div>
+										}
+										if config.MaxInstances > 0 {
+											<div>Max instances: { fmt.Sprintf("%d", config.MaxInstances) } blocked all instances from being generated?</div>
+										}
+										Add stl generation to the config file to generate stl files for each instance:
+										@CodeBlock(`
                         [[openscadgen.instances]]
                         name = "default"
                         `, false, false, "Copy Config")
-								</div>
-							</details>
+									</div>
+								</details>
+							}
 						}
-					}
-					if len(imageResults) > 0 {
-						@Collapsable(fmt.Sprintf("Images (%d)", len(imageResults)), "images", false, true) {
-							@JSONViewerWithStyle("Images", imageResults)
-							<div class="columns is-multiline">
-								for _, imageResult := range imageResults {
-									<div class="column is-full">
-										<div class="card">
-											<div class="card-content">
-												<div class="media">
-													<div class="media-content">
-														<p class="title is-4">{ imageResult.InstanceConfig.Name }</p>
-														<p class="subtitle is-6">Camera: { imageResult.CameraName }</p>
-													</div>
-												</div>
-												<div class="content">
-													<p><strong>Output Path:</strong> { getRelativePath(imageResult.OutputPath, outputPath) }</p>
-													<p><strong>Time Taken:</strong> { formatDuration(imageResult.TimeTaken) }</p>
-													<details>
-														<summary>Camera Coordinates</summary>
-														<p>Coordinates: { imageResult.CameraCoords }</p>
-														<div>
-															<p>Format: x,y,z,rotx,roty,rotz,distance</p>
-															<ul>
-																<li>x,y,z: Camera position in 3D space</li>
-																<li>rotx,roty,rotz: Rotation angles in degrees</li>
-																<li>distance: Distance from camera to target point</li>
-															</ul>
+						if len(imageResults) > 0 {
+							@Collapsable(fmt.Sprintf("Images (%d)", len(imageResults)), "images", false, true) {
+								@JSONViewerWithStyle("Images", imageResults)
+								<div class="columns is-multiline">
+									for _, imageResult := range imageResults {
+										<div class="column is-full">
+											<div class="card">
+												<div class="card-content">
+													<div class="media">
+														<div class="media-content">
+															<p class="title is-4">{ imageResult.InstanceConfig.Name }</p>
+															<p class="subtitle is-6">Camera: { imageResult.CameraName }</p>
 														</div>
-														@RenderParams(imageResult.AppliedParams)
-													</details>
-													if imageResult.Error == "" {
-														<img
-															src={ buildReportImageURL(reportMode, imageResult.OutputPath, outputPath, reportMeta.ServerFolder, instanceImageVersion(imageResult.InstanceConfig)) }
-															alt={ fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName) }
-															class="image-preview"
-															onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"
-														/>
-														<div class="image-error" style="display: none;">Image failed to load: { buildReportImageURL(reportMode, imageResult.OutputPath, outputPath, reportMeta.ServerFolder, instanceImageVersion(imageResult.InstanceConfig)) }</div>
-													} else {
-														<span class="tag is-danger">Failed: { imageResult.Error }</span>
-													}
-													<details>
-														<summary>Command</summary>
-														@CodeBlock(imageResult.Command, true, false, "Copy Command")
-													</details>
-													if imageResult.CommandOutput != "" {
+													</div>
+													<div class="content">
+														<p><strong>Output Path:</strong> { getRelativePath(imageResult.OutputPath, outputPath) }</p>
+														<p><strong>Time Taken:</strong> { formatDuration(imageResult.TimeTaken) }</p>
+														if len(imageResult.Tests) > 0 {
+															<div class="mb-3" aria-label="Image test results">
+																<p class="has-text-weight-semibold">Image tests</p>
+																<div class="tags">
+																	for _, testResult := range imageResult.Tests {
+																		if testResult.Passed {
+																			<span class="tag is-success is-light">{ testResult.Type } passed: { testResult.Message }</span>
+																		} else {
+																			<span class="tag is-danger is-light">{ testResult.Type } failed: { testResult.Message }</span>
+																		}
+																	}
+																</div>
+																for _, diagnosticPath := range diagnosticImagePaths(imageResult.Tests) {
+																	<img src={ buildReportImageURL(reportMode, diagnosticPath, outputPath, reportMeta.ServerFolder, instanceImageVersion(imageResult.InstanceConfig)) } alt={ fmt.Sprintf("Colour-in-bounding-box test result for %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName) } class="image-preview mt-2"/>
+																}
+															</div>
+														}
 														<details>
-															<summary>Command Output</summary>
-															@CodeBlock(imageResult.CommandOutput, true, false, "Copy Command Output")
+															<summary>Camera Coordinates</summary>
+															<p>Coordinates: { imageResult.CameraCoords }</p>
+															<div>
+																<p>Format: x,y,z,rotx,roty,rotz,distance</p>
+																<ul>
+																	<li>x,y,z: Camera position in 3D space</li>
+																	<li>rotx,roty,rotz: Rotation angles in degrees</li>
+																	<li>distance: Distance from camera to target point</li>
+																</ul>
+															</div>
+															@RenderParams(imageResult.AppliedParams)
 														</details>
-													}
+														if imageResult.Error == "" {
+															<img
+																src={ buildReportImageURL(reportMode, imageResult.OutputPath, outputPath, reportMeta.ServerFolder, instanceImageVersion(imageResult.InstanceConfig)) }
+																alt={ fmt.Sprintf("Preview of %s from %s", imageResult.InstanceConfig.Name, imageResult.CameraName) }
+																class="image-preview"
+																onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"
+															/>
+															<div class="image-error" style="display: none;">Image failed to load: { buildReportImageURL(reportMode, imageResult.OutputPath, outputPath, reportMeta.ServerFolder, instanceImageVersion(imageResult.InstanceConfig)) }</div>
+														} else {
+															<span class="tag is-danger">Failed: { imageResult.Error }</span>
+														}
+														<details>
+															<summary>Command</summary>
+															@CodeBlock(imageResult.Command, true, false, "Copy Command")
+														</details>
+														if imageResult.CommandOutput != "" {
+															<details>
+																<summary>Command Output</summary>
+																@CodeBlock(imageResult.CommandOutput, true, false, "Copy Command Output")
+															</details>
+														}
+													</div>
 												</div>
 											</div>
 										</div>
-									</div>
-								}
-							</div>
-						}
-					} else {
-						@Collapsable("Images", "images", false, true) {
-							<div>
-								Add export images to the config file to generate images for each instance:
-								@CodeBlock(`
+									}
+								</div>
+							}
+						} else {
+							@Collapsable("Images", "images", false, true) {
+								<div>
+									Add export images to the config file to generate images for each instance:
+									@CodeBlock(`
                         [[openscadgen.images]]
                         name = "nice"
 
@@ -2691,11 +2967,32 @@ html, body {
                         name = "custom"
                         coord = "0,0,0,90,0,0,600"
                         `, false, false, "Copy Config")
-							</div>
+								</div>
+							}
 						}
-					}
-					<div></div>
-				</div>
+						<div></div>
+					</div>
+				</main>
+				<aside class="og-report-sidebar" aria-label="Report navigation">
+					<aside class="menu">
+						<p class="menu-label">Project</p>
+						<ul class="menu-list">
+							<li><a :class="{ 'is-active': navSelected === 'instances' }" @click.prevent="navSelected = 'instances'; document.getElementById('section-instances')?.scrollIntoView({behavior: 'smooth'})">Instances <span>{ fmt.Sprintf("(%d)", len(instances)) }</span></a></li>
+							if reportMode == "complete" {
+								<li><a :class="{ 'is-active': navSelected === 'stlResults' }" @click.prevent="navSelected = 'stlResults'; document.getElementById('section-stlResults')?.scrollIntoView({behavior: 'smooth'})">STLs <span>{ fmt.Sprintf("(%d)", len(stlResults)) }</span></a></li>
+								<li><a :class="{ 'is-active': navSelected === 'images' }" @click.prevent="navSelected = 'images'; document.getElementById('section-images')?.scrollIntoView({behavior: 'smooth'})">Images <span>{ fmt.Sprintf("(%d)", len(imageResults)) }</span></a></li>
+							}
+							<li><a :class="{ 'is-active': navSelected === 'json' }" @click.prevent="navSelected = 'json'; document.getElementById('config-summary')?.scrollIntoView({behavior: 'smooth'})">Config</a></li>
+						</ul>
+						if reportMeta.IsServerMode {
+							<p class="menu-label mt-4">Tools</p>
+							<ul class="menu-list">
+								<li><a hx-get={ templ.SafeURL(fmt.Sprintf("/tools?config=%s&server_folder=%s", reportMeta.ConfigFilePathEncoded, reportMeta.ServerFolderEncoded)) } hx-target="#main-content" hx-push-url="true">Tools</a></li>
+								<li><a hx-get={ templ.SafeURL(fmt.Sprintf("/api/config?config_path=%s&server_folder=%s", reportMeta.ConfigFilePathEncoded, reportMeta.ServerFolderEncoded)) } hx-target="#main-content" hx-push-url="true">Edit config</a></li>
+							</ul>
+						}
+					</aside>
+				</aside>
 				<script>
             
             // window.htmx && (htmx.config.debug = true);
@@ -2720,8 +3017,8 @@ html, body {
                 console.log('htmx:afterOnLoad', evt);
             });
         </script>
-				@ConfigSummary(*config, outputPath, totalTimeTaken)
 			</div>
+			@ConfigSummary(*config, outputPath, totalTimeTaken)
 			if reportMeta.IsServerMode {
 				<nav class="bottom-nav" :class="bottomNavExpanded ? 'expanded' : 'collapsed'">
 					<div class="bottom-nav-header">

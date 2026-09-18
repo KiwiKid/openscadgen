@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install OpenSCAD runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends openscad libegl1 libgl1 libglx0 libopengl0
+
+      - name: Verify templates are formatted and generated
+        run: |
+          go run github.com/a-h/templ/cmd/templ fmt --fail .
+          go run github.com/a-h/templ/cmd/templ generate
+          git diff --exit-code
+
+      - name: Vet, build, and test
+        run: |
+          go vet ./...
+          go build ./...
+          go test ./... -count=1

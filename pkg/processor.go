@@ -127,6 +127,8 @@ var logToMemory bool
 
 var invalidChars = "?'\""
 
+var openSCADParameterNameRE = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
+
 // BurntSushi/toml decode errors include "line N".
 var tomlDecodeLineRE = regexp.MustCompile(`line (\d+)`)
 
@@ -215,7 +217,7 @@ git commit -m "New and improved version"
 git tag "v[NEW_VERSION_HERE]-alpha"
 git push && git push --tags
 */
-const VERSION = "v2.9.0"
+const VERSION = "v2.9.1"
 
 type Version struct {
 	OpenSCADGen string
@@ -294,7 +296,150 @@ func GenerateInstanceConfigs(config *models.Config) ([]models.InstanceConfig, er
 		}
 	}
 
+	for _, imageConfig := range config.Design.ConfiguredImageConfig {
+		inputPath, err := imageInputPath(config, imageConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		instanceName := imageConfig.InstanceName
+		if instanceName == "" {
+			instanceName = "image-" + imageConfig.Name
+		}
+		imageInstanceConfig := models.ConfiguredInstanceConfig{Name: instanceName, ExportNameFormat: imageConfig.ExportNameFormat, Params: imageConfig.Params, ParamSets: imageConfig.ParamSets}
+		imageInstances, _, err := GenerateInstances(config, imageInstanceConfig, inputPath)
+		if err != nil {
+			return nil, fmt.Errorf("generate image %q instance: %w", imageConfig.Name, err)
+		}
+		if len(imageInstances) != 1 {
+			return nil, fmt.Errorf("image %q resolves to %d instances; [[openscadgen.image]] must specify one parameter combination", imageConfig.Name, len(imageInstances))
+		}
+
+		camera := models.ExportCameraCoordinates{CameraName: imageConfig.Name, CameraCoordinates: imageConfig.CameraCoordinates, ImageSize: imageConfig.ImageSize}
+		matches := imageInstanceMatches(instances, imageInstances[0], imageConfig.Params)
+		switch len(matches) {
+		case 0:
+			imageInstances[0].ImageOnly = true
+			imageInstances[0].ExportImages = makePresetReplacement(imageOutputBasePath(config, imageInstances[0], camera), camera)
+			instances = append(instances, imageInstances[0])
+		case 1:
+			instances[matches[0]].ExportImages = append(instances[matches[0]].ExportImages, makePresetReplacement(imageOutputBasePath(config, instances[matches[0]], camera), camera)...)
+		default:
+			return nil, fmt.Errorf("image %q matches %d configured instances; add params that identify one instance", imageConfig.Name, len(matches))
+		}
+	}
+
+	instances, err := appendIsDifferentTestImages(config, instances)
+	if err != nil {
+		return nil, err
+	}
+
 	return instances, nil
+}
+
+func appendIsDifferentTestImages(config *models.Config, instances []models.InstanceConfig) ([]models.InstanceConfig, error) {
+	for testIndex, test := range config.Design.Tests {
+		if !isDifferentTest(test) {
+			continue
+		}
+		if strings.TrimSpace(test.InstanceTarget) == "" {
+			return nil, fmt.Errorf("is-different test requires instance_target")
+		}
+		if strings.TrimSpace(test.Camera) == "" {
+			return nil, fmt.Errorf("is-different test requires camera")
+		}
+
+		var target *models.ConfiguredInstanceConfig
+		for i := range config.Design.ConfiguredInstanceConfig {
+			if config.Design.ConfiguredInstanceConfig[i].Name != test.InstanceTarget {
+				continue
+			}
+			if target != nil {
+				return nil, fmt.Errorf("is-different test instance_target %q is ambiguous", test.InstanceTarget)
+			}
+			target = &config.Design.ConfiguredInstanceConfig[i]
+		}
+		if target == nil {
+			return nil, fmt.Errorf("is-different test instance_target %q was not found", test.InstanceTarget)
+		}
+
+		for _, variation := range []struct {
+			label  string
+			params map[string]interface{}
+		}{{"base", test.Params}, {"different", test.DifferentParams}} {
+			imageTarget := *target
+			imageTarget.Name = fmt.Sprintf("__is_different_%d_%s", testIndex, variation.label)
+			imageTarget.ExportNameFormat = fmt.Sprintf("__is_different_%d_%s", testIndex, variation.label)
+			imageTarget.Params = copyMap(target.Params)
+			for name, value := range variation.params {
+				imageTarget.Params[name] = value
+			}
+
+			inputPath, err := imageInputPath(config, models.ConfiguredImageConfig{})
+			if err != nil {
+				return nil, fmt.Errorf("is-different test %q: %w", test.InstanceTarget, err)
+			}
+			imageInstances, _, err := GenerateInstances(config, imageTarget, inputPath)
+			if err != nil {
+				return nil, fmt.Errorf("generate is-different test image: %w", err)
+			}
+			if len(imageInstances) != 1 {
+				return nil, fmt.Errorf("is-different test instance_target %q resolves to %d images; its base and override params must produce one image each", test.InstanceTarget, len(imageInstances))
+			}
+
+			camera := models.ExportCameraCoordinates{CameraName: test.Camera, ImageSize: test.ImageSize}
+			resolved := makePresetReplacement(imageOutputBasePath(config, imageInstances[0], camera), camera)
+			if len(resolved) != 1 {
+				return nil, fmt.Errorf("is-different test camera %q is not a single known preset", test.Camera)
+			}
+			resolved[0].CameraName = isDifferentCameraName(testIndex, variation.label)
+			resolved[0].RunOutputImagePath = GetImagePath(imageInstances[0].RunOutputImagePath, resolved[0].CameraName)
+			imageInstances[0].ImageOnly = true
+			imageInstances[0].ExportImages = resolved
+			instances = append(instances, imageInstances[0])
+		}
+	}
+	return instances, nil
+}
+
+func isDifferentCameraName(testIndex int, label string) string {
+	return fmt.Sprintf("__is_different_%d_%s", testIndex, label)
+}
+
+func imageInputPath(config *models.Config, imageConfig models.ConfiguredImageConfig) (models.InputPath, error) {
+	inputPaths := config.GetInputPaths()
+	if imageConfig.InputPath == "" {
+		if len(inputPaths) != 1 {
+			return models.InputPath{}, fmt.Errorf("image %q needs input_path because the config has %d input paths", imageConfig.Name, len(inputPaths))
+		}
+		return inputPaths[0], nil
+	}
+	for _, inputPath := range inputPaths {
+		if filepath.Clean(inputPath.Path) == filepath.Clean(imageConfig.InputPath) {
+			return inputPath, nil
+		}
+	}
+	return models.InputPath{}, fmt.Errorf("image %q references input_path %q, which is not configured", imageConfig.Name, imageConfig.InputPath)
+}
+
+func imageInstanceMatches(instances []models.InstanceConfig, imageInstance models.InstanceConfig, declaredParams map[string]interface{}) []int {
+	matches := make([]int, 0, 1)
+	for i, instance := range instances {
+		if instance.ImageOnly || filepath.Clean(instance.InputPath.Path) != filepath.Clean(imageInstance.InputPath.Path) {
+			continue
+		}
+		matched := true
+		for name := range declaredParams {
+			if !reflect.DeepEqual(instance.Params[name], imageInstance.Params[name]) {
+				matched = false
+				break
+			}
+		}
+		if matched {
+			matches = append(matches, i)
+		}
+	}
+	return matches
 }
 
 type Operations struct {
@@ -302,13 +447,32 @@ type Operations struct {
 	ReportMode     string
 }
 
+// Process keeps the command-line-compatible entrypoint while making the local
+// OpenSCAD binary just one RenderEngine implementation.
 func Process(config *models.Config, progress ProgressReporter, cancel <-chan struct{}, operations Operations, isServerMode bool) (models.ProcessResult, error) {
+	additionalArgs, err := splitOpenSCADArgs(config.Design.CustomOpenSCADArgs)
+	if err != nil {
+		return models.ProcessResult{}, err
+	}
+	renderer := OpenSCADRenderer{Executable: resolveOpenSCADCommand(config), AdditionalArguments: additionalArgs}
+	if err := preflightBOSL2(config, renderer.Executable, ProbeBOSL2); err != nil {
+		return models.ProcessResult{}, err
+	}
+	return ProcessWithRenderer(config, progress, cancel, operations, isServerMode, renderer)
+}
+
+// ProcessWithRenderer runs the instance/image pipeline through a supplied
+// renderer. This is the entrypoint for embedded, remote, or browser/WASM
+// renderers: they receive typed artifact requests instead of CLI flags.
+func ProcessWithRenderer(config *models.Config, progress ProgressReporter, cancel <-chan struct{}, operations Operations, isServerMode bool, renderer RenderEngine) (models.ProcessResult, error) {
+	if renderer == nil {
+		return models.ProcessResult{}, fmt.Errorf("render engine is nil")
+	}
 	start := time.Now()
+	renderCtx, stopRendering := renderContext(cancel)
+	defer stopRendering()
 	if config.Debug {
 		logStage("=== Processing === ")
-	}
-	if err := preflightBOSL2(config, resolveOpenSCADCommand(config), ProbeBOSL2); err != nil {
-		return models.ProcessResult{}, err
 	}
 
 	// Get output paths
@@ -317,6 +481,15 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 	// Create export folder if it doesn't exist
 	if err := os.MkdirAll(outputPaths.ExportFolderPath, 0755); err != nil {
 		return models.ProcessResult{}, fmt.Errorf("Process: failed to create export folder '%s': %w", outputPaths.ExportFolderPath, err)
+	}
+	if !config.NoProcessing {
+		archivePath, err := writeSourceArchive(config)
+		if err != nil {
+			return models.ProcessResult{}, err
+		}
+		if !config.Quiet {
+			LogKeyValuePair("Source archive written to", archivePath)
+		}
 	}
 
 	// Check if export folder has existing files
@@ -403,6 +576,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 
 	completedInstances := 0
 	var processErr error
+	var imageTestFailure error
 
 	// Construct progress for all instances
 	progress.Construct(instances, nonSkippedInstances)
@@ -429,8 +603,8 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 			var result models.GenerateSTLResult
 			var genErr error
 			stlFailed := false
-			if !config.OnlyImages {
-				result, genErr = generateSTL(&instances[i], config)
+			if !config.OnlyImages && !instances[i].ImageOnly {
+				result, genErr = generateSTL(renderCtx, &instances[i], config, renderer)
 				if result.CommandOutput != "" && result.OutputLog == "" {
 					result.OutputLog = result.CommandOutput
 				}
@@ -474,7 +648,7 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 			//progress.ProgressInstance(instances[i].ID, 100)
 
 			if !config.OnlyExport && !stlFailed {
-				genImageResult, err := processImage(config, &instances[i], progress)
+				genImageResult, err := processImage(renderCtx, config, &instances[i], progress, renderer)
 				if err != nil {
 					if config.StopOnError && !config.Server {
 						logError(fmt.Sprintf("Warning: failed to generate image for instance %s:\n Error:\n%+v", instances[i].Name, err))
@@ -484,6 +658,33 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 					instances[i].ImageResults = genImageResult
 					for _, imageResult := range genImageResult {
 						allImageResults = append(allImageResults, imageResult)
+					}
+
+					if !config.OnlyImages && !instances[i].ImageOnly && len(instances[i].STLResults) > 0 {
+						imageTests, testErr := runImageTests(genImageResult, config.Design.Tests)
+						stlIndex := len(instances[i].STLResults) - 1
+						instances[i].STLResults[stlIndex].Tests = append(instances[i].STLResults[stlIndex].Tests, imageTests...)
+						if len(stlResults) > 0 {
+							stlResults[len(stlResults)-1].Tests = append(stlResults[len(stlResults)-1].Tests, imageTests...)
+						}
+						if testErr != nil {
+							instances[i].STLResults[stlIndex].Error = fmt.Sprintf("image test failed to run: %v", testErr)
+						} else {
+							for _, testResult := range imageTests {
+								if !testResult.Passed {
+									instances[i].STLResults[stlIndex].Error = fmt.Sprintf("%s: %s", testResult.Type, testResult.Message)
+									break
+								}
+							}
+						}
+						if testError := instances[i].STLResults[stlIndex].Error; testError != "" {
+							if len(stlResults) > 0 {
+								stlResults[len(stlResults)-1].Error = testError
+							}
+							instances[i].ConfigError = summarizeRunError(testError)
+							instances[i].IsSuccessful = false
+							processErr = fmt.Errorf("image test failed: %s", testError)
+						}
 					}
 				}
 			} else if config.Debug {
@@ -525,6 +726,39 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 		}, processErr
 	}
 
+	if !config.OnlyExport {
+		differentResults, testErr := runIsDifferentTests(allImageResults, config.Design.Tests)
+		if testErr != nil {
+			return models.ProcessResult{ConfigFile: config.ConfigFile, Instances: instances, STLResults: stlResults, ImageResults: allImageResults}, fmt.Errorf("image test failed to run: %w", testErr)
+		}
+		for _, testResult := range differentResults {
+			if !testResult.Passed {
+				return models.ProcessResult{ConfigFile: config.ConfigFile, Instances: instances, STLResults: stlResults, ImageResults: allImageResults}, fmt.Errorf("image test failed: %s: %s", testResult.Type, testResult.Message)
+			}
+		}
+		colorResults, testErr := runMinColorPixelsTests(allImageResults, config.Design.Tests)
+		if testErr != nil {
+			return models.ProcessResult{ConfigFile: config.ConfigFile, Instances: instances, STLResults: stlResults, ImageResults: allImageResults}, fmt.Errorf("image test failed to run: %w", testErr)
+		}
+		for _, testResult := range colorResults {
+			if !testResult.Passed {
+				return models.ProcessResult{ConfigFile: config.ConfigFile, Instances: instances, STLResults: stlResults, ImageResults: allImageResults}, fmt.Errorf("image test failed: %s: %s", testResult.Type, testResult.Message)
+			}
+		}
+		boundingBoxResults, testErr := runColorInBoundingBoxTests(allImageResults, config.Design.Tests)
+		if testErr != nil {
+			return models.ProcessResult{ConfigFile: config.ConfigFile, Instances: instances, STLResults: stlResults, ImageResults: allImageResults}, fmt.Errorf("image test failed to run: %w", testErr)
+		}
+		for _, testResult := range boundingBoxResults {
+			if !testResult.Passed {
+				// Keep producing the report so its diagnostic image remains
+				// available alongside this failed result.
+				imageTestFailure = fmt.Errorf("image test failed: %s: %s", testResult.Type, testResult.Message)
+				break
+			}
+		}
+	}
+
 	montageResults, err := generateAllInstancesMontages(config, allImageResults)
 	if err != nil {
 		return models.ProcessResult{}, err
@@ -563,14 +797,15 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 		}
 	}
 
-	return models.ProcessResult{
+	result := models.ProcessResult{
 		ConfigFile:     config.ConfigFile,
 		ExportLocation: exportLoc,
 		Instances:      instances,
 		STLResults:     stlResults,
 		ImageResults:   allImageResults,
 		TotalTimeTaken: totalTime,
-	}, nil
+	}
+	return result, imageTestFailure
 }
 
 // preflightBOSL2 prevents a missing or broken BOSL2 installation from causing
@@ -616,10 +851,11 @@ func firstBOSL2Input(config *models.Config) (string, bool) {
 }
 
 type RunError struct {
-	ErrorCode      RunErrorCode
-	Message        string
-	KVPs           map[string]string
-	IsSaveBlocking bool
+	ErrorCode                     RunErrorCode
+	Message                       string
+	KVPs                          map[string]string
+	IsSaveBlocking                bool
+	MissingExportNameFormatParams []string
 }
 
 func ValidateInstances(instances []models.InstanceConfig, config *models.Config) []RunError {
@@ -631,6 +867,9 @@ func ValidateInstances(instances []models.InstanceConfig, config *models.Config)
 	errors := []RunError{}
 	exportPaths := make(map[string]models.InstanceConfig)
 	for _, instance := range instances {
+		if instance.ImageOnly {
+			continue
+		}
 		if firstInstance, exists := exportPaths[instance.RunOutputPathV3]; exists {
 
 			var paramStr string = "\n"
@@ -666,7 +905,8 @@ func ValidateInstances(instances []models.InstanceConfig, config *models.Config)
 					"prams":            paramStr,
 					"paramCount":       fmt.Sprintf("%+v", instanceParamCount),
 				},
-				IsSaveBlocking: true,
+				IsSaveBlocking:                true,
+				MissingExportNameFormatParams: missingParams,
 			})
 		}
 		exportPaths[instance.RunOutputPathV3] = instance
@@ -1316,6 +1556,11 @@ func populateExportImages(config *models.Config, instances []models.InstanceConf
 		skippedReasons := []string{}
 
 		if instances[i].SkipImages {
+			for _, test := range config.Design.Tests {
+				if isNoHolesTest(test) {
+					return nil, fmt.Errorf("instance %s skips images but no-holes tests require a rendered camera", instances[i].AutoName)
+				}
+			}
 			if config.Debug {
 				logSkip(fmt.Sprintf("Skipping images for instance %s", instances[i].AutoName))
 			}
@@ -1344,6 +1589,32 @@ func populateExportImages(config *models.Config, instances []models.InstanceConf
 				for _, exportImage := range configuredInstance.ExportImages {
 					allExportImages = append(allExportImages, makePresetReplacement(imageOutputBasePath(config, instances[i], exportImage), exportImage)...)
 				}
+			}
+		}
+
+		// no-holes is an image-based test. Add its camera if the user did not
+		// already request the same preview, so the test is self-contained.
+		for _, test := range config.Design.Tests {
+			if !isNoHolesTest(test) {
+				continue
+			}
+			cameraName := strings.TrimSpace(test.Camera)
+			if cameraName == "" {
+				return nil, fmt.Errorf("no-holes test requires camera")
+			}
+			alreadyRendered := false
+			for _, camera := range allExportImages {
+				if camera.CameraName == cameraName {
+					alreadyRendered = true
+					break
+				}
+			}
+			if !alreadyRendered {
+				images := makePresetReplacement(imageOutputBasePath(config, instances[i], models.ExportCameraCoordinates{CameraName: cameraName}), models.ExportCameraCoordinates{CameraName: cameraName, ImageSize: test.ImageSize})
+				if len(images) == 0 {
+					return nil, fmt.Errorf("no-holes test camera %q is not a known preset and has no coordinates", cameraName)
+				}
+				allExportImages = append(allExportImages, images...)
 			}
 		}
 
@@ -1416,12 +1687,10 @@ func parseCameraName(cameraName string) (string, string) {
 	parts := strings.Split(cameraName, "-")
 
 	if len(parts) == 1 {
-		log.Printf("parseCameraName 1: %s", parts[0])
 		return parts[0], ""
 	}
 
 	if len(parts) == 2 {
-		log.Printf("parseCameraName 2: %s", parts[0])
 		// Check if the second part is a distance keyword
 		if _, ok := cameraDistances[parts[1]]; ok {
 			return parts[0], parts[1]
@@ -1851,12 +2120,14 @@ func LoadConfig(configData string, flags models.CmdFlags, configPath string) (*m
 	if err := validateUnsafeOpenSCADSettings(&conf); err != nil {
 		return nil, nil, err
 	}
-
-	openSCADVersion, err := findOpenSCAD()
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to find OpenSCAD version: %w", err)
+	if err := validateOpenSCADParameterNames(&conf); err != nil {
+		return nil, nil, err
 	}
-	conf.OpenSCADVersion = openSCADVersion.Version
+
+	conf.OpenSCADVersion = "unavailable"
+	if openSCADVersion, err := findOpenSCAD(); err == nil {
+		conf.OpenSCADVersion = openSCADVersion.Version
+	}
 	conf.OpenScadGenVersion = VERSION
 	/* (temp disabled instance validation for now)
 		if conf.Design.ConfiguredInstanceConfig != nil {
@@ -1967,6 +2238,37 @@ func validateUnsafeOpenSCADSettings(conf *models.Config) error {
 		"unsafe OpenSCAD settings require --dangerously-skip-permissions: %s",
 		strings.Join(riskySettings, ", "),
 	)
+}
+
+// validateOpenSCADParameterNames prevents parameter names from being treated as
+// arbitrary OpenSCAD expressions. Values are rendered as OpenSCAD literals at
+// execution time, so a valid identifier is the only supported assignment target.
+func validateOpenSCADParameterNames(conf *models.Config) error {
+	paramMaps := []map[string]interface{}{conf.Design.GlobalParams}
+	for _, input := range conf.Design.InputPaths {
+		paramMaps = append(paramMaps, input.Params)
+	}
+	for _, set := range conf.Design.ParamSets {
+		paramMaps = append(paramMaps, set.Params)
+	}
+	for _, instance := range conf.Design.ConfiguredInstanceConfig {
+		paramMaps = append(paramMaps, instance.Params, instance.ParamsNumberated)
+	}
+	for _, image := range conf.Design.ConfiguredImageConfig {
+		paramMaps = append(paramMaps, image.Params)
+	}
+	for _, test := range conf.Design.Tests {
+		paramMaps = append(paramMaps, test.Params, test.DifferentParams)
+	}
+
+	for _, params := range paramMaps {
+		for name := range params {
+			if !openSCADParameterNameRE.MatchString(name) {
+				return fmt.Errorf("invalid OpenSCAD parameter name %q; names must start with a letter or underscore and contain only letters, digits, and underscores", name)
+			}
+		}
+	}
+	return nil
 }
 
 func ProcessFolder(folder string, cmdFlags models.CmdFlags) ([]models.ProcessResult, error) {
@@ -2867,8 +3169,6 @@ func generateUniqueAutoName(exportPath string, instanceName string, inputPath st
 		for i := 1; i < len(parentNames); i++ {
 			if len(parentNames[i]) > 0 {
 				baseName = parentNames[i] + "_" + baseName
-			} else {
-				baseName = baseName
 			}
 		}
 	}
@@ -3903,7 +4203,127 @@ func isValidPath(path string, invalidChars string) bool {
 	return true
 }
 
-func generateSTL(instance *models.InstanceConfig, config *models.Config) (models.GenerateSTLResult, error) {
+// openSCADValue renders a Go configuration value as a single OpenSCAD literal.
+// It deliberately does not use shell quoting: every definition is passed to
+// OpenSCAD as one argv element.
+func openSCADValue(value interface{}) string {
+	if value == nil {
+		return "undef"
+	}
+	if stringValue, ok := value.(string); ok {
+		if stringValue == "true" || stringValue == "false" {
+			return stringValue
+		}
+		return strconv.Quote(stringValue)
+	}
+
+	v := reflect.ValueOf(value)
+	for v.Kind() == reflect.Interface {
+		if v.IsNil() {
+			return "undef"
+		}
+		v = v.Elem()
+	}
+	switch v.Kind() {
+	case reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr,
+		reflect.Float32, reflect.Float64:
+		return fmt.Sprint(value)
+	case reflect.Slice, reflect.Array:
+		values := make([]string, v.Len())
+		for i := 0; i < v.Len(); i++ {
+			values[i] = openSCADValue(v.Index(i).Interface())
+		}
+		return "[" + strings.Join(values, ", ") + "]"
+	default:
+		return strconv.Quote(fmt.Sprint(value))
+	}
+}
+
+func openSCADDefinition(name string, value interface{}) (string, error) {
+	if !openSCADParameterNameRE.MatchString(name) {
+		return "", fmt.Errorf("invalid OpenSCAD parameter name %q", name)
+	}
+	return name + "=" + openSCADValue(value), nil
+}
+
+func appendOpenSCADDefinitions(args []string, params map[string]interface{}) ([]string, error) {
+	names := make([]string, 0, len(params))
+	for name := range params {
+		if name != "version" {
+			names = append(names, name)
+		}
+	}
+	sort.Strings(names)
+	for _, name := range names {
+		definition, err := openSCADDefinition(name, params[name])
+		if err != nil {
+			return nil, err
+		}
+		args = append(args, "-D", definition)
+	}
+	return args, nil
+}
+
+// splitOpenSCADArgs preserves the useful quoted-argument syntax accepted by
+// existing configs without evaluating substitutions, redirects, or operators.
+func splitOpenSCADArgs(raw string) ([]string, error) {
+	var args []string
+	var current strings.Builder
+	var quote rune
+	escaped := false
+	for _, r := range raw {
+		switch {
+		case escaped:
+			current.WriteRune(r)
+			escaped = false
+		case r == '\\':
+			escaped = true
+		case quote != 0:
+			if r == quote {
+				quote = 0
+			} else {
+				current.WriteRune(r)
+			}
+		case r == '\'' || r == '"':
+			quote = r
+		case r == ' ' || r == '\t' || r == '\n':
+			if current.Len() > 0 {
+				args = append(args, current.String())
+				current.Reset()
+			}
+		default:
+			current.WriteRune(r)
+		}
+	}
+	if escaped || quote != 0 {
+		return nil, fmt.Errorf("custom_openscad_args contains an unfinished escape or quote")
+	}
+	if current.Len() > 0 {
+		args = append(args, current.String())
+	}
+	return args, nil
+}
+
+func displayCommand(name string, args []string) string {
+	parts := make([]string, 0, len(args)+1)
+	parts = append(parts, shellQuote(name))
+	for _, arg := range args {
+		parts = append(parts, shellQuote(arg))
+	}
+	return strings.Join(parts, " ")
+}
+
+func shellQuote(value string) string {
+	if value != "" && strings.IndexFunc(value, func(r rune) bool {
+		return !(r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || strings.ContainsRune("_@%+=:,./-", r))
+	}) == -1 {
+		return value
+	}
+	return "'" + strings.ReplaceAll(value, "'", `'"'"'`) + "'"
+}
+
+func generateSTL(ctx context.Context, instance *models.InstanceConfig, config *models.Config, renderer RenderEngine) (models.GenerateSTLResult, error) {
 	result := models.GenerateSTLResult{
 		InstanceConfig: *instance,
 		OutputPath:     "",
@@ -3913,8 +4333,6 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 		Error:          "",
 		AppliedParams:  make(map[string]interface{}),
 	}
-
-	startTime := time.Now()
 
 	if config.Debug {
 		logStage("Generating STL")
@@ -4005,16 +4423,6 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 		}
 	}
 
-	// Build OpenSCAD command
-	openscadCmd := resolveOpenSCADCommand(config)
-	if openscadCmd == "" {
-		return result, fmt.Errorf("openscad command not found")
-	}
-
-	if config.Debug {
-		log.Printf("Using OpenSCAD command: %s", openscadCmd)
-	}
-
 	// Create directory if not exists
 	stlOutputDir := filepath.Dir(instance.RunOutputPathV3)
 	if config.Debug {
@@ -4030,11 +4438,6 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 		log.Printf("[DEBUG] Output directory created/verified: %s", stlOutputDir)
 	}
 
-	// Build command arguments
-	args := []string{
-		"-o", fmt.Sprintf("'%s'", instance.RunOutputPathV3),
-	}
-
 	//check for ? charcters
 	if !isValidPath(instance.RunOutputPathV3, invalidChars) {
 		errMsg := fmt.Sprintf("Output path '%s' contains invalid character(s) from '%s'. Please update your export_name_format in config.", instance.OutputPathV2, invalidChars)
@@ -4044,93 +4447,45 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 		}
 		return result, fmt.Errorf("%s", errMsg)
 	}
-	if !config.SkipRender {
-		args = append(args, "--render")
-	}
-
-	if !config.Design.DontUseManifold {
-		//	args = append(args, "--backend=manifold")
-	}
-
-	if config.Debug {
-		args = append(args, "--debug", "all")
-		args = append(args, "--summary", "all")
-	}
-
-	// Add custom OpenSCAD arguments if provided
-	if config.Design.CustomOpenSCADArgs != "" {
-		args = append(args, strings.Split(config.Design.CustomOpenSCADArgs, " ")...)
-	}
-
-	for name, value := range result.AppliedParams {
-		if name == "version" {
-			continue
-		}
-		if reflect.TypeOf(value).Kind() == reflect.String && value != "true" && value != "false" {
-			args = append(args, "-D", fmt.Sprintf("'%s=\"%v\"'", name, value))
-		} else {
-			args = append(args, "-D", fmt.Sprintf("'%s=%v'", name, value))
-		}
-	}
-
 	if config.OverrideFN > 0 {
-		args = append(args, "-D", fmt.Sprintf("'$fn=%d'", config.OverrideFN))
+		result.AppliedParams["$fn"] = config.OverrideFN
 	}
-
-	// Create command string
-	commandStr := fmt.Sprintf("%s %s %s", openscadCmd, strings.Join(args, " "), paths.InputPath)
-
-	if config.Debug {
-		log.Printf("[DEBUG] Built OpenSCAD command string")
-		log.Printf("[DEBUG] OpenSCAD executable: %s", openscadCmd)
-		log.Printf("[DEBUG] Arguments: %v", args)
-		log.Printf("[DEBUG] Input path: %s", paths.InputPath)
-		log.Printf("[DEBUG] Full command: %s", commandStr)
+	source, sourceErr := os.ReadFile(paths.InputPath)
+	if sourceErr != nil {
+		return result, fmt.Errorf("read render source: %w", sourceErr)
 	}
-
-	if config.Debug {
-		logStage(fmt.Sprintf("Running STL generation: %s", instance.Name))
-		LogKeyValuePair("Command", commandStr)
+	response, err := renderer.Render(ctx, RenderRequest{Kind: RenderKindSTL, SourcePath: paths.InputPath, Source: source, OutputPath: instance.RunOutputPathV3, Definitions: result.AppliedParams, Render: !config.SkipRender, Debug: config.Debug})
+	result.Command = response.Command
+	result.CommandOutput = response.Output
+	result.TimeTaken = response.Duration
+	if err == nil {
+		if artifactErr := materializeRenderArtifact(instance.RunOutputPathV3, response); artifactErr != nil {
+			err = artifactErr
+		}
 	}
-
-	// Run command through shell
-	cmd := exec.Command("sh", "-c", commandStr)
-	cmd.Env = managedOpenSCADEnvironment()
-
-	if config.Debug {
-		log.Printf("[DEBUG] About to execute OpenSCAD command")
-		log.Printf("[DEBUG] Command: %s", commandStr)
-		log.Printf("[DEBUG] Working directory: %s", filepath.Dir(paths.InputPath))
-	}
-
-	// Capture both stdout and stderr
-	output, err := cmd.CombinedOutput()
-	result.Command = commandStr
-	result.CommandOutput = string(output)
-	result.TimeTaken = time.Since(startTime)
 
 	if config.Debug {
 		log.Printf("[DEBUG] OpenSCAD command completed")
 		log.Printf("[DEBUG] Error: %v", err)
-		log.Printf("[DEBUG] Output length: %d bytes", len(output))
-		if len(output) > 0 {
-			log.Printf("[DEBUG] Output: %s", string(output))
-			result.OutputLog = string(output)
+		log.Printf("[DEBUG] Output length: %d bytes", len(response.Output))
+		if response.Output != "" {
+			log.Printf("[DEBUG] Output: %s", response.Output)
+			result.OutputLog = response.Output
 
 		}
 		log.Printf("[DEBUG] Time taken: %v", result.TimeTaken)
 	}
 
 	if err != nil {
-		result.Error = fmt.Sprintf("error running openscad: %v\nOutput: %s", err, string(output))
+		result.Error = fmt.Sprintf("error running renderer: %v\nOutput: %s", err, response.Output)
 		if config.Debug {
 			log.Printf("OpenSCAD command failed with error: %v", err)
-			log.Printf("Command output: %s", string(output))
+			log.Printf("Command output: %s", response.Output)
 		}
 		if config.StopOnError {
 			return result, nil
 		}
-		return result, fmt.Errorf("OpenSCAD command failed: %w\nOutput: %s", err, string(output))
+		return result, fmt.Errorf("renderer failed: %w\nOutput: %s", err, response.Output)
 	}
 
 	// Check if file was created and has content
@@ -4173,6 +4528,21 @@ func generateSTL(instance *models.InstanceConfig, config *models.Config) (models
 		logCreation(fmt.Sprintf("\n📦 STL\t\t%s\t\t%s", result.InstanceConfig.AutoName, result.TimeTaken.String()))
 		if config.Debug {
 			LogKeyValuePair("STL File", instance.RunOutputPathV3)
+		}
+	}
+
+	if tests := stlGeometryTests(config.Design.Tests); len(tests) > 0 {
+		results, testErr := runGeometryTests(instance.RunOutputPathV3, tests)
+		result.Tests = results
+		if testErr != nil {
+			result.Error = fmt.Sprintf("geometry test failed to run: %v", testErr)
+			return result, testErr
+		}
+		for _, testResult := range results {
+			if !testResult.Passed {
+				result.Error = fmt.Sprintf("%s: %s", testResult.Type, testResult.Message)
+				return result, fmt.Errorf("%s", result.Error)
+			}
 		}
 	}
 
@@ -4439,49 +4809,7 @@ func generateAllCameraCombinations(direction string) []models.ExportCameraCoordi
 	return cameras
 }
 
-func executeCommand(cmd string) error {
-	command := exec.Command("sh", "-c", cmd)
-
-	var stdout, stderr bytes.Buffer
-	command.Stdout = &stdout
-	command.Stderr = &stderr
-
-	if err := command.Run(); err != nil {
-		// Build detailed error message with command output
-		errorDetails := fmt.Sprintf("command failed: %v", err)
-		if stdout.Len() > 0 {
-			errorDetails += fmt.Sprintf("\nstdout: %s", stdout.String())
-		}
-		if stderr.Len() > 0 {
-			errorDetails += fmt.Sprintf("\nstderr: %s", stderr.String())
-		}
-		return fmt.Errorf("%s", errorDetails)
-	}
-	return nil
-}
-
-func executeCommandWithOutput(cmd string) (string, error) {
-	command := exec.Command("sh", "-c", cmd)
-
-	var stdout, stderr bytes.Buffer
-	command.Stdout = &stdout
-	command.Stderr = &stderr
-
-	if err := command.Run(); err != nil {
-		// Build detailed error message with command output
-		errorDetails := fmt.Sprintf("command failed: %v", err)
-		if stdout.Len() > 0 {
-			errorDetails += fmt.Sprintf("\nstdout: %s", stdout.String())
-		}
-		if stderr.Len() > 0 {
-			errorDetails += fmt.Sprintf("\nstderr: %s", stderr.String())
-		}
-		return stdout.String() + stderr.String(), fmt.Errorf("%s", errorDetails)
-	}
-	return stdout.String() + stderr.String(), nil
-}
-
-func processImage(config *models.Config, instance *models.InstanceConfig, progress ProgressReporter) ([]models.GenerateImageResult, error) {
+func processImage(ctx context.Context, config *models.Config, instance *models.InstanceConfig, progress ProgressReporter, renderer RenderEngine) ([]models.GenerateImageResult, error) {
 
 	var imageResults []models.GenerateImageResult
 
@@ -4509,7 +4837,7 @@ func processImage(config *models.Config, instance *models.InstanceConfig, progre
 			//		progress.ProgressInstance(instance.ID, int(float64(completedImages)/float64(totalImages)*100))
 			//}
 
-			result, cmdStr, err := generateImage(instance, config, camera, stlResult)
+			result, cmdStr, err := generateImage(ctx, instance, config, camera, stlResult, renderer)
 			if err != nil {
 				LogKeyValuePair(
 					"Command", cmdStr,
@@ -4538,7 +4866,7 @@ func GetImagePath(runOutputImagePath string, cameraName string) string {
 	return outputPath + "/" + fileNameWithoutExt + "-" + cameraName + ".png"
 }
 
-func generateImage(instance *models.InstanceConfig, config *models.Config, camera models.ExportCameraCoordinates, stlResult models.GenerateSTLResult) (models.GenerateImageResult, string, error) {
+func generateImage(ctx context.Context, instance *models.InstanceConfig, config *models.Config, camera models.ExportCameraCoordinates, stlResult models.GenerateSTLResult, renderer RenderEngine) (models.GenerateImageResult, string, error) {
 	// Initialize result
 	imageResult := models.GenerateImageResult{
 		InstanceConfig: *instance,
@@ -4571,90 +4899,40 @@ func generateImage(instance *models.InstanceConfig, config *models.Config, camer
 			return imageResult, fmt.Errorf("error creating output directory: %w", err)
 		}
 	*/
-	// Find OpenSCAD executable
-	openscadCmd := resolveOpenSCADCommand(config)
-	if openscadCmd == "" {
-		return imageResult, "", fmt.Errorf("OpenSCAD not found")
+	source, sourceErr := os.ReadFile(paths.InputPath)
+	if sourceErr != nil {
+		return imageResult, "", fmt.Errorf("read render source: %w", sourceErr)
 	}
-
-	// Start timing
-	startTime := time.Now()
-
-	// Set default image size if not specified
-	imageSize := "1920,1080"
-	if camera.ImageSize != "" {
-		imageSize = camera.ImageSize
-	}
-	if config.Debug {
-		LogKeyValuePair("outputImgPath", outputImgPath)
-	}
-
-	// Build command arguments
-	args := []string{
-		"-o", outputImgPath,
-		"--imgsize", imageSize,
-		"--projection", "perspective", //ortho
-		"--camera", camera.CameraCoordinates,
-		"--preview",
-	}
-
-	// Add custom OpenSCAD arguments if provided
-	if config.Design.CustomOpenSCADArgs != "" {
-		args = append(args, strings.Split(config.Design.CustomOpenSCADArgs, " ")...)
-	}
-
-	args = append(args, "-D", "genType=\"image\"")
-
-	for name, value := range stlResult.AppliedParams {
-		if reflect.TypeOf(value).Kind() == reflect.String && value != "true" && value != "false" {
-
-			args = append(args, "-D", fmt.Sprintf("'%s=\"%v\"'", name, value))
-		} else {
-
-			//	logError("WOAH!")
-			args = append(args, "-D", fmt.Sprintf("'%s=%v'", name, value))
+	response, err := renderer.Render(ctx, RenderRequest{
+		Kind: RenderKindImage, SourcePath: paths.InputPath, Source: source, OutputPath: outputImgPath,
+		Definitions: copyDefinitions(stlResult.AppliedParams), Debug: config.Debug,
+		Camera: &RenderCamera{Name: camera.CameraName, Coordinates: camera.CameraCoordinates, ImageSize: camera.ImageSize},
+	})
+	imageResult.Command = response.Command
+	imageResult.CommandOutput = response.Output
+	if err == nil {
+		if artifactErr := materializeRenderArtifact(outputImgPath, response); artifactErr != nil {
+			err = artifactErr
 		}
 	}
-
-	// Add input file using the correct path
-	args = append(args, paths.InputPath)
-
-	imgStartTime := time.Now()
-	// Create the command
-	cmd := exec.Command(openscadCmd, args...)
-	cmd.Env = managedOpenSCADEnvironment()
-
-	if config.Debug {
-		logStage("Running Image generation")
-		LogKeyValuePair("Command", cmd.String())
-	}
-
-	cmdStr := cmd.String()
-	// Run the command and capture output
-	output, err := executeCommandWithOutput(cmdStr)
-	imageResult.Command = cmdStr
-	imageResult.CommandOutput = output
-
 	if err != nil {
-		// Log detailed error information
-		logError(fmt.Sprintf("OpenSCAD command failed for image generation"))
-		logError(fmt.Sprintf("Command: %s", cmd.String()))
+		logError("renderer failed for image generation")
+		logError(fmt.Sprintf("Command: %s", response.Command))
 		logError(fmt.Sprintf("Output path: %s", outputImgPath))
 		logError(fmt.Sprintf("Error details: %v", err))
-
-		return imageResult, cmdStr, fmt.Errorf("error running OpenSCAD: %w", err)
+		return imageResult, response.Command, fmt.Errorf("render image: %w", err)
 	} else {
-		logCreation(fmt.Sprintf("\n🖼️  Image\t%s\t\t%s", instance.AutoName, time.Since(imgStartTime)))
+		logCreation(fmt.Sprintf("\n🖼️  Image\t%s\t\t%s", instance.AutoName, response.Duration))
 		if config.Debug {
 			LogKeyValuePair("Image Created", outputImgPath)
 		}
 	}
 
 	// Update result with timing information
-	imageResult.TimeTaken = time.Since(startTime)
+	imageResult.TimeTaken = response.Duration
 	imageResult.OutputPath = outputImgPath
 
-	return imageResult, cmdStr, nil
+	return imageResult, response.Command, nil
 }
 
 func printDirectoryContents(dir string) {

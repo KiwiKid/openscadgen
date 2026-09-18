@@ -1,0 +1,28 @@
+[openscadgen]
+name = "trash_bag_holder"
+description = "Two-piece square trash-bag holder with a chamfered bag handle and nesting inner retainer."
+
+version = "v0.2"
+
+export_name_format = "{designFileName}_{mode}"
+
+[[openscadgen.tests]]
+type = "is-flat"
+side = "bottom"
+level = "medium"
+tolerance = 0.01
+
+[[openscadgen.input_paths]]
+path = "./trash_bag_holder.scad"
+
+[[openscadgen.instances]]
+params = { mode = "outer,inner,all" }
+
+[[openscadgen.images]]
+name = "nice"
+param_filter = { mode = "outer,inner,all" }
+
+# Top-down previews show the bag-handle opening and all four corner chamfers.
+[[openscadgen.images]]
+name = "top-far"
+param_filter = { mode = "outer,inner,all" }

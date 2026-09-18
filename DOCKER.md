@@ -36,7 +36,7 @@ docker run -it --rm -p 6767:6767 -v $(pwd)/examples:/app/examples:ro openscadgen
 - **Purpose**: Lightweight production deployment
 - **Includes**: OpenSCAD, openscadgen binary, examples
 - **Features**: Multi-stage build, non-root user, health checks
-- **Size**: Optimized for minimal footprint
+- **Size**: Optimized for a small Debian-based runtime image
 
 ## Docker Compose Services
 
@@ -69,10 +69,10 @@ docker run -it --rm -v $(pwd)/examples:/app/examples:ro openscadgen:latest opens
 ### Start server mode
 ```bash
 # Development server
-docker run -it --rm -p 6767:6767 -v $(pwd):/app openscadgen:dev openscadgen -sf /app/examples -p 6767
+docker run -it --rm -p 6767:6767 -v $(pwd):/app openscadgen:dev openscadgen -sf /app/examples -p 6767 --server-address 0.0.0.0
 
 # Production server
-docker run -it --rm -p 6767:6767 -v $(pwd)/examples:/app/examples:ro openscadgen:latest openscadgen -sf /app/examples -p 6767
+docker run -it --rm -p 6767:6767 -v $(pwd)/examples:/app/examples:ro openscadgen:latest openscadgen -sf /app/examples -p 6767 --server-address 0.0.0.0
 ```
 
 ### Build and test locally
@@ -112,7 +112,7 @@ docker run --rm -v $(pwd):/app openscadgen:dev just test
 - `GO_ENV`: Set to `development` or `production`
 - `OPENSCAD_PATH`: Custom OpenSCAD executable path (if needed)
 
-If you expose openscadgen on a public server, avoid custom OpenSCAD command paths and extra argument injection unless you explicitly launch with `--dangerously-skip-permissions`.
+This server is designed for local use and binds to `127.0.0.1` by default. The Docker configurations explicitly use `--server-address 0.0.0.0` so Docker port publishing works. Do not expose that port directly to an untrusted network: the application can edit project files, start local programs, and install tools. Remote serving needs authentication and project-root protections tracked in `PLAN.md`.
 
 ## Volume Mounts
 
@@ -137,7 +137,7 @@ The production image includes health checks that verify:
 ## Security
 
 - Production image runs as non-root user (`appuser`)
-- Minimal Alpine Linux base image
+- Debian slim runtime image
 - No unnecessary packages in production
 - Read-only filesystem where possible
 

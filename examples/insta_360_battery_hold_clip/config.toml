@@ -1,0 +1,16 @@
+[openscadgen]
+name = "insta_360_battery_hold_clip"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}"
+
+global_params = { }
+
+[[openscadgen.input_paths]]
+path = "./insta_360_battery_hold_clip.scad"
+params = { }
+
+[[openscadgen.images]]
+name = "nice"

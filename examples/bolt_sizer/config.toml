@@ -2,9 +2,9 @@
 name = "bolt_sizer"
 description = ""
 
-version = "v0.1"
+version = "v0.8"
 
-export_name_format = "{designFileName}_{mode}"
+export_name_format = "{exportOrientation}/{mode}"
 
 global_params = { }
 
@@ -13,23 +13,30 @@ path = "./bolt_sizer.scad"
 
 
 [[openscadgen.instances]]
-params = { mode = "box,topBox,box-full-bottomModifier,text,bottomRender,bottomRenderBox,logo,glueJig,glueJoinerSquare" }
+params = { mode = "box,modifierV2", exportOrientation = "right-side-up,on-side" }
+
+# Guard the repaired bottom-relief placement: this view must remain solid.
+[[openscadgen.tests]]
+type = "no-holes"
+camera = "top"
 
 [[openscadgen.images]]
 name = "nice"
-param_filter = { mode = "box,topBox,box-full-bottomModifier" }
+param_filter = { mode = "box,modifierV2" }
 
-# Inspect the assembled full box from the faces that matter for the new
-# bottom-logo treatment.  The modifier also receives an isometric export
-# above, making its separate geometry easy to compare with the underside.
-[[openscadgen.images]]
-name = "top"
-param_filter = { mode = "box" }
+# These are preview-only composites, not additional printable parts.  They
+# deliberately show modifierV2 in red against the assembled sizer.
+[[openscadgen.image]]
+name = "top-closeup"
+params = { mode = "preview", exportOrientation = "right-side-up" }
+coord = "0,0,0,0,0,0,240"
 
-[[openscadgen.images]]
-name = "bottom"
-param_filter = { mode = "box" }
+[[openscadgen.image]]
+name = "preview-cut-closeup"
+params = { mode = "previewCut", exportOrientation = "right-side-up" }
+coord = "0,0,0,0,0,0,160"
 
-[[openscadgen.images]]
-name = "side"
-param_filter = { mode = "box" }
+[[openscadgen.image]]
+name = "side-closeup"
+params = { mode = "preview", exportOrientation = "on-side" }
+coord = "0,0,0,90,0,0,140"

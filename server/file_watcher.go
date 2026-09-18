@@ -131,7 +131,7 @@ func (fw *FileWatcher) loadAndWatchConfig(configPath string, serverFolder string
 
 	// Cache the config
 	fw.configs[configPath] = configInfo
-		pkg.LogInfof("Loaded and watching config: %s", configPath)
+	pkg.LogInfof("Loaded and watching config: %s", configPath)
 
 	return nil
 }
@@ -197,7 +197,7 @@ func (fw *FileWatcher) handleConfigChange(configPath string) {
 	fw.mu.RLock()
 	serverFolder := fw.serverFolder
 	fw.mu.RUnlock()
-	
+
 	// Load the new config
 	cmdFlags := models.CmdFlags{ConfigFile: configPath, Server: true, ServerFolder: serverFolder}
 	newConfig, _, err := pkg.LoadConfigFromFile(cmdFlags)

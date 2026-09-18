@@ -29,6 +29,10 @@ templ EnterConfigPage(configFiles []models.ConfigFile, serverFolder string, show
 		<script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
 		<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 		@HeadLinks()
+		<!-- Vendored assets keep the selector independent of third-party CDNs. -->
+		<link rel="stylesheet" href="/static/vendor/tom-select-2.6.2.css"/>
+		<script src="/static/vendor/tom-select-2.6.2.min.js"></script>
+		<script src="/static/vendor/hx-tomselect-2.0.0.js"></script>
 		<script>
                 (function() {
                     var darkMode = localStorage.getItem('darkMode');
@@ -433,13 +437,20 @@ html, body {
                         groups.sort();
                         var saved = 'all';
                         try { saved = localStorage.getItem('openscadgen-configDesktop-group') || 'all'; } catch (e) { /* ignore */ }
-                        groups.forEach(function (g) {
-                            var opt = document.createElement('option');
-                            opt.value = g;
-                            opt.textContent = g;
-                            sel.appendChild(opt);
-                        });
-                        sel.value = Array.prototype.some.call(sel.options, function (o) { return o.value === saved; }) ? saved : 'all';
+						groups.forEach(function (g) {
+							if (sel.tomselect) {
+								sel.tomselect.addOption({ value: g, text: g });
+							} else {
+								var opt = document.createElement('option');
+								opt.value = g;
+								opt.textContent = g;
+								sel.appendChild(opt);
+							}
+						});
+						sel.value = Array.prototype.some.call(sel.options, function (o) { return o.value === saved; }) ? saved : 'all';
+						if (sel.tomselect) {
+							sel.tomselect.setValue(sel.value, true);
+						}
                         sel.addEventListener('change', function () {
                             try { localStorage.setItem('openscadgen-configDesktop-group', sel.value); } catch (e) { /* ignore */ }
                             applyConfigPickerState();
@@ -520,11 +531,9 @@ html, body {
 					<div class="field mb-0">
 						<label class="label" for="config-picker-group">Top-level folder</label>
 						<div class="control">
-							<div class="select">
-								<select id="config-picker-group" title="First path segment under the scanned folder">
-									<option value="all">All</option>
-								</select>
-							</div>
+							<select id="config-picker-group" hx-ext="tomselect" ts-max-items="1" ts-open-on-focus="true" title="First path segment under the scanned folder">
+								<option value="all">All</option>
+							</select>
 						</div>
 					</div>
 					<div class="field mb-0">

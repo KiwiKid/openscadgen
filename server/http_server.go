@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -51,6 +52,22 @@ type ServerInfo struct {
 	Address string
 }
 
+// Alpine's standard CDN build compiles directive expressions with Function(),
+// so it requires unsafe-eval. Keep that compatibility exception limited to
+// script-src; the remaining resource restrictions still apply.
+const contentSecurityPolicy = "default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: blob: file:; font-src 'self' data: https://cdn.jsdelivr.net; connect-src 'self';"
+
+func securityHeaders(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Security-Policy", contentSecurityPolicy)
+		w.Header().Set("Referrer-Policy", "same-origin")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("Permissions-Policy", "camera=(), geolocation=(), microphone=()")
+		next.ServeHTTP(w, r)
+	})
+}
+
 // resolveConfigPath resolves a config path using the server folder structure
 // If the path is absolute, it's returned as-is
 // If the path is relative and serverFolder is set, they are joined
@@ -72,9 +89,9 @@ func resolveConfigPath(configPath string, serverFolder string) string {
 // tryListenOnPort attempts to listen on the specified port.
 // If portWasSpecified is false and the port is in use, it tries random ports.
 // Returns the listener, the actual port being used, and any error.
-func tryListenOnPort(port string, portWasSpecified bool) (net.Listener, string, error) {
+func tryListenOnPort(address string, portWasSpecified bool) (net.Listener, string, error) {
 	// Try to listen on the requested port
-	listener, err := net.Listen("tcp", port)
+	listener, err := net.Listen("tcp", address)
 	if err == nil {
 		// Success! Get the actual address
 		addr := listener.Addr().(*net.TCPAddr)
@@ -85,13 +102,17 @@ func tryListenOnPort(port string, portWasSpecified bool) (net.Listener, string, 
 	// Port is in use
 	if portWasSpecified {
 		// Port was explicitly specified, so fail
-		return nil, "", fmt.Errorf("port %s is already in use", port)
+		return nil, "", fmt.Errorf("address %s is already in use", address)
 	}
 
 	// Port wasn't specified, try random port
-	pkg.LogWarnf("Port %s is in use, trying random port...", port)
+	pkg.LogWarnf("Address %s is in use, trying a random port...", address)
 	// Use port 0, which lets the OS assign a random available port
-	listener, err = net.Listen("tcp", ":0")
+	host, _, splitErr := net.SplitHostPort(address)
+	if splitErr != nil {
+		return nil, "", fmt.Errorf("invalid listen address %q: %w", address, splitErr)
+	}
+	listener, err = net.Listen("tcp", net.JoinHostPort(host, "0"))
 	if err != nil {
 		return nil, "", fmt.Errorf("could not find an available port: %v", err)
 	}
@@ -103,10 +124,16 @@ func tryListenOnPort(port string, portWasSpecified bool) (net.Listener, string, 
 // StartServer starts the HTTP server with the specified folder for config files
 func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(port string) error) ServerInfo {
 	aiToolsEnabled = cmdFlags.ShowAI
-	port := ":8080"
-	if cmdFlags.ServerPort != 0 {
-		port = fmt.Sprintf(":%d", cmdFlags.ServerPort)
+	bindAddress := strings.TrimSpace(cmdFlags.ServerAddress)
+	if bindAddress == "" {
+		bindAddress = "127.0.0.1"
 	}
+	portNumber := 8080
+	if cmdFlags.ServerPort != 0 {
+		portNumber = cmdFlags.ServerPort
+	}
+	port := fmt.Sprintf(":%d", portNumber)
+	listenAddress := net.JoinHostPort(bindAddress, strconv.Itoa(portNumber))
 
 	var err error
 	if cmdFlags.Debug {
@@ -155,6 +182,7 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 	http.HandleFunc("/api/chat/run", handleChatRun)
 	http.HandleFunc("/api/chat/status", handleChatStatus)
 	http.HandleFunc("/api/config", handleConfigRequest)
+	http.HandleFunc("/api/config/changed", handleConfigChanged)
 	http.HandleFunc("/api/config/options", handleConfigOptionsRequest)
 	http.HandleFunc("/api/open", handleOpenFile)
 	http.HandleFunc("/api/openscad/open", handleOpenSCADFile)
@@ -180,7 +208,7 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 	portWasSpecified := cmdFlags.ServerPort != 0
 	originalPort := port
 
-	listener, actualPort, err := tryListenOnPort(port, portWasSpecified)
+	listener, actualPort, err := tryListenOnPort(listenAddress, portWasSpecified)
 	if err != nil {
 		pkg.LogErrorf("Is Openscadgen already running? %v", err)
 		pkg.LogErrorf("Could not bind to port %s: %v\nEnd the existing process or use -p to specify a different port", port, err)
@@ -218,7 +246,7 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 	pkg.LogInfof("Server started on port %s", port)
 
 	// Start server on the listener (non-blocking for now, but we'll block here)
-	err = http.Serve(listener, nil)
+	err = http.Serve(listener, securityHeaders(http.DefaultServeMux))
 	if err != nil {
 		pkg.LogErrorf("Error on serve: %v", err)
 		os.Exit(1)
@@ -474,6 +502,7 @@ func handleGETRequest(w http.ResponseWriter, r *http.Request) {
 		}, models.Results{
 			TimeTake: 0,
 		})
+		reportMeta.TestRun = latestTestRun(config)
 		report := templates.Report("view", config, instances, pkg.GetOutputPaths(config).ExportFolderPath, []models.GenerateSTLResult{}, []models.GenerateImageResult{}, []string{}, reportMeta, 0, warning)
 		report.Render(context.Background(), w)
 	}
@@ -564,6 +593,8 @@ type StartProcessingForm struct {
 	SkipRender             bool   `json:"skip_render" form:"skip_render"`
 	SkipReadme             bool   `json:"skip_readme" form:"skip_readme"`
 	LowQuality             bool   `json:"low_quality" form:"low_quality"`
+	RunTests               bool   `json:"run_tests" form:"run_tests"`
+	RunAll                 bool   `json:"run_all" form:"run_all"`
 }
 
 // formToCmdFlags maps StartProcessingForm to models.CmdFlags with explicit field mapping
@@ -651,6 +682,8 @@ func handlePUTRequest(w http.ResponseWriter, r *http.Request) {
 		form.SkipRender = r.FormValue("skip_render") == "true" || r.FormValue("skip_render") == "1" || r.FormValue("skip_render") == "on"
 		form.SkipReadme = r.FormValue("skip_readme") == "true" || r.FormValue("skip_readme") == "1" || r.FormValue("skip_readme") == "on"
 		form.LowQuality = r.FormValue("low_quality") == "true" || r.FormValue("low_quality") == "1" || r.FormValue("low_quality") == "on"
+		form.RunTests = r.FormValue("run_tests") == "true" || r.FormValue("run_tests") == "1" || r.FormValue("run_tests") == "on"
+		form.RunAll = r.FormValue("run_all") == "true" || r.FormValue("run_all") == "1" || r.FormValue("run_all") == "on"
 	}
 
 	// Map form to cmdFlags
@@ -678,6 +711,12 @@ func handlePUTRequest(w http.ResponseWriter, r *http.Request) {
 		templates.Warning("Could not start processing because the config could not be loaded. See the alert above.").Render(context.Background(), w)
 		return
 	}
+	// The normal Process action is intentionally render-only. Test actions keep
+	// the configured checks; this copy is per queued request and never changes
+	// the user's TOML configuration.
+	if !form.RunTests && !form.RunAll {
+		config.Design.Tests = nil
+	}
 
 	instancesForPage, err := pkg.GenerateInstanceConfigs(config)
 	if err != nil {
@@ -700,7 +739,13 @@ func handlePUTRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id := StartProcessingJob(config)
+	id, err := StartProcessingJobWithError(config)
+	if err != nil {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		templates.Warning("Could not queue processing: "+err.Error()).Render(context.Background(), w)
+		return
+	}
 
 	if useOOBUpdates {
 		w.Header().Set("Content-Type", "text/html")
@@ -1071,8 +1116,66 @@ func buildEditConfigParams(configPath string, serverFolder string, content strin
 		ServerFolderEncoded:   serverFolderEncoded,
 		ReportURL:             pkg.BuildPageUrl(configPath, serverFolder).PageURL,
 		Content:               content,
+		FileFingerprint:       configFileFingerprint(configPath),
 		ErrorMsg:              errorMsg,
 	}
+}
+
+func configFileFingerprint(path string) string {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return ""
+	}
+	sum := sha256.Sum256(content)
+	return fmt.Sprintf("%x", sum)
+}
+
+func configAutoReloadStorageKey(configPathEncoded string) string {
+	return "openscadgen-config-auto-reload:" + configPathEncoded
+}
+
+// handleConfigChanged compares the currently open editor's file fingerprint with
+// the current file. Its response replaces the polling element, so a detected
+// change deliberately stops further checks until the page is refreshed.
+func handleConfigChanged(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	configPath, err := decodeBase64QueryValue(r, "config_path")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	serverFolder, err := decodeBase64QueryValue(r, "server_folder")
+	if err != nil || strings.TrimSpace(serverFolder) == "" {
+		http.Error(w, "a server folder is required", http.StatusBadRequest)
+		return
+	}
+	configPath = resolveConfigPath(configPath, serverFolder)
+	if !pathWithinDir(configPath, serverFolder) {
+		http.Error(w, "config file must be inside the server folder", http.StatusForbidden)
+		return
+	}
+
+	currentFingerprint := configFileFingerprint(configPath)
+	expectedFingerprint := r.URL.Query().Get("fingerprint")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if expectedFingerprint != "" && currentFingerprint != expectedFingerprint {
+		refreshURL := pkg.BuildPageUrl(configPath, serverFolder).PageURL
+		if r.URL.Query().Get("auto_reload") == "true" {
+			w.Header().Set("HX-Redirect", refreshURL)
+			return
+		}
+		configPathEncoded := base64.StdEncoding.EncodeToString([]byte(configPath))
+		_ = templates.ConfigFileChangedWarning(refreshURL, configAutoReloadStorageKey(configPathEncoded)).Render(r.Context(), w)
+		return
+	}
+
+	configPathEncoded := base64.StdEncoding.EncodeToString([]byte(configPath))
+	serverFolderEncoded := base64.StdEncoding.EncodeToString([]byte(serverFolder))
+	_, _ = fmt.Fprintf(w, `<div id="config-file-change-check" hx-get="/api/config/changed?config_path=%s&amp;server_folder=%s&amp;fingerprint=%s" hx-trigger="every 30s [document.hasFocus()]" hx-vals="js:{auto_reload: sessionStorage.getItem('%s') === 'true'}" hx-swap="outerHTML"></div>`, url.QueryEscape(configPathEncoded), url.QueryEscape(serverFolderEncoded), url.QueryEscape(currentFingerprint), configAutoReloadStorageKey(configPathEncoded))
 }
 
 func buildConfigEditPreview(configPath string, serverFolder string, content string) (*models.Config, []models.InstanceConfig, []models.EditValidationFeedback, templ.Component) {
@@ -1097,14 +1200,56 @@ func buildConfigEditPreview(configPath string, serverFolder string, content stri
 
 	if runErrors := pkg.ValidateInstances(instances, config); len(runErrors) > 0 {
 		for _, runErr := range runErrors {
+			fixes := exportNameFormatFixes(config, instances, runErr)
 			feedback = append(feedback, models.EditValidationFeedback{
-				Message:        runErr.Message,
-				IsSaveBlocking: runErr.IsSaveBlocking,
+				Message:               runErr.Message,
+				IsSaveBlocking:        runErr.IsSaveBlocking,
+				ExportNameFormatFixes: fixes,
 			})
 		}
 	}
 
 	return config, instances, feedback, nil
+}
+
+func exportNameFormatFixes(config *models.Config, instances []models.InstanceConfig, runErr pkg.RunError) []models.EditExportNameFormatFix {
+	if runErr.ErrorCode != pkg.RunErrorCode_DuplicateExportPath || len(runErr.MissingExportNameFormatParams) == 0 {
+		return nil
+	}
+
+	seen := make(map[string]bool)
+	fixes := make([]models.EditExportNameFormatFix, 0, 2)
+	for _, instance := range instances {
+		if instance.RunOutputPathV3 != runErr.KVPs["DuplicatePath"] || instance.ImageOnly {
+			continue
+		}
+		fix := exportNameFormatFixForInstance(config, instance, runErr.MissingExportNameFormatParams)
+		key := fix.Scope + "\x00" + fix.Selector
+		if !seen[key] {
+			seen[key] = true
+			fixes = append(fixes, fix)
+		}
+	}
+	return fixes
+}
+
+func exportNameFormatFixForInstance(config *models.Config, instance models.InstanceConfig, missing []string) models.EditExportNameFormatFix {
+	placeholders := make([]string, len(missing))
+	for i, name := range missing {
+		placeholders[i] = "{" + name + "}"
+	}
+
+	for _, configured := range config.Design.ConfiguredInstanceConfig {
+		if configured.Name == instance.Name && configured.ExportNameFormat != "" {
+			return models.EditExportNameFormatFix{Label: "instance " + configured.Name, Scope: "instances", Selector: configured.Name, Placeholders: placeholders}
+		}
+	}
+	for _, inputPath := range config.GetInputPaths() {
+		if inputPath.Path == instance.InputPath.Path && inputPath.ExportNameFormat != "" {
+			return models.EditExportNameFormatFix{Label: "input path " + inputPath.Path, Scope: "input_paths", Selector: inputPath.Path, Placeholders: placeholders}
+		}
+	}
+	return models.EditExportNameFormatFix{Label: "global config", Scope: "global", Placeholders: placeholders}
 }
 
 func previewConfigEditParams(configPath string, serverFolder string, content string) models.EditConfigParams {

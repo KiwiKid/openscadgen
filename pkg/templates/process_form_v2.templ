@@ -3,7 +3,36 @@ package templates
 import (
 	"fmt"
 	"github.com/kiwikid/openscadgen/pkg/models"
+	"time"
 )
+
+templ TestRunSummaryBody(summary *models.TestRunSummary) {
+	<div class="is-flex is-align-items-center is-flex-wrap-wrap" style="gap: 0.4rem;">
+		if summary != nil {
+			<span class="is-size-7 has-text-grey">Last test run { summary.RanAt.Format(time.Kitchen) }</span>
+			<span class="tag is-success is-light">{ fmt.Sprintf("%d passing", summary.Passing) }</span>
+			if summary.Failing > 0 {
+				<span class="tag is-danger is-light">{ fmt.Sprintf("%d failing", summary.Failing) }</span>
+			} else {
+				<span class="tag is-light">0 failing</span>
+			}
+		} else {
+			<span class="is-size-7 has-text-grey">No test run yet</span>
+		}
+	</div>
+}
+
+templ TestRunSummary(summary *models.TestRunSummary) {
+	<div id="test-run-summary">
+		@TestRunSummaryBody(summary)
+	</div>
+}
+
+templ TestRunSummaryOOB(summary *models.TestRunSummary) {
+	<div id="test-run-summary" hx-swap-oob="true">
+		@TestRunSummaryBody(summary)
+	</div>
+}
 
 templ SlimProcessForm(reportMeta models.ReportMeta) {
 	<div x-data="{ showMobileFilter: false }" style="width: 100%; max-height: 8rem; overflow-y: scroll;">
@@ -15,8 +44,12 @@ templ SlimProcessForm(reportMeta models.ReportMeta) {
 			<input type="text" name="server_folder" value={ reportMeta.ServerFolderEncoded } readonly hidden/>
 			<input type="text" name="page_instances_signature" value={ reportMeta.InstanceSetSignature } readonly hidden/>
 			<div style="display: flex; gap: 0.5rem; flex: 0 0 auto; margin-left: auto; align-items: center; flex-wrap: nowrap;">
-				<button class="button is-primary og-process-button" type="submit">Process</button>
+				<button class="button is-primary og-process-button" type="submit" data-og-process-submit title="Generate STL files and images without running configured tests">Process</button>
+				<button class="button is-light og-process-button" type="submit" name="run_tests" value="true" data-og-process-submit title="Generate STL files and images, then run configured tests">Run tests</button>
+				<button class="button is-info og-process-button" type="submit" name="run_all" value="true" data-og-process-submit title="Generate STL files and images, then run configured tests">Run all</button>
+				<button class="button is-danger og-process-cancel-button" type="button" data-og-process-cancel disabled>Cancel</button>
 			</div>
+			@TestRunSummary(reportMeta.TestRun)
 			<div class="is-hidden-tablet" x-show="showMobileFilter" x-cloak style="flex: 1 1 100%; min-width: 0;">
 				<input class="input" type="text" name="regex" placeholder="Only process instances that match this pattern" style="min-width: 0; width: 100%;"/>
 			</div>
@@ -52,11 +85,20 @@ templ ProcessFormV2(reportMeta models.ReportMeta) {
 					</div>
 				</div>
 				<div style="display: flex; gap: 0.5rem; flex: 0 0 auto; margin-left: auto; flex-wrap: wrap;">
-					<button class="button is-large is-primary og-process-button" type="submit" id="process-btn" title="Process Configuration">
+					<button class="button is-large is-primary og-process-button" type="submit" id="process-btn" data-og-process-submit title="Generate STL files and images without running configured tests">
 						<span class="icon">
 							<i class="fas fa-play"></i>
 						</span>
 					</button>
+					<button class="button is-large is-light og-process-button" type="submit" name="run_tests" value="true" data-og-process-submit title="Generate STL files and images, then run configured tests">
+						<span class="icon"><i class="fas fa-vial"></i></span>
+						<span>Run tests</span>
+					</button>
+					<button class="button is-large is-info og-process-button" type="submit" name="run_all" value="true" data-og-process-submit title="Generate STL files and images, then run configured tests">
+						<span class="icon"><i class="fas fa-play-circle"></i></span>
+						<span>Run all</span>
+					</button>
+					<button class="button is-large is-danger og-process-cancel-button" type="button" data-og-process-cancel disabled>Cancel</button>
 					<button
 						class="button is-large is-danger"
 						type="button"

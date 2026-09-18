@@ -16,7 +16,7 @@ include <BOSL2/joiners.scad>;
 	renderType = "obj";
     
     
-    partType = "plug"; //"plug"; // phoneMount cordHolder wallMount // all-car
+    partType = "phoneMount"; //"plug"; // phoneMount cordHolder wallMount // all-car
     bottomShelf = "includeBottomShelf"; //includeBottomShelf
     phoneHolderWidth = 40;
     phoneHolderHeight = 95;
@@ -139,7 +139,7 @@ include <BOSL2/joiners.scad>;
         rotate(phoneRotate)
         move(cutoutMove-[40,10,-30])
         fwd(10)
-		cuboid([20,30,60], rounding=3);
+		#cuboid([20,30,60], rounding=3);
         
         
         // Central plugged in cord hole

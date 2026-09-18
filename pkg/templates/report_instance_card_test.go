@@ -7,9 +7,24 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/kiwikid/openscadgen/pkg/models"
 )
+
+func TestTestRunSummaryShowsPassingAndFailingCounts(t *testing.T) {
+	var rendered strings.Builder
+	summary := &models.TestRunSummary{Passing: 3, Failing: 1, RanAt: time.Date(2026, time.September, 14, 13, 0, 0, 0, time.UTC)}
+	if err := TestRunSummaryOOB(summary).Render(context.Background(), &rendered); err != nil {
+		t.Fatal(err)
+	}
+	body := rendered.String()
+	for _, needle := range []string{`id="test-run-summary"`, `hx-swap-oob="true"`, `3 passing`, `1 failing`} {
+		if !strings.Contains(body, needle) {
+			t.Fatalf("expected summary to contain %q, got %s", needle, body)
+		}
+	}
+}
 
 func TestImageURLsResolveToTheGeneratedExportImage(t *testing.T) {
 	exportRoot := filepath.Join(t.TempDir(), "export", "v0.1")
@@ -119,6 +134,28 @@ func TestReportAndOOBCardUseTheServerImagePath(t *testing.T) {
 	}
 }
 
+func TestServerReportDarkModeControlsRemainVisible(t *testing.T) {
+	var rendered strings.Builder
+	reportMeta := models.ReportMeta{IsServerMode: true}
+	if err := Report("view", &models.Config{}, nil, t.TempDir(), nil, nil, nil, reportMeta, 0, nil).Render(context.Background(), &rendered); err != nil {
+		t.Fatal(err)
+	}
+
+	body := rendered.String()
+	for _, needle := range []string{
+		"color-scheme: dark;",
+		".dark .input,",
+		".dark .select select {",
+		".bottom-nav-toggle .icon i {",
+		"color: var(--text-color) !important;",
+		`class="fas fa-chevron-up"`,
+	} {
+		if !strings.Contains(body, needle) {
+			t.Fatalf("expected dark-mode controls to contain %q", needle)
+		}
+	}
+}
+
 func TestInstanceCardV2RendersFailedOpenSCADDetails(t *testing.T) {
 	instance := models.InstanceConfig{
 		Name:            "default",
@@ -165,9 +202,112 @@ func TestInstanceCardV2RendersFailedOpenSCADDetails(t *testing.T) {
 		`Execution aborted`,
 		`Copy params`,
 		`data-openscad-params="width = 42;"`,
+		`href="file:///tmp/export"`,
+		`Open Folder`,
 	} {
 		if !strings.Contains(body, needle) {
 			t.Fatalf("expected rendered instance card to contain %q\nbody=%s", needle, body)
+		}
+	}
+}
+
+func TestInstanceCardV2RendersImageSkipWarningAsTooltipIcon(t *testing.T) {
+	imageSkipReason := "Skipping image because param mode does not match box,topBox,box-full-bottomModifier"
+	instance := models.InstanceConfig{
+		Name:               "bolt_sizer_logo",
+		AutoName:           "bolt_sizer_logo",
+		UniqueID:           "bolt_sizer_logo",
+		SkippedImageReason: imageSkipReason,
+	}
+
+	var rendered strings.Builder
+	if err := InstanceCardV2(instance, "/tmp/export", "complete", nil, models.ReportMeta{}).Render(context.Background(), &rendered); err != nil {
+		t.Fatalf("render instance card: %v", err)
+	}
+
+	body := rendered.String()
+	for _, needle := range []string{
+		`<details class="instance-card-v2__warning">`,
+		`class="has-text-warning" title="` + imageSkipReason + `" aria-label="` + imageSkipReason + `"`,
+		`<i class="fas fa-exclamation-triangle" aria-hidden="true"></i>`,
+		`<div class="instance-card-v2__warning-panel">` + imageSkipReason + `</div>`,
+	} {
+		if !strings.Contains(body, needle) {
+			t.Fatalf("expected rendered image-skip warning to contain %q\nbody=%s", needle, body)
+		}
+	}
+	if strings.Contains(body, `<strong>Image:</strong>`) {
+		t.Fatalf("image-skip warning should be represented by an icon, got: %s", body)
+	}
+}
+
+func TestInstanceCardV2KeepsItsProcessIndicatorVisibleWhileJobRuns(t *testing.T) {
+	instance := models.InstanceConfig{AutoName: "reprocess-me", UniqueID: "reprocess-me"}
+	reportMeta := models.ReportMeta{
+		IsServerMode:          true,
+		ConfigFilePathEncoded: "config",
+		ServerFolderEncoded:   "folder",
+		InstanceSetSignature:  "instances",
+	}
+
+	var rendered strings.Builder
+	if err := InstanceCardV2(instance, t.TempDir(), "complete", nil, reportMeta).Render(context.Background(), &rendered); err != nil {
+		t.Fatalf("render instance card: %v", err)
+	}
+
+	body := rendered.String()
+	for _, needle := range []string{
+		`data-og-process-form="instance"`,
+		`hx-indicator="find [data-og-process-indicator]"`,
+		`data-og-process-indicator`,
+	} {
+		if !strings.Contains(body, needle) {
+			t.Fatalf("expected instance process UI to contain %q\nbody=%s", needle, body)
+		}
+	}
+}
+
+func TestReportOnlyPersistsPageLevelProcessFormsForRedirectRecovery(t *testing.T) {
+	var rendered strings.Builder
+	if err := Report("view", &models.Config{}, nil, t.TempDir(), nil, nil, nil, models.ReportMeta{}, 0, nil).Render(context.Background(), &rendered); err != nil {
+		t.Fatalf("render report: %v", err)
+	}
+
+	body := rendered.String()
+	for _, needle := range []string{
+		"function ogIsPrimaryProcessForm(formEl)",
+		"if (ogIsPrimaryProcessForm(formEl)) {\n                ogRememberPendingProcess(formEl);",
+		"indicator.classList.add('og-process-indicator--active');",
+		".og-process-inline-indicator.og-process-indicator--active",
+	} {
+		if !strings.Contains(body, needle) {
+			t.Fatalf("expected report process lifecycle to contain %q", needle)
+		}
+	}
+}
+
+func TestInstanceCardV2LinksTestTagsToInstance(t *testing.T) {
+	instance := models.InstanceConfig{
+		AutoName: "tested-instance",
+		UniqueID: "tested-instance-id",
+		STLResults: []models.GenerateSTLResult{{Tests: []models.GeometryTestResult{
+			{Type: "flatness", Passed: true},
+			{Type: "no-holes", Passed: false, Message: "hole found"},
+		}}},
+	}
+
+	var rendered strings.Builder
+	if err := InstanceCardV2(instance, "/tmp/export", "complete", nil, models.ReportMeta{}).Render(context.Background(), &rendered); err != nil {
+		t.Fatalf("render instance card: %v", err)
+	}
+
+	body := rendered.String()
+	for _, needle := range []string{
+		`href="#instance-tested-instance-id"` + ` title="View flatness test results for tested-instance"`,
+		`href="#instance-tested-instance-id"` + ` title="hole found"`,
+	} {
+		if !strings.Contains(body, needle) {
+			t.Fatalf("expected test tag link %q in rendered card\nbody=%s", needle, body)
 		}
 	}
 }
@@ -224,11 +364,11 @@ func TestReportRendersOpenSCADButtonsForConfiguredSCADFiles(t *testing.T) {
 		t.Fatalf("render report: %v", err)
 	}
 	body := rendered.String()
-	if count := strings.Count(body, "Open first.scad"); count != 1 {
-		t.Fatalf("expected one nav button for first.scad, got %d\nbody=%s", count, body)
+	if strings.Contains(body, "Open first.scad") || strings.Contains(body, "Open second.scad") {
+		t.Fatalf("configured SCAD files must not render duplicate navigation buttons\nbody=%s", body)
 	}
-	if !strings.Contains(body, "Open second.scad") || !strings.Contains(body, "Open in OpenSCAD") {
-		t.Fatalf("expected OpenSCAD buttons for configured SCAD files\nbody=%s", body)
+	if count := strings.Count(body, "Open in OpenSCAD"); count != 2 {
+		t.Fatalf("expected one title-adjacent OpenSCAD button per configured SCAD file, got %d\nbody=%s", count, body)
 	}
 	if strings.Contains(body, "notes.txt") {
 		t.Fatalf("non-SCAD input must not render an OpenSCAD button\nbody=%s", body)

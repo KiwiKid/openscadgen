@@ -2,11 +2,12 @@
 // 1. Library Includes
 include <BOSL2/std.scad>
 
+$preview = true;
 // 2. Render Quality Controls
 // Fast low-res preview (F5) vs. smooth high-res final render (F6)
 $fa = $preview ? 12 : 2;     // Minimum angle (degrees)
 $fs = $preview ? 2 : 0.3;    // Minimum fragment size (mm)
-$fn = 200;                     // Disabled so $fa and $fs take effect
+$fn = 20;                     // Disabled so $fa and $fs take effect
 
 // 3. BOSL2 Printer Tolerances
 // Added clearance for 3D-printed joints, holes, and press-fits (in mm)
@@ -17,27 +18,14 @@ $slop = 0.2;
 // =================================================================
 
 /* [Render Controls] */
-// Select the generated object: box, topBox, box-full-bottomModifier, box-noText, text, bottomRenderBox, bottomRender, centerBox, logo, glueJig, glueJoinerSquare, or all.
-mode = "box"; //bottomRenderBoxHeight
-textMode = "text"; // Set to "noText" to omit the top labels.
-renderType = "obj";
+// Select the print-oriented export: box, bottomColorModifier,
+// topColorModifier, modifierV2, preview, or test.
+mode = "box";
 
-// Thickness of the bottom slice that receives the image-relief replacement.
-bottomRenderBoxHeight = 2;
-
-/* [Glue Jig] */
-// Thin alignment frame used while gluing the bottom insert into the sizer.
-glueJigCount = 5;
-glueJigSeparation = 10;
-glueJigHeight = 10.99;
-glueJigWidth = 14;
-glueJigFloorHeight = 3;
-glueJigBorder = 6;
-glueJigLengthExtra = 8;
-
-glueSquareCutoutMove = 13;
-glueSquareCutoutSize = [2,40,1.5];
-glueSquareCutoutChamfer = 0.3;
+// The export bed plane.  "right-side-up" keeps the sizer's Z direction; a
+// modifier then includes a thin spacer down to Z=0 so Bambu Studio preserves
+// its intended height when it drops each imported STL to the floor.
+exportOrientation = "right-side-up"; // [on-side,right-side-up]
 
 /* [Sizer Body] */
 // Overall body dimensions and the pointed end attached to it.
@@ -45,7 +33,7 @@ globalSizerHeight = 10;
 sizerRounding = 1;
 bottomGapSize = 16;
 
-pointHoleDown = 9;
+pointHoleDown = 10;
 pointBottomHeight = 12;
 pointFwdOffset = 0;
 
@@ -54,63 +42,62 @@ pointFwdOffset = 0;
 boltHoleWidth = 15;
 boltHoleGap = 2;
 boltHoleCount = 6;
-boltHoleFloor = 3;
+// The solid base beneath the bolt holes and top labels.
+floorHeight = 2;
 boltHoleHeight = 8;
-boltholeHeight = 8;
 boltHoleSideWallSize = 3;
 holeDepth = 12;
 
 /* [Golf Pick Hole] */
 // Long relief cut and its larger end clearance.
 pickHoleDown = 3;
-pickRadius = 6.5;
-pickHoleIn = -boltHoleFloor + 2;
+pickRadius = 5.2;
+pickHoleIn = -floorHeight + 2;
 pickChamfer = 5;
 pickBottomRadius = 3.5;
 pickBottomHeight = 18;
 
 /* [Top Labels] */
-// Raised or cut numeric labels above the bolt holes.
-textHeight = 0.3;
-// Thickness of the standalone text colour-modifier mesh.
-textColorThickness = 0.3;
-// Keeps the modifier just inside the label surface and avoids coincident faces.
-textModifierSurfaceOffset = 0.01;
-// Lowers the standalone text modifier while preserving its Z=0 support bar.
-textModifierDown = 0.15;
-textDepth = 0.7;
-textSize = 5;
-textShift = 3.5;
+// Depth of the recessed labels below the floor surface.
+textIndentHeight = 0.3;
+// One thin, full-footprint colour cuboid overlaps the floor of the numbered
+// recesses by this amount. It must remain below the top section, leaving only
+// the layer's upper face and perimeter sides visible inside each cutout.
+topColorModifierCutoutOverlap = 0.01;
+topColorModifierHeight = 0.1;
+topColorModifierStripSize = 0.1;
+textSize = 5.5;
+textShift = 2.5;
 
 /* [Bottom Image Relief] */
 // Height-map relief generated from image.png on the bottom of the sizer.
-bottomRenderUp = 2;
-bottomRenderTextHeight = 2;
-bottomRenderModifierZeroHeight = 1.15;
-bottomRenderModifierHeight = -bottomRenderModifierZeroHeight-0;
-// Cut the image-relief cavity into the sliced bottom box.
-bottomRenderBoxWithText = true;
+bottomRenderTextHeight = 1;
+bottomRenderModifierHeight = -2.15;
+bottomRenderFloorOffset = 0.4;
+bottomReliefLayerSpacing = 0.05;
+bottomReliefLayerCount = 10;
+// Keep the inverted cavity aligned to the separately exported modifier.
+bottomColorCutoutInset = 0;
+// How far the logo cavity enters the bottom face.  The separate modifier
+// continues farther into the floor, so the imported parts still overlap.
+bottomColorCutoutDepth = 0.2;
+// Extend each separate colour modifier this far into the remaining box solid.
+// That overlap makes the parts register as one object in a multi-part slicer.
+modifierModelOverlap = 0.15;
 
-// The full-box logo is only recessed into the first part of the bottom face.
-// Its separately exported modifier extends roughly two 0.2 mm print layers
-// into the box so a slicer can assign it a second colour.
-bottomLogoCutoutDepth = 0.05;
-bottomLogoModifierHeight = 0.4;
+// Simple top/bottom modifier placement. The small overhang clears the model
+// sides. It enters each text recess enough to give the printed colours a
+// common layer, while leaving an opaque outer skin over the rest of each face.
+modifierV2SideOverhang = -0.5;
+modifierV2BottomTextOverlap = 0.05;
+modifierV2TopTextSurfaceClearance = 0.05;
+modifierV2SpacerSize = 0.2;
 
-logoScaleAdjust = 0.53;
+logoScaleAdjust = 2.9;
 logoShiftRight = 0;
-
-/* [Logo Geometry] */
-// Settings used by the optional Energy Smart logo modules.
-logoScale = 0.28;
-logoCount = 7;
-logoHeight = 1;
-logoShiftFromPoint = -4 * logoScale;
-logoWedgeSideLength = 40;
-
-/* [Advanced Options] */
-// Reserved for wall-thickness based features.
-wall_thickness = 2.0;
+// Rotate the landscape source image into its readable bottom-face orientation.
+logoImportRotation = 180;
+logoImportYRotation = 180;
 
 
 // =================================================================
@@ -121,14 +108,13 @@ globalSizerSize = [boltHoleWidth + boltHoleSideWallSize, globalSizerLenght, glob
 
 // Pointed end geometry, derived from the body and bolt-hole dimensions.
 bottomPointRadius = 21;
-bottomPointBaseAngleSpread = boltHoleWidth + 10;
-bottomPointUpShift = 11;
+bottomPointBaseAngleSpread = boltHoleWidth + 11;
+bottomPointUpShift = 11.4;
 bottomPointMove = [0, bottomPointUpShift - bottomPointRadius, 0];
 
 
 
 
-roud = 1;
 // =================================================================
 // MODEL
 //
@@ -148,95 +134,33 @@ roud = 1;
 
 
 
-    module energy_smart_img(height = logoHeight, logoScale=logoScale){
-
-      // pts = [[-16,-8],[-9,0],[-16,8],[-16,16],[-8,16],[0,8],[0,-8],[-8,-16],[-16,-16]];
-        linear_extrude(h=logoHeight)
-    rotate([0,180,0])
-        scale([logoScale,logoScale,1])
-            rotate([0,0,-90])
-
-
-            projection(cut = true) {
-        // Translate the surface down on the Z-axis to choose where the 2D cut happens
-        translate([-logoShiftFromPoint, 0, -10])
-                // 1. Define image dimensions (X, Y, and maximum extruded Z height)
-
-        // 2. Wrap it in a BOSL2 attachable block
-        attachable(anchor=CENTER, spin=0) {
-
-            // Standard OpenSCAD surface call centered to match BOSL2 bounds
-            scale([1, 1, 1]) // Adjust scaling if necessary
-             surface("image.png",  center = true);
-          //  surface(file="heightmap.png", center=true, invert=true);
-
-            // Explicitly declare attachments anchor position (internal mechanic)
-            children();
-        }
-
-
-    }
-}
-
-
-
-    module centerBox(feature=""){
-    fwd(centerBoxFwd)
-            up(centerBoxRaise)
-    cuboid(centerBoxSize, rounding=2, edges="Z");
-    if(feature=="includeHeightBar"){
-
-        right(20)
-                cuboid([1,1,boltHoleFloor-textDepth], anchor=[-1,-1,-1]);
-
-            }
-
-    }
-    module text_holes(height=textHeight, feature=""){
-            ycopies(boltHoleHeight+boltHoleGap, n=boltHoleCount){
-
+    // Label recesses are defined directly from the top of the solid floor.
+    module labelText(height = textIndentHeight, indent = textIndentHeight) {
+        ycopies(boltHoleHeight + boltHoleGap, n = boltHoleCount)
             fwd(textShift)
-           down(textHeight-0.7)
-         up(boltHoleFloor-textDepth)
-            text3d(str(($idx*10)+20), h=height,  anchor=BOT, size=textSize, font=":style=bold");
+                up(floorHeight - indent)
+                    text3d(str(($idx * 10) + 20), h = height, anchor = BOT,
+                        size = textSize, font = ":style=bold");
+    }
 
+    // BETA: one continuous, thin colour sheet behind all top number cutouts.
+    // Its small grounding strip reaches the common import plane without
+    // changing the sheet's position inside the recesses.
+module topColorModifier() {
+        modifierBottom = floorHeight - textIndentHeight - topColorModifierCutoutOverlap;
+        modifierTop = modifierBottom + topColorModifierHeight;
+        assert(modifierTop <= floorHeight,
+            "topColorModifier must stay inside the top label recess.");
+        union() {
+            up(modifierBottom)
+                cuboid([globalSizerSize[0], globalSizerLenght, topColorModifierHeight], anchor = BOT);
+            right(globalSizerSize[0] / 2 - topColorModifierStripSize / 2)
+                cuboid([topColorModifierStripSize, topColorModifierStripSize, modifierBottom], anchor = BOT);
         }
-        if(feature=="includeHeightBar"){
-        up((boltHoleFloor-textDepth*2)/2)
-        right(20)
-                cuboid([1,1,boltHoleFloor-textDepth], anchor=[-1,-1,-1]);
-
-            }
-
-
-    }
-
-    // The standalone colour modifier must overlap the matching text recess.
-    // If it is fully below or above that recess, Bambu Studio cannot apply it.
-    module assertTextModifierIntersectsTextRecess() {
-        textRecessBottom = boltHoleFloor - textDepth - (textHeight - 0.7);
-        textRecessTop = textRecessBottom + textHeight;
-        textModifierBottom = textRecessBottom - textModifierSurfaceOffset - textModifierDown;
-        textModifierTop = textModifierBottom + textColorThickness;
-
-        assert(
-            textModifierTop > textRecessBottom,
-            str(
-                "Text modifier is too low: its top (", textModifierTop,
-                ") does not reach the text recess bottom (", textRecessBottom, ")."
-            )
-        );
-        assert(
-            textModifierBottom < textRecessTop,
-            str(
-                "Text modifier is too high: its bottom (", textModifierBottom,
-                ") is above the text recess top (", textRecessTop, ")."
-            )
-        );
     }
 
 
-    module roundedHole(holeHeight=boltholeHeight, holeWidth=boltHoleWidth){
+    module roundedHole(holeHeight = boltHoleHeight, holeWidth = boltHoleWidth){
     cuboid([holeWidth,holeHeight,holeDepth/2], anchor=BOT);
     //, rounding=3, edges=BOTTOM, except=BACK
             up(holeDepth/2)
@@ -244,23 +168,23 @@ roud = 1;
     }
 
     module bolt_holes(boltHoleWidth=boltHoleWidth){
-        ycopies(boltholeHeight+boltHoleGap, n=boltHoleCount){
+        ycopies(boltHoleHeight + boltHoleGap, n = boltHoleCount){
         if($idx==0){
         down(0)
         fwd(pointHoleDown)
         intersection(){
        // scale([1,1,2])
-             half_of([0, -1, 0], cp = -7){
+            // half_of([0, -6, 0], cp = -6){
 
-           bottom_point(pointBottomHeight=pointBottomHeight*1.8);
-            }
-                roundedHole(holeHeight=boltholeHeight+3, holeWidth=boltHoleWidth);
+           bottom_point(pointBottomHeight = pointBottomHeight * 1.7);
+        //    }
+                roundedHole(holeHeight = boltHoleHeight + 2, holeWidth = boltHoleWidth);
 
 
         }
         }
 
-       roundedHole(holeHeight=boltholeHeight, holeWidth=boltHoleWidth);
+       roundedHole(holeHeight = boltHoleHeight, holeWidth = boltHoleWidth);
 
 
             }
@@ -283,417 +207,437 @@ roud = 1;
     difference(){
         move(bottomPointMove)
         rotate([0,0,90])
-         linear_extrude(h=globalSizerHeight)
+         linear_extrude(h=globalSizerHeight-0.5)
         arc(r=bottomPointRadius, angle=[-bottomPointBaseAngleSpread, bottomPointBaseAngleSpread], rounding=[1, 1, 1], wedge=true);
 
         fwd(pointBottomHeight)
         down(0.001)
-            cuboid([50,20,20], anchor=BOT+CENTER);
+           cuboid([50,20,20], anchor=BOT+CENTER);
         }
     }
 
-
-    bottomText = "ENERGY";
-
-    bottomText2 = "SMART";
-    bottomTextSize = 7.5;
-        bottomTextHeight = 2;
-
-        bottomTextLeft = -10;
-        bottomTextLeftBack = 2;
-        bottomTextShiftUp = -1;
-/*
-    module bottomRender(textHeight=10, textDepth = 4, logoScaleAdjust=logoScaleAdjust){
-
-      //  scale([1,1,4])
-      //  up(textDepth/4.5)
-   //   down(-1)
-   up(bottomRenderModifierHeight)
-         zcopies(0.1,textDepth){
-
-           fwd(logoShiftRight)
-            difference(){
-           down(0.4)
-            cuboid([16,globalSizerLenght,0.4], anchor=BOT);
-            //fwd(-globalSizerLenght/2)
-
-            up(0.1)
-            rotate([0,180,90])
-            resize([0, 0, logoScaleAdjust], auto=[true, true, false]) {
-                linear_extrude(height = textHeight, convexity = 10) {
-                    projection(cut = true) {
-                        // Adjust the Z-translation to slice right through the middle of your text
-                        translate([0, 0, 80]) {
-                            surface(file = "image.png", center = true, invert = true);
-                        }
-                    }
-                }
-            }
-
-            }
-        }
-    }*/
-
-
-    module logoProjection(height = 10, scaleZ = logoScaleAdjust) {
+module logoProjection(height = 10, scaleZ = logoScaleAdjust) {
     rotate([0, 180, 90])
         resize([0, 0, scaleZ], auto = [true, true, false]) {
-            linear_extrude(height = height, convexity = 10) {
-                projection(cut = true) {
-                    translate([0, 0, 80]) {
-                        surface(file = "image.png", center = true, invert = true);
-                    }
-                }
-            }
+            // Rotate in the logo's 2D plane; doing this before the outer
+            // orientation preserves the relief's Z placement and clipping.
+            rotate([0, 0, logoImportRotation])
+                // A Y flip reverses extrusion direction, so lift it by its
+                // height to keep the relief in the same clipped Z range.
+                up(height)
+                    rotate([0, logoImportYRotation, 0])
+                        linear_extrude(height = height, convexity = 10) {
+                            projection(cut = true) {
+                                translate([0, 0, 80]) {
+                                    surface(file = "image.png", center = true, invert = true);
+                                }
+                            }
+                        }
         }
 }
 
-// Main rendering module
-module bottomRender(textHeight = 10, textDepth = 4, logoScaleAdjust = logoScaleAdjust, cutoutOffset = 0.2) {
+// Image-relief modifier, clipped to the separate lower section. The source
+// surface represents the background, so subtract it from the clip to retain
+// the logo itself as the cavity and colour-modifier geometry.
+module bottomRender(textHeight = 10, reliefDepth = 5, logoScaleAdjust = logoScaleAdjust) {
     up(bottomRenderModifierHeight)
-        zcopies(0.1, textDepth) {
+        zcopies(bottomReliefLayerSpacing, n = bottomReliefLayerCount) {
             fwd(logoShiftRight)
                 difference() {
-                    // Main body
-                    down(0.4)
-                        cuboid([16, globalSizerLenght, 0.4], anchor = BOT);
-
-                    // Primary logo cutout
-                    up(0.1)
-                        logoProjection(height = textHeight, scaleZ = logoScaleAdjust);
-
-                    // Secondary offset cutout
-                    down(0.1)
-                        logoProjection(height = textHeight, scaleZ = logoScaleAdjust);
+                    // The image surface is projected below Z=0. A TOP-anchored
+                    // clip volume expresses that directly, without offsets.
+                    down(-0.001)
+                    cuboid([globalSizerSize[0], globalSizerSize[1], floorHeight],
+                        anchor = TOP);
+                    logoProjection(height = textHeight, scaleZ = logoScaleAdjust);
                 }
         }
 }
 
 // Position the relief to overlap the bottom slice before it is flipped.
 module bottomRenderAtFloor() {
-    up(0.4)
-        bottomRender(textHeight = bottomRenderTextHeight);
+    up(bottomRenderFloorOffset + 0.4)
+        bottomRender(textHeight = bottomRenderTextHeight + 10);
 }
 
-// The matching bottom colour-modifier is the existing relief flipped into the
-// box.  Clipping it gives the full box a shallow visible recess while keeping
-// the modifier thick enough for two layers above that recess.
-module bottomLogoModifier(height = bottomLogoModifierHeight) {
+// Flip the relief for the bottom face.  Both the standalone colour modifier
+// and the cavity in the box use this same orientation.
+module invertedBottomLogoRelief() {
+    rotate([180, 0, 0])
+        bottomRenderAtFloor();
+}
+
+
+// The three sections together make one complete modifier height.  The logo
+// itself is the bottom section; the cuboids begin at its upper face.
+// This applies only to the standalone modifier.  The box continues to use
+// invertedBottomLogoRelief() at its existing cutout depth.
+limitedLogoForModifierHeight = 0.3;
+midModiferSectionHeight = 0.4;
+topModiferSectionHeight = 0.3;
+
+// Reach into the top frame on both axes so the middle and top sections
+// overlap instead of merely meeting at an edge.
+midModiferSectionScaleX = 0.7;
+midModiferSectionScaleY = 0.9;
+
+topModiferSectionScaleX = 0.5;
+topModiferSectionScaleY = 1.4;
+// Use nearly all of the recess available below the unchanged modifier top,
+// making the printed text taller without entering the box's outer surface.
+topModifierTextShare = 0.33;
+topModifierFrameOutsideOverhang = 1;
+topModifierFrameWall = 2;
+// Adjacent modifier pieces overlap slightly, producing one watertight part
+// rather than separate shells that only share a face.
+modifierConnectionOverlap = 0.01;
+
+bottomModiferReduceX = 3.4;
+bottomModiferReduceY = 3;
+
+// Extend the modifier 0.4 mm farther below the floor while retaining its
+// existing upper Z boundary.
+floorModifierStartHeight = -0.2;
+floorModifierTotalHeight = 2.1;
+
+// The logo is clipped to the height allocated to the modifier's bottom
+// section, giving it a flat top face for the first cuboid to attach to.
+module limitedLogoForModifier() {
     intersection() {
-        // The flipped legacy relief's base starts 0.6 mm above the floor.
-        // Move it back to Z=0 before limiting its in-box depth.
-        down(0.6)
-            rotate([180, 0, 0])
-                bottomRenderAtFloor();
-        cuboid([100, 100, height], anchor = BOT);
+        cuboid([
+            globalSizerSize[0] - bottomModiferReduceX,
+            globalSizerSize[1] - bottomModiferReduceY,
+            floorModifierTotalHeight * limitedLogoForModifierHeight
+        ], anchor = BOT);
+        down(3.2)
+            invertedBottomLogoRelief();
     }
 }
 
-module bottomLogoCutout(depth = bottomLogoCutoutDepth) {
+// Reuse the box's number layout through the full height of its recess.
+// Its upper face is exactly the modifier's existing upper Z boundary.
+module topModifierNumberStack() {
+    modifierTop = floorModifierStartHeight + floorModifierTotalHeight;
+    numberHeight = textIndentHeight * topModifierTextShare;
+    numberBottom = modifierTop - numberHeight;
+    assert(modifierTop > floorHeight - textIndentHeight && modifierTop <= floorHeight,
+        "The modifier top must lie within the top number recesses.");
+    assert(numberBottom >= floorHeight - textIndentHeight,
+        "The modifier number layer must remain within the top number recesses.");
+    ycopies(boltHoleHeight + boltHoleGap, n = boltHoleCount)
+        fwd(textShift)
+            up(floorModifierTotalHeight - numberHeight)
+                text3d(str(($idx * 10) + 20), h = numberHeight, anchor = BOT,
+                    size = textSize, font = ":style=bold");
+}
+
+// A frame, rather than a solid plate, preserves the visible outer modifier
+// impression without covering the number stack in the middle.
+module topModifierFrame() {
+fwd(5)
+scale([1,0.89,1])
+    rect_tube(
+        size = [
+            globalSizerSize[0] + 2 * topModifierFrameOutsideOverhang,
+            globalSizerSize[1] + 2 * topModifierFrameOutsideOverhang + 20
+        ],
+        wall = topModifierFrameWall,
+        h = floorModifierTotalHeight * topModiferSectionHeight + modifierConnectionOverlap,
+        anchor = BOT
+    )
+    attach(FWD){
+//fwd(4)
+        cuboid([globalSizerSize[0],floorModifierTotalHeight * topModiferSectionHeight + modifierConnectionOverlap, 13], anchor=TOP);
+        }
+    
+}
+
+// Each rail overlaps the perimeter frame and its corresponding text. Together
+// with the enlarged middle section this makes the whole modifier continuous.
+module topModifierTextSupports() {
+    frameInnerSize = [
+        globalSizerSize[0] + 2 * topModifierFrameOutsideOverhang - 2 * topModifierFrameWall,
+        globalSizerSize[1] + 2 * topModifierFrameOutsideOverhang - 2 * topModifierFrameWall
+    ];
+    ycopies(boltHoleHeight + boltHoleGap, n = boltHoleCount)
+        fwd(textShift)
+            cuboid([
+                frameInnerSize[0] + 2 * modifierConnectionOverlap,
+                textSize + 2 * modifierConnectionOverlap,
+                floorModifierTotalHeight * topModiferSectionHeight + modifierConnectionOverlap
+            ], anchor = BOT);
+}
+
+module bottomLogoModifier() {
+    sectionHeightTotal = limitedLogoForModifierHeight +
+        midModiferSectionHeight + topModiferSectionHeight;
+    assert(abs(sectionHeightTotal - 1) < 0.000001,
+        "limitedLogoForModifierHeight + midModiferSectionHeight + topModiferSectionHeight must equal 1");
+
+    up(floorModifierStartHeight)
+        union() {
+            limitedLogoForModifier();
+
+            // limitedLogoForModifier() is an intersection, which has no
+            // BOSL attachment metadata.  Use its declared height instead, so
+            // each cuboid is retained and begins exactly where its section
+            // below ends.
+            up(floorModifierTotalHeight * limitedLogoForModifierHeight -
+                modifierConnectionOverlap)
+                cuboid([
+                    globalSizerSize[0] * midModiferSectionScaleX,
+                    globalSizerSize[1] * midModiferSectionScaleY,
+                    floorModifierTotalHeight * midModiferSectionHeight +
+                        modifierConnectionOverlap
+                ], anchor = BOT);
+
+            up(floorModifierTotalHeight *
+                (limitedLogoForModifierHeight + midModiferSectionHeight) -
+                modifierConnectionOverlap)
+                union() {
+                    topModifierFrame();
+                    //topModifierTextSupports();
+                }
+               zcopies(0.1,5)
+            topModifierNumberStack();
+        }
+}
+
+// The shared middle layer reaches both the top label recess and bottom logo
+// recess.  It deliberately overhangs the sides so it remains visible and easy
+// to select in a multi-part slicer.
+function modifierV2Bottom() = bottomColorCutoutDepth - modifierV2BottomTextOverlap;
+function modifierV2Top() = floorHeight - modifierV2TopTextSurfaceClearance;
+
+module modifierV2MiddleLayer() {
+    modifierBottom = modifierV2Bottom();
+    modifierTop = modifierV2Top();
+    assert(modifierBottom > 0 && modifierBottom < bottomColorCutoutDepth,
+        "Middle modifier must enter the bottom text recess without reaching the bottom surface.");
+    assert(modifierTop > floorHeight - textIndentHeight && modifierTop < floorHeight,
+        "Middle modifier must reach the top text recess without reaching the top surface.");
+
+    up(modifierBottom)
+        cuboid([
+            globalSizerSize[0] + modifierV2SideOverhang * 2,
+            globalSizerSize[1] + modifierV2SideOverhang * 2,
+            modifierTop - modifierBottom
+        ], anchor = BOT);
+}
+
+// The complete V2 colour modifier: one simple middle layer plus the printable
+// portion of bottomRender.  Keeping the bottom relief here makes this export
+// self-contained while still sharing its geometry with the box cutout.
+module modifierV2() {
+    union() {
+     //   modifierV2MiddleLayer();
+        bottomLogoModifier();
+    }
+}
+
+// The normal box export is the complete assembled sizer.  Keep the individual
+// modifier modes below for multi-colour slicer imports, but do not make the
+// default box STL silently omit those model volumes.
+module assembledBox() {
+    union() {
+        boxWithBottomColorCutout();
+       // modifierV2()
+        //#topColorModifier();
+      //  bottomLogoModifier();
+    }
+}
+
+// Image-only assembly view.  The printable box and modifier remain separate
+// exports; this scene makes the V2 insert visible in the generated close-ups.
+module modifierV2Preview() {
+    color("grey")
+        assembledBox();
+    color("red")
+        modifierV2();
+}
+
+// A deliberately small placement datum, outside the body footprint. It is
+// only emitted upright, where Bambu Studio otherwise lowers a floating middle
+// layer to the bed and loses its designed Z offset.
+module modifierV2Spacer() {
+    right(globalSizerSize[0] / 2 + modifierV2SideOverhang - modifierV2SpacerSize / 2)
+        back(globalSizerSize[1] / 2 + modifierV2SideOverhang - modifierV2SpacerSize / 2)
+            cuboid([
+                modifierV2SpacerSize,
+                modifierV2SpacerSize,
+                modifierV2Bottom()
+            ], anchor = BOT);
+}
+
+// The cavity is deliberately shallow, leaving the rest of the modifier
+// embedded in the floor so the separately imported logo joins to the box.
+module bottomLogoCutout() {
+    bottomModifierTop = bottomColorCutoutInset -
+        (bottomRenderFloorOffset + 0.4 + bottomRenderModifierHeight) +
+        (bottomReliefLayerCount - 1) * bottomReliefLayerSpacing / 2;
     intersection() {
         bottomLogoModifier();
-        cuboid([100, 100, depth], anchor = BOT);
+        cuboid([globalSizerSize[0], globalSizerSize[1],
+            min(bottomColorCutoutDepth, bottomModifierTop - modifierModelOverlap)],
+            anchor = BOT);
     }
 }
 
-// The lower slice removed from the main box and exported as the logo base.
-module bottomRenderBoxBase() {
-    intersection() {
-        bolt_sizer(mode = "box", textMode = "noText");
-        up(bottomRenderBoxHeight / 2)
-            cuboid([100, 100, bottomRenderBoxHeight]);
-    }
+// The bottom is an independent cuboid.  Its top edges stay square so it joins
+// the upper box flush; the visible lower edges retain the body rounding.
+module bottomSection() {
+    cuboid([globalSizerSize[0], globalSizerSize[1], floorHeight], anchor = BOT,
+        rounding = sizerRounding, except_edges = TOP);
 }
 
-// The sliced base and matching relief cavity used by the logo export.
-module bottomRenderBoxCutout(withText = true) {
+module boxSection() {
+    up(floorHeight)
+        cuboid([globalSizerSize[0], globalSizerSize[1], globalSizerHeight - floorHeight],
+            anchor = BOT, rounding = sizerRounding, except_edges = BOT);
+}
+
+// Main sizer body with the bottom-colour relief cut into its base.
+module boxWithBottomColorCutout() {
     difference() {
-        bottomRenderBoxBase();
-        if (withText)
-            bottomRenderAtFloor();
-
-            glueSquareCutout(cutoutUp=0);
-    }
-}
-
-module glueSquareCutout(cutoutUp=bottomRenderBoxHeight){
-up(bottomRenderBoxHeight)
-left(0)
-//xcopies(glueSquareCutoutMove, 2)
- //   cuboid(glueSquareCutoutSize, chamfer=glueSquareCutoutChamfer);
-
-    if(cutoutUp > 0){
-    left(20)
-    cuboid([1,1,10], anchor=BOT);
-    }
-}
-
-// Main sizer body with space for the separately printed bottom slice.
-module boxWithBottomRenderCutout() {
-    difference() {
-        bolt_sizer(mode = "box");
-        bottomRenderBoxBase();
-
-      //  glueSquareCutout();
-    }
-}
-
-// Full body used by the normal box render.  Unlike topBox, this retains its
-// bottom and receives only a 0.05 mm logo recess.
-module fullBoxWithBottomLogoCutout() {
-    difference() {
-        bolt_sizer(mode = "box", withBottomRenderCutout = false);
-        bottomLogoCutout();
-    }
-}
-
-// The completed sizer: main body plus the bottom-render insert in its recess.
-module boxWithBottomRenderInsert() {
-    union() {
-        boxWithBottomRenderCutout();
-        bottomRenderBoxCutout(withText = true);
-    }
-}
-
-glueJigSize = [
-        //globalSizerSize[0] + 2 * glueJigBorder,
-         20,
-        globalSizerSize[1] + glueJigLengthExtra + 2 * glueJigBorder,
-        glueJigHeight,
-    ];
-module glueJigCutout(){
-    up(glueJigHeight - 1)
-        fwd(5)
-            xcopies(glueJigSize[1], n = 2) {
-                cuboid([1, glueJigSize[1] - 5, 10]);
-            }
-}
-
-// Separate, slightly undersized strips that sit in the matching glue channels
-// between the box and bottom insert. Keep this geometry in sync with
-// glueSquareCutout().
-module glueJoinerSquare(size = glueSquareCutoutSize * 0.96) {
-   /* xcopies(glueSquareCutoutMove, n = 2)
-        cuboid(size, chamfer = glueSquareCutoutChamfer, anchor = BOT);*/
-}
-
-// One thin alignment frame with the box outline and glue-key channels removed.
-module glueJigFrame() {
-    difference() {
-        fwd(glueJigLengthExtra / 2)
-            cuboid(glueJigSize, anchor = BOT, chamfer=roud);
-
-        // Cut the full assembled sizer, including its bottom-render insert.
-        up(glueJigFloorHeight)
-        down(bottomRenderBoxHeight)
-            hull()
-                boxWithBottomRenderInsert();
-         
-         
-         up(glueJigFloorHeight)
-         cuboid([25,55,10], anchor = BOT,);
-         
-         
-      //   up(glueJigFloorHeight-5)
-         
-
-    }
-}
-ridgesHeight = 3.5;
-// Print one alignment frame per sizer, arranged in a row for batch gluing.
-module glueJig() {
-difference(){
-union(){
-    xcopies(globalSizerSize[0] + glueJigSeparation, n = glueJigCount)
-        glueJigFrame();
-       
-       
-       fwd(5)
-      ycopies(globalSizerSize[1]+17,2)
-        cuboid([(globalSizerSize[0]+glueJigSeparation)* glueJigCount-20, 6, 3], anchor=BOT, chamfer=roud);
-        
-        }
-        fwd(5)
-        up(ridgesHeight)
-        xcopies(3,45)
-            cuboid([1,globalSizerSize[1]+15,15], anchor=BOT);
+        boltSizerBody();
+        up(bottomColorCutoutInset)
+        down(3.5)
+        //    bottomLogoCutout();
             
-            down(2)
-            cuboid([120,55,20], anchor = BOT,);
-            }
-       
-}
-
-
-    /*
-module bottom_point_old(){
-    pointWedgeSize = [22, pointBottomHeight, 3];
-    eps = 0.01; // Small overlap to prevent z-fighting / preview artifacts
-    wedgeRot = -12;
-    difference(){
-        // Base main cuboid
-        cuboid([globalSizerSize[0], bottomGapSize, globalSizerSize[2]],
-               anchor=BOT, rounding=sizerRounding);
-
-        // Left wedge pushed outward past the -X outer edge
-        left(globalSizerSize[0]/2 + eps)
-            rotate([0, 90+wedgeRot, 0])
-            wedge(pointWedgeSize, anchor=BOT+CENTER);
-
-        // Right wedge pushed outward past the +X outer edge
-        right(globalSizerSize[0]/2 + eps)
-            rotate([0, -90-wedgeRot, 0])
-            wedge(pointWedgeSize, anchor=BOT+CENTER);
-
-
-            fwd(pointBottomHeight)
-            cuboid([50,20,20], anchor=BOT+CENTER);
-
-
-
-
+            invertedBottomLogoRelief();
     }
 }
 
-module energy_smart_copied(){
-
-up(0)
-            fwd(-logoShiftFromPoint)
-            ycopies(16*logoScale, n=logoCount){
-                energy_smart();
-                }
-                }
-*/
-module bottomLogo(){
-back(globalSizerSize[1]/2-10){
-                energy_smart(height=textHeight*2, logoScale=0.55);
-                fwd(8.8)
-                energy_smart(height=textHeight*2, logoScale=0.55);
-                }
+// Put an export on its long side with the same bed plane.
+module printBoxOnSide() {
+    up(globalSizerSize[0] / 2)
+        rotate([0, 90, 0])
+            children();
 }
 
-	module bolt_sizer(mode=mode, textMode="text", withBottomRenderCutout=true){
-    if(mode != "text" && mode != "glueJoinerSquare" && mode != "bottomRender" && mode != "centerBox"){
-		difference(){
-        union(){
-            if(mode == "box" || mode == "box-noText" || mode=="logo"){
-                cuboid(globalSizerSize, anchor=BOT, rounding=sizerRounding);
-
-
-
-            } else if(mode == "logo"){
-           // up(logoHeight)
-             //   energy_smart_img();
-
-                /*back(30)
-                cuboid([boltHoleWidth+boltHoleSideWallSize*(1+logoScale),3,holderHeight], anchor=CENTER+BOT);*/
-            }else{
-            echo("mode not set");
-                }
-
-           if(mode != "text"){
-                fwd(globalSizerLenght/2+bottomGapSize/2-pointFwdOffset)
-               bottom_point();
-                }
+module printExport(includePlacementSpacer = false) {
+    assert(exportOrientation == "on-side" || exportOrientation == "right-side-up",
+        str("Unknown exportOrientation: ", exportOrientation));
+    if (exportOrientation == "on-side") {
+        printBoxOnSide()
+            children();
+    } else {
+        if (includePlacementSpacer) {
+            union() {
+                children();
+                modifierV2Spacer();
             }
-
-        //    bottomLogo();
-
-       //     if(mode != "logo"){
-                up(boltHoleFloor)
-                bolt_holes();
-               // scale([0.4,1,1])
-                //energy_smart_copied();
-    //       } else {
-           //     up(12)
-     //      fwd(1)
-      //          up(boltHoleFloor)
-       //         bolt_holes(boltHoleWidth=8);
-       //   }
-
-            if(textMode != "noText"){
-
-              text_holes(height=textHeight);
-              if(withBottomRenderCutout)
-                bottomRender(textHeight=bottomRenderTextHeight, textDepth=bottomRenderUp);
-
-            }
-
-         //   if(mode != "logo"){
-                golf_pick_hole();
-        //    }
-
+        } else {
+            children();
         }
-       /*   if(mode == "logo"){
-                #centerBox();
-               }*/
-	} else if(mode == "text") {
-    // Keep the letters at the box's label recess, just below its surface.
-    // The off-body support bar starts at Z = 0, preventing Bambu Studio from
-    // dropping this modifier to the build plate during import.
-    assertTextModifierIntersectsTextRecess();
-    union() {
-        down(textModifierSurfaceOffset + textModifierDown)
-            text_holes(height=textColorThickness);
-        right(globalSizerSize[0] / 2 + 2)
-            cuboid([1, 1, boltHoleFloor - textModifierSurfaceOffset - textModifierDown], anchor = BOT);
     }
-} else if(mode == "bottomRender"){
+}
 
-   // Match the flipped logo cutout so the relief is ready to print face-up.
-   down(1)
-    rotate([180,0,0])
-      bottomRenderAtFloor();
-
-    } else if(mode == "centerBox"){
-
-                centerBox(feature="includeHeightBar");
-                }
+module boltSizerBody() {
+    difference() {
+            union() {
+                bottomSection();
+                boxSection();
+                fwd(globalSizerLenght / 2 + bottomGapSize / 2 - pointFwdOffset)
+                    bottom_point();
+            }
+            up(floorHeight)
+                bolt_holes();
+            labelText();
+            golf_pick_hole();
     }
+}
 
-/*
-sizerHeight = 10;
-        fwd(globalSizerLenght/2+pointBottomHeight-7)
-        ycopies(10,7, sp=[0,0,0]){
-            cuboid([1,sizerHeight,20]);
-        }*/
-       echo(mode);
-   if(mode == "all"){
-        fullBoxWithBottomLogoCutout();
+function rangesOverlap(firstBottom, firstTop, secondBottom, secondTop) =
+    firstTop > secondBottom && secondTop > firstBottom;
 
-       #bolt_sizer(mode="text");
-       bottomLogoModifier();
+// Locks in the geometry that the directional test images exercise. The top
+// sheet must overlap the bottom of the number recess without reaching the top
+// section, and the bottom relief must enter (but not pass through) the solid
+// floor after the cutout inset is applied.
+module assertTestHighlighting() {
+    topRecessBottom = floorHeight - textIndentHeight;
+    topRecessTop = floorHeight;
+    topModifierBottom = topRecessBottom - topColorModifierCutoutOverlap;
+    topModifierTop = topModifierBottom + topColorModifierHeight;
+    // After flipping and lowering into the bottom face, this is the upper
+    // edge of the relief retained within the floor.
+    bottomCutoutTop = bottomColorCutoutInset -
+        (bottomRenderFloorOffset + 0.4 + bottomRenderModifierHeight) +
+        (bottomReliefLayerCount - 1) * bottomReliefLayerSpacing / 2;
+    bottomCavityTop = min(bottomColorCutoutDepth,
+        bottomCutoutTop - modifierModelOverlap);
 
-  } else if(mode == "box"){
-    // Keep the full body and its matching logo modifier as separate solids
-    // for multi-colour slicer imports.
-    fullBoxWithBottomLogoCutout();
-    bottomLogoModifier();
+    assert(
+        topModifierBottom < topRecessBottom && topModifierTop > topRecessBottom &&
+            topModifierTop < topRecessTop,
+        "Top colour sheet must overlap the recess floor without reaching the top section."
+    );
+    assert(
+        bottomCavityTop > 0 && bottomCavityTop < bottomCutoutTop &&
+            bottomCutoutTop <= floorHeight &&
+            rangesOverlap(bottomCavityTop, floorHeight, 0, bottomCutoutTop),
+        "Bottom colour cutout must be shallower than its modifier and stay within the floor."
+    );
+}
 
-  } else if(mode == "topBox"){
-    // Legacy top section: intended for the separate bottomRenderBox insert.
-    boxWithBottomRenderCutout();
+// Test-only scene: the printable exports remain separate, while both colour
+// modifiers are red so the left/right image checks can assert they are visible.
+module testExports() {
+    assertTestHighlighting();
+    printBoxOnSide()
+        boxWithBottomColorCutout();
+    left(globalSizerSize[0] + 8)
+        printBoxOnSide()
+            color("red")
+                topColorModifier();
+    right(globalSizerSize[0] + 8)
+        printBoxOnSide()
+            color("red")
+                bottomLogoModifier();
+}
 
-  } else if(mode == "box-full-bottomModifier"){
-    // Export only the upside-down, two-layer bottom logo modifier.
-    bottomLogoModifier();
+// Unit-test scene: only the volumes common to each modifier and the completed
+// box are emitted. If either overlap disappears, its coloured geometry does
+// too; assertTestHighlighting() also fails the configured render immediately.
+module modifierOverlapTest() {
+    assertTestHighlighting();
+    color("red")
+        intersection() {
+            boxWithBottomColorCutout();
+            topColorModifier();
+        }
+    color("blue")
+        intersection() {
+            boxWithBottomColorCutout();
+            bottomLogoModifier();
+        }
+}
 
-  } else if(mode == "glueJig"){
-    glueJig();
-
-  } else if(mode == "glueJoinerSquare"){
-    glueJoinerSquare();
-
-  } else if(mode == "logo"){
-    // Export the face-up bottom slice with the cavity for bottomRender.
-    rotate([180,0,0])
-      bottomRenderBoxCutout(withText = true);
-
-  } else if(mode == "bottomRenderBox"){
-    // Preview/export the same face-up slice, optionally without the cavity.
-    rotate([180,0,0])
-      bottomRenderBoxCutout(withText = bottomRenderBoxWithText);
-
-   } else{
-    bolt_sizer(mode=mode);
-  }
+if (mode == "box") {
+//front_half()
+    printExport()
+        assembledBox();
+//} else if (mode == "bottomColorModifier") {
+ //   printExport()
+  //      bottomLogoModifier();
+} else if (mode == "topColorModifier") {
+    printExport()
+        topColorModifier();
+} else if (mode == "modifierV2") {
+    //printExport(includePlacementSpacer = true)
+        bottomLogoModifier();
+} else if (mode == "preview") {
+    printExport()
+        modifierV2Preview();
+} else if (mode == "previewCut") {
+front_half()
+    printExport()
+        modifierV2Preview();
+} else if (mode == "test") {
+    testExports();
+} else if (mode == "overlapTest") {
+    modifierOverlapTest();
+} else {
+    assert(false, str("Unknown mode: ", mode));
+}

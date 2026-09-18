@@ -1,0 +1,16 @@
+[openscadgen]
+name = "multi_hex_drill_attachment"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}"
+
+global_params = { }
+
+[[openscadgen.input_paths]]
+path = "./multi_hex_drill_attachment.scad"
+params = { }
+
+[[openscadgen.images]]
+name = "nice"

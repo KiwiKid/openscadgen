@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"html"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -17,6 +18,69 @@ import (
 	"github.com/kiwikid/openscadgen/pkg"
 	"github.com/kiwikid/openscadgen/pkg/models"
 )
+
+func TestSecurityHeadersPreserveHTMXAndCDNAssets(t *testing.T) {
+	h := securityHeaders(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, httptest.NewRequest(http.MethodGet, "/", nil))
+
+	if got := rr.Header().Get("X-Content-Type-Options"); got != "nosniff" {
+		t.Fatalf("X-Content-Type-Options = %q, want nosniff", got)
+	}
+	csp := rr.Header().Get("Content-Security-Policy")
+	for _, want := range []string{"default-src 'self'", "object-src 'none'", "https://unpkg.com", "https://cdn.jsdelivr.net"} {
+		if !strings.Contains(csp, want) {
+			t.Fatalf("CSP %q does not contain %q", csp, want)
+		}
+	}
+	if !strings.Contains(csp, "script-src 'self' 'unsafe-inline' 'unsafe-eval'") {
+		t.Fatalf("CSP script-src must allow Alpine's Function()-based evaluator: %q", csp)
+	}
+}
+
+func TestExportNameFormatFixesTargetEachEffectiveFormatSource(t *testing.T) {
+	config := &models.Config{Design: models.DesignConfig{
+		ExportNameFormat:         "{designFileName}",
+		InputPaths:               []models.InputPath{{Path: "input.scad", ExportNameFormat: "{designFileName}_{input}"}},
+		ConfiguredInstanceConfig: []models.ConfiguredInstanceConfig{{Name: "instance", ExportNameFormat: "{designFileName}_{instance}"}},
+	}}
+	instances := []models.InstanceConfig{
+		{RunOutputPathV3: "duplicate.stl", Name: "instance", InputPath: models.InputPath{Path: "input.scad"}},
+		{RunOutputPathV3: "duplicate.stl", Name: "other", InputPath: models.InputPath{Path: "input.scad"}},
+		{RunOutputPathV3: "duplicate.stl", Name: "global", InputPath: models.InputPath{Path: "global.scad"}},
+	}
+	fixes := exportNameFormatFixes(config, instances, pkg.RunError{
+		ErrorCode:                     pkg.RunErrorCode_DuplicateExportPath,
+		KVPs:                          map[string]string{"DuplicatePath": "duplicate.stl"},
+		MissingExportNameFormatParams: []string{"width", "height"},
+	})
+	if len(fixes) != 3 {
+		t.Fatalf("expected fixes for instance, input path, and global formats; got %#v", fixes)
+	}
+	want := []models.EditExportNameFormatFix{
+		{Label: "instance instance", Scope: "instances", Selector: "instance", Placeholders: []string{"{width}", "{height}"}},
+		{Label: "input path input.scad", Scope: "input_paths", Selector: "input.scad", Placeholders: []string{"{width}", "{height}"}},
+		{Label: "global config", Scope: "global", Placeholders: []string{"{width}", "{height}"}},
+	}
+	if fmt.Sprintf("%#v", fixes) != fmt.Sprintf("%#v", want) {
+		t.Errorf("fixes = %#v, want %#v", fixes, want)
+	}
+}
+
+func TestTryListenOnPortUsesRequestedLoopbackAddress(t *testing.T) {
+	listener, _, err := tryListenOnPort("127.0.0.1:0", false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer listener.Close()
+
+	addr, ok := listener.Addr().(*net.TCPAddr)
+	if !ok || !addr.IP.IsLoopback() {
+		t.Fatalf("listener address = %v, want loopback", listener.Addr())
+	}
+}
 
 func TestHandleOpenSCADInstallUsesRequestedReleaseChannel(t *testing.T) {
 	originalInstall := installOpenSCAD
@@ -374,6 +438,81 @@ params = { size = 2 }
 	}
 }
 
+func TestHandleConfigChangedWarnsWhenTheOpenConfigHasChanged(t *testing.T) {
+	serverFolder := t.TempDir()
+	configPath := filepath.Join(serverFolder, "config.toml")
+	if err := os.WriteFile(configPath, []byte("before\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	before := configFileFingerprint(configPath)
+	if err := os.WriteFile(configPath, []byte("after\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	query := url.Values{
+		"config_path":   {base64.StdEncoding.EncodeToString([]byte(configPath))},
+		"server_folder": {base64.StdEncoding.EncodeToString([]byte(serverFolder))},
+		"fingerprint":   {before},
+	}
+	rr := httptest.NewRecorder()
+	handleConfigChanged(rr, httptest.NewRequest(http.MethodGet, "/api/config/changed?"+query.Encode(), nil))
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, body = %s", rr.Code, rr.Body.String())
+	}
+	for _, want := range []string{"File has changed", "Refresh to see the latest config.", "Auto-reload file on change and don't show this message again", `class="button is-warning is-large is-fullwidth"`} {
+		if !strings.Contains(rr.Body.String(), want) {
+			t.Fatalf("response does not contain %q: %s", want, rr.Body.String())
+		}
+	}
+}
+
+func TestHandleConfigChangedRedirectsWhenAutoReloadIsEnabled(t *testing.T) {
+	serverFolder := t.TempDir()
+	configPath := filepath.Join(serverFolder, "config.toml")
+	if err := os.WriteFile(configPath, []byte("before\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	before := configFileFingerprint(configPath)
+	if err := os.WriteFile(configPath, []byte("after\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	query := url.Values{
+		"config_path":   {base64.StdEncoding.EncodeToString([]byte(configPath))},
+		"server_folder": {base64.StdEncoding.EncodeToString([]byte(serverFolder))},
+		"fingerprint":   {before},
+		"auto_reload":   {"true"},
+	}
+	rr := httptest.NewRecorder()
+	handleConfigChanged(rr, httptest.NewRequest(http.MethodGet, "/api/config/changed?"+query.Encode(), nil))
+
+	if got := rr.Header().Get("HX-Redirect"); got != pkg.BuildPageUrl(configPath, serverFolder).PageURL {
+		t.Fatalf("HX-Redirect = %q", got)
+	}
+	if strings.Contains(rr.Body.String(), "File has changed") {
+		t.Fatalf("auto reload rendered a warning: %s", rr.Body.String())
+	}
+}
+
+func TestHandleConfigChangedKeepsPollingWhenTheFileIsUnchanged(t *testing.T) {
+	serverFolder := t.TempDir()
+	configPath := filepath.Join(serverFolder, "config.toml")
+	if err := os.WriteFile(configPath, []byte("unchanged\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	query := url.Values{
+		"config_path":   {base64.StdEncoding.EncodeToString([]byte(configPath))},
+		"server_folder": {base64.StdEncoding.EncodeToString([]byte(serverFolder))},
+		"fingerprint":   {configFileFingerprint(configPath)},
+	}
+	rr := httptest.NewRecorder()
+	handleConfigChanged(rr, httptest.NewRequest(http.MethodGet, "/api/config/changed?"+query.Encode(), nil))
+
+	if rr.Code != http.StatusOK || !strings.Contains(rr.Body.String(), `hx-trigger="every 30s [document.hasFocus()]"`) || !strings.Contains(rr.Body.String(), `auto_reload: sessionStorage.getItem('openscadgen-config-auto-reload:`) {
+		t.Fatalf("expected polling response, status = %d body = %s", rr.Code, rr.Body.String())
+	}
+}
+
 func TestHandlePUTRequestReturnsConfigValidationError(t *testing.T) {
 	tempDir := t.TempDir()
 	configPath := filepath.Join(tempDir, "config.toml")
@@ -568,6 +707,9 @@ func TestProgressHandlerClosedErrorJobRendersFailure(t *testing.T) {
 	body := rr.Body.String()
 	if !strings.Contains(body, "Processing failed") || !strings.Contains(body, "boom") {
 		t.Fatalf("expected rendered failure, got %q", body)
+	}
+	if !strings.Contains(body, `x-init="bottomNavExpanded = true"`) {
+		t.Fatalf("expected failure to expand the drawer, got %q", body)
 	}
 }
 

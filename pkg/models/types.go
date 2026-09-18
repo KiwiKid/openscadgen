@@ -37,6 +37,7 @@ type ParamSet struct {
 type DesignConfig struct {
 	Name                       string                    `toml:"name" validate:"required,min=1"`
 	Description                string                    `toml:"description"`
+	Favicon                    string                    `toml:"favicon"` // image path, relative to config.toml
 	InputPath                  string                    `toml:"input_path"`
 	InputPaths                 []InputPath               `toml:"input_paths"`
 	OutputPath                 string                    `toml:"output_path"`
@@ -50,10 +51,32 @@ type DesignConfig struct {
 	CustomOpenSCADArgs         string                    `toml:"custom_openscad_args"`
 	ExportImageQuality         string                    `toml:"export_image_quality"`
 	ExportImages               []ExportCameraCoordinates `toml:"images"` // 'all', 'front' 'back', 'front,back' etc
+	ConfiguredImageConfig      []ConfiguredImageConfig   `toml:"image"`
 	ExportTextSizing           []ExportTextSizing        `toml:"export_text_sizing"`
 	// Instances             []InstanceConfig        `toml:"instances"`
 	ConfiguredInstanceConfig []ConfiguredInstanceConfig `toml:"instances"`
 	DontUseManifold          bool                       `toml:"dont_use_manifold"`
+	Tests                    []GeometryTest             `toml:"tests"`
+}
+
+type GeometryTest struct {
+	Type               string                 `toml:"type"`
+	Side               string                 `toml:"side"`
+	Level              string                 `toml:"level"`
+	Tolerance          float64                `toml:"tolerance"`
+	MinContactArea     float64                `toml:"min_contact_area"`
+	Camera             string                 `toml:"camera"`
+	ImageSize          string                 `toml:"image_size"`
+	MinHolePixels      int                    `toml:"min_hole_pixels"`
+	InstanceTarget     string                 `toml:"instance_target"`
+	Params             map[string]interface{} `toml:"params"`
+	DifferentParams    map[string]interface{} `toml:"different_params"`
+	MinDifferentPixels int                    `toml:"min_different_pixels"`
+	Color              string                 `toml:"color"`
+	MinColorPixels     int                    `toml:"min_color_pixels"`
+	// BoundingBox is [left, top, size] in exported-image pixels. It is used by
+	// color-in-bounding-box tests.
+	BoundingBox []int `toml:"bounding_box"`
 }
 
 func (d *DesignConfig) ClearVersion(version string) string {
@@ -75,6 +98,21 @@ type ConfiguredInstanceConfig struct {
 	SkipImages          bool                      `toml:"skip_images"`
 }
 
+// ConfiguredImageConfig describes one targeted preview render. Unlike
+// [[openscadgen.images]], it is rendered once with this entry's params.
+// If those params do not select a configured instance, openscadgen creates an
+// image-only instance so the render is still visible in the report.
+type ConfiguredImageConfig struct {
+	Name              string                 `toml:"name" validate:"required,min=1"`
+	InstanceName      string                 `toml:"instance_name"`
+	InputPath         string                 `toml:"input_path"`
+	Params            map[string]interface{} `toml:"params"`
+	ParamSets         string                 `toml:"param_sets"`
+	ExportNameFormat  string                 `toml:"export_name_format"`
+	CameraCoordinates string                 `toml:"coord"`
+	ImageSize         string                 `toml:"image_size"`
+}
+
 // Define a struct to hold the command-line flags
 type CmdFlags struct {
 	Quiet                        bool   `json:"quiet"`
@@ -91,6 +129,7 @@ type CmdFlags struct {
 	Server                       bool   `json:"server"`
 	ServerModeConfigFile         string ``
 	ServerFolder                 string `json:"server_folder"`
+	ServerAddress                string `json:"server_address"`
 	ServerPort                   int    `json:"server_port"`
 	ProcessFolder                string `json:"process_folder"`
 	InitProjectName              string `json:"init_project_name"`
@@ -213,6 +252,7 @@ type InstanceConfig struct {
 	InputConfigFilePath         string
 	InputConfigFilePathRelative string
 	SkipImages                  bool
+	ImageOnly                   bool
 	SkippedReason               string
 	SkippedImageReason          string
 	IsComplete                  bool
@@ -242,6 +282,14 @@ type GenerateSTLResult struct {
 	LowQuality          bool
 	SkippedReason       string
 	GenerateImageResult []GenerateImageResult
+	Tests               []GeometryTestResult
+}
+
+type GeometryTestResult struct {
+	Type                string
+	Passed              bool
+	Message             string
+	DiagnosticImagePath string
 }
 
 type GenerateImageResult struct {
@@ -254,6 +302,7 @@ type GenerateImageResult struct {
 	TimeTaken      time.Duration
 	Skipped        bool
 	CameraName     string
+	Tests          []GeometryTestResult
 	CameraCoords   string
 }
 
@@ -505,6 +554,16 @@ type STLViewerParams struct {
 type Results struct {
 	TimeTake time.Duration
 }
+
+// TestRunSummary is the test outcome from the latest completed processing run
+// for a configuration. It is intentionally separate from the configuration:
+// test outcomes are generated artifacts, not user-authored config.
+type TestRunSummary struct {
+	Passing int
+	Failing int
+	RanAt   time.Time
+}
+
 type BuildReportMetaParams struct {
 	IsServerMode         bool
 	ShowAI               bool
@@ -538,6 +597,7 @@ type EditConfigParams struct {
 	FilePath              string
 	FilePathEncoded       string
 	Content               string
+	FileFingerprint       string
 	ErrorMsg              templ.Component
 	InstanceCountLabel    string
 	PreviewInstances      []InstanceConfig
@@ -552,8 +612,19 @@ type EditConfigParams struct {
 // client renders it directly and must not offer a save while a blocking item is
 // present.  The server repeats that check before writing the file.
 type EditValidationFeedback struct {
-	Message        string
-	IsSaveBlocking bool
+	Message               string
+	IsSaveBlocking        bool
+	ExportNameFormatFixes []EditExportNameFormatFix
+}
+
+// EditExportNameFormatFix identifies the exact TOML export_name_format value
+// that caused a duplicate-path validation error. The editor uses this to offer
+// a safe, explicit fix without guessing which configuration level to change.
+type EditExportNameFormatFix struct {
+	Label        string
+	Scope        string
+	Selector     string
+	Placeholders []string
 }
 
 type EditPreviewSection struct {
@@ -595,6 +666,7 @@ type ReportMeta struct {
 	ServerFolderEncoded   string
 	ConfigVersion         string
 	Results               Results
+	TestRun               *TestRunSummary
 }
 
 type ChatMessage struct {

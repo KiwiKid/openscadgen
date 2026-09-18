@@ -681,6 +681,14 @@ name = "bottom"
 				t.Errorf("Command failed: \n\nError: %+v\nOutput: %s", err, output)
 				return
 			}
+			sourceArchives, err := filepath.Glob(filepath.Join(tempDir, "export", "*", "source.zip"))
+			if err != nil {
+				t.Fatalf("Find source archive: %v", err)
+			}
+			if len(sourceArchives) != 1 {
+				t.Errorf("Expected one versioned source archive, got %d", len(sourceArchives))
+				printDirectoryContents(t, tempDir)
+			}
 
 			fileCount := 0
 			// Count actual files in tempDir
@@ -705,8 +713,9 @@ name = "bottom"
 					printDirectoryContents(t, tempDir)
 				}
 			}
-			if fileCount != len(tc.expectedFiles) {
-				t.Errorf("Expected %d files but got %d", len(tc.expectedFiles), fileCount)
+			expectedFileCount := len(tc.expectedFiles) + 1 // source.zip
+			if fileCount != expectedFileCount {
+				t.Errorf("Expected %d files but got %d", expectedFileCount, fileCount)
 				printDirectoryContents(t, tempDir)
 			}
 		})

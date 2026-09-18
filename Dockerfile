@@ -20,7 +20,7 @@ RUN go mod download
 COPY . .
 
 # Install templ for template generation
-RUN go install github.com/a-h/templ/cmd/templ@latest
+RUN go install github.com/a-h/templ/cmd/templ@v0.3.1020
 
 # Generate templ files
 RUN templ generate
@@ -76,4 +76,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD openscadgen --version || exit 1
 
 # Default command - start server with examples folder
-CMD ["openscadgen", "-sf", "/app/examples", "-p", "6767"]
+CMD ["openscadgen", "-sf", "/app/examples", "-p", "6767", "--server-address", "0.0.0.0"]

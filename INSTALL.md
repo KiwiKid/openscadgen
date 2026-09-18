@@ -2,16 +2,16 @@
 
 ## Quick Install
 
-**Download the appropriate version for your system:**
+Download the appropriate release asset from the [releases page](https://github.com/kiwikid/openscadgen/releases). The archive includes this guide, so its links remain useful both on GitHub and after extraction.
 
-| Platform | Architecture | Download |
+| Platform | Architecture | Release asset |
 |----------|--------------|----------|
-| **Windows** | x86-64 (64-bit) | [openscadgen-Windows-amd64-v{{ .Version }}.zip]({{ .URL }}) |
-| **Windows** | ARM64 | [openscadgen-Windows-arm64-v{{ .Version }}.zip]({{ .URL }}) |
-| **macOS** | Intel (x86-64) | [openscadgen-macOS-Intel-v{{ .Version }}.tar.gz]({{ .URL }}) |
-| **macOS** | Apple Silicon (ARM64) | [openscadgen-macOS-AppleSilicon-v{{ .Version }}.tar.gz]({{ .URL }}) |
-| **Linux** | x86-64 (64-bit) | [openscadgen-Linux-amd64-v{{ .Version }}.tar.gz]({{ .URL }}) |
-| **Linux** | ARM64 | [openscadgen-Linux-arm64-v{{ .Version }}.tar.gz]({{ .URL }}) |
+| **Windows** | x86-64 (64-bit) | `openscadgen-Windows-Amd64-v<version>.zip` |
+| **Windows** | ARM64 | `openscadgen-Windows-Arm64-v<version>.zip` |
+| **macOS** | Intel (x86-64) | `openscadgen-macOS-Intel-v<version>.zip` |
+| **macOS** | Apple Silicon (ARM64) | `openscadgen-macOS-AppleSilicon-v<version>.zip` |
+| **Linux** | x86-64 (64-bit) | `openscadgen-Linux-Amd64-v<version>.zip` |
+| **Linux** | ARM64 | `openscadgen-Linux-Arm64-v<version>.zip` |
 
 ## Platform-Specific Instructions
 
@@ -24,9 +24,9 @@
 **Note:** You may need to allow the executable in Windows Security settings.
 
 ### macOS
-1. Download the appropriate `.tar.gz` file for your Mac
+1. Download the appropriate `.zip` file for your Mac
 2. Open Terminal and navigate to the download folder
-3. Extract: `tar -xzf openscadgen-macOS-*.tar.gz`
+3. Extract: `unzip openscadgen-macOS-*.zip`
 4. Make executable: `chmod +x openscadgen`
 5. Move to PATH (optional): `sudo mv openscadgen /usr/local/bin/`
 6. Test: `openscadgen -h`
@@ -34,9 +34,9 @@
 **Note:** For Apple Silicon Macs, download the "AppleSilicon" version for best performance.
 
 ### Linux
-1. Download the appropriate `.tar.gz` file for your architecture
+1. Download the appropriate `.zip` file for your architecture
 2. Open terminal and navigate to the download folder
-3. Extract: `tar -xzf openscadgen-Linux-*.tar.gz`
+3. Extract: `unzip openscadgen-Linux-*.zip`
 4. Make executable: `chmod +x openscadgen`
 5. Move to PATH (optional): `sudo mv openscadgen /usr/local/bin/`
 6. Test: `./openscadgen -h`
@@ -109,13 +109,13 @@ sudo apt-get install -y --no-install-recommends libegl1 libgl1 libopengl0 libglx
 
 ## Alternative Downloads
 
-- **Source Code**: [Download ZIP](https://github.com/kiwikid/openscadgen/archive/refs/tags/v{{ .Version }}.zip)
+- **Source Code**: [Download ZIP](https://github.com/kiwikid/openscadgen/archive/refs/heads/main.zip)
 - **Nightly Builds**: [Latest Development Version](https://github.com/kiwikid/openscadgen/actions)
 
-## What's New in v{{ .Version }}
+## What's New
 
-{{ .Changelog }}
+See the release page for the changelog for the version you downloaded.
 
 ---
 
-**Need help?** Check the [documentation](https://github.com/kiwikid/openscadgen#readme) or [open an issue](https://github.com/kiwikid/openscadgen/issues). 
+**Need help?** Check the [documentation](https://github.com/kiwikid/openscadgen#readme) or [open an issue](https://github.com/kiwikid/openscadgen/issues).

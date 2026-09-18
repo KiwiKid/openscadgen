@@ -1,0 +1,275 @@
+include <BOSL2/std.scad>;
+
+$fn = 100;
+mode = "outer"; // outer inner all "footprint"
+handleStyle = "handGrip";
+
+globalScale = [0.4,0.4,0.4];
+
+// The clear opening is the trash chute. The inner tube holds the bag and
+// nests inside the outer tube, which provides the handle and outside lip.
+trashChuteDiameter = 200;
+innerTubeWall = 2;
+innerTubeHeightDifference = -2.5;
+
+outerTubeWall = 4;
+outerTubeHeight = 21;
+innerTubeHeight = outerTubeHeight + innerTubeHeightDifference;
+
+fitClearance = 0.35;
+edgeRounding = -8.2;
+edgeTopRounding = 1.35;
+
+trashChuteRadius = trashChuteDiameter / 2;
+innerTubeOuterRadius = trashChuteRadius + innerTubeWall;
+outerTubeOuterRadius = innerTubeOuterRadius + outerTubeWall;
+
+handleDepth = 60;
+handleWidth = 110;
+handleSize = [handleWidth, handleDepth, outerTubeHeight*0.5];
+handleOverlap = 25;
+
+fingerGroveCount = 4;
+fingerGrooveDiameter = 28;
+fingerGroveYCopyGap = fingerGrooveDiameter+6;
+
+fingerGrooveSpacing = fingerGrooveDiameter*0.7;
+
+
+GroveOffset = 22;
+
+
+
+
+
+connectorSpacing = 5;
+connectorScaling=  [1,2,1.5];
+connectorRadius = handleSize.z/2;
+
+connectorCylCount = 20;
+connectorCylChamfer1 = 26;
+connectorSpacerInward = 0;
+connectorSpacerMove = [0,-handleDepth/2-connectorSpacerInward,0];
+connectorSpacerHeight = 30;
+
+
+
+/// GLOBAL BOUNDS
+globalBoundsHeight = 16;
+globalBoundsMove = [20,20,-1.5];
+globalBoundsBuffer = 15;
+globalBounds = [248,248,globalBoundsHeight];
+globalBoundsSpin = 45;
+innerBoundingBoxUp = -2;
+globalBoundsXYScale = 20;
+
+
+footprintBounds = [248,248,2];
+
+
+textRotate = [-140,0,0];
+textOutOffset =5.9;
+textMove = [0, trashChuteDiameter/2 + innerTubeWall + outerTubeWall + textOutOffset, 0];
+textLabel = "BE THE CHANGE";
+textSize= 8.8;
+textHeight =1.5;
+
+
+grapTabSize = [20,20,2];
+grabTabInward = -10;
+grapTabMove = [0, -trashChuteDiameter/2-grapTabSize.y-grabTabInward, globalBoundsHeight/2+innerBoundingBoxUp-innerTubeHeight+5.2];
+
+edgeInnerBotRounding = -.5;
+
+// This is the complete bag-retaining part.
+module innerTube() {
+
+difference(){
+    tube(
+        ir = trashChuteRadius,
+        or = innerTubeOuterRadius,
+        h = innerTubeHeight-8,
+        rounding1 = edgeRounding,
+        chamfer = edgeInnerBotRounding,
+        irounding = edgeInnerBotRounding
+    );
+    
+        cyl(r=trashChuteRadius, h=innerTubeHeight+0.01, chamfer1=2);
+    }
+    move(grapTabMove)
+     cuboid(grapTabSize, rounding=4, edges="Z", except_edges=BACK, anchor=BOT);
+   
+}
+
+// A slightly enlarged profile gives the two parts a printable slip fit.
+module innerTubeCutout(innerTubeMode="withHole") {
+    if(innerTubeMode == "fillCenter"){
+  /*  tube(
+        ir = 1,
+        or = innerTubeOuterRadius + fitClearance,
+        h = innerTubeHeight + 2,
+        rounding1 = -edgeTopRounding + fitClearance,
+        rounding2 = edgeRounding+ fitClearance,
+     //   irounding = edgeRounding + fitClearance,
+    );*/
+    cyl(
+        r=innerTubeOuterRadius + fitClearance,
+        h = innerTubeHeight +0.6,
+        chamfer1 = edgeRounding + fitClearance,
+        rounding2 = edgeRounding+ fitClearance,
+     );
+    } else if(innerTubeMode == "withHole") {
+   tube(
+        ir = trashChuteRadius - fitClearance,
+        or = innerTubeOuterRadius + fitClearance,
+        h = innerTubeHeight + 2,
+      //  chamfer2 = -edgeRounding + fitClearance,
+           chamfer1 = edgeRounding + fitClearance,
+        irounding = edgeRounding + fitClearance,
+    );
+    } else {
+    echo(innerTubeMode);
+        assert(false, "Invalid innerTubeMode found");
+    }
+}
+
+
+// --- PARAMETERS ---
+text_depth = 15;        // Thick chunky 3D depth to match the reference print
+font_style = "Liberation Sans:style=Bold";
+line_spacing = -1.5;    // Negative spacing forces lines to overlap and merge solid
+
+holeOffsetX =8;
+holeOffsetY =28.5;
+
+holeHeight = handleSize.z;
+holeMove = [handleSize.x/2-holeOffsetX, trashChuteDiameter/2+handleSize.y-holeOffsetY-0.001, 0];
+holeRadius = 3;
+
+module label(){
+    move(textMove)
+        rotate(textRotate)
+
+     text3d(textLabel,size=textSize, h=textHeight, anchor=CENTER,  font = font_style);
+    
+
+}
+
+
+
+module handle(handleStyle="handGrip") {
+
+    difference() {
+        // Start inside the outer lip so this cuboid fuses cleanly to it.
+        back(outerTubeOuterRadius + handleSize.y / 2 - handleOverlap)
+
+                cuboid(handleSize, rounding = edgeRounding, anchor=BOT);
+                
+    //            fwd(3)
+    //            cuboid(handleSize, chamfer = -edgeRounding, edges=LEFT, anchor=BOT);
+    
+//    fwd(10)
+   move(connectorSpacerMove)
+                xcopies(connectorSpacing, connectorCylCount)
+                scale(connectorScaling)
+                    ycyl(r=connectorRadius, h=connectorSpacerHeight, chamfer1=-connectorCylChamfer1, anchor=BOT);
+               //  move(connectorSpacerBoundsMove)
+    //            cuboid(connectorSpacerBounds, rounding = edgeRounding);
+    
+            
+
+        // Four through-grooves give fingers a positive, comfortable grip.
+        back(outerTubeOuterRadius + handleSize.y / 2 - handleOverlap + GroveOffset)
+            ycopies(fingerGroveYCopyGap, 2)
+            down(0.001)
+            xcopies(spacing = fingerGrooveSpacing, n = fingerGroveCount)
+                
+                cyl(d = fingerGrooveDiameter, h = handleSize.z+0.002, rounding=-5, anchor=BOT);
+               
+               if(holeRadius > 0){
+           move(holeMove)
+            zcyl(r=holeRadius, h=handleSize.z-2+0.002, anchor=BOT, chamfer=-2);
+            
+            }
+
+        // Keep the handle out of both the inner tube and trash chute.
+        innerTubeCutout(innerTubeMode="fillCenter");
+        
+        
+     //   label();
+    }
+}
+
+module outerTube() {
+    difference() {
+        tube(
+            ir = trashChuteRadius,
+            or = outerTubeOuterRadius,
+            h = outerTubeHeight,
+            chamfer = edgeRounding,
+            chamfer1 = -10
+        );
+        
+     /*   rect_tube(
+            h = outerTubeHeight,
+            size = [outerTubeOuterRadius * 2, outerTubeOuterRadius * 2],
+            isize = [trashChuteRadius * 2, trashChuteRadius * 2],
+            chamfer = edgeRounding
+        );*/
+
+        // The larger tube is simply the inner tube's outside lip.
+//        down(2)
+        innerTubeCutout();
+    }
+}
+
+module with_bounding_box(size=globalBounds, move=globalBoundsMove, globalBoundsScale=[globalBoundsXYScale, globalBoundsXYScale, 1]) {
+    // 1. Move the entire intersection group to the target destination
+   
+        rotate([180,0,0])
+        intersection() {
+            // 2. The bounding box constraint
+            
+            scale(globalBoundsScale)
+            move(move)
+            rotate([0,0,globalBoundsSpin])
+           cuboid(size);
+            
+            // 3. The objects inside the module
+            children();
+    }
+}
+
+
+
+module trash_bag_holder(mode = "all") {
+    if (mode == "inner") {
+        with_bounding_box(move=[0,0,innerBoundingBoxUp])
+        innerTube();
+    } else if (mode == "outer") {
+    with_bounding_box(size=globalBounds)
+        union() {
+            outerTube();
+            handle(handleStyle="handGrip");
+        }
+    } else if (mode == "all") {
+    with_bounding_box()
+            innerTube();
+        with_bounding_box()
+        union() {
+            outerTube();
+            handle();
+        }
+    } else if (mode == "footprint-outer") {
+    with_bounding_box(size=footprintBounds, globalBoundsScale=[1,1,1])
+            innerTube();
+        with_bounding_box()
+        union() {
+            outerTube();
+            handle();
+        }
+    }
+}
+
+scale(globalScale)
+trash_bag_holder(mode = mode);

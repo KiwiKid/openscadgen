@@ -29,7 +29,16 @@ floorDepth = 1;
 subMode = "sizer";
 
 
-mode =  "dowel";// "decagon";// "dowelPattern";
+mode =  "nailHook-slice";// "decagon";// "dowelPattern"; "nailHook";
+
+
+ nailHookRadius = 10;
+innerFn = 5;
+nailHookHeight = 150;
+nailHookBottomHoleHeight = 100;
+nailHookBottomHoleRadius = 4;
+    
+nailHookTopHoleRadius = 3;
 
 module decagon(){
     difference(){
@@ -40,6 +49,40 @@ module decagon(){
             regular_ngon(n=6, ir=innerRadius);
           }
 }
+
+
+module cylBoid(r=5, h=100, cylChamfer1=6, cylChamfer2=2, anchor=BOT, innerFn=5){
+    intersection(){
+        cuboid([r, r, h], chamfer=3, anchor=BOT);
+        union(){
+        cyl(r=r, h=h, chamfer1=cylChamfer1, chamfer2=cylChamfer2, anchor=anchor);
+        
+        
+        cyl(r=r*3, h=20, anchor=anchor);
+        }
+       }
+
+}
+
+module nailHook(){
+        
+    //left(10)    cylBoid();
+        
+    //nailhook
+   rotate([90,90,0])
+        difference(){
+         cylBoid(r=nailHookRadius, h=nailHookHeight, cylChamfer1=-5, cylChamfer2=1, anchor=BOT);
+           // cyl(r=nailHookHoleRadius, h=nailHookHeight, chamfer1=cupOuterChamfer1, chamfer=-3, chamfer2=3, anchor=BOT);
+            down(0.001)
+                    cyl(r=nailHookBottomHoleRadius, h=nailHookBottomHoleHeight, chamfer1=-2, anchor=BOT, $fn=innerFn);
+                    up(nailHookBottomHoleHeight-1)
+                    cyl(r=nailHookTopHoleRadius, h=nailHookBottomHoleHeight+1, anchor=BOT, $fn=innerFn);
+            }
+
+}
+
+
+
 
 	module simple_cylinder(mode = "tube"){
     if(mode == "tube"){
@@ -93,12 +136,25 @@ module decagon(){
                     center=true
                 );
                 down(wallSize+1)
-                #cyl(r=innerRadius*0.96, h=cylHeight*1.1, rounding=cupInnerRoundiung);
+                cyl(r=innerRadius*0.96, h=cylHeight*1.1, rounding=cupInnerRoundiung);
                 
            
         
-	} else {
-               assert(false, "should have a valid mode");         
+	} else if(mode == "nailHook") {
+    nailHook();
+                
+    } else if(mode == "nailHook-slice") {
+        intersection(){
+            //up(nailHookBottomHoleHeight-0.1)
+            fwd(nailHookBottomHoleHeight)
+            down(20)
+            cuboid([100,10,100], anchor=BOT);
+           nailHook();
+        }
+                
+    } else {
+
+            assert(false, "should have a valid mode ");
         }
         }
     

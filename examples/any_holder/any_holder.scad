@@ -38,140 +38,94 @@ roundInsertRadius = 20;
 roundInsertSize = 20;
 roundInsertDepth = 10;
 
-/// ATTACHMENT STYLE
-attachmentType = "largeHook"; // "smallHook" "base" largeHook
-hookType = "central"; // "full" "right" "central"
-hookRotate = 20;
+/// PICTURE-RAIL HOOK
+attachmentType = "poll-top"; // "railHook" or "poll"
 
-// smallHook only settings
-smallHookRadius = 12;
-smallRoundHookMove = [2.5, 2, 0];
-largeRoundHookMove = [10, 0, 0];
+// The rail runs along Y.  Adjust these three measurements to suit the rail.
+railDepth = 18;
+railHeight = 7;
+railClearance = 2;
+railHookWall = 2;
+smallHookRoundMove = [0, 0, 0];
 
-// largeHook only settings
-largeHookRadius = 20;
+// POLL ATTACHMENT
+// A cord channel running along Y.  The underside slot lets the cord snap in.
+pollDiameter = 10;
+pollWall = 2;
+pollSlotWidth = 3;
+    
+                usbHeight = 25;
+            usbWidth = 20;
+             usbDepth = 10;
+pollHeight = 170;
+// An inverted J: the holder is the front leg, with a bridge over the rail and
+// a short back leg that prevents it lifting away from the rail.
+module picture_rail_hook() {
+    bridgeDepth = railDepth + railClearance + 2 * railHookWall;
+    backLegX = frameDepth / 2 + railDepth + railClearance;
 
-hookUp = 2;
+    // Overlap the holder at its top/right edge so both solids are joined.
+    translate([frameDepth / 2 - railHookWall, -frameWidth / 2, frameHeight / 2 - railHookWall])
+        cuboid([bridgeDepth, frameWidth, railHookWall], anchor=LEFT+FRONT+BOTTOM, rounding=1);
 
+    // Retaining leg behind the rail.
+    translate([backLegX, -frameWidth / 2, frameHeight / 2 - railHeight - railHookWall])
+        cuboid([railHookWall, frameWidth, railHeight + railHookWall], anchor=LEFT+FRONT+BOTTOM, rounding=1);
+}
 
-
-smallHookRoundMove = [-roundHolderSize+10,0,roundHolderSize-10];
-
-hookReduceCube = [largeHookRadius*5,frameWidth/2,largeHookRadius*3];
-reduceCubeOffset = 13;
-
-lineSizeOneMove = [0,0,2];
-lineSizeTwoMove = [0,0,0];
-
-lineSize = [1,frameWidth/2,1];
-
-
-hookStartRadius = 50;
-include <BOSL2/std.scad>
-
-// Example usage:
-// This matches your criteria: Flat horizontal alignment, 40-degree exit angle, and 40-degree twist
-
-// Example usage:
-// This arches directly forward (along the Y-axis) and curves up into the air
-include <BOSL2/std.scad>
-
-// Example usages:
-// 1. Tall, steep arch
-
-// 2. Low, flat, stretched arch (uncomment to test)
-// translate([0, 80, 0])
-//     rainbow_bezier_hook(arch_height=20, arch_span=80, twist_deg=40);
-
-
-module rainbow_bezier_hook(
-    base_size    = [100,10], // Uniform [width, thickness] profile
-    corner_rad   = 1.5,     // Smooth rounding radius for corners
-    arch_span    = 40,      // Total distance the arch travels forward (Y-axis)
-    arch_height  = 40,      // Peak height of the arch in the air (Z-axis)
-    twist_deg    = 40,      // Continuous twist amount across the arch length
-    steps        = 60,      // Path resolution (higher = smoother curve)
-    fn_val       = 64       // Resolution for the profile shape
-) {
-    $fn = fn_val;
-
-    // 1. Generate the 2D cross-section data path
-    shape_profile = rect(base_size, rounding=corner_rad, center=true);
-
-    // 2. Define Bézier Control Points in the YZ plane (X is locked at 0)
-    // P0: Start on floor, P1: Upward tangent handle, P2: Forward tangent handle, P3: End on floor
-    control_points = [[0,0],                         // Start point
-        [0, 0, arch_height * 1.5],         // Shoot straight up to force vertical entry
-        [0, arch_span, arch_height * 1.5], // Stay high over the end span
-        [0, arch_span, 0]                  // End point landing back on floor level
+module poll_attachment(
+    pollHeight = pollHeight, usbDepth=usbDepth,usbWidth=usbWidth, usbHeight=usbHeight, pollPart="top") {
+    pollRadius = pollDiameter / 2;
+    pollCenter = [
+        frameDepth / 2 + pollRadius /2 - pollWall,
+        0,
+        -frameHeight - pollWall + 4
     ];
-
-    // 3. Generate the smooth adjusted curve from the control points
-    spine_path = bezier_curve(control_points, splines=steps);
-
-    // 4. Sweep the profile over the custom adjusted spine
-    path_sweep(shape_profile, spine_path, twist=twist_deg, scale=1.0);
-}
-
-
-
-
-
-
-module hook(hookRadius=6, hookMove=hookMove, hookType="full"){
-    intersection(){
-    if(hookType == "full"){
     
-            fwd(reduceCubeOffset)
-        cuboid(hookReduceCube*10);
-    } else if(hookType == "left"){
-            back(reduceCubeOffset)
-            cuboid(hookReduceCube);
-   
-    }else if(hookType == "right"){
-          cuboid(hookReduceCube);
-    } else if(hookType == "central"){
     
-          cuboid(hookReduceCube);
-       }
-       
-       half_of([3,0,20], 2) {
-    rotate([90,0,0])
+    if(pollPart=="top"){
     
-        move(hookMove)
-        //zrot(30)
-        difference(){
-            cyl(r=hookRadius,h=frameWidth, rounding=4);
+    
+    }else{
+    
+
+    difference() {
+        translate(pollCenter)
+            rotate([90, 0, 0])
+                ycyl(d=pollDiameter, h=frameWidth, chamfer1=-30, chamfer2=-10);
+
+        translate(pollCenter)
+            rotate([90, 0, 0])
+                ycyl(d=pollDiameter - 2 * pollWall, h=frameWidth + 3);
+
+        // Open the underside just enough for the cord to be pressed into the tube.
+        rotate([0,0,-90])
+        translate([-pollSlotWidth/2 , + 3, pollCenter.z - pollHeight])
+            cube([pollSlotWidth, pollRadius + 1, frameWidth + 2]);
             
-            fwd(1)
-            ycopies(2, n=3){
-               cyl(r=hookRadius-1.6,h=frameWidth+1);
-               
-            }
-                right(1)
-               cyl(r=hookRadius-1.6,h=frameWidth+1);
-        }
-        }
-        
-        
-        }
+            down(frameHeight/2 + pollHeight /2 - usbHeight + pollWall *2 + 2 )
+            left(usbDepth/2-2)
+            fwd(usbWidth/2)
+            cube([usbDepth,usbWidth,usbHeight]);
+    }
+    }
+             
 
-        left(frameDepth/2)
-        hookConnector();
+             
+          
 }
 
-module attachment(attachmentType="largeHook", smallHookMove=smallHookMove, largeHookMove=largeHookMove){
-    if(attachmentType == "largeHook"){
-        position(RIGHT+TOP) yrot(180) xrot(-90) up(hookUp) 
-        //hook(hookRadius=largeHookRadius, hookMove=largeHookMove, hookType=hookType);
-        left(hookStartRadius)
-rainbow_bezier_hook(arch_height=60, arch_span=50, twist_deg=40);
+module attachment(type=attachmentType) {
+    if (type == "railHook") {
+        picture_rail_hook();
+    } else if (type == "poll-top") {
 
-        
-    } else if(attachmentType == "smallHook"){
-        position(RIGHT+TOP)  zrot(-hookRotate) up(hookUp) hook(hookRadius=smallHookRadius, hookMove=smallHookMove, hookType=hookType);
+        poll_attachment(pollPart="top");
+    } else if (type == "poll-bottom") {
+
+        poll_attachment(pollPart="bottom");
     } else {
-        echo("!!!!!!!! attachmentType not found");
+        assert(false, str("Unknown attachmentType: ", type));
     }
 }
 
@@ -190,16 +144,13 @@ module holder(insetThing="square"){
 }
 
 module any_holder(){
+intersection(){
     difference(){
         // GROUP 1: The solid positive shapes to be joined together
         // Enclosing these ensures the holder + attachment pass through cleanly
         union() {
             holder(insetThing=insetThing)
-                if(insetThing == "square"){
-                attachment(attachmentType=attachmentType, largeHookMove=largeHookMove, smallHookMove=smallHookMove);
-                } else {
-                attachment(attachmentType=attachmentType, largeHookMove=largeRoundHookMove, smallHookMove=smallRoundHookMove);
-               }
+                attachment();
         }
         
         // GROUP 2: The cutters (everything below this point gets subtracted)
@@ -227,6 +178,24 @@ module any_holder(){
             echo("!!!!!!!!! insetThing is not valid");
         }
     }
+    intersetBoxOffset = 0;
+        intersetBoxLeftShift = -.7;
+    union(){
+    // Bounding cuboid
+        //    down(frameHeight/2 + pollHeight/2 - usbHeight*2+1)
+         //   left(usbDepth/2-2)
+          //  fwd(usbWidth/2)
+         left(intersetBoxLeftShift)
+          down(frameHeight+intersetBoxOffset)
+            cuboid([15,15,frameHeight], rounding=2, anchor=LEFT);
+            
+            down(intersetBoxOffset)
+         left(intersetBoxLeftShift)
+            cuboid([25,80,frameHeight], rounding=2, anchor=LEFT);
+            
+            }
+            }
+    
 }
 
 any_holder();

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -16,15 +18,97 @@ import (
 	"github.com/kiwikid/openscadgen/pkg/templates"
 )
 
+const testRunSummaryFilename = ".openscadgen-test-run.json"
+
 var (
-	progressMap        = make(map[string]chan string)
-	cancelMap          = make(map[string]chan struct{})
-	resultMap          = make(map[string]models.ProcessResult)
-	configMap          = make(map[string]*models.Config)
-	instanceResultsMap = make(map[string][]models.InstanceConfig) // Track individual instance results
-	jobErrorMap        = make(map[string]string)
-	mu                 sync.Mutex
+	progressMap         = make(map[string]chan string)
+	cancelMap           = make(map[string]chan struct{}) // retained for legacy progress test setup
+	resultMap           = make(map[string]models.ProcessResult)
+	configMap           = make(map[string]*models.Config)
+	instanceResultsMap  = make(map[string][]models.InstanceConfig) // Track individual instance results
+	jobErrorMap         = make(map[string]string)
+	lastTestRunByConfig = make(map[string]models.TestRunSummary)
+	mu                  sync.Mutex
 )
+
+func testRunSummary(result models.ProcessResult) models.TestRunSummary {
+	summary := models.TestRunSummary{RanAt: time.Now()}
+	for _, stlResult := range result.STLResults {
+		for _, testResult := range stlResult.Tests {
+			if testResult.Passed {
+				summary.Passing++
+			} else {
+				summary.Failing++
+			}
+		}
+	}
+	for _, imageResult := range result.ImageResults {
+		for _, testResult := range imageResult.Tests {
+			if testResult.Passed {
+				summary.Passing++
+			} else {
+				summary.Failing++
+			}
+		}
+	}
+	return summary
+}
+
+func hasTestResults(result models.ProcessResult) bool {
+	for _, stlResult := range result.STLResults {
+		if len(stlResult.Tests) > 0 {
+			return true
+		}
+	}
+	for _, imageResult := range result.ImageResults {
+		if len(imageResult.Tests) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func testRunSummaryPath(config *models.Config) string {
+	return filepath.Join(pkg.GetOutputPaths(config).ExportFolderPath, testRunSummaryFilename)
+}
+
+func saveTestRunSummary(config *models.Config, summary models.TestRunSummary) error {
+	contents, err := json.Marshal(summary)
+	if err != nil {
+		return fmt.Errorf("encode test run summary: %w", err)
+	}
+	path := testRunSummaryPath(config)
+	if err := os.WriteFile(path+".tmp", contents, 0o644); err != nil {
+		return fmt.Errorf("write test run summary: %w", err)
+	}
+	if err := os.Rename(path+".tmp", path); err != nil {
+		return fmt.Errorf("save test run summary: %w", err)
+	}
+	return nil
+}
+
+func latestTestRun(config *models.Config) *models.TestRunSummary {
+	mu.Lock()
+	summary, ok := lastTestRunByConfig[config.ConfigFile]
+	mu.Unlock()
+	if !ok {
+		contents, err := os.ReadFile(testRunSummaryPath(config))
+		if err != nil || json.Unmarshal(contents, &summary) != nil {
+			return nil
+		}
+	}
+	return &summary
+}
+
+func renderTestRunSummaryOOB(id string, w http.ResponseWriter) {
+	mu.Lock()
+	result, ok := resultMap[id]
+	mu.Unlock()
+	if ok {
+		summary := testRunSummary(result)
+		_ = templates.TestRunSummaryOOB(&summary).Render(context.Background(), w)
+	}
+}
 
 func cleanupJobState(id string) {
 	delete(resultMap, id)
@@ -188,11 +272,9 @@ func (h *HTMLProgressReporter) FinishInstance() {
 // StartHandler handles starting a new processing job
 func StartHandler(w http.ResponseWriter, r *http.Request) {
 	id := uuid.New().String()
-	updates := make(chan string, 10)
-	cancel := make(chan struct{})
+	updates := make(chan string, 256)
 	mu.Lock()
 	progressMap[id] = updates
-	cancelMap[id] = cancel
 	mu.Unlock()
 
 	var flags models.CmdFlags
@@ -215,25 +297,17 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 	configMap[id] = config
 	mu.Unlock()
 
-	go func() {
-		progressReporter := NewHTMLProgressReporter(updates, config, id, flags.ServerModeConfigFile)
-		result, err := pkg.Process(config, progressReporter, cancel, pkg.Operations{
-			GenerateReport: false,
-		}, true)
-		if err != nil {
-			mu.Lock()
-			jobErrorMap[id] = err.Error()
-			mu.Unlock()
-			updates <- "error: " + err.Error()
-		} else {
-			// Store the result for later use
-			mu.Lock()
-			resultMap[id] = result
-			mu.Unlock()
-		}
+	updates <- "Queued for rendering"
+	if err := enqueueProcessingJob(id, config, flags.ServerModeConfigFile, updates); err != nil {
+		mu.Lock()
+		jobErrorMap[id] = err.Error()
+		mu.Unlock()
 		close(updates)
-	}()
-
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		templates.Warning(err.Error()).Render(r.Context(), w)
+		return
+	}
 	// Return the ID to the client, which will poll /progress?id=...
 	w.Write([]byte(id))
 }
@@ -324,6 +398,7 @@ func ProgressHandler(w http.ResponseWriter, r *http.Request) {
 				if errMsg == "" {
 					errMsg = jobErr
 				}
+				renderTestRunSummaryOOB(id, w)
 				mu.Lock()
 				cleanupJobState(id)
 				mu.Unlock()
@@ -340,6 +415,7 @@ func ProgressHandler(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "text/html")
 				w.Header().Set("X-Progress-Status", "complete")
 				progressComplete.Render(context.Background(), w)
+				renderTestRunSummaryOOB(id, w)
 				w.Write([]byte(htmlContent))
 			} else {
 				log.Printf("ProgressHandler: Returning progress update for instance: %s", progressMsg)
@@ -363,6 +439,7 @@ func ProgressHandler(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "text/html")
 				w.Header().Set("X-Progress-Status", "complete")
 				progressComplete.Render(context.Background(), w)
+				renderTestRunSummaryOOB(id, w)
 			} else {
 				// Still processing, show the message and keep polling
 				progressUpdate := templates.ProgressUpdate(msg, id, true)
@@ -371,6 +448,7 @@ func ProgressHandler(w http.ResponseWriter, r *http.Request) {
 				progressUpdate.Render(context.Background(), w)
 			}
 		} else if strings.HasPrefix(msg, "error:") {
+			renderTestRunSummaryOOB(id, w)
 			mu.Lock()
 			cleanupJobState(id)
 			mu.Unlock()
@@ -403,48 +481,67 @@ func ProgressHandler(w http.ResponseWriter, r *http.Request) {
 // CancelHandler handles cancellation of a job
 func CancelHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	mu.Lock()
-	cancel, ok := cancelMap[id]
-	if ok {
-		close(cancel)
-		cleanupJobState(id)
+	if !renderJobQueue.cancel(id) {
+		http.NotFound(w, r)
+		return
 	}
-	mu.Unlock()
-	w.Write([]byte("cancelled"))
+	w.Write([]byte("cancellation requested"))
 }
 
 // StartProcessingJob starts a new processing job and returns the job ID
 func StartProcessingJob(config *models.Config) string {
+	id, err := StartProcessingJobWithError(config)
+	if err != nil {
+		log.Printf("queue processing job: %v", err)
+	}
+	return id
+}
+
+// StartProcessingJobWithError enqueues work and returns before rendering
+// starts. Polling /progress remains the sole client update mechanism.
+func StartProcessingJobWithError(config *models.Config) (string, error) {
 	id := uuid.New().String()
-	updates := make(chan string, 10)
-	cancel := make(chan struct{})
+	updates := make(chan string, 256)
 	mu.Lock()
 	progressMap[id] = updates
-	cancelMap[id] = cancel
 	configMap[id] = config
 	mu.Unlock()
+	updates <- "Queued for rendering"
+	if err := enqueueProcessingJob(id, config, config.ServerModeConfigFile, updates); err != nil {
+		mu.Lock()
+		cleanupJobState(id)
+		mu.Unlock()
+		return "", err
+	}
+	return id, nil
+}
 
-	go func() {
-		progressReporter := NewHTMLProgressReporter(updates, config, id, config.ServerModeConfigFile)
-		result, err := pkg.Process(config, progressReporter, cancel, pkg.Operations{
-			GenerateReport: false,
-		}, true)
-		if err != nil {
-			log.Printf("Processing error: %v", err)
-			mu.Lock()
-			jobErrorMap[id] = err.Error()
-			mu.Unlock()
-			updates <- "error: " + err.Error()
-		} else {
-			// Store the result for later use
-			mu.Lock()
+func enqueueProcessingJob(id string, config *models.Config, configInputPath string, updates chan string) error {
+	return renderJobQueue.submit(id, func(ctx context.Context) {
+		progressReporter := NewHTMLProgressReporter(updates, config, id, configInputPath)
+		result, err := pkg.Process(config, progressReporter, ctx.Done(), pkg.Operations{GenerateReport: false}, true)
+		mu.Lock()
+		if hasTestResults(result) {
+			summary := testRunSummary(result)
+			lastTestRunByConfig[config.ConfigFile] = summary
+			if saveErr := saveTestRunSummary(config, summary); saveErr != nil {
+				pkg.LogWarnf("Could not save test run summary: %v", saveErr)
+			}
+			// Keep partial results until the error response is rendered, so the
+			// client still receives the failed-test counts.
 			resultMap[id] = result
-			mu.Unlock()
+		}
+		if err != nil {
+			jobErrorMap[id] = err.Error()
+		} else {
+			resultMap[id] = result
+		}
+		mu.Unlock()
+		if err != nil {
+			updates <- "error: " + err.Error()
 		}
 		close(updates)
-	}()
-
-	return id
+	})
 }
 
 // GetProgressHTML returns HTML for progress tracking

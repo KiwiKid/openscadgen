@@ -75,7 +75,7 @@ templ JSONViewerWithStyle(title string, data interface{}) {
 
 templ Collapsable(title string, key string, isOpen bool, fullWidth bool) {
 	<div>
-		<div x-show={ fmt.Sprintf("navSelected === '%s'", key) }>
+		<div id={ fmt.Sprintf("section-%s", key) } class="og-report-section" x-show={ fmt.Sprintf("navSelected === '%s'", key) }>
 			<h3>{ title }</h3>
 		</div>
 		<div x-show={ fmt.Sprintf("navSelected === '%s'", key) }>

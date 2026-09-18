@@ -2,6 +2,8 @@ package pkg
 
 import (
 	"bytes"
+	"context"
+
 	//"fmt"
 	"fmt"
 	"io/ioutil"
@@ -16,6 +18,15 @@ import (
 	"github.com/kiwikid/openscadgen/pkg/models"
 )
 
+type recordingRenderEngine struct {
+	requests []RenderRequest
+}
+
+func (e *recordingRenderEngine) Render(_ context.Context, request RenderRequest) (RenderResponse, error) {
+	e.requests = append(e.requests, request)
+	return RenderResponse{Command: "test-renderer", Duration: time.Millisecond, Artifact: []byte("rendered artifact\n")}, nil
+}
+
 // normalizePath converts a path to its canonical form for comparison
 func normalizePath(path string) string {
 	// Convert to absolute path and clean it
@@ -24,6 +35,72 @@ func normalizePath(path string) string {
 		return path
 	}
 	return filepath.Clean(abs)
+}
+
+func TestAppendOpenSCADDefinitionsPreservesLiteralValues(t *testing.T) {
+	args, err := appendOpenSCADDefinitions([]string{"--render"}, map[string]interface{}{
+		"version":   "v1",
+		"enabled":   "true",
+		"label":     `name'; touch /tmp/not-run; echo '`,
+		"positions": []interface{}{1, "two", false},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{
+		"--render",
+		"-D", "enabled=true",
+		"-D", `label="name'; touch /tmp/not-run; echo '"`,
+		"-D", `positions=[1, "two", false]`,
+	}
+	if !reflect.DeepEqual(args, want) {
+		t.Fatalf("unexpected OpenSCAD argv:\nwant: %#v\n got: %#v", want, args)
+	}
+}
+
+func TestOpenSCADDefinitionsRejectExpressionParameterNames(t *testing.T) {
+	_, err := appendOpenSCADDefinitions(nil, map[string]interface{}{"width; echo unsafe": 10})
+	if err == nil || !strings.Contains(err.Error(), "invalid OpenSCAD parameter name") {
+		t.Fatalf("expected invalid parameter name error, got %v", err)
+	}
+}
+
+func TestSplitOpenSCADArgsPreservesQuotedArgumentsWithoutShellEvaluation(t *testing.T) {
+	args, err := splitOpenSCADArgs(`--enable=fast --message "two words" '; touch /tmp/not-run'`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"--enable=fast", "--message", "two words", "; touch /tmp/not-run"}
+	if !reflect.DeepEqual(args, want) {
+		t.Fatalf("unexpected custom OpenSCAD args:\nwant: %#v\n got: %#v", want, args)
+	}
+}
+
+func TestDisplayCommandEscapesArgumentsWithoutChangingArgv(t *testing.T) {
+	got := displayCommand("/tmp/OpenSCAD binary", []string{"-D", `label="name'; touch /tmp/not-run"`, "/tmp/input file.scad"})
+	want := `'/tmp/OpenSCAD binary' -D 'label="name'"'"'; touch /tmp/not-run"' '/tmp/input file.scad'`
+	if got != want {
+		t.Fatalf("unexpected display command:\nwant: %s\n got: %s", want, got)
+	}
+}
+
+func TestValidateOpenSCADParameterNames(t *testing.T) {
+	config := &models.Config{Design: models.DesignConfig{
+		GlobalParams: map[string]interface{}{"valid_name2": 1},
+		InputPaths:   []models.InputPath{{Params: map[string]interface{}{"also_valid": true}}},
+		ParamSets:    []models.ParamSet{{Params: map[string]interface{}{"still_valid": "x"}}},
+		ConfiguredInstanceConfig: []models.ConfiguredInstanceConfig{{
+			Params:           map[string]interface{}{"valid": 1},
+			ParamsNumberated: map[string]interface{}{"numbered": 1},
+		}},
+	}}
+	if err := validateOpenSCADParameterNames(config); err != nil {
+		t.Fatalf("expected valid parameter names, got %v", err)
+	}
+	config.Design.GlobalParams = map[string]interface{}{"width=42": true}
+	if err := validateOpenSCADParameterNames(config); err == nil {
+		t.Fatal("expected invalid parameter name to be rejected")
+	}
 }
 
 func TestGetOutputPaths(t *testing.T) {
@@ -542,6 +619,130 @@ export_name_format = "{designFileName}_{name}"
 	}
 	if len(result.STLResults) != 1 {
 		t.Fatalf("expected 1 STL result, got %d", len(result.STLResults))
+	}
+}
+
+func TestProcess_GeneratesSTLFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	if err := InitLogger(filepath.Join(tmpDir, "test.log")); err != nil {
+		t.Fatalf("InitLogger: %v", err)
+	}
+
+	// Use a small OpenSCAD stand-in so this unit test verifies the export
+	// contract without depending on a locally installed renderer.
+	openSCADPath := filepath.Join(tmpDir, "openscad")
+	openSCADScript := `#!/bin/sh
+if [ "$1" = "--version" ]; then
+  echo 'OpenSCAD test'
+  exit 0
+fi
+
+while [ "$#" -gt 0 ]; do
+  if [ "$1" = "-o" ]; then
+    printf 'solid test\nendsolid test\n' > "$2"
+    exit 0
+  fi
+  shift
+done
+
+exit 1
+`
+	if err := os.WriteFile(openSCADPath, []byte(openSCADScript), 0o755); err != nil {
+		t.Fatalf("write OpenSCAD stand-in: %v", err)
+	}
+
+	scadPath := filepath.Join(tmpDir, "shape.scad")
+	if err := os.WriteFile(scadPath, []byte("cube(1);\n"), 0o644); err != nil {
+		t.Fatalf("write scad: %v", err)
+	}
+
+	configPath := filepath.Join(tmpDir, "config.toml")
+	configContent := `[openscadgen]
+name = "stl-generation"
+input_path = "shape.scad"
+version = "v0.1"
+export_name_format = "{designFileName}_{name}"
+`
+	if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+
+	config, _, err := LoadConfigFromFile(models.CmdFlags{ConfigFile: configPath})
+	if err != nil {
+		t.Fatalf("LoadConfigFromFile: %v", err)
+	}
+	config.CustomOpenSCADCommand = openSCADPath
+	config.OnlyExport = true
+
+	result, err := Process(config, &NoopProgress{}, nil, Operations{GenerateReport: false}, false)
+	if err != nil {
+		t.Fatalf("Process: %v", err)
+	}
+	if len(result.STLResults) != 1 {
+		t.Fatalf("expected 1 STL result, got %d", len(result.STLResults))
+	}
+
+	stlPath := result.Instances[0].RunOutputPathV3
+	if filepath.Ext(stlPath) != ".stl" {
+		t.Fatalf("export path = %q; want a .stl file", stlPath)
+	}
+	stlContents, err := os.ReadFile(stlPath)
+	if err != nil {
+		t.Fatalf("read generated STL: %v", err)
+	}
+	if string(stlContents) != "solid test\nendsolid test\n" {
+		t.Fatalf("generated STL contents = %q", stlContents)
+	}
+	if !result.Instances[0].IsSuccessful {
+		t.Fatal("expected STL generation to be successful")
+	}
+}
+
+func TestProcessWithRenderer_UsesTypedRequestsForSTLAndImage(t *testing.T) {
+	tmpDir := t.TempDir()
+	if err := InitLogger(filepath.Join(tmpDir, "test.log")); err != nil {
+		t.Fatalf("InitLogger: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(tmpDir, "shape.scad"), []byte("cube(1);\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	configPath := filepath.Join(tmpDir, "config.toml")
+	configContent := `[openscadgen]
+name = "portable-renderer"
+input_path = "shape.scad"
+version = "v0.1"
+export_name_format = "{designFileName}_{name}"
+
+[[openscadgen.images]]
+name = "nice"
+coord = "0,0,0,55,0,25,800"
+`
+	if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	config, _, err := LoadConfigFromFile(models.CmdFlags{ConfigFile: configPath})
+	if err != nil {
+		t.Fatal(err)
+	}
+	engine := &recordingRenderEngine{}
+	result, err := ProcessWithRenderer(config, &NoopProgress{}, nil, Operations{GenerateReport: false}, false, engine)
+	if err != nil {
+		t.Fatalf("ProcessWithRenderer: %v", err)
+	}
+	if len(engine.requests) != 2 {
+		t.Fatalf("render requests = %d; want STL and image", len(engine.requests))
+	}
+	if engine.requests[0].Kind != RenderKindSTL || engine.requests[0].Camera != nil {
+		t.Errorf("first request = %+v; want STL without camera", engine.requests[0])
+	}
+	if string(engine.requests[0].Source) != "cube(1);\n" {
+		t.Errorf("STL request source = %q; want SCAD source bytes", engine.requests[0].Source)
+	}
+	if engine.requests[1].Kind != RenderKindImage || engine.requests[1].Camera == nil || engine.requests[1].Camera.Name != "nice" {
+		t.Errorf("second request = %+v; want image request with named camera", engine.requests[1])
+	}
+	if len(result.STLResults) != 1 || len(result.ImageResults) != 1 {
+		t.Errorf("results = %d STL, %d images; want one each", len(result.STLResults), len(result.ImageResults))
 	}
 }
 
@@ -2404,6 +2605,124 @@ param_filter = { renderType = "obj,vertSlice" }
 	}
 }
 
+func TestGenerateInstanceConfigs_TargetedImage(t *testing.T) {
+	config := &models.Config{
+		ConfigFile: filepath.Join(t.TempDir(), "config.toml"),
+		Design: models.DesignConfig{
+			Version:          "v0.1",
+			ExportNameFormat: "{designFileName}_{name}_{mode}",
+			InputPaths:       []models.InputPath{{Path: "./part.scad"}},
+			ConfiguredInstanceConfig: []models.ConfiguredInstanceConfig{
+				{Name: "printed", Params: map[string]interface{}{"mode": "printed"}},
+			},
+			ConfiguredImageConfig: []models.ConfiguredImageConfig{
+				{Name: "nice", Params: map[string]interface{}{"mode": "hero"}},
+			},
+		},
+	}
+
+	instances, err := GenerateInstanceConfigs(config)
+	if err != nil {
+		t.Fatalf("GenerateInstanceConfigs returned an error: %v", err)
+	}
+	if len(instances) != 2 {
+		t.Fatalf("expected normal and image-only instances, got %d", len(instances))
+	}
+
+	var imageOnly *models.InstanceConfig
+	for i := range instances {
+		if instances[i].ImageOnly {
+			imageOnly = &instances[i]
+		}
+	}
+	if imageOnly == nil {
+		t.Fatal("expected a targeted image with unmatched params to create an image-only instance")
+	}
+	if imageOnly.Name != "image-nice" || len(imageOnly.ExportImages) != 1 || imageOnly.ExportImages[0].CameraName != "nice" {
+		t.Fatalf("unexpected image-only instance: %#v", imageOnly)
+	}
+
+	config.Design.ConfiguredImageConfig[0].Params = map[string]interface{}{"mode": "printed"}
+	instances, err = GenerateInstanceConfigs(config)
+	if err != nil {
+		t.Fatalf("GenerateInstanceConfigs returned an error for matching image: %v", err)
+	}
+	if len(instances) != 1 || instances[0].ImageOnly || len(instances[0].ExportImages) != 1 || instances[0].ExportImages[0].CameraName != "nice" {
+		t.Fatalf("expected matching targeted image to attach to existing instance, got %#v", instances)
+	}
+}
+
+func TestGenerateInstanceConfigs_IsDifferentTestInheritsTargetParams(t *testing.T) {
+	config := &models.Config{
+		ConfigFile: filepath.Join(t.TempDir(), "config.toml"),
+		Design: models.DesignConfig{
+			Version:          "v0.1",
+			ExportNameFormat: "{designFileName}_{name}_{mode}_{modifier}",
+			InputPaths:       []models.InputPath{{Path: "./part.scad"}},
+			ConfiguredInstanceConfig: []models.ConfiguredInstanceConfig{
+				{Name: "preview", Params: map[string]interface{}{"mode": "assembled", "modifier": false}},
+			},
+			Tests: []models.GeometryTest{{
+				Type:            "is-different",
+				InstanceTarget:  "preview",
+				Camera:          "top",
+				DifferentParams: map[string]interface{}{"modifier": true},
+			}},
+		},
+	}
+
+	instances, err := GenerateInstanceConfigs(config)
+	if err != nil {
+		t.Fatalf("GenerateInstanceConfigs returned an error: %v", err)
+	}
+	if len(instances) != 3 {
+		t.Fatalf("expected normal instance plus two comparison images, got %d", len(instances))
+	}
+
+	var base, different *models.InstanceConfig
+	for i := range instances {
+		if len(instances[i].ExportImages) != 1 {
+			continue
+		}
+		switch instances[i].ExportImages[0].CameraName {
+		case isDifferentCameraName(0, "base"):
+			base = &instances[i]
+		case isDifferentCameraName(0, "different"):
+			different = &instances[i]
+		}
+	}
+	if base == nil || different == nil {
+		t.Fatalf("comparison cameras were not generated: %#v", instances)
+	}
+	if !base.ImageOnly || !different.ImageOnly || base.Params["mode"] != "assembled" || different.Params["mode"] != "assembled" {
+		t.Fatalf("comparison images did not inherit target params: base=%#v different=%#v", base, different)
+	}
+	if base.Params["modifier"] != false || different.Params["modifier"] != true {
+		t.Fatalf("comparison overrides were not applied: base=%#v different=%#v", base.Params, different.Params)
+	}
+}
+
+func TestLoadConfig_TargetedImage(t *testing.T) {
+	config, _, err := LoadConfig(`[openscadgen]
+name = "targeted-image"
+version = "v0.1"
+export_name_format = "{designFileName}_{name}_{mode}"
+
+[[openscadgen.input_paths]]
+path = "./part.scad"
+
+[[openscadgen.image]]
+name = "nice"
+params = { mode = "assembled" }
+`, models.CmdFlags{}, filepath.Join(t.TempDir(), "config.toml"))
+	if err != nil {
+		t.Fatalf("LoadConfig returned an error: %v", err)
+	}
+	if got := config.Design.ConfiguredImageConfig; len(got) != 1 || got[0].Name != "nice" || got[0].Params["mode"] != "assembled" {
+		t.Fatalf("targeted image was not decoded correctly: %#v", got)
+	}
+}
+
 func TestGenerateInstances_InstanceParamOverridesGlobalParam(t *testing.T) {
 	tmpDir := t.TempDir()
 
@@ -2558,6 +2877,9 @@ func TestValidateInstancesReportsMissingExportNameFormatParam(t *testing.T) {
 	}
 	if got := errors[0].KVPs["exportNameFormat"]; got != "{designFileName}_{renderType}_{mode}" {
 		t.Fatalf("duplicate diagnostic used export format %q, want the instance override", got)
+	}
+	if got := strings.Join(errors[0].MissingExportNameFormatParams, ","); got != "subMode" {
+		t.Fatalf("missing export-name params = %q, want subMode", got)
 	}
 }
 
@@ -2761,9 +3083,12 @@ func TestHTMLProgressReport(t *testing.T) {
 		t.Errorf("HTML should contain design name: %s", config.Design.Name)
 	}
 
-	// Test 9: Verify total processing time is present
-	if !strings.Contains(htmlContentStr, "Total processing time:") {
-		t.Error("HTML should contain total processing time")
+	// Test 9: Verify generation metadata is present in the collapsed footer.
+	if !strings.Contains(htmlContentStr, "<footer class=\"config-summary\"><details>") {
+		t.Error("HTML should contain the config-summary accordion footer")
+	}
+	if !strings.Contains(htmlContentStr, "Generated with 💕 by") {
+		t.Error("HTML should contain generation metadata")
 	}
 
 }

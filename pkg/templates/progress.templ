@@ -140,7 +140,7 @@ templ ProgressComplete() {
 }
 
 templ ProgressFailure(message string) {
-	<div id="progress-summary" hx-swap-oob="true" class="is-1 has-text-danger">
+	<div id="progress-summary" hx-swap-oob="true" class="is-1 has-text-danger" x-init="bottomNavExpanded = true">
 		<span class="icon-text">
 			<span class="icon">
 				<i class="fas fa-circle-exclamation"></i>

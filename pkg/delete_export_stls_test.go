@@ -66,4 +66,3 @@ func TestDeleteFiles(t *testing.T) {
 		t.Fatalf("expected p2 deleted, stat err: %v", err)
 	}
 }
-

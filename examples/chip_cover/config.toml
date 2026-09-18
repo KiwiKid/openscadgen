@@ -2,24 +2,22 @@
 name = "chip_cover"
 description = ""
 
-version = "v0.2"
+version = "v0.3"
 
-export_name_format = "{designFileName}_{mode}_chipWidth{chipWidth}_{chipLength}_{chipHeight}"
+export_name_format = "{designFileName}_{mode}_{name}"
 
 [[openscadgen.input_paths]]
 path = "./chip_cover.scad"
 params = { }
 
-
+[[openscadgen.instances]]
+params = { mode = ["sliced", "all"], name="small-chip", chipWidth = 40, chipLength = 60, chipCoverHeight =  25, railUp = 8 }
 
 [[openscadgen.instances]]
-params = { mode = ["sliced", "all"], chipWidth = 40, chipLength = 60, chipHeight =  25, railUp = 8 }
+params = {mode = ["sliced", "all"], name="medium-chip", chipWidth = 53.5, chipLength = 74, chipCoverHeight = 30, railUp = 12 }
 
 [[openscadgen.instances]]
-params = {mode = ["sliced", "all"], chipWidth = 53.5, chipLength = 74, chipHeight = 40 }
-
-[[openscadgen.instances]]
-params = { mode = "wallOnly", chipWidth = 53.5, chipLength = 74, chipHeight = 40 }
+params = { mode = "wallOnly", chipWidth = 53.5, chipLength = 74, chipCoverHeight = 40 }
 
 [[openscadgen.images]]
 name = "nice"

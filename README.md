@@ -1,5 +1,8 @@
 openscadgen is a simple tool for generating a specific a set of .stl files (or other openscad export formats) from one (or many!) openscad files and a simple human-readable toml config file.
 
+> [!WARNING]
+> openscadgen is designed to run locally, in a local-development-style environment. It is not ready for, or currently designed to be safely run as, an internet-exposed or production server. Hardening work is in progress, but it is not complete. Do not expose the server to untrusted networks or users.
+
 The config file allows for parameter combinations, multiple input files, image generation, and generated a report detailing all the generations and the parameters used in each.
 
 The goal of the tool is to ease the development, management, production and distribution of large numbers designs or design options based on single openscad file.
@@ -17,10 +20,14 @@ openscadgen includes two main modes of operation:
 ```
 
 - Server Mode:
-(start a server and serve the projects in the folder "./examples/" at http://localhost:6767)
+(start a server and serve the projects in the folder "./examples/" at http://localhost:7203)
 ```
-./openscadgen -sf ./examples/ -p 6767
+./openscadgen -sf ./examples/
 ```
+
+Server mode binds to `127.0.0.1` by default. `--server-address` is an explicit
+opt-in for a non-loopback bind; do not expose it directly to a network because
+the application can modify project files and launch local programs.
 
 ## Prerequisites
 
@@ -30,10 +37,23 @@ Before using openscadgen, you need:
 2. **A config file** - A `.toml` configuration file that defines your project
 3. **OpenSCAD files** - The `.scad` files you want to generate variations of
 
+## Compatibility
+
+`openscadgen` ships native x86-64 and ARM64 binaries for the desktop platforms below. It invokes the `openscad` command on your `PATH`; check the renderer it will use with `openscad --version`.
+
+| Platform | openscadgen | OpenSCAD releases | Known limitations |
+| --- | --- | --- | --- |
+| macOS (Intel, Apple Silicon) | Supported | Current stable and nightly snapshots | The server's OpenSCAD and BOSL2 install/upgrade buttons require Homebrew and are macOS-only. macOS may require allowing the downloaded binary in Privacy & Security. |
+| Linux (x86-64, ARM64) | Supported | Ubuntu CI's packaged stable release; current nightly is also exercised by the release workflow | Install OpenSCAD and its EGL/OpenGL runtime libraries for headless rendering. Use your distribution's package manager to install or upgrade OpenSCAD. |
+| Windows (x86-64, ARM64) | Supported | Current stable releases | Install OpenSCAD and manage libraries manually; the server's install/upgrade buttons are not available. Windows Security may require unblocking the downloaded executable. |
+| Docker host (any OS supported by Docker) | Supported through the Linux container | The image supplies Debian's OpenSCAD package and BOSL2 | Local desktop integration, including opening a SCAD file in the host GUI, is not available from the container. |
+
+OpenSCAD is responsible for parsing and rendering each model, so a model's own libraries, fonts, and features can impose stricter requirements than this matrix. Nightly builds are useful for newer renderer features, but can change behaviour; pin a known OpenSCAD version when reproducible exports matter.
+
 ## Quick Start
 
 1. **Install openscadgen** from the [releases page](https://github.com/kiwikid/openscadgen/releases)
-2. **Initialize a new project:
+2. **Initialize a new project:**
    ```bash
    ./openscadgen -i ./examples/my-first-project
    ```
@@ -212,6 +232,13 @@ export/
 
 The `report.html` file provides a visual overview of all generated files with images and metadata, making it easy to browse your results.
 
+Each normal processing run also refreshes `export/<version>/source.zip`. It
+contains the exact `config.toml` and the configured `.scad` input files for
+that version. The archive is compressed, replaced rather than accumulated on
+later runs of the same version, and stays under `export/`, which project search
+already excludes. It deliberately does not bundle external OpenSCAD libraries
+or imported assets.
+
 ### Part Type Generation
 When using `partType` parameter, openscadgen can generate part letters (A, B, C...) for multi-part designs.
 
@@ -263,7 +290,7 @@ docker run --rm -v /path/to/your/project:/app/project openscadgen openscadgen -c
 ### Run in server mode
 
 ```bash
-docker run --rm -p 6767:6767 -v /path/to/your/projects:/app/examples openscadgen
+docker run --rm -p 6767:6767 -v /path/to/your/projects:/app/examples openscadgen openscadgen -sf /app/examples -p 6767 --server-address 0.0.0.0
 ```
 
 This starts the server at http://localhost:6767 serving the projects in the mounted directory.
@@ -364,81 +391,193 @@ Ensure you have allowed openscadgen to run (in Privacy & Security settings)
 
 # Config file format
 
-
-
+The config is TOML and has one `[openscadgen]` table. Paths are resolved from
+the `config.toml` file. `input_path` is the compact form for one source;
+`[[openscadgen.input_paths]]` is the form to use for multiple sources or
+per-source settings. A config must provide a `name` and at least one input
+path; `version` defaults to `v0.1` and `run_type` defaults to
+`clearAndCreate`.
 
 ```toml
 [openscadgen]
-# name of the design, will be used in the name of output files
 name = "screw-mounted-clip"
-# description of the design, will be used in the README.md file
-description = "A parametric screw mounted clip"
-# path to the openscad file that will be used to generate the design
-input_path = "./examples/screw-mounted-clip/parametricCommandStripBroomHook.scad"
-export_name_format = "clip-{handle_diameter}mm-wide-{handle_offset}mm-tall"
-# version of the design, the export will be saved in a subfolder with this version number
-version = "v1.6"
-
-
-# Instances
-
-# Each configuration below will result in a SET of separate .stl file being created with those parameters in the 'output_path' directory
+description = "A parametric screw-mounted clip"
+input_path = "./clip.scad"
+export_name_format = "clip-{handle_diameter}mm-{handle_offset}mm"
+version = "v1.0"
 
 [[openscadgen.instances]]
-# The 'name' field is a template string that will be used to generate the instance name (note the {param_name} syntax for value replacement)
-# the params field configures which instances get created, this configures 50 
-params = { handle_diameter = "5,7,8,10,15,20,25,30", handle_offset = "5,10,15,20,25,30" }
+name = "standard"
+params = { handle_diameter = "5,10", handle_offset = "5,15" }
 
-
-# Specific models
-# Each instance below will result in a separate .stl file being created with those parameters in the 'output_path' directory
-[[openscadgen.instances]]
-name = "clip-for-large-ended-hex-tool"
-description = "A clip sized for a hex tool with a large piece"
-params = {  handle_diameter = "7", handle_offset="15" }
+[[openscadgen.images]]
+name = "nice"
 ```
 
+`params` values containing commas expand into combinations. Use TOML numbers,
+booleans, strings, or arrays as appropriate. Parameter names must be valid
+OpenSCAD identifiers. Put every parameter that varies between instances in
+`export_name_format`, otherwise the run can produce duplicate file paths.
 
-This is a more complex example, where we have two "Input Files" file, with params shared between each
+## Configuration reference
+
+### `[openscadgen]`
+
+| Field | What it does |
+| --- | --- |
+| `name` | Required project name. It is shown in generated documentation and reports. |
+| `description` | Optional project description for generated documentation and the UI. |
+| `input_path` | One `.scad` input file, relative to this config. Do not combine it with `input_paths`. |
+| `input_paths` | Array of input definitions. Use this instead of `input_path` for multiple files or per-file options. |
+| `output_path` | Legacy accepted field. The current exporter writes beside the config/input under its versioned `export/` structure; this field does not select a different export root. |
+| `version` | Version directory label, for example `v1.0`; defaults to `v0.1`. |
+| `export_name_format` | Required filename/path template for STL exports. Supports `{designFileName}`, `{instanceName}`, and `{paramName}` for any applied parameter. It may include subdirectories. |
+| `global_params` | Parameter map merged into every instance. Later per-input, parameter-set, and instance values can override it. |
+| `param_sets` | Array of named reusable parameter maps, selected by `param_sets` on an input, instance, or targeted image. |
+| `instances` | Array of instance definitions. Each definition expands into one output for every parameter combination. If omitted, one empty `default` instance is generated. |
+| `images` | Array of cameras applied to matching instances to create PNG previews. |
+| `image` | Array of targeted, one-off image renders. It reuses at most one matching instance, or creates an image-only report entry. |
+| `tests` | Array of assertions run against each generated part. |
+| `export_text_sizing` | Array of font/parameter pairs used by text-sizing export support. |
+| `run_type` | `clearAndCreate` (default) clears the previous version folder after confirmation; `appendOrOverwrite` keeps it and skips that deletion. |
+| `no_part_id_letter` | Legacy accepted field; current processing assigns part letters independently, so this does not suppress them. |
+| `dont_use_manifold` | Legacy accepted field; the Manifold backend switch is currently not passed to OpenSCAD, so this has no effect. |
+| `custom_openscad_output_format` | Changes the OpenSCAD export extension/format, for example `stl`. The command-line output-format flag overrides it. |
+| `custom_openscad_args` | Extra OpenSCAD arguments. This requires `--dangerously-skip-permissions` because arguments are executed locally. |
+| `export_image_quality` | Legacy accepted field; current image quality is controlled through CLI quality options rather than this config field. |
+
+### `[[openscadgen.tests]]`
+
+| Field | What it does |
+| --- | --- |
+| `type` | `is-flat` checks an STL contact face. `no-holes` checks a rendered view for enclosed background, which indicates a see-through hole. `is-different` renders two parameter variants and requires a visible difference. `min-color-pixels` requires a visible target-colour area in one rendered view. `color-in-bounding-box` requires that colour within a specified square. |
+| `camera` | Required for `no-holes`. The named preset camera to render and inspect; it is generated automatically if it is not already a preview. |
+| `image_size` | Optional size for an automatically generated `no-holes` camera. |
+| `min_hole_pixels` | Minimum enclosed-background component size that fails `no-holes`; defaults to `1`. |
+| `instance_target` | Required for `is-different`: the name of one `[[openscadgen.instances]]` entry. Both renders inherit its configuration. |
+| `params` | Optional overrides for the first `is-different` render. |
+| `different_params` | Optional overrides for the second `is-different` render. |
+| `min_different_pixels` | Minimum differing pixels required by `is-different`; defaults to `1`. |
+| `color` | Required `#RRGGBB` target colour for `min-color-pixels`. |
+| `min_color_pixels` | Minimum pixels near `color` required by `min-color-pixels`; defaults to `1`. |
+| `bounding_box` | Required by `color-in-bounding-box`: `[left, top, size]` in exported-image pixels. |
 
 ```toml
-# These lines configure, where the config file is, how openscad will be run and where the output will be saved
-[openscadgen]
-name = "car-holder-plus"
-description = """\
-  A simple model that upgrades the center console cup holder from one small cup holder to two medium-large cup holders with a slot at either end for a phone
-\n
-Tested against late 90s toyota models, you can adjust the cup holder size via these params in the openscad file:
-\n
-Be-aware of the limitations of the material you are using, PLA can have a very limited lifespan as it will deform and warp in the sun/heat of the car (https://3dprinting.stackexchange.com/questions/6119/can-you-put-pla-parts-in-your-car-in-the-sun)
-
-\n\n
-Project file includes:
-\n
-- Cup Adapter without cut - an "All-in-on" print - uses more supports & time, stronger, with no assembly (~14h print time & 560g of PLA filament)
-\n
-- Cut the Cup Adapter with a dowel cut - Minimise print/build time via splitting the cup holder to a separate part (~10h print time & 470g of PLA filament)
- - Parametric .scad file for customisation 
-\n\n\n
-v1.1
-- Making the cup shorter and wider at the top (remove the need for tape)
-- Slightly narrower cup holder diameter at the brim and base
-- Reduce sharp edges (better align cup & phone holders in the center)
-"""
-export_name_format = "{cup_holders_mode}/{designFileName}-{instanceName}"
-version = "v1.3"
-
-[[openscadgen.input_paths]]
-path = "./carHolderPlus.scad"
-
-[[openscadgen.input_paths]]
-path = "./carHolderPlus-cup-holder-sizer.scad"
-ignore_param_when_processing = "cup_holders_mode"
-
-[[openscadgen.instances]]
-params = { name= "rav4", in_car_cup_holder_height = "60", in_car_cup_holder_top_diameter = "74", in_car_cup_holder_bottom_diameter = "66.5", cup_holders_mode = "twoLargerHolders,oneLargerHolderOneSmallerHolder" }
-
+[[openscadgen.tests]]
+type = "no-holes"
+camera = "top"
 ```
+
+Outer background remains valid: only a background region that is fully enclosed by a rendered object fails this test.
+
+`is-different` is useful for a modifier or mode that must visibly change the export without repeating its base configuration:
+
+```toml
+[[openscadgen.tests]]
+type = "is-different"
+instance_target = "preview"
+camera = "top"
+params = { modifier = false }
+different_params = { modifier = true }
+min_different_pixels = 10
+```
+
+The two images are rendered from the target instance's parameters plus the respective overrides. The target must resolve to one image for each side of the comparison.
+
+`min-color-pixels` is useful when a test-only scene colours a modifier and the camera must show enough of it through its matching cutout:
+
+```toml
+[[openscadgen.tests]]
+type = "min-color-pixels"
+instance_target = "top-colour-alignment"
+camera = "side-near"
+color = "#ff0000"
+min_color_pixels = 10000
+```
+
+`color-in-bounding-box` confines the colour check to a square. The report shows a generated diagnostic image with a green border for a passing region and a red border for a failing one. Several checks against the same render share that one annotated image.
+
+```toml
+[[openscadgen.tests]]
+type = "color-in-bounding-box"
+instance_target = "top-colour-alignment"
+camera = "side-near"
+color = "#ff0000"
+bounding_box = [120, 80, 64] # left, top, square side length in pixels
+min_color_pixels = 1
+```
+
+### `[[openscadgen.input_paths]]`
+
+| Field | What it does |
+| --- | --- |
+| `path` | Required path to the `.scad` source. |
+| `raw_openscad_file` | Inline OpenSCAD source accepted by the schema. Current instance generation still requires `path`; use a real source file for reliable processing. |
+| `raw_openscad_file_name` | Intended filename for inline source; currently only stored with the input definition. |
+| `export_name_format` | Naming-template override for this source. |
+| `param_sets` | Comma-separated parameter-set names to merge into this source's instances. |
+| `params` | Parameters applied to every instance generated from this source. |
+| `skip_images` | Do not create preview images for this source. |
+| `ignore_param_when_processing` | Comma-separated parameter names omitted from OpenSCAD definitions for this source. They can still be used in filenames. |
+
+### `[[openscadgen.param_sets]]`
+
+| Field | What it does |
+| --- | --- |
+| `name` | Name selected by an input, instance, or targeted image's comma-separated `param_sets` list. |
+| `params` | Parameter map contributed whenever that set is selected. |
+
+### `[[openscadgen.instances]]`
+
+| Field | What it does |
+| --- | --- |
+| `name` | Optional instance label, available as `{instanceName}` in export names and shown in reports. |
+| `description` | Optional description shown for this instance in reports. |
+| `export_name_format` | Naming-template override for this instance; it takes precedence over an input or top-level template. |
+| `params` | Per-instance parameters. Comma-separated string values expand to combinations unless listed in `ignore_comma_in_params`. |
+| `param_sets` | Comma-separated names of reusable parameter sets to apply. |
+| `params_numbered` | Comma-separated string values become numbered parameter names (`slot1`, `slot2`, ...), useful for repeated OpenSCAD arguments. |
+| `ignore_comma_in_params` | Parameter names whose comma-containing strings are literal text rather than lists to expand. |
+| `direct_array_params` | Parameter names that should remain OpenSCAD arrays rather than be expanded into separate instances. |
+| `images` | Array of cameras used only for this instance. |
+| `skip_images` | Do not create preview images for this instance. |
+
+### `[[openscadgen.images]]` and `[[openscadgen.instances.images]]`
+
+Both camera arrays support the same fields. Top-level `images` applies to every
+matching instance; instance-level `images` applies only to its parent.
+
+| Field | What it does |
+| --- | --- |
+| `name` | Camera preset name, such as `top`, `bottom`, `front`, `back`, `left`, `right`, `side`, or `nice`. `nice-100` through `nice-1000` use the `nice` angle at that distance. |
+| `type` | Top-level images only: omit it or use `instance` for normal per-instance PNGs; use `all_instances` to additionally create one montage for that camera. |
+| `export_name_format` | Image-path template override. It supports the same placeholders as STL export names. |
+| `coord` | Optional custom seven-value OpenSCAD camera string (`translation,rotation,distance`); it overrides the preset position. |
+| `image_size` | Optional per-camera dimensions, for example `1200x1200`. |
+| `param_filter` | Parameter map that must match an instance before this camera is used. |
+
+### `[[openscadgen.image]]` (targeted image)
+
+| Field | What it does |
+| --- | --- |
+| `name` | Required camera preset name for this one render. |
+| `instance_name` | Name used in the report if the image requires an image-only instance. |
+| `input_path` | Required to disambiguate the source when the design has more than one input path. |
+| `params` | Parameters used to select an existing instance or create the image-only instance. They must match at most one configured instance. |
+| `param_sets` | Comma-separated parameter-set names to merge into this render. |
+| `export_name_format` | Optional naming-template override for an image-only instance. |
+| `coord` | Optional custom seven-value OpenSCAD camera string; otherwise the `name` preset is used. |
+| `image_size` | Optional dimensions for this one image. |
+
+### `[[openscadgen.export_text_sizing]]`
+
+| Field | What it does |
+| --- | --- |
+| `font` | Font family used by the text-sizing entry. |
+| `param_name` | OpenSCAD parameter name to which that text-sizing entry applies. |
+
+For a terminal-friendly reference kept alongside the implementation, run
+`./openscadgen -config-options -topic images` (omit `-topic` for every option).
 
 
 # Development
