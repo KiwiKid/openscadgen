@@ -1,0 +1,16 @@
+[openscadgen]
+name = "magnetic_catch_mount"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}"
+
+global_params = { }
+
+[[openscadgen.input_paths]]
+path = "./magnetic_catch_mount.scad"
+params = { }
+
+[[openscadgen.images]]
+name = "nice"

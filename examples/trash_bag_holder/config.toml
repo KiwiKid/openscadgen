@@ -16,13 +16,11 @@ tolerance = 0.01
 path = "./trash_bag_holder.scad"
 
 [[openscadgen.instances]]
-params = { mode = "outer,inner,all" }
+params = { mode = "outer" }
 
 [[openscadgen.images]]
 name = "nice"
-param_filter = { mode = "outer,inner,all" }
 
 # Top-down previews show the bag-handle opening and all four corner chamfers.
 [[openscadgen.images]]
 name = "top-far"
-param_filter = { mode = "outer,inner,all" }

@@ -45,7 +45,9 @@ templ SlimProcessForm(reportMeta models.ReportMeta) {
 			<input type="text" name="page_instances_signature" value={ reportMeta.InstanceSetSignature } readonly hidden/>
 			<div style="display: flex; gap: 0.5rem; flex: 0 0 auto; margin-left: auto; align-items: center; flex-wrap: nowrap;">
 				<button class="button is-primary og-process-button" type="submit" data-og-process-submit title="Generate STL files and images without running configured tests">Process</button>
-				<button class="button is-light og-process-button" type="submit" name="run_tests" value="true" data-og-process-submit title="Generate STL files and images, then run configured tests">Run tests</button>
+				if reportMeta.HasConfiguredTests {
+					<button class="button is-light og-process-button" type="submit" name="run_tests" value="true" data-og-process-submit title="Generate STL files and images, then run configured tests">Run tests</button>
+				}
 				<button class="button is-info og-process-button" type="submit" name="run_all" value="true" data-og-process-submit title="Generate STL files and images, then run configured tests">Run all</button>
 				<button class="button is-danger og-process-cancel-button" type="button" data-og-process-cancel disabled>Cancel</button>
 			</div>
@@ -90,14 +92,12 @@ templ ProcessFormV2(reportMeta models.ReportMeta) {
 							<i class="fas fa-play"></i>
 						</span>
 					</button>
-					<button class="button is-large is-light og-process-button" type="submit" name="run_tests" value="true" data-og-process-submit title="Generate STL files and images, then run configured tests">
-						<span class="icon"><i class="fas fa-vial"></i></span>
-						<span>Run tests</span>
-					</button>
-					<button class="button is-large is-info og-process-button" type="submit" name="run_all" value="true" data-og-process-submit title="Generate STL files and images, then run configured tests">
-						<span class="icon"><i class="fas fa-play-circle"></i></span>
-						<span>Run all</span>
-					</button>
+					if reportMeta.HasConfiguredTests {
+						<button class="button is-large is-light og-process-button" type="submit" name="run_tests" value="true" data-og-process-submit title="Generate STL files and images, then run configured tests">
+							<span class="icon"><i class="fas fa-vial"></i></span>
+							<span>Run tests</span>
+						</button>
+					}
 					<button class="button is-large is-danger og-process-cancel-button" type="button" data-og-process-cancel disabled>Cancel</button>
 					<button
 						class="button is-large is-danger"

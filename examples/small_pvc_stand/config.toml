@@ -1,0 +1,16 @@
+[openscadgen]
+name = "small_pvc_stand"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}"
+
+global_params = { }
+
+[[openscadgen.input_paths]]
+path = "./small_pvc_stand.scad"
+params = { }
+
+[[openscadgen.images]]
+name = "nice"

@@ -12,6 +12,26 @@ import (
 	"github.com/kiwikid/openscadgen/pkg/models"
 )
 
+func TestEqualSTLFileSizeWarning(t *testing.T) {
+	dir := t.TempDir()
+	first := filepath.Join(dir, "first.stl")
+	second := filepath.Join(dir, "second.stl")
+	if err := os.WriteFile(first, []byte("same"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(second, []byte("size"), 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	warning := equalSTLFileSizeWarning([]models.GenerateSTLResult{
+		{OutputPath: first, InstanceConfig: models.InstanceConfig{AutoName: "first"}},
+		{OutputPath: second, InstanceConfig: models.InstanceConfig{AutoName: "second"}},
+	})
+	if !strings.Contains(warning, "first, second") || !strings.Contains(warning, "4 bytes") {
+		t.Fatalf("expected equal-size warning, got %q", warning)
+	}
+}
+
 func TestTestRunSummaryShowsPassingAndFailingCounts(t *testing.T) {
 	var rendered strings.Builder
 	summary := &models.TestRunSummary{Passing: 3, Failing: 1, RanAt: time.Date(2026, time.September, 14, 13, 0, 0, 0, time.UTC)}
@@ -156,6 +176,35 @@ func TestServerReportDarkModeControlsRemainVisible(t *testing.T) {
 	}
 }
 
+func TestServerReportNavigationUsesACollapsedExpandableLeftRail(t *testing.T) {
+	var rendered strings.Builder
+	if err := Report("view", &models.Config{}, nil, t.TempDir(), nil, nil, nil, models.ReportMeta{IsServerMode: true}, 0, nil).Render(context.Background(), &rendered); err != nil {
+		t.Fatal(err)
+	}
+
+	body := rendered.String()
+	for _, expected := range []string{
+		"sidebarCollapsed: (function () { try { return localStorage.getItem('og-sidebar-collapsed') !== 'false'; } catch (e) { return true; } })(),",
+		`grid-template-areas: "sidebar main";`,
+		".og-report-sidebar { grid-area: sidebar; position: sticky; top: 0; height: 100vh; overflow-y: auto; }",
+		".og-report-main { grid-area: main; min-width: 0; padding: 1rem; }",
+		".og-report-layout.og-sidebar-collapsed { grid-template-columns: 4rem minmax(0, 1fr); }",
+		"localStorage.setItem('og-sidebar-collapsed', sidebarCollapsed)",
+	} {
+		if !strings.Contains(body, expected) {
+			t.Fatalf("expected expandable left rail markup %q", expected)
+		}
+	}
+	for _, unwanted := range []string{
+		"grid-template-columns: 220px minmax(0, 1fr);",
+		".og-report-sidebar { position: sticky; top: 0; align-self: start; }",
+	} {
+		if strings.Contains(body, unwanted) {
+			t.Fatalf("found obsolete sidebar layout %q", unwanted)
+		}
+	}
+}
+
 func TestInstanceCardV2RendersFailedOpenSCADDetails(t *testing.T) {
 	instance := models.InstanceConfig{
 		Name:            "default",
@@ -202,12 +251,24 @@ func TestInstanceCardV2RendersFailedOpenSCADDetails(t *testing.T) {
 		`Execution aborted`,
 		`Copy params`,
 		`data-openscad-params="width = 42;"`,
-		`href="file:///tmp/export"`,
-		`Open Folder`,
 	} {
 		if !strings.Contains(body, needle) {
 			t.Fatalf("expected rendered instance card to contain %q\nbody=%s", needle, body)
 		}
+	}
+}
+
+func TestSharedOpenSTLFolderURL(t *testing.T) {
+	instances := []models.InstanceConfig{
+		{RunOutputPathV3: "/tmp/export/a.stl"},
+		{RunOutputPathV3: "/tmp/export/b.stl"},
+	}
+	if got, shared := sharedOpenSTLFolderURL(instances); !shared || got != "file:///tmp/export" {
+		t.Fatalf("expected shared export folder, got %q (shared=%v)", got, shared)
+	}
+	instances[1].RunOutputPathV3 = "/tmp/other/b.stl"
+	if _, shared := sharedOpenSTLFolderURL(instances); shared {
+		t.Fatal("expected different export folders not to be shared")
 	}
 }
 

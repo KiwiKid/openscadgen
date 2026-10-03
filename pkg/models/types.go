@@ -22,6 +22,8 @@ type ExportCameraCoordinates struct {
 	ImageSize          string                 `toml:"image_size"`
 	ParamFilter        map[string]interface{} `toml:"param_filter"`
 	RunOutputImagePath string
+	// Tests are evaluated against this camera's rendered image for the owning instance.
+	Tests []GeometryTest `toml:"tests"`
 }
 
 type ExportTextSizing struct {
@@ -572,6 +574,21 @@ type BuildReportMetaParams struct {
 	ServerFolder         string
 	Config               *Config
 	Instances            []InstanceConfig
+	RepositoryStatus     *RepositoryStatus
+}
+
+// RepositoryStatus is a compact, read-only summary of the Git worktree that
+// contains the project currently open in the server UI.
+type RepositoryStatus struct {
+	Root         string
+	Branch       string
+	LastCommit   string
+	LastCommitAt time.Time
+	Staged       int
+	Modified     int
+	Untracked    int
+	Ahead        int
+	Behind       int
 }
 
 type FilterGroup struct {
@@ -657,6 +674,7 @@ type EditPreviewSummary struct {
 type ReportMeta struct {
 	IsServerMode          bool
 	ShowAI                bool
+	HasConfiguredTests    bool
 	TotalQueuedInstances  int
 	HomeURL               string
 	ConfigFilePath        string
@@ -667,6 +685,7 @@ type ReportMeta struct {
 	ConfigVersion         string
 	Results               Results
 	TestRun               *TestRunSummary
+	RepositoryStatus      *RepositoryStatus
 }
 
 type ChatMessage struct {

@@ -39,7 +39,7 @@ roundInsertSize = 20;
 roundInsertDepth = 10;
 
 /// PICTURE-RAIL HOOK
-attachmentType = "poll-top"; // "railHook" or "poll"
+attachmentType = "floorPanel"; // "railHook" or "poll" or "floorPanel"
 
 // The rail runs along Y.  Adjust these three measurements to suit the rail.
 railDepth = 18;
@@ -57,7 +57,14 @@ pollSlotWidth = 3;
                 usbHeight = 25;
             usbWidth = 20;
              usbDepth = 10;
+             
+             floorPanelLength = 30;
+             floorPanelSize = [floorPanelLength,25*2,2];
+             frameAttachAdjust = [floorPanelLength/6+2,0,-2];
+             frameAttachScrewAdjust = [floorPanelLength/2,0,0];
+             
 pollHeight = 170;
+
 // An inverted J: the holder is the front leg, with a bridge over the rail and
 // a short back leg that prevents it lifting away from the rail.
 module picture_rail_hook() {
@@ -71,6 +78,25 @@ module picture_rail_hook() {
     // Retaining leg behind the rail.
     translate([backLegX, -frameWidth / 2, frameHeight / 2 - railHeight - railHookWall])
         cuboid([railHookWall, frameWidth, railHeight + railHookWall], anchor=LEFT+FRONT+BOTTOM, rounding=1);
+}
+
+module floor_panel_panel(){
+difference(){
+    move(frameAttachAdjust)
+cuboid(floorPanelSize, anchor=BOT, rounding=0.5, except_edges=TOP);
+
+    move(frameAttachScrewAdjust)
+    #zcyl(r=2,h=10);
+}
+
+}
+
+module floor_panel_frame(frameAngle=15){
+    #holder()
+    yrot(frameAngle)
+    attach(BOT)
+    floor_panel_panel();
+
 }
 
 module poll_attachment(
@@ -124,7 +150,9 @@ module attachment(type=attachmentType) {
     } else if (type == "poll-bottom") {
 
         poll_attachment(pollPart="bottom");
-    } else {
+    } else if(type == "floorPanel") {
+        floor_panel_frame();
+    }else {
         assert(false, str("Unknown attachmentType: ", type));
     }
 }

@@ -29,6 +29,55 @@ func formatDuration(d time.Duration) string {
 	return strings.TrimSpace(humanize.RelTime(now.Add(-d), now, "", ""))
 }
 
+// equalSTLFileSizeWarning identifies generated STL files with the same byte
+// size. This is only a heuristic warning: equal file sizes do not prove that
+// the generated geometry is identical.
+func equalSTLFileSizeWarning(results []models.GenerateSTLResult) string {
+	bySize := make(map[int64][]string)
+	for _, result := range results {
+		if result.Error != "" || result.OutputPath == "" {
+			continue
+		}
+		info, err := os.Stat(result.OutputPath)
+		if err != nil {
+			continue
+		}
+		name := result.InstanceConfig.AutoName
+		if name == "" {
+			name = result.InstanceConfig.Name
+		}
+		bySize[info.Size()] = append(bySize[info.Size()], name)
+	}
+
+	var groups []string
+	for size, names := range bySize {
+		if len(names) < 2 {
+			continue
+		}
+		sort.Strings(names)
+		groups = append(groups, fmt.Sprintf("%s (%d bytes)", strings.Join(names, ", "), size))
+	}
+	if len(groups) == 0 {
+		return ""
+	}
+	sort.Strings(groups)
+	return "Generated STL files have equal file sizes; please check whether these instances are intentionally identical: " + strings.Join(groups, "; ")
+}
+
+func formatRepositoryUpdatedAt(t time.Time) string {
+	if t.IsZero() {
+		return "No commits yet"
+	}
+	return humanize.Time(t)
+}
+
+func repositoryUnsavedCount(status *models.RepositoryStatus) int {
+	if status == nil {
+		return 0
+	}
+	return status.Staged + status.Modified + status.Untracked
+}
+
 templ Success(message string) {
 	<div class="notification is-success">
 		<strong>{ message }</strong>
@@ -685,6 +734,19 @@ func buildOpenSTLFolderURL(instance models.InstanceConfig) templ.SafeURL {
 	return templ.SafeURL((&url.URL{Scheme: "file", Path: filepath.Dir(outputPath)}).String())
 }
 
+func sharedOpenSTLFolderURL(instances []models.InstanceConfig) (templ.SafeURL, bool) {
+	if len(instances) == 0 {
+		return "", false
+	}
+	first := buildOpenSTLFolderURL(instances[0])
+	for _, instance := range instances[1:] {
+		if buildOpenSTLFolderURL(instance) != first {
+			return "", false
+		}
+	}
+	return first, true
+}
+
 templ InstanceDetails(instance models.InstanceConfig, outputPath string) {
 	<details class="instance-card-v2__details">
 		<summary>
@@ -864,7 +926,6 @@ templ InstanceCardV2(instance models.InstanceConfig, outputPath string, reportMo
 					>Copy params</button>
 					if reportMeta.IsServerMode {
 						<a class="button is-small is-light" href={ buildPreviewSTLFileUrl(instance, reportMeta) } target="_blank">Open STL</a>
-						<a class="button is-small is-light" href={ buildOpenSTLFolderURL(instance) } target="_blank">Open Folder</a>
 					}
 					if reportMeta.IsServerMode {
 						<a class="button is-small is-light" href={ buildPreviewSTLURL(instance, reportMeta) } target="_blank">Preview STL</a>
@@ -1018,7 +1079,7 @@ templ InstanceRowV3(instance models.InstanceConfig, outputPath string, reportMod
 templ HeadLinks() {
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css"/>
 	<style>
             .openscad-nav-details > .openscad-nav-summary {
                 list-style: none;
@@ -1198,6 +1259,7 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
 			<script>
         function alpineReportData() {
             return {
+                sidebarCollapsed: (function () { try { return localStorage.getItem('og-sidebar-collapsed') !== 'false'; } catch (e) { return true; } })(),
                 darkMode: true,
                 showDebug: false,
                 showProcessForm: false,
@@ -1868,33 +1930,68 @@ html, body {
                     justify-content: flex-end;
                 }
                 .global-header__tabs {
-                    width: 100%;
+                    display: none;
                 }
                 .og-report-layout {
                     display: grid;
-                    grid-template-columns: minmax(0, 1fr) 220px;
-                    gap: 1.25rem;
-                    max-width: 1440px;
+                    grid-template-areas: "sidebar main";
+                    grid-template-columns: 16rem minmax(0, 1fr);
+                    gap: 0;
+                    max-width: none;
                     margin: 0 auto;
-                    padding: 1rem;
+                    min-height: 100vh;
+                    padding: 0;
+                    transition: grid-template-columns 180ms ease;
                 }
-                .og-report-main { min-width: 0; }
-                .og-report-sidebar { position: sticky; top: 1rem; align-self: start; }
+                .og-report-main { grid-area: main; min-width: 0; padding: 1rem; }
+                .og-report-sidebar { grid-area: sidebar; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
                 .og-report-sidebar .menu {
+                    box-sizing: border-box;
+                    display: flex;
+                    flex-direction: column;
+                    min-height: 100%;
                     background: var(--card-bg);
-                    border: 1px solid var(--border-color);
-                    border-radius: 6px;
+                    border: 0;
+                    border-right: 1px solid var(--border-color);
+                    border-radius: 0;
                     padding: 0.75rem;
                 }
                 .og-report-sidebar .menu-list a { color: var(--text-color); cursor: pointer; }
                 .og-report-sidebar .menu-list a.is-active { background: var(--accent-color); color: white; }
+                .og-report-sidebar .menu-list a { display: flex; align-items: center; gap: 0.65rem; }
+                .og-report-sidebar .menu-list a .icon { width: 1.1rem; justify-content: center; }
+				.og-git-status { margin: 0.35rem 0 0.6rem; }
+				.og-git-status summary { display: flex; align-items: center; gap: 0.65rem; padding: 0.5em 0.75em; cursor: pointer; list-style: none; }
+				.og-git-status summary::-webkit-details-marker { display: none; }
+				.og-git-status summary .icon { width: 1.1rem; justify-content: center; }
+				.og-git-status__count { margin-left: auto; min-width: 1.7rem; justify-content: center; }
+				.og-git-status__detail { padding: 0.25rem 0.75rem 0.5rem 2.5rem; font-size: 0.82rem; }
+				.og-git-status__detail p { margin-bottom: 0.35rem; overflow-wrap: anywhere; }
+                .og-sidebar-toggle { margin-top: auto; width: 100%; }
+                .og-report-layout.og-sidebar-collapsed { grid-template-columns: 4rem minmax(0, 1fr); }
+                .og-sidebar-collapsed .og-report-sidebar .menu-label,
+                .og-sidebar-collapsed .og-report-sidebar .nav-label,
+                .og-sidebar-collapsed .og-report-sidebar .nav-count { display: none; }
+                .og-sidebar-collapsed .og-report-sidebar .menu-list a { justify-content: center; }
+                .og-sidebar-collapsed .og-report-sidebar .menu-list a .icon { margin: 0; }
+				.og-sidebar-collapsed .og-git-status summary { justify-content: center; padding-left: 0; padding-right: 0; }
+				.og-sidebar-collapsed .og-git-status__detail { display: none; }
+				.og-sidebar-collapsed .og-git-status__count { display: none; }
                 .og-breadcrumbs { margin-bottom: 0.75rem; }
                 .og-breadcrumbs a { cursor: pointer; }
                 @media (max-width: 900px) {
-                    .og-report-layout { display: block; padding: 0.75rem; }
-                    .og-report-sidebar { position: static; margin-bottom: 1rem; }
+                    .og-report-layout,
+                    .og-report-layout.og-sidebar-collapsed { display: block; min-height: 0; }
+                    .og-report-main { padding: 0.75rem; }
+                    .og-report-sidebar { position: static; height: auto; margin-bottom: 0; }
+                    .og-report-sidebar .menu { min-height: 0; border-right: 0; border-bottom: 1px solid var(--border-color); }
                     .og-report-sidebar .menu-list { display: flex; flex-wrap: wrap; gap: 0.35rem; }
                     .og-report-sidebar .menu-list li { margin: 0; }
+                    .og-sidebar-collapsed .og-report-sidebar .menu-label,
+                    .og-sidebar-collapsed .og-report-sidebar .nav-label,
+                    .og-sidebar-collapsed .og-report-sidebar .nav-count { display: inline; }
+                    .og-sidebar-collapsed .og-report-sidebar .menu-list a { justify-content: flex-start; }
+                    .og-sidebar-toggle { display: none; }
                 }
                 .global-header__advanced {
                     width: 100%;
@@ -2612,6 +2709,11 @@ html, body {
 		</head>
 		<body :class="{ 'bottom-nav-expanded': bottomNavExpanded }">
 			<div x-show="showDebug">Show DEBUG ON</div>
+			if warning := equalSTLFileSizeWarning(stlResults); warning != "" {
+				<div class="notification is-warning" style="margin: 1rem;">
+					{ warning }
+				</div>
+			}
 			<div class="global-header fixed-grid">
 				<nav class="navbar navbar-expand-lg navbar-light bg-light" style="width: 100%;">
 					<div class="global-header__nav">
@@ -2672,18 +2774,6 @@ html, body {
 						<details class="global-header__advanced">
 							<summary>Advanced</summary>
 							<div class="global-header__advanced-panel">
-								if reportMeta.IsServerMode {
-									<div class="box">
-										if reportMeta.ConfigFilePath != "" {
-											@ProcessFormV2(reportMeta)
-										} else {
-											<form hx-post="/" hx-swap="outerHTML">
-												<input type="text" name="config_path" x-model="configFile"/>
-												<input type="submit" value="Enter"/>
-											</form>
-										}
-									</div>
-								}
 								<div class="field">
 									<label class="label">Filters</label>
 									<div class="global-header__chip-row">
@@ -2759,7 +2849,7 @@ html, body {
 					</div>
 				</nav>
 			</div>
-			<div class="og-report-layout" id="main-content">
+			<div class="og-report-layout" id="main-content" :class="{ 'og-sidebar-collapsed': sidebarCollapsed }">
 				<main class="og-report-main">
 					<nav class="breadcrumb og-breadcrumbs" aria-label="breadcrumbs">
 						<ul>
@@ -2785,6 +2875,20 @@ html, body {
 								</div>
 							}
 						}
+						if reportMeta.IsServerMode {
+							@Collapsable("Queue a render run", "queue", false, true) {
+								<div class="box">
+									<p class="mb-3">Queue this project for processing. You can navigate to another project while it runs and return to check progress.</p>
+									@ProcessFormV2(reportMeta)
+								</div>
+							}
+							@Collapsable("Render runs", "runs", false, true) {
+								<div class="box">
+									<p class="mb-2">Queued and completed render runs will appear here.</p>
+									<p class="has-text-grey">The live progress panel below updates this run while it is processing.</p>
+								</div>
+							}
+						}
 						@Collapsable(fmt.Sprintf("Instances (%d)", len(instances)), "instances", false, true) {
 							if len(instances) > 0 {
 								<div class="field is-grouped is-grouped-multiline mb-3 og-instance-toolbar" style="align-items: flex-end;">
@@ -2796,6 +2900,13 @@ html, body {
 											<button type="button" class="button is-small" :class="{'is-info': instanceLayout === 'large'}" @click="instanceLayout = 'large'">Large</button>
 										</div>
 									</div>
+									if reportMeta.IsServerMode {
+										if folderURL, shared := sharedOpenSTLFolderURL(instances); shared {
+											<div class="control">
+												<a class="button is-small is-light" href={ folderURL } target="_blank">Open Folder</a>
+											</div>
+										}
+									}
 								</div>
 								<div id="instances-grid" class="columns is-multiline" :class="'og-layout--' + instanceLayout">
 									for _, instance := range instances {
@@ -2890,6 +3001,9 @@ html, body {
 															<p class="title is-4">{ imageResult.InstanceConfig.Name }</p>
 															<p class="subtitle is-6">Camera: { imageResult.CameraName }</p>
 														</div>
+														<div class="media-right">
+															<a class="button is-small is-light" href={ templ.SafeURL(fmt.Sprintf("/api/config?config_path=%s&server_folder=%s", reportMeta.ConfigFilePathEncoded, reportMeta.ServerFolderEncoded)) } title="Configure tests for this instance image">Add/edit unit tests ({ fmt.Sprintf("%d", len(imageResult.Tests)) })</a>
+														</div>
 													</div>
 													<div class="content">
 														<p><strong>Output Path:</strong> { getRelativePath(imageResult.OutputPath, outputPath) }</p>
@@ -2977,20 +3091,58 @@ html, body {
 					<aside class="menu">
 						<p class="menu-label">Project</p>
 						<ul class="menu-list">
-							<li><a :class="{ 'is-active': navSelected === 'instances' }" @click.prevent="navSelected = 'instances'; document.getElementById('section-instances')?.scrollIntoView({behavior: 'smooth'})">Instances <span>{ fmt.Sprintf("(%d)", len(instances)) }</span></a></li>
-							if reportMode == "complete" {
-								<li><a :class="{ 'is-active': navSelected === 'stlResults' }" @click.prevent="navSelected = 'stlResults'; document.getElementById('section-stlResults')?.scrollIntoView({behavior: 'smooth'})">STLs <span>{ fmt.Sprintf("(%d)", len(stlResults)) }</span></a></li>
-								<li><a :class="{ 'is-active': navSelected === 'images' }" @click.prevent="navSelected = 'images'; document.getElementById('section-images')?.scrollIntoView({behavior: 'smooth'})">Images <span>{ fmt.Sprintf("(%d)", len(imageResults)) }</span></a></li>
+							if reportMeta.RepositoryStatus != nil {
+								<li>
+									<details class="og-git-status" open={ repositoryUnsavedCount(reportMeta.RepositoryStatus) > 0 }>
+										<summary title="Git status"><span class="icon"><i class="fas fa-code-branch"></i></span><span class="nav-label">Git</span><span class="tag is-small og-git-status__count">{ fmt.Sprintf("%d", repositoryUnsavedCount(reportMeta.RepositoryStatus)) }</span></summary>
+										<div class="og-git-status__detail">
+											<p><strong>{ reportMeta.RepositoryStatus.Branch }</strong></p>
+											<p>Last commit { formatRepositoryUpdatedAt(reportMeta.RepositoryStatus.LastCommitAt) }</p>
+											if reportMeta.RepositoryStatus.LastCommit != "" {
+												<p class="is-size-7 has-text-grey">{ reportMeta.RepositoryStatus.LastCommit }</p>
+											}
+											if repositoryUnsavedCount(reportMeta.RepositoryStatus) > 0 {
+												<p class="has-text-warning has-text-weight-semibold">Not saved: { fmt.Sprintf("%d", repositoryUnsavedCount(reportMeta.RepositoryStatus)) }</p>
+												<div class="tags are-small">
+													if reportMeta.RepositoryStatus.Staged > 0 {
+														<span class="tag is-info is-light">{ fmt.Sprintf("%d staged", reportMeta.RepositoryStatus.Staged) }</span>
+													}
+													if reportMeta.RepositoryStatus.Modified > 0 {
+														<span class="tag is-warning is-light">{ fmt.Sprintf("%d modified", reportMeta.RepositoryStatus.Modified) }</span>
+													}
+													if reportMeta.RepositoryStatus.Untracked > 0 {
+														<span class="tag is-warning is-light">{ fmt.Sprintf("%d new", reportMeta.RepositoryStatus.Untracked) }</span>
+													}
+												</div>
+											} else {
+												<p class="has-text-success">Everything saved</p>
+											}
+											if reportMeta.RepositoryStatus.Ahead > 0 || reportMeta.RepositoryStatus.Behind > 0 {
+												<p class="is-size-7">{ fmt.Sprintf("%d ahead, %d behind", reportMeta.RepositoryStatus.Ahead, reportMeta.RepositoryStatus.Behind) }</p>
+											}
+										</div>
+									</details>
+								</li>
 							}
-							<li><a :class="{ 'is-active': navSelected === 'json' }" @click.prevent="navSelected = 'json'; document.getElementById('config-summary')?.scrollIntoView({behavior: 'smooth'})">Config</a></li>
+							<li><a :class="{ 'is-active': navSelected === 'instances' }" title="Instances" @click.prevent="navSelected = 'instances'; document.getElementById('section-instances')?.scrollIntoView({behavior: 'smooth'})"><span class="icon"><i class="fas fa-cubes"></i></span><span class="nav-label">Instances</span><span class="nav-count">{ fmt.Sprintf("(%d)", len(instances)) }</span></a></li>
+							if reportMeta.IsServerMode {
+								<li><a :class="{ 'is-active': navSelected === 'queue' }" title="Queue run" @click.prevent="navSelected = 'queue'; document.getElementById('section-queue')?.scrollIntoView({behavior: 'smooth'})"><span class="icon"><i class="fas fa-play-circle"></i></span><span class="nav-label">Queue run</span></a></li>
+								<li><a :class="{ 'is-active': navSelected === 'runs' }" title="Render runs" @click.prevent="navSelected = 'runs'; document.getElementById('section-runs')?.scrollIntoView({behavior: 'smooth'})"><span class="icon"><i class="fas fa-list-check"></i></span><span class="nav-label">Runs</span></a></li>
+							}
+							if reportMode == "complete" {
+								<li><a :class="{ 'is-active': navSelected === 'stlResults' }" title="STLs" @click.prevent="navSelected = 'stlResults'; document.getElementById('section-stlResults')?.scrollIntoView({behavior: 'smooth'})"><span class="icon"><i class="fas fa-cube"></i></span><span class="nav-label">STLs</span><span class="nav-count">{ fmt.Sprintf("(%d)", len(stlResults)) }</span></a></li>
+								<li><a :class="{ 'is-active': navSelected === 'images' }" title="Images" @click.prevent="navSelected = 'images'; document.getElementById('section-images')?.scrollIntoView({behavior: 'smooth'})"><span class="icon"><i class="fas fa-images"></i></span><span class="nav-label">Images</span><span class="nav-count">{ fmt.Sprintf("(%d)", len(imageResults)) }</span></a></li>
+							}
+							<li><a :class="{ 'is-active': navSelected === 'json' }" title="Config" @click.prevent="navSelected = 'json'; document.getElementById('config-summary')?.scrollIntoView({behavior: 'smooth'})"><span class="icon"><i class="fas fa-sliders"></i></span><span class="nav-label">Config</span></a></li>
 						</ul>
 						if reportMeta.IsServerMode {
 							<p class="menu-label mt-4">Tools</p>
 							<ul class="menu-list">
-								<li><a hx-get={ templ.SafeURL(fmt.Sprintf("/tools?config=%s&server_folder=%s", reportMeta.ConfigFilePathEncoded, reportMeta.ServerFolderEncoded)) } hx-target="#main-content" hx-push-url="true">Tools</a></li>
-								<li><a hx-get={ templ.SafeURL(fmt.Sprintf("/api/config?config_path=%s&server_folder=%s", reportMeta.ConfigFilePathEncoded, reportMeta.ServerFolderEncoded)) } hx-target="#main-content" hx-push-url="true">Edit config</a></li>
+								<li><a title="Tools" hx-get={ templ.SafeURL(fmt.Sprintf("/tools?config=%s&server_folder=%s", reportMeta.ConfigFilePathEncoded, reportMeta.ServerFolderEncoded)) } hx-target="#main-content" hx-push-url="true"><span class="icon"><i class="fas fa-wrench"></i></span><span class="nav-label">Tools</span></a></li>
+								<li><a title="Edit config" hx-get={ templ.SafeURL(fmt.Sprintf("/api/config?config_path=%s&server_folder=%s", reportMeta.ConfigFilePathEncoded, reportMeta.ServerFolderEncoded)) } hx-target="#main-content" hx-push-url="true"><span class="icon"><i class="fas fa-pen-to-square"></i></span><span class="nav-label">Edit config</span></a></li>
 							</ul>
 						}
+						<button class="button is-light og-sidebar-toggle" :title="sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'" :aria-label="sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'" @click="sidebarCollapsed = !sidebarCollapsed; localStorage.setItem('og-sidebar-collapsed', sidebarCollapsed)"><span class="icon"><i class="fas" :class="sidebarCollapsed ? 'fa-chevron-right' : 'fa-chevron-left'"></i></span><span class="nav-label">Collapse</span></button>
 					</aside>
 				</aside>
 				<script>

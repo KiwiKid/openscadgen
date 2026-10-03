@@ -2,24 +2,47 @@
 name = "rugged_box_case"
 description = ""
 
-version = "v0.1"
+version = "v0.2"
 
-export_name_format = "{designFileName}_{part}"
+export_name_format = "{designFileName}_{part}_{name}_{Slice}"
 
 global_params = { }
+
+
+# Box_Width - Outer width (no hinges/latch)
+# Box_Length - Outer length (the sides with hinges/latch)
+# Box_Height - Outer Box Height
+# (nb: default Wall_Thickness is 3)
+
+[[openscadgen.param_sets]]
+name = "DJIGogglesV1"
+params = {  Box_Length = 222, Box_Width = 140, Box_Height = 103 }
 
 [[openscadgen.input_paths]]
 path = "./rugged_box_case.scad"
 params = { }
 
 [[openscadgen.instances]]
-params = { part="box", Render_Box=true, Render_Lid=false  }
+params = { part="box", Render_Box=true, Render_Lid=false, Render_Text=false, Render_Latch = false  }
+param_sets = "DJIGogglesV1"
 
 [[openscadgen.instances]]
-params = { part="lid", Render_Lid=true, Render_Box=false }
+params = { part="lid", Render_Lid=true, Render_Box=false, Render_Text=false, Render_Latch = false  }
+param_sets = "DJIGogglesV1"
+
 
 [[openscadgen.instances]]
-params = { part="all", Render_Lid=true, Render_Box=true }
+params = { part="hinge", Render_Box=false, Render_Lid=false, Render_Text=false, Render_Latch = true }
+param_sets = "DJIGogglesV1"
+
+[[openscadgen.instances]]
+params = { part="text", Render_Box=false, Render_Lid=false, Render_Text=true, Render_Latch = false }
+param_sets = "DJIGogglesV1"
+
+
+[[openscadgen.instances]]
+params = { part="all", Render_Lid=true, Render_Box=true, Slice=["x", "y", "corner", ""], Render_Latch = true  }
+param_sets = "DJIGogglesV1"
 
 [[openscadgen.images]]
 name = "nice"

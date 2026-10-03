@@ -133,6 +133,15 @@ func TestRunColorInBoundingBoxTestsDrawsCombinedDiagnostic(t *testing.T) {
 	}
 }
 
+func TestImageTestsForInstanceIncludesPerImageTests(t *testing.T) {
+	config := &models.Config{Design: models.DesignConfig{Tests: []models.GeometryTest{{Type: "no-holes", Camera: "front"}}}}
+	instance := models.InstanceConfig{Name: "demo", ExportImages: []models.ExportCameraCoordinates{{CameraName: "nice", Tests: []models.GeometryTest{{Type: "color-in-bounding-box", Color: "#ff0000", BoundingBox: []int{1, 2, 3}}}}}}
+	tests := imageTestsForInstance(config, instance)
+	if len(tests) != 2 || tests[1].Camera != "nice" || tests[1].InstanceTarget != "demo" {
+		t.Fatalf("unexpected resolved image tests: %#v", tests)
+	}
+}
+
 func writeNoHolesTestImage(t *testing.T, paint func(*image.RGBA)) string {
 	return writeTestImage(t, "render.png", paint)
 }

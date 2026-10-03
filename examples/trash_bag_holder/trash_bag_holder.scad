@@ -2,17 +2,21 @@ include <BOSL2/std.scad>;
 
 $fn = 100;
 mode = "outer"; // outer inner all "footprint"
-handleStyle = "handGrip";
+handleStyle = "handGrip"; // screwInHole screwMount
 
-globalScale = [0.4,0.4,0.4];
+
+//  Screw handle Style
+handGripSize = [10,20,30];
+
+globalScale = [1,1,1];
 
 // The clear opening is the trash chute. The inner tube holds the bag and
 // nests inside the outer tube, which provides the handle and outside lip.
-trashChuteDiameter = 200;
+trashChuteDiameter = 195;
 innerTubeWall = 2;
 innerTubeHeightDifference = -2.5;
 
-outerTubeWall = 4;
+outerTubeWall = 1;
 outerTubeHeight = 21;
 innerTubeHeight = outerTubeHeight + innerTubeHeightDifference;
 
@@ -26,8 +30,8 @@ outerTubeOuterRadius = innerTubeOuterRadius + outerTubeWall;
 
 handleDepth = 60;
 handleWidth = 110;
-handleSize = [handleWidth, handleDepth, outerTubeHeight*0.5];
-handleOverlap = 25;
+handleSize = [handleWidth, handleDepth, outerTubeHeight];
+handleOverlap = trashChuteDiameter*0.1;
 
 fingerGroveCount = 4;
 fingerGrooveDiameter = 28;
@@ -61,7 +65,7 @@ globalBoundsBuffer = 15;
 globalBounds = [248,248,globalBoundsHeight];
 globalBoundsSpin = 45;
 innerBoundingBoxUp = -2;
-globalBoundsXYScale = 20;
+globalBoundsXYScale = 2;
 
 
 footprintBounds = [248,248,2];
@@ -140,7 +144,7 @@ font_style = "Liberation Sans:style=Bold";
 line_spacing = -1.5;    // Negative spacing forces lines to overlap and merge solid
 
 holeOffsetX =8;
-holeOffsetY =28.5;
+holeOffsetY =20.5;
 
 holeHeight = handleSize.z;
 holeMove = [handleSize.x/2-holeOffsetX, trashChuteDiameter/2+handleSize.y-holeOffsetY-0.001, 0];
@@ -158,50 +162,129 @@ module label(){
 
 
 module handle(handleStyle="handGrip") {
+    if(handleStyle == "handGrip"){
+        difference() {
+            // Start inside the outer lip so this cuboid fuses cleanly to it.
+            back(outerTubeOuterRadius + handleSize.y / 2 - handleOverlap)
 
-    difference() {
-        // Start inside the outer lip so this cuboid fuses cleanly to it.
-        back(outerTubeOuterRadius + handleSize.y / 2 - handleOverlap)
-
-                cuboid(handleSize, rounding = edgeRounding, anchor=BOT);
-                
-    //            fwd(3)
-    //            cuboid(handleSize, chamfer = -edgeRounding, edges=LEFT, anchor=BOT);
-    
-//    fwd(10)
-   move(connectorSpacerMove)
-                xcopies(connectorSpacing, connectorCylCount)
-                scale(connectorScaling)
-                    ycyl(r=connectorRadius, h=connectorSpacerHeight, chamfer1=-connectorCylChamfer1, anchor=BOT);
-               //  move(connectorSpacerBoundsMove)
-    //            cuboid(connectorSpacerBounds, rounding = edgeRounding);
-    
-            
-
-        // Four through-grooves give fingers a positive, comfortable grip.
-        back(outerTubeOuterRadius + handleSize.y / 2 - handleOverlap + GroveOffset)
-            ycopies(fingerGroveYCopyGap, 2)
-            down(0.001)
-            xcopies(spacing = fingerGrooveSpacing, n = fingerGroveCount)
-                
-                cyl(d = fingerGrooveDiameter, h = handleSize.z+0.002, rounding=-5, anchor=BOT);
-               
-               if(holeRadius > 0){
-           move(holeMove)
-            zcyl(r=holeRadius, h=handleSize.z-2+0.002, anchor=BOT, chamfer=-2);
-            
-            }
-
-        // Keep the handle out of both the inner tube and trash chute.
-        innerTubeCutout(innerTubeMode="fillCenter");
+                    cuboid(handleSize, rounding = 2, anchor=CENTER);
+                    
+        //            fwd(3)
+        //            cuboid(handleSize, chamfer = -edgeRounding, edges=LEFT, anchor=BOT);
         
+    //    fwd(10)
+      /* move(connectorSpacerMove)
+                    xcopies(connectorSpacing, connectorCylCount)
+                    scale(connectorScaling)
+                        ycyl(r=connectorRadius, h=connectorSpacerHeight, chamfer1=-connectorCylChamfer1, anchor=BOT);
+       */            //  move(connectorSpacerBoundsMove)
+        //            cuboid(connectorSpacerBounds, rounding = edgeRounding);
         
-     //   label();
+                
+
+            // Four through-grooves give fingers a positive, comfortable grip.
+            back(outerTubeOuterRadius + handleSize.y / 2 - handleOverlap + GroveOffset)
+                ycopies(fingerGroveYCopyGap, 2)
+                down(0.001)
+                xcopies(spacing = fingerGrooveSpacing, n = fingerGroveCount)
+                    
+                    cyl(d = fingerGrooveDiameter, h = handleSize.z+0.03, rounding=-5, anchor=CENTER);
+                   
+                   if(holeRadius > 0){
+               move(holeMove)
+                zcyl(r=holeRadius, h=handleSize.z+0.001, anchor=CENTER, chamfer=-2);
+                
+                }
+
+            // Keep the handle out of both the inner tube and trash chute.
+            innerTubeCutout(innerTubeMode="fillCenter");
+            
+            
+            
+         //   label();
+        }
+    } else if(handleStyle == "screwMount"){
+        cuboid(screwMountSize);
+} else {
+        assert(false, "handleStyle not valid");
     }
 }
 
-module outerTube() {
-    difference() {
+module outerGroove(square_side = 40, cyl_radius = 5, chamfer=-33){
+groveOut =1.7;
+// Define square size and cylinder dimensions
+cyl_height = square_side;
+
+// Calculate the half-distance from the center
+h = square_side / 2;
+groveZScale = 0.6;
+groveScale = [1,1,groveZScale];
+
+scale(groveScale)
+// Generate 4 copies at the corners of the square
+move_copies([[-h, -h], [h, -h], [h, h], [-h, h]])
+    rot(90*$idx)
+    left(-square_side/2)
+    fwd(groveOut)
+    xcyl(r = cyl_radius, h = cyl_height+5, anchor = BOTTOM, chamfer=chamfer, $fn=6);
+
+/*
+rect_tube(
+h = outerCutoutTubeHeight*groveHeightPercent,
+   // size = [2 * (trashChuteRadius - 10), 2 * (trashChuteRadius - 10), outerTubeHeight + 0.1],
+    //            isize = [2 * (outerTubeOuterRadius + 3), 2 * (outerTubeOuterRadius + 3)],
+            size = [2 * (outerTubeOuterRadius + outerTubeDepth+12), 2 * (outerTubeOuterRadius + outerTubeDepth + 15)],
+            isize = [2 * (outerTubeOuterRadius + groveDepth), 2 * (outerTubeOuterRadius + groveDepth)],
+       //     rounding = 16,
+            rounding =3,
+            //irounding2 = 11
+    // No inner rounding needed unless specified for the inside cutout rim
+);*/
+}
+
+
+module outerTube(innerHoleRadius=26) {
+
+//intersection() {
+diff(){
+cuboid(
+    size = [2 * (outerTubeOuterRadius + 10), 2 * (outerTubeOuterRadius + 10), outerTubeHeight],
+    rounding = 5,       // Matches rounding = 5
+    edges = [TOP, BOT]  // Applies only to top and bottom horizontal rims
+)
+tag("remove") prismoid(
+    size1 = [2 * (trashChuteRadius - 1), 2 * (trashChuteRadius - 1)],
+    size2 = [2 * (trashChuteRadius - 10), 2 * (trashChuteRadius - 10)],
+    h = outerTubeHeight + 0.1,
+    rounding = innerHoleRadius,
+    anchor=CENTER
+);
+
+
+/*cuboid(
+    size = [2 * (trashChuteRadius - 10), 2 * (trashChuteRadius - 10), outerTubeHeight + 0.1],
+    rounding=innerHoleRadius, edges="Z"
+    // No inner rounding needed unless specified for the inside cutout rim
+);*/
+/*
+h = outerCutoutTubeHeight,
+            size = [2 * (outerTubeOuterRadius + outerTubeDepth), 2 * (outerTubeOuterRadius + outerTubeDepth)],
+            isize = [2 * (outerTubeOuterRadius + 3), 2 * (outerTubeOuterRadius + 3)],
+            rounding = 16,
+            irounding =16
+*/
+
+groveDepth = 5;
+groveHeight = 5;
+groveHeightPercent = 0.6;
+
+tag("remove") down(groveHeight) outerGroove(square_side = outerTubeOuterRadius+outerTubeOuterRadius+20-groveDepth, cyl_radius = 8);
+
+zrot(45)
+tag("remove") down(groveHeight) outerGroove(square_side = outerTubeOuterRadius+outerTubeOuterRadius+50-groveDepth, cyl_radius = 8);
+}
+       
+      /*  difference() {
         tube(
             ir = trashChuteRadius,
             or = outerTubeOuterRadius,
@@ -210,17 +293,17 @@ module outerTube() {
             chamfer1 = -10
         );
         
-     /*   rect_tube(
+    rect_tube(
             h = outerTubeHeight,
             size = [outerTubeOuterRadius * 2, outerTubeOuterRadius * 2],
             isize = [trashChuteRadius * 2, trashChuteRadius * 2],
             chamfer = edgeRounding
-        );*/
+        );
 
         // The larger tube is simply the inner tube's outside lip.
 //        down(2)
         innerTubeCutout();
-    }
+    }*/
 }
 
 module with_bounding_box(size=globalBounds, move=globalBoundsMove, globalBoundsScale=[globalBoundsXYScale, globalBoundsXYScale, 1]) {
@@ -241,18 +324,42 @@ module with_bounding_box(size=globalBounds, move=globalBoundsMove, globalBoundsS
 }
 
 
+outerCutoutTubeHeight = 5;
+outerTubeDepth = 15;
+
+module outerCutoutTube(){
+      /* rect_tube(
+            ir = outerTubeOuterRadius+3,
+            or = outerTubeOuterRadius+outerTubeDepth,
+            h = outerCutoutTubeHeight,
+            rounding = 1
+        );*/
+        rect_tube(
+            h = outerCutoutTubeHeight,
+            size = [2 * (outerTubeOuterRadius + outerTubeDepth), 2 * (outerTubeOuterRadius + outerTubeDepth)],
+            isize = [2 * (outerTubeOuterRadius + 3), 2 * (outerTubeOuterRadius + 3)],
+            rounding = 16,
+            irounding =16
+        );
+
+}
+
 
 module trash_bag_holder(mode = "all") {
-    if (mode == "inner") {
+ /*   if (mode == "inner") {
         with_bounding_box(move=[0,0,innerBoundingBoxUp])
         innerTube();
-    } else if (mode == "outer") {
-    with_bounding_box(size=globalBounds)
+    } else if (mode == "outer") {*/
+  with_bounding_box(size=globalBounds)
         union() {
+        
             outerTube();
-            handle(handleStyle="handGrip");
+            difference(){
+                handle(handleStyle="handGrip");
+                outerCutoutTube();
+            }
         }
-    } else if (mode == "all") {
+   /* } else if (mode == "all") {
     with_bounding_box()
             innerTube();
         with_bounding_box()
@@ -268,7 +375,7 @@ module trash_bag_holder(mode = "all") {
             outerTube();
             handle();
         }
-    }
+    }*/
 }
 
 scale(globalScale)

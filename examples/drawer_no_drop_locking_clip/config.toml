@@ -1,0 +1,16 @@
+[openscadgen]
+name = "drawer_no_drop_locking_clip"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{debugMode}"
+
+global_params = {  debugMode = ["sliced", "obj"]}
+
+[[openscadgen.input_paths]]
+path = "./drawer_no_drop_locking_clip.scad"
+params = { }
+
+[[openscadgen.images]]
+name = "nice"

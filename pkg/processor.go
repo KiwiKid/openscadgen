@@ -661,7 +661,18 @@ func ProcessWithRenderer(config *models.Config, progress ProgressReporter, cance
 					}
 
 					if !config.OnlyImages && !instances[i].ImageOnly && len(instances[i].STLResults) > 0 {
-						imageTests, testErr := runImageTests(genImageResult, config.Design.Tests)
+						configuredImageTests := imageTestsForInstance(config, instances[i])
+						imageTests, testErr := runImageTests(genImageResult, configuredImageTests)
+						if testErr == nil {
+							var extra []models.GeometryTestResult
+							extra, testErr = runMinColorPixelsTests(genImageResult, configuredImageTests)
+							imageTests = append(imageTests, extra...)
+						}
+						if testErr == nil {
+							var extra []models.GeometryTestResult
+							extra, testErr = runColorInBoundingBoxTests(genImageResult, configuredImageTests)
+							imageTests = append(imageTests, extra...)
+						}
 						stlIndex := len(instances[i].STLResults) - 1
 						instances[i].STLResults[stlIndex].Tests = append(instances[i].STLResults[stlIndex].Tests, imageTests...)
 						if len(stlResults) > 0 {
@@ -806,6 +817,29 @@ func ProcessWithRenderer(config *models.Config, progress ProgressReporter, cance
 		TotalTimeTaken: totalTime,
 	}
 	return result, imageTestFailure
+}
+
+// imageTestsForInstance returns tests attached to an instance image, while
+// retaining the legacy global tests for backwards compatibility. Per-image
+// tests are deliberately resolved here, after camera expansion, so a test is
+// always evaluated against the image it was configured for.
+func imageTestsForInstance(config *models.Config, instance models.InstanceConfig) []models.GeometryTest {
+	tests := append([]models.GeometryTest(nil), config.Design.Tests...)
+	for _, image := range instance.ExportImages {
+		if len(image.Tests) == 0 {
+			continue
+		}
+		for _, test := range image.Tests {
+			if test.Camera == "" {
+				test.Camera = image.CameraName
+			}
+			if test.InstanceTarget == "" {
+				test.InstanceTarget = instance.Name
+			}
+			tests = append(tests, test)
+		}
+	}
+	return tests
 }
 
 // preflightBOSL2 prevents a missing or broken BOSL2 installation from causing
@@ -1443,6 +1477,7 @@ func MakeExportImage(instance *models.InstanceConfig, camera models.ExportCamera
 		CameraCoordinates:  camera.CameraCoordinates,
 		ImageSize:          camera.ImageSize,
 		ParamFilter:        camera.ParamFilter,
+		Tests:              camera.Tests,
 		RunOutputImagePath: GetImagePath(instance.RunOutputImagePath, camera.CameraName),
 	}
 }
@@ -4664,12 +4699,28 @@ func BuildReportMeta(params models.BuildReportMetaParams, results models.Results
 		ServerFolder:          params.ServerFolder,
 		ServerFolderEncoded:   pageUrlInfo.ServerFolderEncoded,
 		Results:               results,
+		RepositoryStatus:      params.RepositoryStatus,
 	}
 	if params.Config != nil {
 		reportMeta.ConfigVersion = params.Config.Design.Version
+		reportMeta.HasConfiguredTests = hasConfiguredTests(params.Config, params.Instances)
 	}
 
 	return reportMeta
+}
+
+func hasConfiguredTests(config *models.Config, instances []models.InstanceConfig) bool {
+	if config != nil && len(config.Design.Tests) > 0 {
+		return true
+	}
+	for _, instance := range instances {
+		for _, image := range instance.ExportImages {
+			if len(image.Tests) > 0 {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func GenerateOutputReport(config *models.Config, instances []models.InstanceConfig, stlResults []models.GenerateSTLResult, imageResults []models.GenerateImageResult, outputDir string, toFile bool, reportMode string, totalTimeTaken time.Duration) (templ.Component, string, error) {

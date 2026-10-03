@@ -110,6 +110,7 @@ var configOptions = []ConfigOption{
 	{Topic: "advanced", Path: "[openscadgen.instances.images].coord", Example: `coord = "0,0,0"`, Description: "Camera coordinates for an instance-specific export image. Use preset directions like top, front, back, left, right, side, and nice, or provide a custom 7-value OpenSCAD camera string."},
 	{Topic: "advanced", Path: "[openscadgen.instances.images].image_size", Example: `image_size = "1200x1200"`, Description: "Optional image size override for a per-instance camera."},
 	{Topic: "advanced", Path: "[openscadgen.instances.images].param_filter", Example: `param_filter = { side = "left" }`, Description: "Filters a per-instance camera to matching parameters only."},
+	{Topic: "advanced", Path: "[openscadgen.instances.images].tests", Example: `[[openscadgen.instances.images.tests]]\ntype = "color-in-bounding-box"\ncolor = "#ff0000"\nmin_color_pixels = 1\nbounding_box = [120, 80, 64]`, Description: "Tests evaluated only against this instance image. Use color-in-bounding-box to require or forbid a colour within a selected square region."},
 }
 
 func topicRank(topic string) int {

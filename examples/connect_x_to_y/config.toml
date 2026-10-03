@@ -1,0 +1,16 @@
+[openscadgen]
+name = "connect_x_to_y"
+description = ""
+
+version = "v0.2"
+
+export_name_format = "{designFileName}"
+
+global_params = { }
+
+[[openscadgen.input_paths]]
+path = "./connect_x_to_y.scad"
+params = { }
+
+[[openscadgen.images]]
+name = "nice"

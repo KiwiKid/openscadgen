@@ -20,7 +20,7 @@ $slop = 0.2;
 /* [Render Controls] */
 // Select the print-oriented export: box, bottomColorModifier,
 // topColorModifier, modifierV2, preview, or test.
-mode = "box";
+mode = "preview";
 
 // The export bed plane.  "right-side-up" keeps the sizer's Z direction; a
 // modifier then includes a thin spacer down to Z=0 so Bambu Studio preserves
@@ -59,15 +59,15 @@ pickBottomHeight = 18;
 
 /* [Top Labels] */
 // Depth of the recessed labels below the floor surface.
-textIndentHeight = 0.3;
+textIndentHeight = 0.15;
 // One thin, full-footprint colour cuboid overlaps the floor of the numbered
 // recesses by this amount. It must remain below the top section, leaving only
 // the layer's upper face and perimeter sides visible inside each cutout.
 topColorModifierCutoutOverlap = 0.01;
 topColorModifierHeight = 0.1;
 topColorModifierStripSize = 0.1;
-textSize = 5.5;
-textShift = 2.5;
+textSize = 6.5;
+textShift = 3.5;
 
 /* [Bottom Image Relief] */
 // Height-map relief generated from image.png on the bottom of the sizer.
@@ -90,7 +90,7 @@ modifierModelOverlap = 0.15;
 // common layer, while leaving an opaque outer skin over the rest of each face.
 modifierV2SideOverhang = -0.5;
 modifierV2BottomTextOverlap = 0.05;
-modifierV2TopTextSurfaceClearance = 0.05;
+modifierV2TopTextSurfaceClearance = 0.02;
 modifierV2SpacerSize = 0.2;
 
 logoScaleAdjust = 2.9;
@@ -285,9 +285,9 @@ topModiferSectionScaleX = 0.5;
 topModiferSectionScaleY = 1.4;
 // Use nearly all of the recess available below the unchanged modifier top,
 // making the printed text taller without entering the box's outer surface.
-topModifierTextShare = 0.33;
+topModifierTextShare = 1;
 topModifierFrameOutsideOverhang = 1;
-topModifierFrameWall = 2;
+topModifierFrameWall = 3;
 // Adjacent modifier pieces overlap slightly, producing one watertight part
 // rather than separate shells that only share a face.
 modifierConnectionOverlap = 0.01;
@@ -298,7 +298,7 @@ bottomModiferReduceY = 3;
 // Extend the modifier 0.4 mm farther below the floor while retaining its
 // existing upper Z boundary.
 floorModifierStartHeight = -0.2;
-floorModifierTotalHeight = 2.1;
+floorModifierTotalHeight = 2.20;
 
 // The logo is clipped to the height allocated to the modifier's bottom
 // section, giving it a flat top face for the first cuboid to attach to.
@@ -334,6 +334,21 @@ module topModifierNumberStack() {
 // A frame, rather than a solid plate, preserves the visible outer modifier
 // impression without covering the number stack in the middle.
 module topModifierFrame() {
+// Bottom line on floor
+down(globalSizerHeight/8+0.1)
+fwd(5)
+scale([1,0.89,1])
+    rect_tube(
+        size = [
+            globalSizerSize[0] + 2 * topModifierFrameOutsideOverhang,
+            globalSizerSize[1] + 2 * topModifierFrameOutsideOverhang + 15
+        ],
+        wall = topModifierFrameWall,
+        h = floorModifierTotalHeight * topModiferSectionHeight + modifierConnectionOverlap,
+        anchor = BOT,
+        ichamfer=4
+    );
+// Top line
 fwd(5)
 scale([1,0.89,1])
     rect_tube(
@@ -398,7 +413,8 @@ module bottomLogoModifier() {
                     topModifierFrame();
                     //topModifierTextSupports();
                 }
-               zcopies(0.1,5)
+               zcopies(0.05,10)
+               down(0.1)
             topModifierNumberStack();
         }
 }
@@ -431,6 +447,7 @@ module modifierV2MiddleLayer() {
 module modifierV2() {
     union() {
      //   modifierV2MiddleLayer();
+     down(0.08)
         bottomLogoModifier();
     }
 }
@@ -442,7 +459,7 @@ module assembledBox() {
     union() {
         boxWithBottomColorCutout();
        // modifierV2()
-        //#topColorModifier();
+        //topColorModifier();
       //  bottomLogoModifier();
     }
 }
@@ -631,7 +648,7 @@ if (mode == "box") {
     printExport()
         modifierV2Preview();
 } else if (mode == "previewCut") {
-front_half()
+front_half(y=5)
     printExport()
         modifierV2Preview();
 } else if (mode == "test") {

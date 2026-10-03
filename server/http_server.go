@@ -499,6 +499,7 @@ func handleGETRequest(w http.ResponseWriter, r *http.Request) {
 			Config:               config,
 			Instances:            instances,
 			TotalQueuedInstances: config.TotalQueuedInstances,
+			RepositoryStatus:     pkg.RepositoryStatusForDir(filepath.Dir(fullConfigPath)),
 		}, models.Results{
 			TimeTake: 0,
 		})

@@ -1,0 +1,16 @@
+[openscadgen]
+name = "flat_ethernet_waterproof_jacket_adaptor"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}"
+
+global_params = { }
+
+[[openscadgen.input_paths]]
+path = "./flat_ethernet_waterproof_jacket_adaptor.scad"
+params = { }
+
+[[openscadgen.images]]
+name = "nice"

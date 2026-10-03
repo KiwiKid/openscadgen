@@ -2,18 +2,28 @@ include <BOSL2/std.scad>
 include <BOSL2/hinges.scad>
 
 
-Box_Length = 140; // Outer length (the sides with hinges/latch)
-Box_Width = 80;   // Outer width (no hinges/latch)
-Box_Height = 40; // Outer Box Height
+Box_Length = 220; // Outer length (the sides with hinges/latch)
+Box_Width = 138;   // Outer width (no hinges/latch)
+Box_Height = 101; // Outer Box Height
+
+Slice = "";
+
+Lid_Text = "{ DJI Goggles }";
+Lid_Text_Depth = .5;
+
+Lid_Text_Size = 16;
+Lid_Font= "Menlo:style=Regular";
+
 
 Lid_Height = 21; // Outer Lid Height
 Wall_Thickness = 3; // Inner box is subtracted from outer box
 Corner_Rounding = 6;
 Rib_Depth = 3;  //Depth of ribs to outside wall
 Rib_Width = Box_Width/10;
-Render_Box = true;
+Render_Box = false;
 Render_Lid = true;
-Render_Latch = true;
+Render_Latch = false;
+Render_Text = true; // false ------
 // visible
 cLid_Height = max(13.5+(Rib_Width/2),Lid_Height); // minimum lid height 
 /* [For Display Purposes] */
@@ -63,6 +73,10 @@ module box_with_lid() {
     if (Render_Latch) {
         render_latch();   //render only the latch for STL export 
     }
+
+    if(Render_Text == true) {
+        lid_text();
+        }
 }   // end box_with_lid
 
 
@@ -434,6 +448,37 @@ module latch() {
 }   //end latch
 
 
+
+module lid_text(){
+        translate([0,0,(cLid_Height/2+Box_Height/2+8-Lid_Text_Depth*2-0.001)+1])
+        linear_extrude(height=1+Lid_Text_Depth)
+//        yrot(180)
+        text(Lid_Text, halign="center", valign="center", font=Lid_Font, size=Lid_Text_Size);
+    
+}
+
 // === Render ===
-box_with_lid();
+
+sizerSize = [300,300,0.3];
+
+if(Slice == "x") {
+echo("woah!");
+    intersection() {
+        box_with_lid();
+     //   translate([0,0,Box_Height/2])
+        cube(sizerSize,center=true);
+    }
+} else if(Slice == "y"){
+
+    left(100)
+    intersection() {
+        box_with_lid();
+        xrot(90)
+        cube(sizerSize,center=true);
+    }
+    
+}  else {
+     box_with_lid();
+
+}
 
