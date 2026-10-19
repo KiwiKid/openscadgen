@@ -1442,6 +1442,23 @@ func buildEditPreviewSections(config *models.Config, instances []models.Instance
 		}
 	}
 
+	for _, kind := range []string{"attribution", "publication"} {
+		section := models.EditPreviewSection{Title: kind, Description: "Design URL with optional label, author and subtitle."}
+		links := config.Publication
+		if kind == "attribution" {
+			links = nil
+			if config.Attribution != nil {
+				links = append(links, *config.Attribution)
+			}
+		}
+		for _, link := range links {
+			section.Items = append(section.Items, models.EditPreviewSectionItem{Title: link.URL, Subtitle: link.Label, Description: strings.Join([]string{link.Author, link.Subtitle}, " · ")})
+		}
+		section.HasItems = len(links) > 0
+		section.CountLabel = fmt.Sprintf("%d link(s)", len(links))
+		sections = append(sections, section)
+	}
+
 	if len(instances) > 0 {
 		sections = append(sections, models.EditPreviewSection{
 			Title:       "generated_instances",

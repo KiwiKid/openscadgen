@@ -930,7 +930,7 @@ func ValidateInstances(instances []models.InstanceConfig, config *models.Config)
 
 			errors = append(errors, RunError{
 				ErrorCode: RunErrorCode_DuplicateExportPath,
-				Message:   fmt.Sprintf("Run Stopped as the export_name_format in the config file will result in duplicate export path: \n\n\t%s.%s \n\n Ensure the export_name_format includes all parameters (in {curlyBrackets}) that are different between instances. \n\nAnother common cause is including commas in parameters by mistake. \n\n If you param value has commas you would like to ignore, add `ignore_comma_in_params = [\"content\"]` to this [[openscadgen.instances]] tag ", instance.RunOutputPathV3, missingParamsMessage),
+				Message:   fmt.Sprintf("Run stopped: multiple instances would export to the same path:\n\n\t%s\nConfig: %s%s%s\n\nEnsure export_name_format includes all parameters (in {curlyBrackets}) that differ between instances. If the instances have identical parameters, check for repeated list values or duplicate instance blocks.\nComma-separated strings also generate multiple values; for a literal string, set ignore_comma_in_params = [\"parameterName\"] in the affected [[openscadgen.instances]] block.", instance.RunOutputPathV3, config.ConfigFile, duplicateParamDiagnostics(config, firstInstance, instance), missingParamsMessage),
 				KVPs: map[string]string{
 					"DuplicatePath":    instance.RunOutputPathV3,
 					"ConfigFile":       config.ConfigFile,

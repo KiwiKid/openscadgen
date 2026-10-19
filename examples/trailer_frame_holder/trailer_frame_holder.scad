@@ -1,6 +1,7 @@
 
 
 	include <BOSL2/std.scad>;
+    include <BOSL2/joiners.scad>
 
 	$fa = .01;
 	$fs = $preview ? 5 : 1;
@@ -30,10 +31,9 @@
 	 - "all" - the whole object
 	*/
 	renderType = "obj";
-    partType = "onf";
-    
+    partType = "end"; // end notEnd
     blockers = "noBlockers";//includeBlockers
-
+$slop = 0.15; 
 
 
     strapThickness = 18;
@@ -61,17 +61,18 @@
     
     holderDepth = 30;
     
-    
-    module screw_holder(){
+    endScrewHoleDepth = 8;
+    module screw_holder(partType="hook"){
     right(tralierBarHeight)
     union(){
     rotate([0,90,0])
         cyl(r=innerScrewRadius, 4000);
         
-   // rotate([0,90,0])
-   //     outerScrewDepth)
-    //    cyl(r=outerScrewRadius, tralierBarHeight*3, chamfer1=5);
-     
+        if(partType == "end"){
+        rotate([0,90,0])
+        down(tralierBarHeight+10+endScrewHoleDepth)
+       cyl(r=outerScrewRadius*1.2, 20, anchor=BOT);
+        }
         rotate([0,90,0])
         up(outerScrewDepth)
         linear_extrude(tralierBarHeight*3)
@@ -88,12 +89,26 @@
 
     // A line of screw holes on ONE side (positive Y). `differenceX()` will mirror it.
    
-    module screw_hole_line() {
+    module screw_hole_line(partType="hook") {
         for (i = [0 : screwLineCount-1]) {
             move([screwOut, screwOffset + i*screwLineSpacing, -screwOut])
-                screw_holder();
+                screw_holder(partType=partType);
+                
         }
     }
+    
+    module print_dovetail(gender="male", w=30, h=10, slide=40, taper=2) {
+    rotate([90,0,-90])
+    if (gender == "male") {
+        // Male pin is printed exactly to size
+        dovetail(gender="male", w=w, h=h, slide=slide, taper=taper, anchor=TOP);
+    } else if (gender == "female") {
+        // Female socket expands slightly by $slop for 3D printing clearance
+        dovetail(gender="female", w=w, h=h, slide=slide, taper=taper, anchor=TOP);
+    } else {
+        echo(str("ERROR: Invalid gender '", gender, "'. Use 'male' or 'female'."));
+    }
+}
 
 	module trailer_frame_holder(){
         //cuboid([strapThickness, 2,2]);
@@ -101,8 +116,12 @@
         differenceX(){
             
             if(partType == "end"){
-                left(11)
-                cuboid([20,120,40], rounding=2);
+            difference(){
+                //left(11)
+                cuboid([15,120,40], rounding=2);
+                
+                print_dovetail();
+                }
             } else {
             cuboid([strapThickness+tralierBarHeight, tralierBarWidth+strapThickness+holderWidth,holderDepth], anchor=LEFT, rounding=30, edges=[RIGHT-BACK, RIGHT-FWD]);
             
@@ -112,12 +131,12 @@
            /* rotate([90,0,0])
             down(screwCenterOffset)
             #screw_hole_line();*/
-            
-            }
-            
             left(0.01)
             back(10)
             cuboid([tralierBarHeight, tralierBarWidth,400], anchor=LEFT, rounding=tralierBarRounding, edges=RIGHT-FWD);
+            }
+            
+            
             
             
             
@@ -126,7 +145,7 @@
             up(screwCenterOffset)
             left(screwBottomOffset)
            back(0)
-            screw_hole_line();
+            screw_hole_line(partType=partType);
            
             
         } // differenceX

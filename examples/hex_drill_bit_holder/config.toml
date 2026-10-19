@@ -1,0 +1,16 @@
+[openscadgen]
+name = "hex_drill_bit_holder"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}"
+
+global_params = { }
+
+[[openscadgen.input_paths]]
+path = "./hex_drill_bit_holder.scad"
+params = { }
+
+[[openscadgen.images]]
+name = "nice"

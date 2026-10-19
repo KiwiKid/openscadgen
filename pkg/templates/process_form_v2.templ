@@ -47,8 +47,8 @@ templ SlimProcessForm(reportMeta models.ReportMeta) {
 				<button class="button is-primary og-process-button" type="submit" data-og-process-submit title="Generate STL files and images without running configured tests">Process</button>
 				if reportMeta.HasConfiguredTests {
 					<button class="button is-light og-process-button" type="submit" name="run_tests" value="true" data-og-process-submit title="Generate STL files and images, then run configured tests">Run tests</button>
+					<button class="button is-info og-process-button" type="submit" name="run_all" value="true" data-og-process-submit title="Generate STL files and images, then run configured tests">Run all</button>
 				}
-				<button class="button is-info og-process-button" type="submit" name="run_all" value="true" data-og-process-submit title="Generate STL files and images, then run configured tests">Run all</button>
 				<button class="button is-danger og-process-cancel-button" type="button" data-og-process-cancel disabled>Cancel</button>
 			</div>
 			@TestRunSummary(reportMeta.TestRun)

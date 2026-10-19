@@ -1,0 +1,16 @@
+[openscadgen]
+name = "bike_light_holder_TOSUOD_V_1500"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}"
+
+global_params = { }
+
+[[openscadgen.input_paths]]
+path = "./bike_light_holder_TOSUOD_V_1500.scad"
+params = { }
+
+[[openscadgen.images]]
+name = "nice"

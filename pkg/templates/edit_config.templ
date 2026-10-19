@@ -46,7 +46,7 @@ templ EditPreviewSectionList(sections []models.EditPreviewSection) {
 								<td class="is-size-7 has-text-grey">{ item.Subtitle }</td>
 								<td class="is-size-7">{ item.Description }</td>
 								<td class="has-text-right">
-									if section.Title == "instances" || section.Title == "param_sets" || section.Title == "images" || section.Title == "global_params" || section.Title == "input_paths" || section.Title == "export_name_format" {
+									if section.Title == "instances" || section.Title == "param_sets" || section.Title == "images" || section.Title == "global_params" || section.Title == "input_paths" || section.Title == "export_name_format" || section.Title == "attribution" || section.Title == "publication" {
 										<button type="button" class="button is-small is-light" data-config-editor-edit={ section.Title } data-config-editor-name={ item.Title }>Edit</button>
 									}
 								</td>
@@ -55,7 +55,7 @@ templ EditPreviewSectionList(sections []models.EditPreviewSection) {
 					</tbody>
 				</table>
 			</div>
-			if section.Title == "instances" || section.Title == "param_sets" || section.Title == "images" || section.Title == "global_params" || section.Title == "input_paths" {
+			if section.Title == "instances" || section.Title == "param_sets" || section.Title == "images" || section.Title == "global_params" || section.Title == "input_paths" || section.Title == "publication" || (section.Title == "attribution" && !section.HasItems) {
 				<button type="button" class="button is-small is-link is-light" data-config-editor-add={ section.Title }>Add { strings.TrimSuffix(section.Title, "s") }</button>
 			}
 		</section>
@@ -146,12 +146,13 @@ templ EditConfigPanel(editFormConfig *models.EditConfigParams) {
 				const source = document.getElementById('config-content');
 				if (!source) return;
 				const escapeToml = (value) => `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
-				const topLevelHeader = (type) => `[[openscadgen.${type}]]`;
+				const topLevelHeader = (type) => type === 'attribution' ? '[attribution]' : type === 'publication' ? '[[publication]]' : `[[openscadgen.${type}]]`;
+				const isLink = type => type === 'attribution' || type === 'publication';
 				function blocks(type) {
 					const lines = source.value.split('\n'); const result = []; let start = -1;
 					for (let i = 0; i <= lines.length; i++) {
 						const isHeader = i < lines.length && lines[i].trim() === topLevelHeader(type);
-						const isOtherTopLevel = i < lines.length && /^\[\[openscadgen\.[^.\]]+\]\]$/.test(lines[i].trim());
+						const isOtherTopLevel = i < lines.length && (/^\[\[openscadgen\.[^.\]]+\]\]$/.test(lines[i].trim()) || /^\[\[?[^.\]]+\]\]?$/.test(lines[i].trim()));
 						if (start >= 0 && (i === lines.length || (isOtherTopLevel && !isHeader))) { result.push({ start, end: i, lines: lines.slice(start, i) }); start = -1; }
 						if (isHeader) { if (start >= 0) result.push({ start, end: i, lines: lines.slice(start, i) }); start = i; }
 					}
@@ -162,7 +163,7 @@ templ EditConfigPanel(editFormConfig *models.EditConfigParams) {
 				function setValue(lines, key, raw) { const re = new RegExp(`^${key}\\s*=.*$`); const at = lines.findIndex(line => re.test(line)); if (!raw) { if (at >= 0) lines.splice(at, 1); return; } if (at >= 0) lines[at] = `${key} = ${raw}`; else lines.push(`${key} = ${raw}`); }
 				function configBlock(scope, selector) {
 					const lines = source.value.split('\n');
-					if (scope === 'global') { const end = lines.findIndex((line, i) => i > 0 && /^\[\[openscadgen\./.test(line.trim())); return { lines, start: 0, end: end < 0 ? lines.length : end }; }
+					if (scope === 'global') { const end = lines.findIndex((line, i) => i > 0 && /^\[/.test(line.trim())); return { lines, start: 0, end: end < 0 ? lines.length : end }; }
 					const header = `[[openscadgen.${scope}]]`; let start = -1;
 					for (let i = 0; i <= lines.length; i++) { if (i < lines.length && lines[i].trim() === header) { start = i; continue; } if (start >= 0 && (i === lines.length || (i < lines.length && /^\[\[openscadgen\./.test(lines[i].trim())))) { const block = lines.slice(start, i); const key = scope === 'instances' ? 'name' : 'path'; if (stringValue(block, key) === selector) return { lines, start, end: i }; start = -1; } }
 					return null;
@@ -175,14 +176,15 @@ templ EditConfigPanel(editFormConfig *models.EditConfigParams) {
 					block.lines.splice(block.start, block.end - block.start, ...target); source.value = block.lines.join('\n'); document.getElementById('config-recheck').click();
 				}
 				function editorInput(label, key, placeholder = '', width = 'is-4') { return `<div class="column ${width}"><label class="label is-small">${label}</label><input class="input is-small" data-field="${key}" placeholder="${placeholder}"/></div>`; }
-				function globalLines() { const lines = source.value.split('\n'); const end = lines.findIndex(line => /^\[\[openscadgen\./.test(line.trim())); return lines.slice(0, end < 0 ? lines.length : end); }
-				function setGlobalValue(key, raw) { const all = source.value.split('\n'); const end = all.findIndex(line => /^\[\[openscadgen\./.test(line.trim())); const originalLength = end < 0 ? all.length : end; const global = all.slice(0, originalLength); setValue(global, key, raw); all.splice(0, originalLength, ...global); source.value = all.join('\n'); }
+				function globalLines() { const lines = source.value.split('\n'); const end = lines.findIndex(line => /^\[/.test(line.trim()) && line.trim() !== '[openscadgen]'); return lines.slice(0, end < 0 ? lines.length : end); }
+				function setGlobalValue(key, raw) { const all = source.value.split('\n'); const end = all.findIndex(line => /^\[/.test(line.trim()) && line.trim() !== '[openscadgen]'); const originalLength = end < 0 ? all.length : end; const global = all.slice(0, originalLength); setValue(global, key, raw); all.splice(0, originalLength, ...global); source.value = all.join('\n'); }
 				function open(type, name, after) {
 					document.querySelectorAll('[data-config-inline-editor]').forEach(row => row.remove());
-					const identifier = type === 'input_paths' ? 'path' : 'name';
+					const identifier = isLink(type) ? 'url' : type === 'input_paths' ? 'path' : 'name';
 					const target = name && blocks(type).find(block => stringValue(block.lines, identifier) === name);
 					const row = document.createElement('tr'); row.dataset.configInlineEditor = 'true';
-					const fields = [editorInput(type === 'input_paths' ? 'Path' : 'Name', identifier)];
+					const fields = [editorInput(isLink(type) ? 'URL' : type === 'input_paths' ? 'Path' : 'Name', identifier)];
+					if (isLink(type)) fields.push(editorInput('Label (optional)', 'label'), editorInput('Author (optional)', 'author'), editorInput('Subtitle (optional)', 'subtitle'));
 					if (type === 'instances') fields.push(editorInput('Parameters', 'params', '{ width = 120 }'), editorInput('Description', 'description'), editorInput('Param sets', 'param_sets', 'wide,tall'), editorInput('Export name format', 'export_name_format'), '<div class="column is-4"><label class="checkbox mt-5"><input data-field="skip_images" type="checkbox"/> Skip images</label></div>');
 					if (type === 'param_sets') fields.push(editorInput('Parameters', 'params', '{ width = 120 }'));
 					if (type === 'images') fields.push(editorInput('Camera coordinate / preset', 'coord', 'nice'), editorInput('Image size', 'image_size', '1200x1200'), editorInput('Type', 'type', 'all_instances'), editorInput('Parameter filter', 'param_filter', '{ finish = "matte" }'));
@@ -192,7 +194,7 @@ templ EditConfigPanel(editFormConfig *models.EditConfigParams) {
 					row.innerHTML = `<td colspan="4"><div class="has-background-light p-4"><p class="has-text-weight-semibold mb-3">${name ? 'Edit' : 'Add'} ${type.replace('_', ' ').replace(/s$/, '')}</p><div class="columns is-multiline">${fields.join('')}</div><div class="buttons mb-0"><button type="button" class="button is-small is-link" data-config-inline-apply>Apply to dry run</button><button type="button" class="button is-small is-light" data-config-inline-cancel>Cancel</button></div></div></td>`;
 					if (after) after.insertAdjacentElement('afterend', row); else document.getElementById(`config-table-${type}`).appendChild(row);
 					const set = (key, val) => { const input = row.querySelector(`[data-field="${key}"]`); if (input) input.type === 'checkbox' ? input.checked = val === 'true' : input.value = val; };
-					const lines = target ? target.lines : []; ['name', 'path', 'params', 'description', 'param_sets', 'export_name_format', 'coord', 'image_size', 'type', 'param_filter', 'skip_images'].forEach(key => set(key, key === 'params' || key === 'param_filter' || key === 'skip_images' ? value(lines, key) : stringValue(lines, key)));
+					const lines = target ? target.lines : []; ['url', 'label', 'author', 'subtitle', 'name', 'path', 'params', 'description', 'param_sets', 'export_name_format', 'coord', 'image_size', 'type', 'param_filter', 'skip_images'].forEach(key => set(key, key === 'params' || key === 'param_filter' || key === 'skip_images' ? value(lines, key) : stringValue(lines, key)));
 					if (type === 'global_params') { set('name', name); set('value', value(globalLines(), name)); }
 					if (type === 'export_name_format') set('value', stringValue(globalLines(), 'export_name_format'));
 					row.querySelector('[data-config-inline-cancel]').addEventListener('click', () => row.remove());
@@ -202,9 +204,10 @@ templ EditConfigPanel(editFormConfig *models.EditConfigParams) {
 					const input = key => row.querySelector(`[data-field="${key}"]`); const text = key => input(key)?.value.trim() || '';
 					if (type === 'global_params') { const name = text('name'); if (!name) { input('name').focus(); return; } if (originalName && originalName !== name) setGlobalValue(originalName, ''); setGlobalValue(name, text('value')); document.getElementById('config-recheck').click(); return; }
 					if (type === 'export_name_format') { setGlobalValue('export_name_format', text('value') && escapeToml(text('value'))); document.getElementById('config-recheck').click(); return; }
-					const identifier = type === 'input_paths' ? 'path' : 'name'; const name = text(identifier); if (!name) { input(identifier).focus(); return; }
+					const identifier = isLink(type) ? 'url' : type === 'input_paths' ? 'path' : 'name'; const name = text(identifier); if (!name) { input(identifier).focus(); return; }
 					const lines = target ? [...target.lines] : [topLevelHeader(type)];
 					setValue(lines, identifier, escapeToml(name));
+					if (isLink(type)) ['label', 'author', 'subtitle'].forEach(key => setValue(lines, key, text(key) && escapeToml(text(key))));
 					if (type === 'instances') { setValue(lines, 'description', text('description') && escapeToml(text('description'))); setValue(lines, 'params', text('params')); setValue(lines, 'param_sets', text('param_sets') && escapeToml(text('param_sets'))); setValue(lines, 'export_name_format', text('export_name_format') && escapeToml(text('export_name_format'))); setValue(lines, 'skip_images', input('skip_images').checked ? 'true' : ''); }
 					if (type === 'param_sets') setValue(lines, 'params', text('params'));
 					if (type === 'images') { setValue(lines, 'coord', text('coord') && escapeToml(text('coord'))); setValue(lines, 'image_size', text('image_size') && escapeToml(text('image_size'))); setValue(lines, 'type', text('type') && escapeToml(text('type'))); setValue(lines, 'param_filter', text('param_filter')); }

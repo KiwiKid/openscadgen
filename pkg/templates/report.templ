@@ -2355,6 +2355,7 @@ html, body {
                 }
                 #instances-grid.og-layout--list .instance-card-v2__inner {
                     flex-direction: row;
+                    flex-wrap: wrap;
                     align-items: center;
                     gap: 0.45rem;
                     padding: 0;
@@ -2367,7 +2368,7 @@ html, body {
                 }
                 #instances-grid.og-layout--list .instance-card-v2__body {
                     order: 2;
-                    flex: 1 1 auto;
+                    flex: 1 1 18rem;
                     min-width: 0;
                     display: flex;
                     flex-direction: column;
@@ -2383,6 +2384,7 @@ html, body {
                 #instances-grid.og-layout--list .instance-card-v2__extras {
                     order: 4;
                     flex: 0 0 100%;
+                    min-width: 0;
                 }
                 #instances-grid.og-layout--list .instance-card-v2__head.media {
                     margin-bottom: 0 !important;
@@ -2872,6 +2874,13 @@ html, body {
 								<div class="is-flex is-align-items-center mb-2" style="gap:0.5rem;">
 									<span class="has-text-weight-semibold">{ sourcePath }</span>
 									<button class="button is-small is-link is-light" hx-post={ templ.SafeURL(openInOpenSCADURL(sourcePath, reportMeta)) } hx-target="#report-alerts" hx-swap="beforeend">Open in OpenSCAD</button>
+									<button
+										type="button"
+										class="button is-small is-link is-light"
+										title="Open the config file in your default editor"
+										data-open-url={ "/api/open?config_path=" + url.QueryEscape(reportMeta.ConfigFilePath) }
+										onclick="fetch(this.dataset.openUrl).then(async response => { if (!response.ok) throw new Error(await response.text()); }).catch(error => alert('Failed to open config: ' + error.message))"
+									>Open config</button>
 								</div>
 							}
 						}

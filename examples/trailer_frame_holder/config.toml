@@ -2,11 +2,11 @@
 name = "trailer_frame_holder"
 description = ""
 
-version = "v0.3"
+version = "v0.4"
 
 export_name_format = "{designFileName}_{holderDepth}_{partType}_includeBlockers_{blockers}_tralierBarHeight_{tralierBarHeight}"
 
-global_params = { tralierBarHeight = "102,105" }
+global_params = { tralierBarHeight = ["102", "105"] }
 
 [[openscadgen.instances]]
 params = { holderDepth = "30", partType = "obj",  blockers="includeBlockers" }

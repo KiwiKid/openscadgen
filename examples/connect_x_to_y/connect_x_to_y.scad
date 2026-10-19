@@ -2,7 +2,7 @@ include <BOSL2/std.scad>;
 
 $fn = 100;
 
-xShape = "tube";
+xShape = "cameraMount";
 yShape = "tube";
 
 tubeChamfer1 = 3;
@@ -26,16 +26,29 @@ globalBounds = [90,90,90];
 globalBoundsMove = [0,0,20];
 globalBoundsRotation = [0,30,50];
 
-module x(shape="tube"){
+
+module shape(shape="tube", shapeOuterSize=tubeRadius, shapeThickness=tubeWall, h=xHeight, anchor=BOT, chamfer1=0, chamfer2=0){
+
     if(shape == "tube"){
-    
-        tube(or=tubeRadius, wall=tubeWall, h=xHeight, anchor=BOT);
+        tube(or=shapeOuterSize, wall=shapeThickness, h=h, anchor=anchor, ichamfer2=chamfer2);
+    } else if(shape == "cameraMount"){
+        tube(or=shapeOuterSize, wall=shapeThickness, h=h, anchor=anchor, ichamfer2=chamfer2);
     } else {
         assert(false, "in x, shape not supported");
     }
+
+}
+
+module x(shape="tube"){
+        shape(shape=shape, shapeOuterSize=tubeRadius, shapeThickness=tubeWall, h=xHeight, anchor=BOT);
+    //    tube(or=tubeRadius, wall=tubeWall, h=xHeight, anchor=BOT);
+   
 }
 module y(shape="tube"){
  if(shape == "tube"){
+  shape(shape=shape, shapeOuterSize=tubeRadius, wall=tubeWall, h=yHeight, anchor=TOP, ichamfer2=tubeChamfer1);
+          shape(shape=shape, shapeOuterSize=tubeRadius, shapeThickness=tubeWall, h=yHeight, anchor=TOP);
+
    tube(or=tubeRadius, wall=tubeWall, h=yHeight, anchor=TOP, ichamfer2=tubeChamfer1);
     } else {
         assert(false, "in x, shape not supported");

@@ -62,6 +62,31 @@ OpenSCAD is responsible for parsing and rendering each model, so a model's own l
    ./openscadgen -c config.toml
    ```
 
+## Attribution and publication links
+
+The config form supports one source credit and multiple published locations.
+Use top-level tables outside `[openscadgen]`:
+
+```toml
+[attribution]
+url = "https://example.com/original-design"
+label = "Original design"
+author = "Designer name"
+subtitle = "Adapted from the original"
+
+[[publication]]
+url = "https://www.printables.com/model/123"
+label = "Printables"
+
+[[publication]]
+url = "https://example.com/makerlab/design"
+label = "MakerLab"
+```
+
+Each entry requires an HTTP or HTTPS `url`; `label`, `author`, and `subtitle`
+are optional. In the config form, add or edit a link, apply it to the dry run,
+then save the validated configuration.
+
 ## Basic Configuration
 
 The simplest configuration uses:

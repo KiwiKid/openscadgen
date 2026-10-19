@@ -175,7 +175,17 @@ type OutputPaths struct {
 }
 
 // Config holds the overall configuration structure
+// DesignLink records a source credit or a published design location.
+type DesignLink struct {
+	URL      string `toml:"url" validate:"required,http_url"`
+	Label    string `toml:"label"`
+	Author   string `toml:"author"`
+	Subtitle string `toml:"subtitle"`
+}
+
 type Config struct {
+	Attribution                  *DesignLink  `toml:"attribution" validate:"omitempty"`
+	Publication                  []DesignLink `toml:"publication" validate:"dive"`
 	Design                       DesignConfig `toml:"openscadgen"`
 	TotalQueuedInstances         int
 	RawConfigFile                string
