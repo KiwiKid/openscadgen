@@ -59,9 +59,9 @@ func ParseFlags() models.CmdFlags {
 	deleteDirDesc := "Directory to scan for export/ folders and list .stl files for deletion (confirm required)"
 	flag.StringVar(&cmdFlags.DeleteExportSTLsDir, "delete-export-stls-dir", "", deleteDirDesc)
 	flag.StringVar(&cmdFlags.DeleteExportSTLsDir, "d", "", "Alias for -delete-export-stls-dir")
-	flag.BoolVar(&cmdFlags.BuildPages, "build-pages", false, "Build a GitHub Pages-ready copy of examples/ and bols2otropolis/ into the pages/ folder")
+	flag.BoolVar(&cmdFlags.BuildPages, "build-pages", false, "Build a GitHub Pages-ready copy of examples/ (and bols2otropolis/ when present) into the pages/ folder")
 	flag.StringVar(&cmdFlags.PagesOutputDir, "pages-output-dir", "pages", "Destination directory for -build-pages output")
-	flag.BoolVar(&cmdFlags.BuildSite, "build-site", false, "Build all example and bols2otropolis reports in GitHub Pages mode, then assemble the pages/ folder")
+	flag.BoolVar(&cmdFlags.BuildSite, "build-site", false, "Build all example (and bols2otropolis, when present) reports in GitHub Pages mode, then assemble the pages/ folder")
 	flag.StringVar(&cmdFlags.BuildSiteIgnoreSections, "build-site-ignore-sections", "", "Comma-separated path sections to skip when building the site")
 
 	flag.BoolVar(&cmdFlags.Version, "version", false, "just output the openscadgen and openscad version number")

@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -12,6 +13,11 @@ func BuildSite(repoRoot string, outputDir string, cmdFlags models.CmdFlags) erro
 	ignoreSections := parseBuildSiteIgnoreSections(cmdFlags.BuildSiteIgnoreSections)
 	for _, root := range []string{"examples", "bols2otropolis"} {
 		scanRoot := filepath.Join(repoRoot, root)
+		// Example roots are optional: the heavy examples live in the separate
+		// openscadgen-examples repo, so bols2otropolis (or examples) may be absent.
+		if info, statErr := os.Stat(scanRoot); statErr != nil || !info.IsDir() {
+			continue
+		}
 		configs, err := ScanFolderForConfigFiles(scanRoot)
 		if err != nil {
 			return fmt.Errorf("scan %s: %w", root, err)

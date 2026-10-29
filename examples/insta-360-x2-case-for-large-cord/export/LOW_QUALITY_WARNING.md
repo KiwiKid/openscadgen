@@ -1,1 +1,0 @@
-[WARNING: This model was generated with a low quality (fn = 20)]

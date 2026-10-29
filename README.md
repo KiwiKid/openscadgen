@@ -16,7 +16,7 @@ openscadgen includes two main modes of operation:
 - Direct Running:
 (run the generation for this config.toml file)
 ```
-./openscadgen -c ./examples/football_cards/config.toml
+./openscadgen -c ./examples/small-tray/config.toml
 ```
 
 - Server Mode:
@@ -24,6 +24,17 @@ openscadgen includes two main modes of operation:
 ```
 ./openscadgen -sf ./examples/
 ```
+
+> [!NOTE]
+> This repo keeps the source code plus a set of small examples that the docs and
+> integration tests reference. The heavier example projects (big `.scad` files,
+> downloaded model archives, reference photos) live in the companion
+> [openscadgen-examples](https://github.com/KiwiKid/openscadgen-examples) repo so that
+> cloning the code stays small. Clone it alongside this repo and point `-c`/`-sf` at it:
+> ```
+> ./openscadgen -c ../openscadgen-examples/examples/fudal-2/config.toml
+> ./openscadgen -sf ../openscadgen-examples
+> ```
 
 Server mode binds to `127.0.0.1` by default. `--server-address` is an explicit
 opt-in for a non-loopback bind; do not expose it directly to a network because
@@ -278,7 +289,7 @@ ignore_param_when_processing = "cup_holders_mode"
 
 This is useful when you want to use a parameter for organization but it's not needed by the OpenSCAD file itself.
 
-The config file format uses [toml](https://toml.io/en/) and some examples are include below and more are in the 'examples' directory
+The config file format uses [toml](https://toml.io/en/) and some examples are include below and more are in the 'examples' directory (with the larger example projects in the [openscadgen-examples](https://github.com/KiwiKid/openscadgen-examples) repo)
 
 To run the tool, you need to have a config file and OpenSCAD executable file available on PATH.
 
@@ -289,7 +300,7 @@ To run, use:
 (where config.toml is the openscadgen config file you want to generate for)
 
 
-An [example config file](./examples/screw-mounted-clip/config.toml) is provided for the excellent "[Command Strip Parametric Broom Handle Clip](https://www.printables.com/model/516117-parametric-broom-handle-holder-openscad-command-st/related)" by [Brian Khuu](https://briankhuu.com/). 
+An [example config file](./examples/small-tray/config.toml) is provided, and more live in the [openscadgen-examples](https://github.com/KiwiKid/openscadgen-examples) repo. Many of the examples are modelled on community designs, such as the excellent "[Command Strip Parametric Broom Handle Clip](https://www.printables.com/model/516117-parametric-broom-handle-holder-openscad-command-st/related)" by [Brian Khuu](https://briankhuu.com/). 
 
 # Installation 
 Available via the [github release page](https://github.com/kiwikid/openscadgen/releases)
@@ -401,15 +412,15 @@ If you want the explanatory starter config directly, use:
 
 Message:
 ```
-./openscadgen -c examples/cup-holder-plus/config.toml
+./openscadgen -c examples/small-tray/config.toml
 exec: Failed to execute process: './openscadgen' the file could not be run by the operating system.
 ```
 Ensure you have downloaded the correct version of the tool from the releases page (i.e. darwin_arm64, linux_arm64, etc)
 
 Message:
 ```
-./openscadgen -c examples/cup-holder-plus/config.toml
-fish: Job 1, './openscadgen -c examples/cup-h…' terminated by signal SIGKILL (Forced quit)
+./openscadgen -c examples/small-tray/config.toml
+fish: Job 1, './openscadgen -c examples/small…' terminated by signal SIGKILL (Forced quit)
 ```
 Ensure you have allowed openscadgen to run (in Privacy & Security settings)
 
@@ -614,7 +625,7 @@ go build .
 go test -v ./tests
 
 # run
-./openscadgen -c ./examples/screw-mounted-clip/config.toml
+./openscadgen -c ./examples/small-tray/config.toml
 
 # test
 
