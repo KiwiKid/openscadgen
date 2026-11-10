@@ -186,30 +186,31 @@ func findBOSL2Source(root string) (string, error) {
 }
 
 func replaceBOSL2Directory(sourceDir, targetDir, backupDir string) error {
-	if err := os.Rename(sourceDir, targetDir); err == nil {
-		return nil
-	} else if !os.IsExist(err) {
-		return fmt.Errorf("install BOSL2: %w", err)
-	}
-
 	info, err := os.Lstat(targetDir)
-	if err != nil {
+	switch {
+	case err == nil:
+		if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+			return fmt.Errorf("existing BOSL2 library is not a directory")
+		}
+		if err := os.Rename(targetDir, backupDir); err != nil {
+			return fmt.Errorf("back up existing BOSL2 library: %w", err)
+		}
+		if err := os.Rename(sourceDir, targetDir); err != nil {
+			if restoreErr := os.Rename(backupDir, targetDir); restoreErr != nil {
+				return fmt.Errorf("install BOSL2: %w (also failed to restore previous library: %v)", err, restoreErr)
+			}
+			return fmt.Errorf("install BOSL2: %w", err)
+		}
+		if err := os.RemoveAll(backupDir); err != nil {
+			return fmt.Errorf("remove BOSL2 backup after successful install: %w", err)
+		}
+		return nil
+	case !os.IsNotExist(err):
 		return fmt.Errorf("inspect existing BOSL2 library: %w", err)
 	}
-	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
-		return fmt.Errorf("existing BOSL2 library is not a directory")
-	}
-	if err := os.Rename(targetDir, backupDir); err != nil {
-		return fmt.Errorf("back up existing BOSL2 library: %w", err)
-	}
+
 	if err := os.Rename(sourceDir, targetDir); err != nil {
-		if restoreErr := os.Rename(backupDir, targetDir); restoreErr != nil {
-			return fmt.Errorf("install BOSL2: %w (also failed to restore previous library: %v)", err, restoreErr)
-		}
 		return fmt.Errorf("install BOSL2: %w", err)
-	}
-	if err := os.RemoveAll(backupDir); err != nil {
-		return fmt.Errorf("remove BOSL2 backup after successful install: %w", err)
 	}
 	return nil
 }

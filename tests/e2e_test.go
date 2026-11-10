@@ -1,9 +1,11 @@
 package tests
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -81,14 +83,18 @@ func TestMain(m *testing.M) {
 	}
 
 	// Build the binary
-	cmd := exec.Command("go", "build", "-o", "openscadgen", ".")
+	binaryName := "openscadgen"
+	if runtime.GOOS == "windows" {
+		binaryName += ".exe"
+	}
+	cmd := exec.Command("go", "build", "-o", binaryName, ".")
 	if err := cmd.Run(); err != nil {
 		os.Stderr.WriteString("Failed to build binary: " + err.Error() + "\n")
 		os.Exit(1)
 	}
 
 	// Get the absolute path to the binary
-	binaryPath, err = filepath.Abs("openscadgen")
+	binaryPath, err = filepath.Abs(binaryName)
 	if err != nil {
 		os.Stderr.WriteString("Failed to get binary path: " + err.Error() + "\n")
 		os.Exit(1)
@@ -117,6 +123,19 @@ type testCase struct {
 	command       string
 	expectedFiles []string
 	shouldFail    bool
+}
+
+// runE2ECommand runs a test command. Windows has no sh, so invoke the binary
+// directly there instead of going through a shell.
+func runE2ECommand(command string) ([]byte, error) {
+	if runtime.GOOS == "windows" {
+		parts := strings.Fields(command)
+		if len(parts) == 0 {
+			return nil, fmt.Errorf("empty command")
+		}
+		return exec.Command(parts[0], parts[1:]...).CombinedOutput()
+	}
+	return exec.Command("sh", "-c", command).CombinedOutput()
 }
 
 // printDirectoryContents prints the contents of a directory and its subdirectories
@@ -664,8 +683,7 @@ name = "bottom"
 			t.Logf("Running command: %s", tc.command+" "+extraArgs)
 
 			// Run openscadgen
-			cmd := exec.Command("sh", "-c", tc.command+" "+extraArgs)
-			output, err := cmd.CombinedOutput()
+			output, err := runE2ECommand(tc.command + " " + extraArgs)
 			//if tc.logOutput {
 			t.Logf("Command output:\n%s", output)
 			//	}

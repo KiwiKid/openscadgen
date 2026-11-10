@@ -41,7 +41,12 @@ func TestRepositoryStatusForDirSummarizesWorktree(t *testing.T) {
 }
 
 func TestRepositoryStatusForDirReturnsNilOutsideGit(t *testing.T) {
-	if status := RepositoryStatusForDir(t.TempDir()); status != nil {
+	dir := t.TempDir()
+	// A temp directory can live inside another repository (for example under a
+	// user's home directory). Stop git discovery at the parent so this test
+	// actually exercises a directory outside a repository.
+	t.Setenv("GIT_CEILING_DIRECTORIES", filepath.Dir(dir))
+	if status := RepositoryStatusForDir(dir); status != nil {
 		t.Fatalf("RepositoryStatusForDir() = %#v, want nil", status)
 	}
 }

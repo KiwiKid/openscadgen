@@ -126,6 +126,9 @@ func TestHandleOpenSCADInstallRequiresPOST(t *testing.T) {
 }
 
 func TestHandleOpenSCADLibraryActionInstallsBOSL2(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip("BOSL2 installation is only supported on macOS")
+	}
 	originalInstall := installBOSL2
 	originalServerFolder := globalServerFolder
 	t.Cleanup(func() {
@@ -169,6 +172,9 @@ func TestHandleOpenSCADLibraryActionRejectsGETUpdate(t *testing.T) {
 }
 
 func TestHandleOpenSCADLibraryActionShowsManualCommandAfterInstallFailure(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip("BOSL2 installation is only supported on macOS")
+	}
 	originalInstall := installBOSL2
 	t.Cleanup(func() { installBOSL2 = originalInstall })
 	installBOSL2 = func(_ context.Context) error { return fmt.Errorf("download timed out") }

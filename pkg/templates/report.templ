@@ -85,10 +85,20 @@ templ Success(message string) {
 	</div>
 }
 
+// fileURL builds a valid file:// URL for a local path, including Windows
+// drive-letter paths (file:///C:/...).
+func fileURL(path string) string {
+	slashPath := filepath.ToSlash(path)
+	if filepath.VolumeName(path) != "" && !strings.HasPrefix(slashPath, "/") {
+		slashPath = "/" + slashPath
+	}
+	return (&url.URL{Scheme: "file", Path: slashPath}).String()
+}
+
 // Helper function to get relative path
 func getRelativePath(fullPath string, basePath string) string {
 	// If the full path is already relative, return it as is
-	if !strings.HasPrefix(fullPath, "/") {
+	if !filepath.IsAbs(fullPath) {
 		return fullPath
 	}
 
@@ -192,7 +202,7 @@ func buildReportImageURL(reportMode string, outputPath string, exportFolderPath 
 	if reportMode == "server" || reportMode == "view" || reportMode == "complete" {
 		return buildServerImageURL(outputPath, serverFolder, version)
 	}
-	return "file://" + filepath.ToSlash(outputPath)
+	return fileURL(outputPath)
 }
 
 func diagnosticImagePaths(results []models.GeometryTestResult) []string {
@@ -731,7 +741,7 @@ func buildOpenSTLFolderURL(instance models.InstanceConfig) templ.SafeURL {
 	if !filepath.IsAbs(outputPath) {
 		outputPath = filepath.Join(filepath.Dir(instance.InputConfigFilePath), outputPath)
 	}
-	return templ.SafeURL((&url.URL{Scheme: "file", Path: filepath.Dir(outputPath)}).String())
+	return templ.SafeURL(fileURL(filepath.Dir(outputPath)))
 }
 
 func sharedOpenSTLFolderURL(instances []models.InstanceConfig) (templ.SafeURL, bool) {

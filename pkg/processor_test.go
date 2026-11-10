@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -25,6 +26,23 @@ type recordingRenderEngine struct {
 func (e *recordingRenderEngine) Render(_ context.Context, request RenderRequest) (RenderResponse, error) {
 	e.requests = append(e.requests, request)
 	return RenderResponse{Command: "test-renderer", Duration: time.Millisecond, Artifact: []byte("rendered artifact\n")}, nil
+}
+
+// writeFakeOpenSCAD writes a renderer stand-in. POSIX uses a shell script;
+// Windows uses a .cmd file so exec.LookPath and exec.Command can run it.
+func writeFakeOpenSCAD(t *testing.T, dir, unixBody, windowsBody string) string {
+	t.Helper()
+	name := "openscad"
+	body := unixBody
+	if runtime.GOOS == "windows" {
+		name += ".cmd"
+		body = windowsBody
+	}
+	path := filepath.Join(dir, name)
+	if err := os.WriteFile(path, []byte(body), 0o755); err != nil {
+		t.Fatalf("write OpenSCAD stand-in: %v", err)
+	}
+	return path
 }
 
 // normalizePath converts a path to its canonical form for comparison
@@ -563,11 +581,9 @@ func TestProcess_RecordsFailedInstanceRunDetails(t *testing.T) {
 	if err := InitLogger(filepath.Join(tmpDir, "test.log")); err != nil {
 		t.Fatalf("InitLogger: %v", err)
 	}
+	t.Cleanup(CloseLogger)
 
-	versionProbePath := filepath.Join(tmpDir, "openscad")
-	if err := os.WriteFile(versionProbePath, []byte("#!/bin/sh\nif [ \"$1\" = \"--version\" ]; then\n  echo 'OpenSCAD 2024.01'\n  exit 0\nfi\necho 'openscad exploded' >&2\nexit 1\n"), 0o755); err != nil {
-		t.Fatalf("write version probe: %v", err)
-	}
+	writeFakeOpenSCAD(t, tmpDir, "#!/bin/sh\nif [ \"$1\" = \"--version\" ]; then\n  echo 'OpenSCAD 2024.01'\n  exit 0\nfi\necho 'openscad exploded' >&2\nexit 1\n", "@echo off\r\nif \"%~1\"==\"--version\" (\r\n  echo OpenSCAD 2024.01\r\n  exit /b 0\r\n)\r\n>&2 echo openscad exploded\r\nexit /b 1\r\n")
 	t.Setenv("PATH", tmpDir+string(os.PathListSeparator)+os.Getenv("PATH"))
 
 	scadPath := filepath.Join(tmpDir, "shape.scad")
@@ -627,11 +643,11 @@ func TestProcess_GeneratesSTLFile(t *testing.T) {
 	if err := InitLogger(filepath.Join(tmpDir, "test.log")); err != nil {
 		t.Fatalf("InitLogger: %v", err)
 	}
+	t.Cleanup(CloseLogger)
 
 	// Use a small OpenSCAD stand-in so this unit test verifies the export
 	// contract without depending on a locally installed renderer.
-	openSCADPath := filepath.Join(tmpDir, "openscad")
-	openSCADScript := `#!/bin/sh
+	openSCADPath := writeFakeOpenSCAD(t, tmpDir, `#!/bin/sh
 if [ "$1" = "--version" ]; then
   echo 'OpenSCAD test'
   exit 0
@@ -646,10 +662,7 @@ while [ "$#" -gt 0 ]; do
 done
 
 exit 1
-`
-	if err := os.WriteFile(openSCADPath, []byte(openSCADScript), 0o755); err != nil {
-		t.Fatalf("write OpenSCAD stand-in: %v", err)
-	}
+`, "@echo off\r\nif \"%~1\"==\"--version\" (\r\n  echo OpenSCAD test\r\n  exit /b 0\r\n)\r\n:parse\r\nif \"%~1\"==\"\" exit /b 1\r\nif \"%~1\"==\"-o\" goto write\r\nshift\r\ngoto parse\r\n:write\r\n> \"%~2\" echo solid test\r\n>> \"%~2\" echo endsolid test\r\nexit /b 0\r\n")
 
 	scadPath := filepath.Join(tmpDir, "shape.scad")
 	if err := os.WriteFile(scadPath, []byte("cube(1);\n"), 0o644); err != nil {
@@ -690,8 +703,8 @@ export_name_format = "{designFileName}_{name}"
 	if err != nil {
 		t.Fatalf("read generated STL: %v", err)
 	}
-	if string(stlContents) != "solid test\nendsolid test\n" {
-		t.Fatalf("generated STL contents = %q", stlContents)
+	if got := strings.ReplaceAll(string(stlContents), "\r\n", "\n"); got != "solid test\nendsolid test\n" {
+		t.Fatalf("generated STL contents = %q", got)
 	}
 	if !result.Instances[0].IsSuccessful {
 		t.Fatal("expected STL generation to be successful")
@@ -703,6 +716,7 @@ func TestProcessWithRenderer_UsesTypedRequestsForSTLAndImage(t *testing.T) {
 	if err := InitLogger(filepath.Join(tmpDir, "test.log")); err != nil {
 		t.Fatalf("InitLogger: %v", err)
 	}
+	t.Cleanup(CloseLogger)
 	if err := os.WriteFile(filepath.Join(tmpDir, "shape.scad"), []byte("cube(1);\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -1876,6 +1890,7 @@ coord = "0,0,0,90,0,0,600"
 			if err := InitLogger(filepath.Join(tc.workingDir, "test.log")); err != nil {
 				t.Fatalf("Failed to initialize logger: %v", err)
 			}
+			t.Cleanup(CloseLogger)
 
 			// Load config
 			config, _, err := LoadConfigFromFile(models.CmdFlags{
@@ -3048,19 +3063,17 @@ func TestHTMLProgressReport(t *testing.T) {
 
 	// Test 4: Verify STL file paths are present
 	for _, stlResult := range stlResults {
-		relativePath := strings.TrimPrefix(stlResult.OutputPath, tmpDir)
-		relativePath = strings.TrimPrefix(relativePath, "/")
-		if !strings.Contains(htmlContentStr, relativePath) {
-			t.Errorf("HTML should contain STL path: %s", relativePath)
+		name := filepath.Base(stlResult.OutputPath)
+		if !strings.Contains(htmlContentStr, name) {
+			t.Errorf("HTML should contain STL path: %s", name)
 		}
 	}
 
 	// Test 5: Verify image file paths are present
 	for _, imageResult := range imageResults {
-		relativePath := strings.TrimPrefix(imageResult.OutputPath, tmpDir)
-		relativePath = strings.TrimPrefix(relativePath, "/")
-		if !strings.Contains(htmlContentStr, relativePath) {
-			t.Errorf("HTML should contain image path: %s", relativePath)
+		name := filepath.Base(imageResult.OutputPath)
+		if !strings.Contains(htmlContentStr, name) {
+			t.Errorf("HTML should contain image path: %s", name)
 		}
 	}
 
@@ -3084,7 +3097,7 @@ func TestHTMLProgressReport(t *testing.T) {
 	}
 
 	// Test 9: Verify generation metadata is present in the collapsed footer.
-	if !strings.Contains(htmlContentStr, "<footer class=\"config-summary\"><details>") {
+	if !strings.Contains(htmlContentStr, "<footer id=\"config-summary\" class=\"config-summary\"><details>") {
 		t.Error("HTML should contain the config-summary accordion footer")
 	}
 	if !strings.Contains(htmlContentStr, "Generated with 💕 by") {
@@ -3491,7 +3504,7 @@ func TestGetImagePath(t *testing.T) {
 				runOutputImagePath: "export/v0.1/nice.stl",
 				cameraName:         "nice",
 			},
-			expected: "export/v0.1/nice-nice.png",
+			expected: filepath.Join("export", "v0.1", "nice-nice.png"),
 		},
 	}
 

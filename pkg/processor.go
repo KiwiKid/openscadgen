@@ -14,7 +14,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"reflect"
 	"regexp"
@@ -1674,8 +1673,10 @@ func imageOutputBasePath(config *models.Config, instance models.InstanceConfig, 
 
 	if camera.ExportNameFormat != "" {
 		format := strings.ReplaceAll(camera.ExportNameFormat, "{instanceName}", "{name}")
-		basePath := path.Join(imageRoot, format)
-		return models.MakeFileNameReplacements(config.Design.GlobalParams, instance.Params, instance.IgnoredParams, basePath, config.Design.Version, instance.Params["designFileName"].(string), config.Quality, instance.Name, instance.PartIDLetter)
+		// Apply filename sanitisation to the relative template only; applying it
+		// to the joined absolute path would strip the Windows drive colon.
+		relative := models.MakeFileNameReplacements(config.Design.GlobalParams, instance.Params, instance.IgnoredParams, filepath.ToSlash(format), config.Design.Version, instance.Params["designFileName"].(string), config.Quality, instance.Name, instance.PartIDLetter)
+		return filepath.Join(imageRoot, filepath.FromSlash(relative))
 	}
 
 	exportFolder := filepath.Join(configDir, "export", version)
@@ -3439,15 +3440,14 @@ func GenerateInstances(config *models.Config, configuredInstanceConfig models.Co
 
 			configFileDir := filepath.Dir(config.ConfigFile)
 
-			baseExportPath := path.Join(configFileDir, "export", versionSafe, exportNameFormat)
-
-			// Always use the full relative path for output
-			//outputPath := filepath.Join(config.ConfigFile, versionSafe, exportName+".stl")
-
+			// Sanitise only the relative export template. Running filename
+			// sanitisation over the joined absolute path strips the Windows
+			// drive colon (C:\ -> C\).
 			if config.Debug {
-				log.Printf("[DEBUG] MakeFileNameReplacements input: baseExportPath=%s, instanceParams=%v", baseExportPath, instance.Params)
+				log.Printf("[DEBUG] MakeFileNameReplacements input: exportNameFormat=%s, instanceParams=%v", exportNameFormat, instance.Params)
 			}
-			outputPathReplace := models.MakeFileNameReplacements(config.Design.GlobalParams, instance.Params, instance.IgnoredParams, baseExportPath, config.Design.Version, instance.Params["designFileName"].(string), config.Quality, configuredInstanceConfig.Name, instance.PartIDLetter)
+			exportNameFormat = models.MakeFileNameReplacements(config.Design.GlobalParams, instance.Params, instance.IgnoredParams, exportNameFormat, config.Design.Version, instance.Params["designFileName"].(string), config.Quality, configuredInstanceConfig.Name, instance.PartIDLetter)
+			outputPathReplace := filepath.Join(configFileDir, "export", versionSafe, filepath.FromSlash(exportNameFormat))
 			if config.Debug {
 				log.Printf("[DEBUG] MakeFileNameReplacements output: %s", outputPathReplace)
 			}
@@ -3768,7 +3768,7 @@ func findOpenSCAD() (OpenSCADVersion, error) {
 	cmdVer := exec.Command("openscad", "--version")
 	outputVer, err := cmdVer.CombinedOutput()
 	if err != nil {
-		return OpenSCADVersion{}, fmt.Errorf("OpenSCAD not found in PATH (version check). Make sure you can run openscad from the command line: %w", err)
+		return OpenSCADVersion{}, openSCADNotFoundError(err)
 	}
 
 	versionStr := strings.TrimSpace(string(outputVer))
@@ -4489,7 +4489,7 @@ func generateSTL(ctx context.Context, instance *models.InstanceConfig, config *m
 	if sourceErr != nil {
 		return result, fmt.Errorf("read render source: %w", sourceErr)
 	}
-	response, err := renderer.Render(ctx, RenderRequest{Kind: RenderKindSTL, SourcePath: paths.InputPath, Source: source, OutputPath: instance.RunOutputPathV3, Definitions: result.AppliedParams, Render: !config.SkipRender, Debug: config.Debug})
+	response, err := renderer.Render(ctx, RenderRequest{Kind: RenderKindSTL, SourcePath: paths.InputPath, Source: source, OutputPath: filepath.FromSlash(instance.RunOutputPathV3), Definitions: result.AppliedParams, Render: !config.SkipRender, Debug: config.Debug})
 	result.Command = response.Command
 	result.CommandOutput = response.Output
 	result.TimeTaken = response.Duration
@@ -4595,7 +4595,7 @@ func FindOpenSCAD() string {
 	// Use exec.LookPath which is cross-platform
 	path, err := exec.LookPath("openscad")
 	if err != nil {
-		log.Fatalf("OpenSCAD not found in PATH. (%+v)", err)
+		log.Fatalf("%v", openSCADNotFoundError(err))
 	}
 	return path
 }
@@ -4914,7 +4914,7 @@ func GetImagePath(runOutputImagePath string, cameraName string) string {
 	// Remove file extension
 	fileNameWithoutExt := strings.TrimSuffix(fileName, filepath.Ext(fileName))
 	outputPath := filepath.Dir(runOutputImagePath)
-	return outputPath + "/" + fileNameWithoutExt + "-" + cameraName + ".png"
+	return filepath.Join(outputPath, fileNameWithoutExt+"-"+cameraName+".png")
 }
 
 func generateImage(ctx context.Context, instance *models.InstanceConfig, config *models.Config, camera models.ExportCameraCoordinates, stlResult models.GenerateSTLResult, renderer RenderEngine) (models.GenerateImageResult, string, error) {

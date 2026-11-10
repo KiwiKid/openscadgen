@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -70,7 +71,14 @@ func TestImageURLsResolveToTheGeneratedExportImage(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				return parsed.Path
+				if parsed.Scheme != "file" {
+					t.Fatalf("saved report image URL %q is not a file URL", src)
+				}
+				path := parsed.Path
+				if runtime.GOOS == "windows" {
+					path = strings.TrimPrefix(path, "/")
+				}
+				return filepath.FromSlash(path)
 			},
 		},
 		{
@@ -259,14 +267,16 @@ func TestInstanceCardV2RendersFailedOpenSCADDetails(t *testing.T) {
 }
 
 func TestSharedOpenSTLFolderURL(t *testing.T) {
+	exportDir := t.TempDir()
+	otherDir := t.TempDir()
 	instances := []models.InstanceConfig{
-		{RunOutputPathV3: "/tmp/export/a.stl"},
-		{RunOutputPathV3: "/tmp/export/b.stl"},
+		{RunOutputPathV3: filepath.Join(exportDir, "a.stl")},
+		{RunOutputPathV3: filepath.Join(exportDir, "b.stl")},
 	}
-	if got, shared := sharedOpenSTLFolderURL(instances); !shared || got != "file:///tmp/export" {
-		t.Fatalf("expected shared export folder, got %q (shared=%v)", got, shared)
+	if got, shared := sharedOpenSTLFolderURL(instances); !shared || string(got) != fileURL(exportDir) {
+		t.Fatalf("expected shared export folder %q, got %q (shared=%v)", fileURL(exportDir), got, shared)
 	}
-	instances[1].RunOutputPathV3 = "/tmp/other/b.stl"
+	instances[1].RunOutputPathV3 = filepath.Join(otherDir, "b.stl")
 	if _, shared := sharedOpenSTLFolderURL(instances); shared {
 		t.Fatal("expected different export folders not to be shared")
 	}
@@ -334,7 +344,7 @@ func TestReportOnlyPersistsPageLevelProcessFormsForRedirectRecovery(t *testing.T
 		t.Fatalf("render report: %v", err)
 	}
 
-	body := rendered.String()
+	body := strings.ReplaceAll(rendered.String(), "\r\n", "\n")
 	for _, needle := range []string{
 		"function ogIsPrimaryProcessForm(formEl)",
 		"if (ogIsPrimaryProcessForm(formEl)) {\n                ogRememberPendingProcess(formEl);",

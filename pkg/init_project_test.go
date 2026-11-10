@@ -12,15 +12,17 @@ import (
 
 func TestResolveInitParentDir(t *testing.T) {
 	t.Parallel()
+	explicit := filepath.Join(t.TempDir(), "explicit")
+	server := filepath.Join(t.TempDir(), "server")
 	got := ResolveInitParentDir(models.CmdFlags{
-		InitProjectParentDir: "/explicit",
-		ServerFolder:         "/server",
+		InitProjectParentDir: explicit,
+		ServerFolder:         server,
 	})
-	if got != "/explicit" {
+	if got != explicit {
 		t.Fatalf("explicit init-dir: got %q", got)
 	}
-	got = ResolveInitParentDir(models.CmdFlags{ServerFolder: "/server"})
-	if got != "/server" {
+	got = ResolveInitParentDir(models.CmdFlags{ServerFolder: server})
+	if got != server {
 		t.Fatalf("server folder default: got %q", got)
 	}
 	got = ResolveInitParentDir(models.CmdFlags{})
