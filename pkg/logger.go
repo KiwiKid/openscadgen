@@ -13,13 +13,28 @@ import (
 var (
 	appLogger *slog.Logger
 	logMu     sync.Mutex
+	logFile   *os.File
 )
 
 type stageAttr struct{}
 
+func CloseLogger() {
+	logMu.Lock()
+	defer logMu.Unlock()
+	if logFile != nil {
+		_ = logFile.Close()
+		logFile = nil
+	}
+}
+
 func InitLogger(logFilePath string) error {
 	logMu.Lock()
 	defer logMu.Unlock()
+
+	if logFile != nil {
+		_ = logFile.Close()
+		logFile = nil
+	}
 
 	if logFilePath == "memory" {
 		writer := io.MultiWriter(os.Stdout)
@@ -35,6 +50,7 @@ func InitLogger(logFilePath string) error {
 		return err
 	}
 
+	logFile = file
 	writer := io.MultiWriter(os.Stdout, file)
 	handler := newColorHandler(writer)
 	appLogger = slog.New(handler)

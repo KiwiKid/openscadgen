@@ -79,6 +79,7 @@ func TestConfigOptionPathsCoverSchema(t *testing.T) {
 		"[openscadgen.instances.images].coord":                   {},
 		"[openscadgen.instances.images].image_size":              {},
 		"[openscadgen.instances.images].param_filter":            {},
+		"[openscadgen.instances.images].tests":                   {},
 	}
 
 	got := map[string]struct{}{}

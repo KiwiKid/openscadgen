@@ -157,7 +157,8 @@ func readInitTemplate(templateName string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("read template file %s: %w", templatePath, err)
 	}
-	return string(data), nil
+	// Templates may be checked out with CRLF; keep generated files stable.
+	return strings.ReplaceAll(string(data), "\r\n", "\n"), nil
 }
 
 func renderInitTemplate(templateBody string, tokens map[string]string) string {
