@@ -3768,7 +3768,7 @@ func findOpenSCAD() (OpenSCADVersion, error) {
 	cmdVer := exec.Command("openscad", "--version")
 	outputVer, err := cmdVer.CombinedOutput()
 	if err != nil {
-		return OpenSCADVersion{}, fmt.Errorf("OpenSCAD not found in PATH (version check). Make sure you can run openscad from the command line: %w", err)
+		return OpenSCADVersion{}, openSCADNotFoundError(err)
 	}
 
 	versionStr := strings.TrimSpace(string(outputVer))
@@ -4595,7 +4595,7 @@ func FindOpenSCAD() string {
 	// Use exec.LookPath which is cross-platform
 	path, err := exec.LookPath("openscad")
 	if err != nil {
-		log.Fatalf("OpenSCAD not found in PATH. (%+v)", err)
+		log.Fatalf("%v", openSCADNotFoundError(err))
 	}
 	return path
 }
