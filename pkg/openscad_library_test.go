@@ -8,7 +8,15 @@ import (
 	"testing"
 )
 
+func isolateOpenSCADLibraryDirs(t *testing.T) {
+	t.Helper()
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("USERPROFILE", home)
+}
+
 func TestOpenSCADLibrariesDetectsInstalledBOSL2(t *testing.T) {
+	isolateOpenSCADLibraryDirs(t)
 	libraryRoot := t.TempDir()
 	t.Setenv("OPENSCADGEN_LIBRARY_DIR", libraryRoot)
 	t.Setenv("OPENSCADPATH", "")
@@ -38,6 +46,7 @@ func TestOpenSCADLibrariesDetectsInstalledBOSL2(t *testing.T) {
 }
 
 func TestOpenSCADLibrariesReportsMissingBOSL2(t *testing.T) {
+	isolateOpenSCADLibraryDirs(t)
 	libraryRoot := t.TempDir()
 	t.Setenv("OPENSCADGEN_LIBRARY_DIR", libraryRoot)
 	t.Setenv("OPENSCADPATH", "")
@@ -52,6 +61,7 @@ func TestOpenSCADLibrariesReportsMissingBOSL2(t *testing.T) {
 }
 
 func TestOpenSCADLibraryInstallRootUsesExistingLibraryLocation(t *testing.T) {
+	isolateOpenSCADLibraryDirs(t)
 	libraryRoot := t.TempDir()
 	t.Setenv("OPENSCADGEN_LIBRARY_DIR", libraryRoot)
 	t.Setenv("OPENSCADPATH", "")
