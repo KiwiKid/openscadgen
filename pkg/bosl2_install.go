@@ -16,14 +16,8 @@ import (
 const bosl2ArchiveURL = "https://github.com/BelfrySCAD/BOSL2/archive/refs/heads/master.zip"
 
 // InstallOrUpgradeBOSL2 installs the current BOSL2 source tree into the
-// OpenSCADGen-managed user library on macOS. This avoids macOS Documents-folder
-// privacy restrictions that can prevent the headless OpenSCAD process reading
-// libraries which are otherwise available to the GUI.
+// OpenSCADGen-managed user library.
 func InstallOrUpgradeBOSL2(ctx context.Context) error {
-	if runtime.GOOS != "darwin" {
-		return fmt.Errorf("BOSL2 installation is currently supported on macOS only")
-	}
-
 	libraryDir, err := managedOpenSCADLibraryDir()
 	if err != nil {
 		return err
@@ -32,9 +26,20 @@ func InstallOrUpgradeBOSL2(ctx context.Context) error {
 }
 
 func managedOpenSCADLibraryDir() (string, error) {
+	if override := strings.TrimSpace(os.Getenv("OPENSCADGEN_LIBRARY_DIR")); override != "" {
+		return filepath.Abs(override)
+	}
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("find home directory for managed OpenSCAD library: %w", err)
+	}
+	// OpenSCAD on Windows reads user libraries from Documents\OpenSCAD\libraries,
+	// so install there when available instead of a hidden AppData-style path.
+	if runtime.GOOS == "windows" {
+		documents := filepath.Join(home, "Documents")
+		if info, statErr := os.Stat(documents); statErr == nil && info.IsDir() {
+			return filepath.Join(documents, "OpenSCAD", "libraries"), nil
+		}
 	}
 	return filepath.Join(home, ".local", "share", "OpenSCAD", "libraries"), nil
 }

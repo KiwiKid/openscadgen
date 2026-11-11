@@ -22,7 +22,7 @@ func OpenSCADToolRegistry() []templates.ToolLink {
 		{
 			Title:                 "BOSL2",
 			Slug:                  "bosl2",
-			Description:           "Core helper library for many OpenSCAD models. OpenSCADGen can probe whether it is available locally.",
+			Description:           "Core helper library for many OpenSCAD models. Install or upgrade it from the Libraries list above.",
 			URL:                   "/api/openscad/status",
 			Badge:                 "Built in",
 			Version:               "current",

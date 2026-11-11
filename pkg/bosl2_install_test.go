@@ -70,7 +70,20 @@ func TestInstallOrUpgradeBOSL2DoesNotReplaceLibraryWithoutStdScad(t *testing.T) 
 	}
 }
 
+func TestManagedOpenSCADLibraryDirUsesOverride(t *testing.T) {
+	want := t.TempDir()
+	t.Setenv("OPENSCADGEN_LIBRARY_DIR", want)
+	got, err := managedOpenSCADLibraryDir()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != want {
+		t.Fatalf("managed library directory = %q, want %q", got, want)
+	}
+}
+
 func TestManagedOpenSCADEnvironmentPrioritizesManagedLibrary(t *testing.T) {
+	t.Setenv("OPENSCADGEN_LIBRARY_DIR", "")
 	managedDir, err := managedOpenSCADLibraryDir()
 	if err != nil {
 		t.Fatal(err)

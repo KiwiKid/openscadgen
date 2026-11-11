@@ -9,24 +9,19 @@ func bosl2ActionDisabledReason(available bool) string {
 	return "OpenSCAD must be installed before BOSL2 can be installed or upgraded."
 }
 
-func bosl2InstallUnsupportedMessage() string {
-	return "BOSL2 installation is currently supported on macOS only."
-}
-
 // OpenSCADNavView is server-side state for the nav OpenSCAD probe widget.
 type OpenSCADNavView struct {
-	Available             bool
-	Path                  string
-	Version               string
-	Error                 string
-	OutOfDate             bool
-	InstallSupported      bool
-	InstallSupportLabel   string
-	BOSL2Available        bool
-	BOSL2ActionLabel      string
-	BOSL2InstallSupported bool
-	BOSL2Error            string
-	DetailsOpen           bool // from ?isExpanded=1 on /api/openscad/status
+	Available           bool
+	Path                string
+	Version             string
+	Error               string
+	OutOfDate           bool
+	InstallSupported    bool
+	InstallSupportLabel string
+	BOSL2Available      bool
+	BOSL2ActionLabel    string
+	BOSL2Error          string
+	DetailsOpen         bool // from ?isExpanded=1 on /api/openscad/status
 }
 
 // OpenSCADNavWidget shows OpenSCAD OK / No OpenSCAD in a <summary>; details hold path/version.
@@ -69,26 +64,22 @@ templ OpenSCADNavWidget(v OpenSCADNavView) {
 					} else {
 						<span class="tag is-warning is-light">BOSL2</span>
 					}
-					if v.BOSL2InstallSupported {
-						<button
-							type="button"
-							class="button is-small is-link"
-							disabled={ !v.Available }
-							title={ bosl2ActionDisabledReason(v.Available) }
-							hx-post="/api/openscad/libraries/bosl2/update"
-							hx-target="#bosl2-install-state"
-							hx-swap="innerHTML"
-						>{ v.BOSL2ActionLabel } BOSL2</button>
-						<span id="bosl2-install-state" class="has-text-grey is-size-7"></span>
-						if !v.Available {
-							<p class="has-text-grey is-size-7 mt-1">{ bosl2ActionDisabledReason(v.Available) }</p>
-						}
-						<p class="has-text-grey is-size-7 mt-1">
-							BOSL2 is a helper library used by many OpenSCAD models. This will install or upgrade it in your local OpenSCAD libraries on supported platforms.
-						</p>
-					} else {
-						<span class="has-text-grey is-size-7">{ bosl2InstallUnsupportedMessage() }</span>
+					<button
+						type="button"
+						class="button is-small is-link"
+						disabled={ !v.Available }
+						title={ bosl2ActionDisabledReason(v.Available) }
+						hx-post="/api/openscad/libraries/bosl2/update"
+						hx-target="#bosl2-install-state"
+						hx-swap="innerHTML"
+					>{ v.BOSL2ActionLabel } BOSL2</button>
+					<span id="bosl2-install-state" class="has-text-grey is-size-7"></span>
+					if !v.Available {
+						<p class="has-text-grey is-size-7 mt-1">{ bosl2ActionDisabledReason(v.Available) }</p>
 					}
+					<p class="has-text-grey is-size-7 mt-1">
+						BOSL2 is a helper library used by many OpenSCAD models. This installs or upgrades it in your local OpenSCAD libraries.
+					</p>
 				</div>
 				if v.Available {
 					<div class="mb-2">
