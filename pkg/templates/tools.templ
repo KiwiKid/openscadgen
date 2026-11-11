@@ -207,7 +207,13 @@ templ ToolsPage(v OpenSCADNavView, tools []ToolLink, libraries []LibraryLink, ho
 }
 
 templ OpenSCADLibraryList(libraries []LibraryLink, oob bool) {
-	<div id="openscad-library-list" class="library-list" if oob { hx-swap-oob="outerHTML" }>
+	<div
+		id="openscad-library-list"
+		class="library-list"
+		if oob {
+			hx-swap-oob="outerHTML"
+		}
+	>
 		if len(libraries) == 0 {
 			<p class="has-text-grey is-size-7">No supported libraries are configured.</p>
 		}
