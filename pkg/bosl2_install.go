@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 )
@@ -29,19 +28,24 @@ func managedOpenSCADLibraryDir() (string, error) {
 	if override := strings.TrimSpace(os.Getenv("OPENSCADGEN_LIBRARY_DIR")); override != "" {
 		return filepath.Abs(override)
 	}
-	home, err := os.UserHomeDir()
+	appDir, err := openSCADGenDir()
 	if err != nil {
-		return "", fmt.Errorf("find home directory for managed OpenSCAD library: %w", err)
+		return "", err
 	}
-	// OpenSCAD on Windows reads user libraries from Documents\OpenSCAD\libraries,
-	// so install there when available instead of a hidden AppData-style path.
-	if runtime.GOOS == "windows" {
-		documents := filepath.Join(home, "Documents")
-		if info, statErr := os.Stat(documents); statErr == nil && info.IsDir() {
-			return filepath.Join(documents, "OpenSCAD", "libraries"), nil
-		}
+	return filepath.Join(appDir, "lib"), nil
+}
+
+// openSCADGenDir returns the directory containing the running executable.
+// Libraries default to <app>/lib so an OpenSCADGen install is self-contained.
+func openSCADGenDir() (string, error) {
+	executable, err := os.Executable()
+	if err != nil {
+		return "", fmt.Errorf("find OpenSCADGen executable directory: %w", err)
 	}
-	return filepath.Join(home, ".local", "share", "OpenSCAD", "libraries"), nil
+	if resolved, err := filepath.EvalSymlinks(executable); err == nil {
+		executable = resolved
+	}
+	return filepath.Dir(executable), nil
 }
 
 func managedOpenSCADEnvironment() []string {
