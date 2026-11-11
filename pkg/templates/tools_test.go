@@ -18,6 +18,7 @@ func TestToolsPageRendersNightlyInstallOptionCheckedByDefault(t *testing.T) {
 			InstallURL:            "/api/openscad/install",
 			InstallNightlyDefault: true,
 		}},
+		nil,
 		"/",
 		false,
 	).Render(context.Background(), &rendered)
@@ -37,17 +38,30 @@ func TestToolsPageRendersNightlyInstallOptionCheckedByDefault(t *testing.T) {
 	}
 }
 
-func TestToolsPageShowsBOSL2PlatformCompatibilityMessage(t *testing.T) {
+func TestToolsPageRendersLibraryCheckboxes(t *testing.T) {
 	var rendered bytes.Buffer
 	err := ToolsPage(
-		OpenSCADNavView{BOSL2InstallSupported: false},
-		[]ToolLink{{
-			Title:              "BOSL2",
-			Slug:               "bosl2",
-			SupportsUpdateFlow: true,
-			CheckUpdatesURL:    "/api/openscad/libraries/bosl2/check",
-			UpdateURL:          "/api/openscad/libraries/bosl2/update",
-		}},
+		OpenSCADNavView{},
+		nil,
+		[]LibraryLink{
+			{
+				ID:               "bosl2",
+				Name:             "BOSL2",
+				Description:      "Helper library",
+				Installed:        true,
+				Version:          "2.0.785",
+				Path:             "/tmp/OpenSCAD/libraries/BOSL2",
+				InstallSupported: true,
+				InstallURL:       "/api/openscad/libraries/bosl2/update",
+			},
+			{
+				ID:               "future-lib",
+				Name:             "Future Lib",
+				Description:      "Not installed yet",
+				InstallSupported: true,
+				InstallURL:       "/api/openscad/libraries/future-lib/update",
+			},
+		},
 		"/",
 		false,
 	).Render(context.Background(), &rendered)
@@ -56,10 +70,38 @@ func TestToolsPageShowsBOSL2PlatformCompatibilityMessage(t *testing.T) {
 	}
 
 	html := rendered.String()
-	if !strings.Contains(html, "BOSL2 installation is currently supported on macOS only.") {
-		t.Fatalf("expected compatibility message, got %s", html)
+	for _, needle := range []string{
+		`id="openscad-library-list"`,
+		`value="bosl2"`,
+		`value="future-lib"`,
+		`hx-post="/api/openscad/libraries/bosl2/update"`,
+		`hx-post="/api/openscad/libraries/future-lib/update"`,
+		"Installed",
+		"Not installed",
+		"2.0.785",
+	} {
+		if !strings.Contains(html, needle) {
+			t.Fatalf("expected library list to contain %q, got %s", needle, html)
+		}
 	}
-	if strings.Contains(html, `hx-post="/api/openscad/libraries/bosl2/update"`) {
-		t.Fatalf("unsupported platforms must not show the BOSL2 update action, got %s", html)
+	if !strings.Contains(html, `checked disabled`) {
+		t.Fatalf("expected the installed library checkbox to be checked and disabled, got %s", html)
+	}
+}
+
+func TestOpenSCADLibraryListOOBRefreshIncludesSwapAttribute(t *testing.T) {
+	var rendered bytes.Buffer
+	err := OpenSCADLibraryList([]LibraryLink{{
+		ID:               "bosl2",
+		Name:             "BOSL2",
+		Installed:        true,
+		InstallSupported: true,
+		InstallURL:       "/api/openscad/libraries/bosl2/update",
+	}}, true).Render(context.Background(), &rendered)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(rendered.String(), `hx-swap-oob="outerHTML"`) {
+		t.Fatalf("expected OOB swap marker, got %s", rendered.String())
 	}
 }

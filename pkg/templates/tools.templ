@@ -19,7 +19,21 @@ type ToolLink struct {
 	InstallNightlyDefault bool
 }
 
-templ ToolsPage(v OpenSCADNavView, tools []ToolLink, homeURL string, showAI bool) {
+// LibraryLink describes a supported OpenSCAD library and whether it was found
+// in one of the local OpenSCAD library directories.
+type LibraryLink struct {
+	ID               string
+	Name             string
+	Description      string
+	URL              string
+	Installed        bool
+	Version          string
+	Path             string
+	InstallSupported bool
+	InstallURL       string
+}
+
+templ ToolsPage(v OpenSCADNavView, tools []ToolLink, libraries []LibraryLink, homeURL string, showAI bool) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -44,6 +58,28 @@ templ ToolsPage(v OpenSCADNavView, tools []ToolLink, homeURL string, showAI bool
 					display: grid;
 					grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
 					gap: 1rem;
+				}
+				.library-list {
+					display: grid;
+					gap: 0.75rem;
+				}
+				.library-row {
+					display: flex;
+					gap: 0.75rem;
+					align-items: flex-start;
+					padding: 0.85rem 1rem;
+					border: 1px solid rgba(0,0,0,0.08);
+					border-radius: 0.75rem;
+					background: rgba(255,255,255,0.9);
+				}
+				.library-row input[type="checkbox"] {
+					margin-top: 0.3rem;
+					width: 1.1rem;
+					height: 1.1rem;
+				}
+				.library-row__body {
+					flex: 1 1 auto;
+					min-width: 0;
 				}
 				.tool-card {
 					height: 100%;
@@ -75,6 +111,16 @@ templ ToolsPage(v OpenSCADNavView, tools []ToolLink, homeURL string, showAI bool
 					<p class="title is-3 mb-2">Tools</p>
 					<p class="subtitle is-6 mb-0">A short list of utilities and libraries that pair well with OpenSCADGen.</p>
 				</section>
+				<section class="tools-libraries mb-5" aria-labelledby="libraries-heading">
+					<div class="is-flex is-justify-content-space-between is-align-items-start mb-3" style="gap: 1rem; flex-wrap: wrap;">
+						<div>
+							<h2 id="libraries-heading" class="title is-4 mb-1">Libraries</h2>
+							<p class="is-size-7 mb-0">Libraries found in your local OpenSCAD library folders. Tick an unchecked library to install it.</p>
+						</div>
+						<span class="tag is-light">{ fmt.Sprintf("%d supported", len(libraries)) }</span>
+					</div>
+					@OpenSCADLibraryList(libraries, false)
+				</section>
 				<div class="tools-grid">
 					for _, tool := range tools {
 						if !showAI && (tool.Title == "AI Chat" || tool.Badge == "AI") {
@@ -105,9 +151,7 @@ templ ToolsPage(v OpenSCADNavView, tools []ToolLink, homeURL string, showAI bool
 										rel="noreferrer"
 									}
 								>{ fmt.Sprintf("Open %s", tool.Title) }</a>
-								if tool.Slug == "bosl2" && !v.BOSL2InstallSupported {
-									<span class="has-text-grey is-size-7">BOSL2 installation is currently supported on macOS only.</span>
-								} else if tool.SupportsUpdateFlow && tool.CheckUpdatesURL != "" {
+								if tool.SupportsUpdateFlow && tool.CheckUpdatesURL != "" {
 									<button
 										type="button"
 										class="button is-small is-light"
@@ -116,7 +160,7 @@ templ ToolsPage(v OpenSCADNavView, tools []ToolLink, homeURL string, showAI bool
 										hx-swap="innerHTML"
 									>Check for updates</button>
 								}
-								if !(tool.Slug == "bosl2" && !v.BOSL2InstallSupported) && tool.SupportsUpdateFlow && tool.UpdateURL != "" {
+								if tool.SupportsUpdateFlow && tool.UpdateURL != "" {
 									<button
 										type="button"
 										class="button is-small is-warning is-light"
@@ -160,4 +204,56 @@ templ ToolsPage(v OpenSCADNavView, tools []ToolLink, homeURL string, showAI bool
 			</div>
 		</body>
 	</html>
+}
+
+templ OpenSCADLibraryList(libraries []LibraryLink, oob bool) {
+	<div
+		id="openscad-library-list"
+		class="library-list"
+		if oob {
+			hx-swap-oob="outerHTML"
+		}
+	>
+		if len(libraries) == 0 {
+			<p class="has-text-grey is-size-7">No supported libraries are configured.</p>
+		}
+		for _, library := range libraries {
+			<label class="library-row">
+				<input
+					type="checkbox"
+					name="library"
+					value={ library.ID }
+					checked?={ library.Installed }
+					disabled?={ library.Installed || !library.InstallSupported }
+					hx-post={ templ.SafeURL(library.InstallURL) }
+					hx-trigger="change"
+					hx-target="#tools-results-content"
+					hx-swap="innerHTML"
+					hx-include="this"
+				/>
+				<span class="library-row__body">
+					<span class="is-flex is-align-items-center is-flex-wrap-wrap" style="gap: 0.5rem;">
+						<strong>{ library.Name }</strong>
+						if library.Installed {
+							<span class="tag is-success is-light">Installed</span>
+						} else {
+							<span class="tag is-warning is-light">Not installed</span>
+						}
+						if library.Version != "" {
+							<span class="tag is-info is-light">{ library.Version }</span>
+						}
+						if !library.InstallSupported {
+							<span class="tag is-light">Install unavailable</span>
+						}
+					</span>
+					<span class="is-size-7" style="display:block; margin-top: 0.25rem;">{ library.Description }</span>
+					if library.Path != "" {
+						<code class="is-size-7" style="display:block; margin-top: 0.35rem; word-break: break-all;">{ library.Path }</code>
+					} else if library.InstallSupported {
+						<span class="has-text-grey is-size-7" style="display:block; margin-top: 0.35rem;">Tick to install into your local OpenSCAD libraries.</span>
+					}
+				</span>
+			</label>
+		}
+	</div>
 }

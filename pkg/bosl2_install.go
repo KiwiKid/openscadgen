@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 )
@@ -16,14 +15,8 @@ import (
 const bosl2ArchiveURL = "https://github.com/BelfrySCAD/BOSL2/archive/refs/heads/master.zip"
 
 // InstallOrUpgradeBOSL2 installs the current BOSL2 source tree into the
-// OpenSCADGen-managed user library on macOS. This avoids macOS Documents-folder
-// privacy restrictions that can prevent the headless OpenSCAD process reading
-// libraries which are otherwise available to the GUI.
+// OpenSCADGen-managed user library.
 func InstallOrUpgradeBOSL2(ctx context.Context) error {
-	if runtime.GOOS != "darwin" {
-		return fmt.Errorf("BOSL2 installation is currently supported on macOS only")
-	}
-
 	libraryDir, err := managedOpenSCADLibraryDir()
 	if err != nil {
 		return err
@@ -32,11 +25,27 @@ func InstallOrUpgradeBOSL2(ctx context.Context) error {
 }
 
 func managedOpenSCADLibraryDir() (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", fmt.Errorf("find home directory for managed OpenSCAD library: %w", err)
+	if override := strings.TrimSpace(os.Getenv("OPENSCADGEN_LIBRARY_DIR")); override != "" {
+		return filepath.Abs(override)
 	}
-	return filepath.Join(home, ".local", "share", "OpenSCAD", "libraries"), nil
+	appDir, err := openSCADGenDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(appDir, "lib"), nil
+}
+
+// openSCADGenDir returns the directory containing the running executable.
+// Libraries default to <app>/lib so an OpenSCADGen install is self-contained.
+func openSCADGenDir() (string, error) {
+	executable, err := os.Executable()
+	if err != nil {
+		return "", fmt.Errorf("find OpenSCADGen executable directory: %w", err)
+	}
+	if resolved, err := filepath.EvalSymlinks(executable); err == nil {
+		executable = resolved
+	}
+	return filepath.Dir(executable), nil
 }
 
 func managedOpenSCADEnvironment() []string {

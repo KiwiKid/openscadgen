@@ -126,17 +126,17 @@ func TestHandleOpenSCADInstallRequiresPOST(t *testing.T) {
 }
 
 func TestHandleOpenSCADLibraryActionInstallsBOSL2(t *testing.T) {
-	if runtime.GOOS != "darwin" {
-		t.Skip("BOSL2 installation is only supported on macOS")
-	}
-	originalInstall := installBOSL2
+	originalInstall := installLibrary
 	originalServerFolder := globalServerFolder
 	t.Cleanup(func() {
-		installBOSL2 = originalInstall
+		installLibrary = originalInstall
 		globalServerFolder = originalServerFolder
 	})
 	installed := false
-	installBOSL2 = func(_ context.Context) error {
+	installLibrary = func(_ context.Context, id string) error {
+		if id != "bosl2" {
+			t.Fatalf("install library id = %q, want bosl2", id)
+		}
 		installed = true
 		return nil
 	}
@@ -159,6 +159,9 @@ func TestHandleOpenSCADLibraryActionInstallsBOSL2(t *testing.T) {
 	if !strings.Contains(rr.Body.String(), "BOSL2 installed") || !strings.Contains(rr.Body.String(), `class="message is-success"`) {
 		t.Fatalf("unexpected response: %s", rr.Body.String())
 	}
+	if !strings.Contains(rr.Body.String(), `hx-swap-oob="outerHTML"`) {
+		t.Fatalf("expected the library list to be refreshed out-of-band, got %s", rr.Body.String())
+	}
 }
 
 func TestHandleOpenSCADLibraryActionRejectsGETUpdate(t *testing.T) {
@@ -172,12 +175,9 @@ func TestHandleOpenSCADLibraryActionRejectsGETUpdate(t *testing.T) {
 }
 
 func TestHandleOpenSCADLibraryActionShowsManualCommandAfterInstallFailure(t *testing.T) {
-	if runtime.GOOS != "darwin" {
-		t.Skip("BOSL2 installation is only supported on macOS")
-	}
-	originalInstall := installBOSL2
-	t.Cleanup(func() { installBOSL2 = originalInstall })
-	installBOSL2 = func(_ context.Context) error { return fmt.Errorf("download timed out") }
+	originalInstall := installLibrary
+	t.Cleanup(func() { installLibrary = originalInstall })
+	installLibrary = func(_ context.Context, _ string) error { return fmt.Errorf("download timed out") }
 
 	req := httptest.NewRequest(http.MethodPost, "/api/openscad/libraries/bosl2/update", nil)
 	req.Header.Set("HX-Target", "tools-results-content")
@@ -187,7 +187,7 @@ func TestHandleOpenSCADLibraryActionShowsManualCommandAfterInstallFailure(t *tes
 	if rr.Code != http.StatusOK {
 		t.Fatalf("status = %d, body = %s", rr.Code, rr.Body.String())
 	}
-	if !strings.Contains(rr.Body.String(), "download timed out") || !strings.Contains(rr.Body.String(), "Copy command") || !strings.Contains(rr.Body.String(), "set -e") || !strings.Contains(rr.Body.String(), "git clone --depth 1") {
+	if !strings.Contains(rr.Body.String(), "download timed out") || !strings.Contains(rr.Body.String(), "Copy command") || !strings.Contains(rr.Body.String(), "git clone --depth 1") {
 		t.Fatalf("expected manual recovery command, got %s", rr.Body.String())
 	}
 }

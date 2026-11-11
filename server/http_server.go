@@ -31,13 +31,21 @@ var aiToolsEnabled bool
 var globalServerFolder string
 var startOpenSCADFile = openOpenSCADFile
 var installOpenSCAD = installOpenSCADWithHomebrew
-var installBOSL2 = pkg.InstallOrUpgradeBOSL2
+var installLibrary = pkg.InstallOpenSCADLibrary
 
-const bosl2ManualInstallCommand = `set -e
+func bosl2ManualInstallCommand() string {
+	if runtime.GOOS == "windows" {
+		return `$dir = Join-Path $HOME "Documents\OpenSCAD\libraries"
+New-Item -ItemType Directory -Force $dir | Out-Null
+if (Test-Path "$dir\BOSL2") { Rename-Item "$dir\BOSL2" "BOSL2.backup-$(Get-Date -Format s)" }
+git clone --depth 1 https://github.com/BelfrySCAD/BOSL2.git "$dir\BOSL2"`
+	}
+	return `set -e
 mkdir -p "$HOME/.local/share/OpenSCAD/libraries"
 cd "$HOME/.local/share/OpenSCAD/libraries"
 if [ -d BOSL2 ]; then mv BOSL2 "BOSL2.backup-$(date +%s)"; fi
 git clone --depth 1 https://github.com/BelfrySCAD/BOSL2.git`
+}
 
 func openSCADManualInstallCommand(installNightly bool) string {
 	formula := "openscad"
@@ -821,42 +829,37 @@ func handleOpenSCADStatus(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	info, err := pkg.ProbeOpenSCAD()
 	var v templates.OpenSCADNavView
+	bosl2Available := pkg.OpenSCADLibraryInstalled("bosl2")
+	bosl2ActionLabel := "Install"
+	if bosl2Available {
+		bosl2ActionLabel = "Upgrade"
+	}
 	if err != nil {
 		v = templates.OpenSCADNavView{
-			Available:             false,
-			Error:                 err.Error(),
-			InstallSupported:      runtime.GOOS == "darwin",
-			InstallSupportLabel:   "darwin",
-			BOSL2ActionLabel:      "Install",
-			BOSL2InstallSupported: runtime.GOOS == "darwin",
+			Available:           false,
+			Error:               err.Error(),
+			InstallSupported:    runtime.GOOS == "darwin",
+			InstallSupportLabel: "darwin",
+			BOSL2Available:      bosl2Available,
+			BOSL2ActionLabel:    bosl2ActionLabel,
 		}
 	} else {
-		bosl2Available, bosl2Err := pkg.ProbeBOSL2(info.Path)
-		bosl2ActionLabel := "Install"
-		if bosl2Available {
-			bosl2ActionLabel = "Upgrade"
-		}
 		v = templates.OpenSCADNavView{
-			Available:             true,
-			Path:                  info.Path,
-			Version:               info.Version,
-			OutOfDate:             info.IsOutOfDate,
-			InstallSupported:      runtime.GOOS == "darwin",
-			InstallSupportLabel:   "darwin",
-			BOSL2Available:        bosl2Available,
-			BOSL2ActionLabel:      bosl2ActionLabel,
-			BOSL2InstallSupported: runtime.GOOS == "darwin",
-		}
-		if bosl2Err != nil {
-			v.BOSL2Error = bosl2Err.Error()
+			Available:           true,
+			Path:                info.Path,
+			Version:             info.Version,
+			OutOfDate:           info.IsOutOfDate,
+			InstallSupported:    runtime.GOOS == "darwin",
+			InstallSupportLabel: "darwin",
+			BOSL2Available:      bosl2Available,
+			BOSL2ActionLabel:    bosl2ActionLabel,
 		}
 	}
 	v.DetailsOpen = r.URL.Query().Get("isExpanded") == "1"
 	if !v.Available {
 		v.InstallSupported = runtime.GOOS == "darwin"
 		v.InstallSupportLabel = "darwin"
-		v.BOSL2InstallSupported = runtime.GOOS == "darwin"
-		v.BOSL2ActionLabel = "Install"
+		v.BOSL2ActionLabel = bosl2ActionLabel
 	}
 	if r.URL.Query().Get("fragment") == "1" {
 		templates.OpenSCADNavWidget(v).Render(ctx, w)
@@ -922,37 +925,33 @@ func handleToolsRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	info, err := pkg.ProbeOpenSCAD()
 	var v templates.OpenSCADNavView
+	bosl2Available := pkg.OpenSCADLibraryInstalled("bosl2")
+	actionLabel := "Install"
+	if bosl2Available {
+		actionLabel = "Upgrade"
+	}
 	if err != nil {
 		v = templates.OpenSCADNavView{
-			Available:             false,
-			Error:                 err.Error(),
-			InstallSupported:      runtime.GOOS == "darwin",
-			InstallSupportLabel:   "darwin",
-			BOSL2ActionLabel:      "Install",
-			BOSL2InstallSupported: runtime.GOOS == "darwin",
+			Available:           false,
+			Error:               err.Error(),
+			InstallSupported:    runtime.GOOS == "darwin",
+			InstallSupportLabel: "darwin",
+			BOSL2Available:      bosl2Available,
+			BOSL2ActionLabel:    actionLabel,
 		}
 	} else {
-		bosl2Available, bosl2Err := pkg.ProbeBOSL2(info.Path)
-		actionLabel := "Install"
-		if bosl2Available {
-			actionLabel = "Upgrade"
-		}
 		v = templates.OpenSCADNavView{
-			Available:             true,
-			Path:                  info.Path,
-			Version:               info.Version,
-			OutOfDate:             info.IsOutOfDate,
-			InstallSupported:      runtime.GOOS == "darwin",
-			InstallSupportLabel:   "darwin",
-			BOSL2Available:        bosl2Available,
-			BOSL2ActionLabel:      actionLabel,
-			BOSL2InstallSupported: runtime.GOOS == "darwin",
-		}
-		if bosl2Err != nil {
-			v.BOSL2Error = bosl2Err.Error()
+			Available:           true,
+			Path:                info.Path,
+			Version:             info.Version,
+			OutOfDate:           info.IsOutOfDate,
+			InstallSupported:    runtime.GOOS == "darwin",
+			InstallSupportLabel: "darwin",
+			BOSL2Available:      bosl2Available,
+			BOSL2ActionLabel:    actionLabel,
 		}
 	}
-	templates.ToolsPage(v, pkg.OpenSCADToolRegistry(), pkg.BuildHomeURL(globalServerFolder), aiToolsEnabled).Render(r.Context(), w)
+	templates.ToolsPage(v, pkg.OpenSCADToolRegistry(), pkg.OpenSCADLibraries(), pkg.BuildHomeURL(globalServerFolder), aiToolsEnabled).Render(r.Context(), w)
 }
 
 func handleConfigOptionsRequest(w http.ResponseWriter, r *http.Request) {
@@ -983,29 +982,28 @@ func handleOpenSCADLibraryAction(w http.ResponseWriter, r *http.Request) {
 		}
 		pkg.LogStagef("update", "check for updates requested for %s", libName)
 		writeToolActionResult(w, r, "is-info", fmt.Sprintf("%s availability checked", strings.ToUpper(libName)), "OpenSCADGen checked the configured local library support.", "")
-	case "update":
+	case "update", "install":
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 		pkg.LogStagef("update", "update requested for %s", libName)
-		if libName != "bosl2" {
+		if !pkg.OpenSCADLibrarySupported(libName) {
 			http.Error(w, "library installation is not implemented for this library", http.StatusNotImplemented)
 			return
 		}
-		if runtime.GOOS != "darwin" {
-			writeToolActionResult(w, r, "is-warning", "BOSL2 installation is not supported on this platform", "BOSL2 installation is currently supported on macOS only.", "")
+		if err := installLibrary(r.Context(), libName); err != nil {
+			pkg.LogWarnf("%s installation failed: %v", libName, err)
+			writeToolActionResult(w, r, "is-danger", strings.ToUpper(libName)+" installation failed", err.Error(), bosl2ManualInstallCommand())
 			return
 		}
-		if err := installBOSL2(r.Context()); err != nil {
-			pkg.LogWarnf("BOSL2 installation failed: %v", err)
-			writeToolActionResult(w, r, "is-danger", "BOSL2 installation failed", err.Error(), bosl2ManualInstallCommand)
-			return
+		if err := pkg.RecordUpdateJournal(globalServerFolder, libName, "installed library", strings.ToUpper(libName)+" installed", "downloaded official library source archive", true); err != nil {
+			pkg.LogWarnf("%s update journal write failed: %v", libName, err)
 		}
-		if err := pkg.RecordUpdateJournal(globalServerFolder, libName, "installed library", "BOSL2 installed", "downloaded official BOSL2 source archive", true); err != nil {
-			pkg.LogWarnf("BOSL2 update journal write failed: %v", err)
+		writeToolActionResult(w, r, "is-success", strings.ToUpper(libName)+" installed", "Downloaded and validated the official library source archive. Reload OpenSCAD to use the updated library.", "")
+		if r.Header.Get("HX-Target") == "tools-results-content" {
+			_ = templates.OpenSCADLibraryList(pkg.OpenSCADLibraries(), true).Render(r.Context(), w)
 		}
-		writeToolActionResult(w, r, "is-success", "BOSL2 installed", "Downloaded and validated the official BOSL2 source archive. Reload OpenSCAD to use the updated library.", "")
 	default:
 		http.Error(w, "unsupported library action", http.StatusNotImplemented)
 	}
