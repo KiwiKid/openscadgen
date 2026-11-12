@@ -48,6 +48,12 @@ func openSCADGenDir() (string, error) {
 	return filepath.Dir(executable), nil
 }
 
+// OpenSCADEnvironment returns the environment used for OpenSCAD child
+// processes, with the managed library directory first on OPENSCADPATH.
+func OpenSCADEnvironment() []string {
+	return managedOpenSCADEnvironment()
+}
+
 func managedOpenSCADEnvironment() []string {
 	managedDir, err := managedOpenSCADLibraryDir()
 	if err != nil {
