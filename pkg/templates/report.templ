@@ -1494,6 +1494,11 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
         }
         
         const OG_PENDING_PROCESS_KEY = 'og-pending-process';
+        // A pending process may be replayed once after an HX-Redirect so a
+        // stale instance signature can be refreshed. Anything older than this
+        // is a leftover from an abandoned page, not a request to run again.
+        const OG_PENDING_PROCESS_MAX_AGE_MS = 30 * 1000;
+        let ogPendingProcessReplayed = false;
 
         function ogSerializeProcessForm(formEl) {
             const fields = {};
@@ -1521,7 +1526,8 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
         function ogRememberPendingProcess(formEl) {
             try {
                 window.sessionStorage.setItem(OG_PENDING_PROCESS_KEY, JSON.stringify({
-                    fields: ogSerializeProcessForm(formEl)
+                    fields: ogSerializeProcessForm(formEl),
+                    createdAt: Date.now()
                 }));
             } catch (error) {
                 console.warn('Failed to store pending process form state', error);
@@ -1534,7 +1540,13 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
                 if (!raw) {
                     return null;
                 }
-                return JSON.parse(raw);
+                const pending = JSON.parse(raw);
+                const createdAt = Number(pending && pending.createdAt);
+                if (!createdAt || Date.now() - createdAt > OG_PENDING_PROCESS_MAX_AGE_MS) {
+                    ogClearPendingProcess();
+                    return null;
+                }
+                return pending;
             } catch (error) {
                 console.warn('Failed to read pending process form state', error);
                 return null;
@@ -1596,10 +1608,17 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
         }
 
         function ogResumePendingProcess() {
+            if (ogPendingProcessReplayed) {
+                return;
+            }
             const pending = ogReadPendingProcess();
             if (!pending || !pending.fields) {
                 return;
             }
+            // At most one automatic replay per page load. The replay itself
+            // may be redirected to refresh stale instances, and replaying it
+            // again on the next load would turn that redirect into a loop.
+            ogPendingProcessReplayed = true;
             const formEl = ogPrimaryProcessForm();
             if (!formEl) {
                 ogClearPendingProcess();
@@ -1611,6 +1630,11 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
                 return;
             }
             ogApplyPendingProcess(formEl, pending.fields);
+            // Consume the marker before the request starts. The request's own
+            // before-request handler must not re-arm it, otherwise a redirect
+            // from this replay would schedule the replay again forever.
+            ogClearPendingProcess();
+            formEl.dataset.ogProcessResume = '1';
             const submitButton = formEl.querySelector('button[type="submit"]');
             if (typeof formEl.requestSubmit === 'function') {
                 formEl.requestSubmit(submitButton || undefined);
@@ -1628,7 +1652,13 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
             // a one-instance job into a page-level job and can cause a
             // redirect/retry flicker loop.
             if (ogIsPrimaryProcessForm(formEl)) {
-                ogRememberPendingProcess(formEl);
+                if (formEl.dataset.ogProcessResume === '1') {
+                    // ogResumePendingProcess already consumed the marker. Do
+                    // not re-arm it here or the next redirect loops forever.
+                    delete formEl.dataset.ogProcessResume;
+                } else {
+                    ogRememberPendingProcess(formEl);
+                }
             }
             const submitButton = formEl.querySelector('[data-og-process-submit]');
             const cancelButton = formEl.querySelector('[data-og-process-cancel]');
@@ -1706,13 +1736,13 @@ templ Report(reportMode string, config *models.Config, instances []models.Instan
             if (!formEl) {
                 return;
             }
-            const submitButton = formEl.querySelector('[data-og-process-submit]');
             const cancelButton = formEl.querySelector('[data-og-process-cancel]');
-            if (submitButton) {
-                submitButton.classList.remove('is-hidden');
-                submitButton.classList.remove('og-process-button--loading');
-                submitButton.removeAttribute('aria-busy');
-            }
+            formEl.querySelectorAll('[data-og-process-submit]').forEach((button) => {
+                button.classList.remove('is-hidden');
+                button.classList.remove('og-process-button--loading');
+                button.disabled = false;
+                button.removeAttribute('aria-busy');
+            });
             if (cancelButton) {
                 cancelButton.classList.remove('is-hidden');
                 cancelButton.disabled = true;
