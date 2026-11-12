@@ -347,13 +347,44 @@ func TestReportOnlyPersistsPageLevelProcessFormsForRedirectRecovery(t *testing.T
 	body := strings.ReplaceAll(rendered.String(), "\r\n", "\n")
 	for _, needle := range []string{
 		"function ogIsPrimaryProcessForm(formEl)",
-		"if (ogIsPrimaryProcessForm(formEl)) {\n                ogRememberPendingProcess(formEl);",
+		"if (ogIsPrimaryProcessForm(formEl)) {",
+		"ogRememberPendingProcess(formEl);",
 		"indicator.classList.add('og-process-indicator--active');",
 		".og-process-inline-indicator.og-process-indicator--active",
 	} {
 		if !strings.Contains(body, needle) {
 			t.Fatalf("expected report process lifecycle to contain %q", needle)
 		}
+	}
+}
+
+func TestReportReplaysPendingProcessAtMostOnce(t *testing.T) {
+	var rendered strings.Builder
+	if err := Report("view", &models.Config{}, nil, t.TempDir(), nil, nil, nil, models.ReportMeta{}, 0, nil).Render(context.Background(), &rendered); err != nil {
+		t.Fatalf("render report: %v", err)
+	}
+
+	body := strings.ReplaceAll(rendered.String(), "\r\n", "\n")
+	for _, needle := range []string{
+		"const OG_PENDING_PROCESS_MAX_AGE_MS = 30 * 1000;",
+		"let ogPendingProcessReplayed = false;",
+		"if (ogPendingProcessReplayed) {",
+		"ogPendingProcessReplayed = true;",
+		"createdAt: Date.now()",
+		"if (formEl.dataset.ogProcessResume === '1') {",
+		"delete formEl.dataset.ogProcessResume;",
+	} {
+		if !strings.Contains(body, needle) {
+			t.Fatalf("expected pending-process replay guard to contain %q", needle)
+		}
+	}
+
+	// The resumed request must consume the pending marker before it submits
+	// and mark the form so its own before-request handler does not re-arm it.
+	consume := strings.Index(body, "ogClearPendingProcess();\n            formEl.dataset.ogProcessResume = '1';")
+	submit := strings.Index(body, "formEl.requestSubmit(submitButton || undefined);")
+	if consume < 0 || submit < 0 || consume > submit {
+		t.Fatalf("resume should consume the pending marker before submitting (consume=%d submit=%d)", consume, submit)
 	}
 }
 

@@ -1,0 +1,16 @@
+[openscadgen]
+name = "hex_to_screw_bit"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}"
+
+global_params = { }
+
+[[openscadgen.input_paths]]
+path = "./hex_to_screw_bit.scad"
+params = { }
+
+[[openscadgen.images]]
+name = "nice"
