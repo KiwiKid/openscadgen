@@ -1801,6 +1801,8 @@ func openOpenSCADFile(path string) error {
 	default:
 		return fmt.Errorf("unsupported operating system")
 	}
+	// Make app-local libraries visible when OpenSCAD is launched from the UI.
+	cmd.Env = pkg.OpenSCADEnvironment()
 	return cmd.Start()
 }
 
