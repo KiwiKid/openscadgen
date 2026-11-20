@@ -27,24 +27,43 @@ import (
 var configFiles []models.ConfigFile
 var fileWatcher *FileWatcher
 var fileWatcherEnabled bool
-var aiToolsEnabled bool
+var mcpToolsEnabled bool
 var globalServerFolder string
 var startOpenSCADFile = openOpenSCADFile
 var installOpenSCAD = installOpenSCADWithHomebrew
 var installLibrary = pkg.InstallOpenSCADLibrary
 
 func bosl2ManualInstallCommand() string {
-	if runtime.GOOS == "windows" {
-		return `$dir = Join-Path $HOME "Documents\OpenSCAD\libraries"
-New-Item -ItemType Directory -Force $dir | Out-Null
-if (Test-Path "$dir\BOSL2") { Rename-Item "$dir\BOSL2" "BOSL2.backup-$(Get-Date -Format s)" }
-git clone --depth 1 https://github.com/BelfrySCAD/BOSL2.git "$dir\BOSL2"`
+	libraryDir, err := pkg.ManagedOpenSCADLibraryDir()
+	if err != nil || strings.TrimSpace(libraryDir) == "" {
+		if runtime.GOOS == "windows" {
+			libraryDir = filepath.Join(os.Getenv("USERPROFILE"), "Documents", "OpenSCAD", "libraries")
+		} else {
+			libraryDir = filepath.Join(os.Getenv("HOME"), ".local", "share", "OpenSCAD", "libraries")
+		}
 	}
-	return `set -e
-mkdir -p "$HOME/.local/share/OpenSCAD/libraries"
-cd "$HOME/.local/share/OpenSCAD/libraries"
-if [ -d BOSL2 ]; then mv BOSL2 "BOSL2.backup-$(date +%s)"; fi
-git clone --depth 1 https://github.com/BelfrySCAD/BOSL2.git`
+	if runtime.GOOS == "windows" {
+		return fmt.Sprintf(`# Close OpenSCAD and any Explorer window showing BOSL2 first.
+$dir = '%s'
+$target = Join-Path $dir 'BOSL2'
+if (Test-Path (Join-Path $target '.git')) {
+    git -C $target fetch --depth 1 origin master
+    git -C $target reset --hard FETCH_HEAD
+} else {
+    if (Test-Path $target) { Remove-Item -Recurse -Force $target }
+    git clone --depth 1 https://github.com/BelfrySCAD/BOSL2.git $target
+}`, libraryDir)
+	}
+	return fmt.Sprintf(`set -e
+mkdir -p '%s'
+target='%s/BOSL2'
+if [ -d "$target/.git" ]; then
+    git -C "$target" fetch --depth 1 origin master
+    git -C "$target" reset --hard FETCH_HEAD
+else
+    rm -rf "$target"
+    git clone --depth 1 https://github.com/BelfrySCAD/BOSL2.git "$target"
+fi`, libraryDir, libraryDir)
 }
 
 func openSCADManualInstallCommand(installNightly bool) string {
@@ -131,7 +150,14 @@ func tryListenOnPort(address string, portWasSpecified bool) (net.Listener, strin
 
 // StartServer starts the HTTP server with the specified folder for config files
 func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(port string) error) ServerInfo {
-	aiToolsEnabled = cmdFlags.ShowAI
+	mcpServerConfig = newMCPConfig(cmdFlags, serverFolder)
+	mcpToolsEnabled = mcpServerConfig.Enabled
+	if mcpToolsEnabled {
+		pkg.LogInfof("MCP enabled: %d tool(s), default detail %q", len(availableMCPTools(mcpServerConfig)), mcpServerConfig.Detail)
+		for _, notice := range mcpServerConfig.Notices {
+			pkg.LogWarnf("%s", notice)
+		}
+	}
 	bindAddress := strings.TrimSpace(cmdFlags.ServerAddress)
 	if bindAddress == "" {
 		bindAddress = "127.0.0.1"
@@ -140,6 +166,7 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 	if cmdFlags.ServerPort != 0 {
 		portNumber = cmdFlags.ServerPort
 	}
+	mcpHTTPPort = portNumber
 	port := fmt.Sprintf(":%d", portNumber)
 	listenAddress := net.JoinHostPort(bindAddress, strconv.Itoa(portNumber))
 
@@ -185,10 +212,10 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 	http.HandleFunc("/start", StartHandler)
 	http.HandleFunc("/progress", ProgressHandler)
 	http.HandleFunc("/cancel", CancelHandler)
-	http.HandleFunc("/chat", handleChatRequest)
 	http.HandleFunc("/tools", handleToolsRequest)
-	http.HandleFunc("/api/chat/run", handleChatRun)
-	http.HandleFunc("/api/chat/status", handleChatStatus)
+	http.HandleFunc("/ai", handleAISettingsPage)
+	http.HandleFunc("/mcp", handleMCPHTTP)
+	http.HandleFunc("/api/mcp/process/", handleMCPProcessStatus)
 	http.HandleFunc("/api/config", handleConfigRequest)
 	http.HandleFunc("/api/config/changed", handleConfigChanged)
 	http.HandleFunc("/api/config/options", handleConfigOptionsRequest)
@@ -450,7 +477,7 @@ func handleGETRequest(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		configEntry := templates.EnterConfigPage(configFiles, globalServerFolder, aiToolsEnabled)
+		configEntry := templates.EnterConfigPage(configFiles, globalServerFolder, mcpToolsEnabled)
 		configEntry.Render(context.Background(), w)
 	} else {
 
@@ -501,7 +528,7 @@ func handleGETRequest(w http.ResponseWriter, r *http.Request) {
 
 		reportMeta := pkg.BuildReportMeta(models.BuildReportMetaParams{
 			IsServerMode:         true,
-			ShowAI:               aiToolsEnabled,
+			ShowAI:               mcpToolsEnabled,
 			ConfigFilePath:       decodedConfigEntryPath,
 			ServerFolder:         globalServerFolder,
 			Config:               config,
@@ -917,6 +944,14 @@ func handleOpenSCADInstall(w http.ResponseWriter, r *http.Request) {
 	writeToolActionResult(w, r, "is-success", "OpenSCAD installed", fmt.Sprintf("Installed %s. Reload the page to refresh its status.", installedVersion), "")
 }
 
+func openSCADLibrariesWithAccess(openscadPath string) []templates.LibraryLink {
+	libraries := pkg.OpenSCADLibraries()
+	if strings.TrimSpace(openscadPath) == "" {
+		return libraries
+	}
+	return pkg.CheckOpenSCADLibraryAccess(libraries, openscadPath)
+}
+
 func handleToolsRequest(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -930,6 +965,7 @@ func handleToolsRequest(w http.ResponseWriter, r *http.Request) {
 	if bosl2Available {
 		actionLabel = "Upgrade"
 	}
+	openscadPath := ""
 	if err != nil {
 		v = templates.OpenSCADNavView{
 			Available:           false,
@@ -940,6 +976,7 @@ func handleToolsRequest(w http.ResponseWriter, r *http.Request) {
 			BOSL2ActionLabel:    actionLabel,
 		}
 	} else {
+		openscadPath = info.Path
 		v = templates.OpenSCADNavView{
 			Available:           true,
 			Path:                info.Path,
@@ -951,7 +988,7 @@ func handleToolsRequest(w http.ResponseWriter, r *http.Request) {
 			BOSL2ActionLabel:    actionLabel,
 		}
 	}
-	templates.ToolsPage(v, pkg.OpenSCADToolRegistry(), pkg.OpenSCADLibraries(), pkg.BuildHomeURL(globalServerFolder), aiToolsEnabled).Render(r.Context(), w)
+	templates.ToolsPage(v, pkg.OpenSCADToolRegistry(), openSCADLibrariesWithAccess(openscadPath), pkg.BuildHomeURL(globalServerFolder), mcpToolsEnabled).Render(r.Context(), w)
 }
 
 func handleConfigOptionsRequest(w http.ResponseWriter, r *http.Request) {
@@ -997,12 +1034,17 @@ func handleOpenSCADLibraryAction(w http.ResponseWriter, r *http.Request) {
 			writeToolActionResult(w, r, "is-danger", strings.ToUpper(libName)+" installation failed", err.Error(), bosl2ManualInstallCommand())
 			return
 		}
+		pkg.InvalidateOpenSCADLibraryAccessCache()
 		if err := pkg.RecordUpdateJournal(globalServerFolder, libName, "installed library", strings.ToUpper(libName)+" installed", "downloaded official library source archive", true); err != nil {
 			pkg.LogWarnf("%s update journal write failed: %v", libName, err)
 		}
 		writeToolActionResult(w, r, "is-success", strings.ToUpper(libName)+" installed", "Downloaded and validated the official library source archive. Reload OpenSCAD to use the updated library.", "")
 		if r.Header.Get("HX-Target") == "tools-results-content" {
-			_ = templates.OpenSCADLibraryList(pkg.OpenSCADLibraries(), true).Render(r.Context(), w)
+			openscadPath := ""
+			if info, err := pkg.ProbeOpenSCAD(); err == nil {
+				openscadPath = info.Path
+			}
+			_ = templates.OpenSCADLibraryList(openSCADLibrariesWithAccess(openscadPath), true).Render(r.Context(), w)
 		}
 	default:
 		http.Error(w, "unsupported library action", http.StatusNotImplemented)
@@ -1790,6 +1832,13 @@ func pathWithinDir(path, dir string) bool {
 }
 
 func openOpenSCADFile(path string) error {
+	// An already-running OpenSCAD ignores the OPENSCADPATH of a second launch,
+	// so make the managed libraries resolvable from OpenSCAD's own library
+	// folder as well. Failure is not fatal: a freshly launched instance still
+	// receives the environment below.
+	if err := pkg.EnsureOpenSCADGUILibraryPath(); err != nil {
+		pkg.LogWarnf("OpenSCAD GUI may not see OpenSCADGen libraries: %v", err)
+	}
 	var cmd *exec.Cmd
 	switch runtime.GOOS {
 	case "darwin":

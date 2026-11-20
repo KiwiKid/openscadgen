@@ -157,12 +157,18 @@ type CmdFlags struct {
 	LowQuality                   bool   `json:"low_quality"`
 	EnableFileWatcher            bool   `json:"enable_file_watcher"`
 	ShowAI                       bool   `json:"show_ai"`
+	MCPStdio                     bool   `json:"mcp_stdio"`
+	MCPDetail                    string `json:"mcp_detail"`
+	MCPReadOnly                  bool   `json:"mcp_read_only"`
+	MCPAllowPush                 bool   `json:"mcp_allow_push"`
+	MCPRoots                     string `json:"mcp_roots"`
 	DeleteExportSTLsDir          string `json:"delete_export_stls_dir"`
 	DangerouslySkipPermissions   bool   `json:"dangerously_skip_permissions"`
 	BuildPages                   bool   `json:"build_pages"`
 	PagesOutputDir               string `json:"pages_output_dir"`
 	BuildSite                    bool   `json:"build_site"`
 	BuildSiteIgnoreSections      string `json:"build_site_ignore_sections"`
+	BrowserReport                bool   `json:"browser_report"`
 }
 
 type OutputPaths struct {
@@ -225,6 +231,7 @@ type Config struct {
 	InitProjectTemplate          string
 	NoInput                      bool
 	ConfigOptionsTopic           string
+	BrowserReport                bool
 }
 
 type InputPath struct {
@@ -696,41 +703,79 @@ type ReportMeta struct {
 	Results               Results
 	TestRun               *TestRunSummary
 	RepositoryStatus      *RepositoryStatus
+
+	// BrowserRendering enables the optional WebAssembly renderer in the
+	// generated report. BrowserBundleJSON contains the versioned data payload;
+	// it is already JSON-escaped for use inside a script element.
+	BrowserRendering  bool
+	BrowserBundleJSON string
+	BrowserAssetsBase string
 }
 
-type ChatMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
+// MCPProjectInfo is one project folder discovered under an MCP root.
+type MCPProjectInfo struct {
+	Label      string `json:"label"`
+	Root       string `json:"root"`
+	ConfigPath string `json:"config_path"`
 }
 
-type ChatPageData struct {
-	Title                   string
-	ShowAI                  bool
-	Messages                []ChatMessage
-	HistoryJSON             string
-	Draft                   string
-	Provider                string
-	OpenAIAvailable         bool
-	DeepSeekAvailable       bool
-	OpenAIDefaultModel      string
-	DeepSeekDefaultModel    string
-	Model                   string
-	Error                   string
-	Notice                  string
-	APIKeyConfigured        bool
-	APIKeyLabel             string
-	ProjectLabel            string
-	ProjectPath             string
-	ProjectToolsEnabled     bool
-	ContextFileLabel        string
-	ContextFilePath         string
-	ContextIncluded         bool
-	AsyncEnabled            bool
-	ConfigAutomationEnabled bool
-	HomeURL                 string
-	BackURL                 string
-	ActionURL               string
-	ResetURL                string
-	RunURL                  string
-	StatusURL               string
+// MCPParamInfo describes one tool parameter for the AI settings page.
+type MCPParamInfo struct {
+	Name        string
+	Type        string
+	Required    bool
+	Description string
+}
+
+// MCPToolInfo is a read-only rendering of one advertised MCP tool.
+type MCPToolInfo struct {
+	Name         string
+	Title        string
+	Category     string
+	Description  string
+	ReadOnly     bool
+	RequiresPush bool
+	Gated        bool
+	Params       []MCPParamInfo
+}
+
+// MCPClientSnippet is one copy-ready client configuration example.
+type MCPClientSnippet struct {
+	Title   string
+	Client  string
+	Format  string
+	Content string
+}
+
+// AISettingsPageData is the view model for the read-only AI/MCP settings page.
+// The page never persists anything: every value is derived from flags and the
+// process environment, so it reports effective configuration only.
+type AISettingsPageData struct {
+	Title           string
+	Enabled         bool
+	HTTPMounted     bool
+	StdioMode       bool
+	EndpointURL     string
+	ProgressPath    string
+	StdioCommand    string
+	ProtocolVersion string
+	DetailLevel     string
+	ReadOnly        bool
+	AllowPush       bool
+	Roots           []string
+	BindAddress     string
+	LoopbackOnly    bool
+	Tools           []MCPToolInfo
+	Snippets        []MCPClientSnippet
+	Sources         []AISettingSource
+	Notices         []string
+}
+
+// AISettingSource documents where an effective setting came from.
+type AISettingSource struct {
+	Name    string
+	Value   string
+	Flag    string
+	Env     string
+	Default string
 }

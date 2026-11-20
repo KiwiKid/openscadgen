@@ -140,6 +140,12 @@ func openInOpenSCADURL(sourcePath string, reportMeta models.ReportMeta) string {
 		url.QueryEscape(base64.StdEncoding.EncodeToString([]byte(sourcePath))))
 }
 
+// reportAISettingsURL is the standalone AI/MCP settings page. It is a full page
+// rather than a report fragment, so links use a normal href.
+func reportAISettingsURL() string {
+	return "/ai"
+}
+
 templ DebugAlpineState(condition string, label string) {
 	<div class="filter-debug-row" style="display: flex; align-items: center; margin: 4px 0;">
 		<span style="width: 20px; text-align: center;">
@@ -2782,6 +2788,9 @@ html, body {
 								<span x-show="showDebug">🐛</span>
 								<span x-show="showDebug" style="text-decoration: underline;">Debug</span>
 							</button>
+							if reportMeta.BrowserRendering {
+								<button class="button is-link" id="og-browser-open" type="button">Browser render</button>
+							}
 						</div>
 						<div class="global-header__tabs">
 							<ul class="navbar-nav mr-auto">
@@ -2807,7 +2816,7 @@ html, body {
 									</li>
 									if reportMeta.ShowAI {
 										<li class="nav-item">
-											<a class="nav-link" hx-get={ templ.SafeURL(fmt.Sprintf("/chat?config=%s&server_folder=%s", url.QueryEscape(reportMeta.ConfigFilePathEncoded), url.QueryEscape(reportMeta.ServerFolderEncoded))) } hx-target="#main-content" hx-swap="innerHTML" hx-push-url="true">AI Chat</a>
+											<a class="nav-link" href={ templ.SafeURL(reportAISettingsURL()) }>AI &amp; MCP</a>
 										</li>
 									}
 								}
@@ -2900,7 +2909,7 @@ html, body {
 						</ul>
 					</nav>
 					<!-- Main Content -->
-					<div class="container">
+					<div class="container" id="report-content">
 						<div id="report-alerts">
 							if msg != nil {
 								@msg
@@ -3187,6 +3196,9 @@ html, body {
 						if reportMeta.IsServerMode {
 							<p class="menu-label mt-4">Tools</p>
 							<ul class="menu-list">
+								if reportMeta.ShowAI {
+									<li><a title="AI &amp; MCP" href={ templ.SafeURL(reportAISettingsURL()) }><span class="icon"><i class="fas fa-robot"></i></span><span class="nav-label">AI &amp; MCP</span></a></li>
+								}
 								<li><a title="Tools" hx-get={ templ.SafeURL(fmt.Sprintf("/tools?config=%s&server_folder=%s", reportMeta.ConfigFilePathEncoded, reportMeta.ServerFolderEncoded)) } hx-target="#main-content" hx-push-url="true"><span class="icon"><i class="fas fa-wrench"></i></span><span class="nav-label">Tools</span></a></li>
 								<li><a title="Edit config" hx-get={ templ.SafeURL(fmt.Sprintf("/api/config?config_path=%s&server_folder=%s", reportMeta.ConfigFilePathEncoded, reportMeta.ServerFolderEncoded)) } hx-target="#main-content" hx-push-url="true"><span class="icon"><i class="fas fa-pen-to-square"></i></span><span class="nav-label">Edit config</span></a></li>
 							</ul>
@@ -3353,6 +3365,9 @@ html, body {
 						</div>
 					</div>
 				</nav>
+			}
+			if reportMeta.BrowserRendering {
+				@BrowserRenderPanel(reportMeta)
 			}
 		</body>
 	</html>

@@ -257,6 +257,41 @@ export/
 
 The `report.html` file provides a visual overview of all generated files with images and metadata, making it easy to browse your results.
 
+### Browser rendering (optional)
+
+Add `-browser-report` (`-br`) to embed a browser renderer in the report:
+
+```bash
+./openscadgen -c config.toml -br
+```
+
+The report then includes a **Browser render** panel. It re-renders selected
+instances with the bundled OpenSCAD WebAssembly build, using the same applied
+parameters as the host run, and downloads the resulting STL files. The 3D
+preview uses WebGL; OpenSCAD's geometry evaluation itself stays on the CPU.
+The control panel and URL-state format follow the
+[OpenSCAD Playground](https://github.com/openscad/openscad-playground)
+where practical.
+
+Notes:
+
+- The browser renderer needs the `browser/` folder that openscadgen writes
+  beside `report.html`. Serve the export folder over HTTP; most browsers block
+  workers and WebAssembly from `file://`.
+- The browser build cannot export PNG/PDF (no OpenGL/Cairo in OpenSCAD-WASM),
+  so image previews and image-based tests remain host-generated.
+- `browser/openscad.js` and `browser/openscad.wasm` are downloaded from a
+  pinned OpenSCAD Playground build. In a source checkout, run
+  `node scripts/fetch-browser-assets.mjs` once. Release archives include them.
+- **Copy share link** stores the compressed config, design sources and resolved
+  instances in the URL fragment (`#og=…`), not the query string. Query
+  parameters are reserved for small overrides: `?instance=name` selects an
+  instance, and `?config=<value>&design=<value>` (optionally `?source=path`)
+  override the embedded config or source. For those two, a `1.`-prefixed value
+  is gzip+base64 state; anything else is treated as plain text. Prefer the
+  fragment for full designs because URLs have finite length and query strings
+  are logged by servers and proxies.
+
 Each normal processing run also refreshes `export/<version>/source.zip`. It
 contains the exact `config.toml` and the configured `.scad` input files for
 that version. The archive is compressed, replaced rather than accumulated on
@@ -326,6 +361,144 @@ This starts the server at http://localhost:6767 serving the projects in the moun
 - Use `--rm` to automatically remove the container after it finishes.
 - The `-v` flag mounts your local directory into the container.
 
+# AI & MCP
+
+OpenSCADGen can publish a [Model Context Protocol](https://modelcontextprotocol.io) server so external clients — Claude Desktop, Cursor, VS Code, MCP Inspector, or your own agent — can drive a project directly. There is no built-in chat UI and no API key: the client owns the model, OpenSCADGen owns the tools.
+
+```bash
+# HTTP transport (streamable HTTP on POST /mcp)
+openscadgen -s -sf ./projects -ai -p 7203
+
+# stdio transport (the client spawns the process)
+openscadgen -ai -mcp-stdio -mcp-root ./projects
+```
+
+With `-ai` the server also exposes a read-only settings page at <http://127.0.0.1:7203/ai> showing the effective configuration, the advertised tool list, and copy-ready client snippets. The page is mounted only when `-ai` (or `OPENSCADGEN_AI_ON=true`) is set; `/ai`, `/mcp`, and the `/api/mcp/process/` progress endpoint return 404 otherwise.
+
+## Configuration
+
+Nothing is persisted. Every setting resolves from a flag, then an environment variable, then a default; restart the server to change it.
+
+| Flag | Environment | Default | Purpose |
+| --- | --- | --- | --- |
+| `-ai` | `OPENSCADGEN_AI_ON` | off | Enable the MCP server and settings page |
+| `-mcp-stdio` | — | off | Serve MCP on stdin/stdout instead of HTTP (implies `-ai`, logs move to stderr) |
+| `-mcp-root` | `OPENSCADGEN_MCP_ROOT` | server folder, else working directory | Comma-separated project folders tools may access |
+| `-mcp-detail` | `OPENSCADGEN_MCP_DETAIL` | `normal` | Default `response_detail`: `summary`, `normal`, or `full` |
+| `-mcp-read-only` | `OPENSCADGEN_MCP_READ_ONLY` | off | Advertise read-only tools only |
+| `-mcp-allow-push` | `OPENSCADGEN_MCP_ALLOW_PUSH` | off | Advertise `git_push` |
+
+Paths passed to tools must stay inside a configured root. Escapes — including through symlinks and junctions — are refused. With several roots, a relative path must identify exactly one root or the call is rejected as ambiguous.
+
+## Tools
+
+| Tool | Access | Notes |
+| --- | --- | --- |
+| `list_projects` | read | Finds folders containing `config.toml` under the roots |
+| `list_project_files` | read | Depth ≤ 4, capped listing, skips `.git`/`node_modules` |
+| `read_project_file` | read | Bounded read: default 20 KB, max 200 KB, `offset`/`max_bytes` for paging |
+| `edit_project_file` | write | Exact-text replacement; validates `config.toml` before writing |
+| `write_project_file` | write | Create/overwrite; validates `config.toml` before writing |
+| `process_config` | write | Validate synchronously, then render as a background job; returns `job_id` + `progress_url` |
+| `process_status` | read | Poll a render job over any transport |
+| `git_status` | read | Scoped to the root |
+| `git_diff` | read | `summary` returns the stat line, `normal` the patch |
+| `git_commit` | write | Stages tracked changes by default; pass `paths` to include new files |
+| `git_push` | push | Only advertised with `-mcp-allow-push` |
+
+A `config.toml` edit or write is validated **before** it touches disk: an invalid TOML edit is refused and the existing file is left untouched. `process_config` runs validation as a separate stage, so a broken config reports validation errors without invoking the renderer, and it checks that every expected STL/PNG exists and is non-empty after the run. A run where instances failed is reported with `ok: false` and an `error`, never a false success.
+
+### Render progress
+
+Rendering is asynchronous. `process_config` validates and starts the render, then returns immediately with a `job_id`, a `progress_url`, and `progress_tool: "process_status"`:
+
+```json
+{
+  "ok": true,
+  "status": "running",
+  "done": false,
+  "job_id": "f90d43be-2898-4492-899e-02e90a83b428",
+  "config_path": "cup/config.toml",
+  "started_at": "2026-11-21T10:52:03Z",
+  "elapsed_ms": 213,
+  "current_instance": "slow_10",
+  "completed_instances": 0,
+  "total_instances": 2,
+  "progress_url": "http://127.0.0.1:7203/api/mcp/process/f90d43be-2898-4492-899e-02e90a83b428",
+  "progress_tool": "process_status"
+}
+```
+
+Poll `progress_url` with `GET` (add `?detail=summary|normal|full` to choose the result detail):
+
+```bash
+curl -s http://127.0.0.1:7203/api/mcp/process/<job_id>
+```
+
+The same snapshot is available over any transport through the `process_status` tool, which is the only option in stdio mode because no HTTP server is mounted:
+
+```json
+{ "name": "process_status", "arguments": { "job_id": "<job_id>" } }
+```
+
+The snapshot always carries `started_at`, `elapsed_ms`, `current_instance`, `completed_instances`, and `total_instances`. When `done` becomes `true`, `status` is `done`, `ok` reflects the render outcome, and `result` holds the same payload a blocking call would have returned (artifacts, issues, counts).
+
+Clients that would rather block can pass `wait_seconds` (max 300); the call then returns the finished result, or the running snapshot if the timeout expires first:
+
+```json
+{ "path": "cup/config.toml", "wait_seconds": 120 }
+```
+
+Finished jobs are kept for 15 minutes (bounded to 32 jobs) so a slow poll after a long render still succeeds; unknown or expired ids return 404 / a tool error.
+
+### `response_detail`
+
+Every tool accepts an optional `response_detail` that overrides the server default for that call:
+
+- `summary` — just the outcome: counts, paths, commit hash. Cheapest for an agent loop.
+- `normal` — adds diagnostics: artifact lists, issues, diffs, command output.
+- `full` — adds per-instance detail and provenance.
+
+Failures always return full detail regardless of the requested level, so a client never has to re-run a failed call to diagnose it.
+
+## Client setup
+
+HTTP clients (Cursor, VS Code, MCP Inspector):
+
+```json
+{
+  "mcpServers": {
+    "openscadgen": {
+      "url": "http://127.0.0.1:7203/mcp"
+    }
+  }
+}
+```
+
+Clients that spawn a process (Claude Desktop):
+
+```json
+{
+  "mcpServers": {
+    "openscadgen": {
+      "command": "C:\\path\\to\\openscadgen.exe",
+      "args": ["-ai", "-mcp-stdio", "-mcp-root", "C:\\projects"]
+    }
+  }
+}
+```
+
+For clients that only speak stdio but should reach a running server, bridge with
+`npx -y mcp-remote http://127.0.0.1:7203/mcp`.
+
+## Security
+
+The MCP endpoint has **no authentication**. It binds to `127.0.0.1` by default; if you set `--server-address` to a non-loopback address, anyone who can reach the port can read, edit, commit, and push within the configured roots. Put an authenticating proxy in front of it, or keep it on loopback.
+
+Because a client drives the tools, treat project content as untrusted input: a prompt-injected README or `.scad` file could ask a model to edit files or push. Use `-mcp-read-only` when you only need inspection, and leave `-mcp-allow-push` off unless you need it.
+
+File tools refuse paths inside `.git`, so a model cannot rewrite `.git/config` or install hooks. Git tools only ever run real `git` subcommands with prompts disabled.
+
 # Command Line Options
 
 ## Basic Usage
@@ -358,6 +531,7 @@ This starts the server at http://localhost:6767 serving the projects in the moun
 -el, -include-export-log-file  Include export log in README.md
 -pid                  Include optional_part_id_letter variable
 -fi                   Set build info in file attributes (default: true)
+-br, -browser-report  Embed the OpenSCAD WebAssembly browser renderer in report.html
 ```
 
 ## Project Management
@@ -390,6 +564,18 @@ If you want the explanatory starter config directly, use:
 ```bash
 ./openscadgen -init-explainer my-new-project
 ```
+
+## AI & MCP Options
+```bash
+-ai                   Enable the MCP server and AI settings page in server mode
+-mcp-stdio            Serve MCP on stdin/stdout instead of HTTP (implies -ai)
+-mcp-root string      Comma-separated project folders MCP tools may access
+-mcp-detail string    Default response detail: summary, normal, or full (default normal)
+-mcp-read-only        Advertise read-only tools only
+-mcp-allow-push       Advertise the git_push tool
+```
+
+See [AI & MCP](#ai--mcp) for the tool list, client configuration, and security notes.
 
 ## Debug & Verbosity
 ```bash

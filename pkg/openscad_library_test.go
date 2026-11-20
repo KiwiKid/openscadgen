@@ -13,6 +13,7 @@ func isolateOpenSCADLibraryDirs(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
+	t.Setenv("OPENSCADGEN_OPENSCAD_USER_LIBRARY_DIR", filepath.Join(home, "OpenSCAD", "libraries"))
 }
 
 func TestOpenSCADLibrariesDetectsInstalledBOSL2(t *testing.T) {

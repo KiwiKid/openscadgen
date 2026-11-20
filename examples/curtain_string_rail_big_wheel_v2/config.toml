@@ -1,0 +1,16 @@
+[openscadgen]
+name = "curtain_string_rail_big_wheel_v2"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}_{mode}"
+
+global_params = { }
+
+[[openscadgen.input_paths]]
+path = "./curtain_string_rail_big_wheel_v2.scad"
+params = { mode = ["wheel", "strap"] }
+
+[[openscadgen.images]]
+name = "nice"

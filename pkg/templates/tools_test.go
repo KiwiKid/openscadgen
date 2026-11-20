@@ -105,3 +105,60 @@ func TestOpenSCADLibraryListOOBRefreshIncludesSwapAttribute(t *testing.T) {
 		t.Fatalf("expected OOB swap marker, got %s", rendered.String())
 	}
 }
+
+func TestOpenSCADLibraryListShowsInaccessibleLibrary(t *testing.T) {
+	var rendered bytes.Buffer
+	err := OpenSCADLibraryList([]LibraryLink{{
+		ID:               "bosl2",
+		Name:             "BOSL2",
+		Installed:        true,
+		AccessChecked:    true,
+		Accessible:       false,
+		AccessError:      "BOSL2/std.scad not found in OpenSCAD libraries",
+		Path:             "/opt/OpenSCAD/libraries/BOSL2",
+		InstallSupported: true,
+		InstallURL:       "/api/openscad/libraries/bosl2/update",
+	}}, false).Render(context.Background(), &rendered)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	html := rendered.String()
+	for _, needle := range []string{
+		"Not accessible to OpenSCAD",
+		"BOSL2/std.scad not found in OpenSCAD libraries",
+		"Reinstall library",
+		`hx-post="/api/openscad/libraries/bosl2/update"`,
+	} {
+		if !strings.Contains(html, needle) {
+			t.Fatalf("expected library list to contain %q, got %s", needle, html)
+		}
+	}
+}
+
+func TestOpenSCADLibraryListShowsAccessibleLibrary(t *testing.T) {
+	var rendered bytes.Buffer
+	err := OpenSCADLibraryList([]LibraryLink{{
+		ID:               "bosl2",
+		Name:             "BOSL2",
+		Installed:        true,
+		AccessChecked:    true,
+		Accessible:       true,
+		InstallSupported: true,
+		InstallURL:       "/api/openscad/libraries/bosl2/update",
+	}}, false).Render(context.Background(), &rendered)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	html := rendered.String()
+	if !strings.Contains(html, "Accessible to OpenSCAD") {
+		t.Fatalf("expected accessible status, got %s", html)
+	}
+	if strings.Contains(html, "Not accessible to OpenSCAD") {
+		t.Fatalf("did not expect an inaccessible status, got %s", html)
+	}
+	if strings.Contains(html, "Reinstall library") {
+		t.Fatalf("did not expect a reinstall action for an accessible library, got %s", html)
+	}
+}

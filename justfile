@@ -12,6 +12,10 @@ chat-live case:
 chat-test-tools case="":
     OPENSCADGEN_CHAT_HARNESS_MODE=test-chat-tools OPENSCADGEN_CHAT_HARNESS_CASE="{{case}}" go test ./server -run TestChatHarnessModes -count=1 -vet=off -v
 
+# Download the pinned OpenSCAD WebAssembly build for -browser-report
+browser-assets:
+    node scripts/fetch-browser-assets.mjs
+
 # Generate templ files
 generate:
     go run github.com/a-h/templ/cmd/templ fmt .

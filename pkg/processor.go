@@ -860,7 +860,7 @@ func preflightBOSL2(config *models.Config, openscadPath string, probe func(strin
 	if err == nil {
 		err = fmt.Errorf("BOSL2/std.scad could not be resolved")
 	}
-	return fmt.Errorf("BOSL2 preflight failed for %s: %w\nRepair it in Tools > BOSL2 > Update, then run this config again", inputPath, err)
+	return fmt.Errorf("BOSL2 preflight failed for %s: %w\nCheck your OpenSCAD installation and repair BOSL2 in Tools > BOSL2 > Update, then run this config again", inputPath, err)
 }
 
 func firstBOSL2Input(config *models.Config) (string, bool) {
@@ -2105,6 +2105,7 @@ func LoadConfig(configData string, flags models.CmdFlags, configPath string) (*m
 	conf.IncludePartIDLetter = flags.IncludePartIDLetter
 	conf.SetBuildInfoInFileAttributes = flags.SetBuildInfoInFileAttributes
 	conf.DangerouslySkipPermissions = flags.DangerouslySkipPermissions
+	conf.BrowserReport = flags.BrowserReport
 
 	conf.StopOnError = flags.StopOnError
 	conf.ConfigFile = configPath
@@ -3740,26 +3741,83 @@ type OpenSCADVersion struct {
 
 // ProbeBOSL2 reports whether the local OpenSCAD install can resolve BOSL2/std.scad.
 func ProbeBOSL2(openscadPath string) (bool, error) {
-	tempDir, err := os.MkdirTemp("", "openscadgen-bosl2-*")
+	if err := probeOpenSCADInclude(openscadPath, "BOSL2/std.scad"); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// openSCADProbeTempDir creates a scratch directory for a library probe. The
+// system temp directory is tried first, but it can be missing, full, or locked
+// down on Windows; the managed library and application directories are
+// writable fallbacks that keep probing working in those environments.
+func openSCADProbeTempDir(pattern string) (string, error) {
+	candidates := []string{""}
+	if libraryDir, err := managedOpenSCADLibraryDir(); err == nil {
+		candidates = append(candidates, libraryDir)
+	}
+	if executableDir, err := openSCADGenDir(); err == nil {
+		candidates = append(candidates, executableDir)
+	}
+
+	failures := make([]string, 0, len(candidates))
+	for _, candidate := range candidates {
+		if candidate != "" {
+			if err := os.MkdirAll(candidate, 0o755); err != nil {
+				failures = append(failures, fmt.Sprintf("%s: %v", candidate, err))
+				continue
+			}
+		}
+		tempDir, err := os.MkdirTemp(candidate, pattern)
+		if err == nil {
+			return tempDir, nil
+		}
+		label := candidate
+		if label == "" {
+			label = os.TempDir()
+		}
+		failures = append(failures, fmt.Sprintf("%s: %v", label, err))
+	}
+	return "", fmt.Errorf(
+		"create temp dir for library probe (checked %s); free disk space or make sure TEMP points to a writable folder",
+		strings.Join(failures, "; "),
+	)
+}
+
+// probeOpenSCADInclude renders a one-line design that includes the given
+// library path. It uses the same environment as OpenSCADGen's own renders, so
+// a successful probe means the library is reachable from the managed library
+// directory as well as OpenSCAD's standard search path.
+func probeOpenSCADInclude(openscadPath, includePath string) error {
+	tempDir, err := openSCADProbeTempDir("openscadgen-library-probe-*")
 	if err != nil {
-		return false, fmt.Errorf("create temp dir for BOSL2 probe: %w", err)
+		return err
 	}
 	defer os.RemoveAll(tempDir)
 
 	probePath := filepath.Join(tempDir, "probe.scad")
-	probeBody := "include <BOSL2/std.scad>;\ncuboid(1);\n"
+	probeBody := fmt.Sprintf("include <%s>;\ncube(1);\n", includePath)
 	if err := os.WriteFile(probePath, []byte(probeBody), 0o644); err != nil {
-		return false, fmt.Errorf("write BOSL2 probe file: %w", err)
+		return fmt.Errorf("write library probe file: %w", err)
 	}
 
 	outputPath := filepath.Join(tempDir, "probe.stl")
-	cmd := exec.Command(openscadPath, "-o", outputPath, probePath)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, openscadPath, "-o", outputPath, probePath)
 	cmd.Env = managedOpenSCADEnvironment()
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return false, fmt.Errorf("BOSL2 not found in OpenSCAD libraries: %w\nOutput: %s", err, strings.TrimSpace(string(output)))
+		if ctx.Err() == context.DeadlineExceeded {
+			return fmt.Errorf("OpenSCAD timed out while checking %s", includePath)
+		}
+		outputText := strings.TrimSpace(string(output))
+		if len(outputText) > 2000 {
+			outputText = outputText[:2000] + "…"
+		}
+		return fmt.Errorf("%s not found in OpenSCAD libraries: %w\nOutput: %s", includePath, err, outputText)
 	}
-	return true, nil
+	return nil
 }
 
 // findOpenSCAD finds the OpenSCAD executable and returns its version info
@@ -4773,6 +4831,15 @@ func GenerateOutputReport(config *models.Config, instances []models.InstanceConf
 	}, models.Results{
 		TimeTake: totalTimeTaken,
 	})
+	if config.BrowserReport {
+		bundleJSON, err := PrepareBrowserReport(config, instances, outputDir)
+		if err != nil {
+			return nil, outputFile, err
+		}
+		reportMeta.BrowserRendering = true
+		reportMeta.BrowserBundleJSON = bundleJSON
+		reportMeta.BrowserAssetsBase = "./" + browserOutputDir
+	}
 	htmlContent := templates.Report(reportMode, config, instances, outputFile, stlResults, imageResults, allParamNames, reportMeta, totalTimeTaken, nil)
 
 	var htmlFile *os.File

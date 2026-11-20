@@ -31,6 +31,11 @@ type LibraryLink struct {
 	Path             string
 	InstallSupported bool
 	InstallURL       string
+	// AccessChecked reports whether an installed library was probed with the
+	// OpenSCAD executable. Accessible is only meaningful when this is true.
+	AccessChecked bool
+	Accessible    bool
+	AccessError   string
 }
 
 templ ToolsPage(v OpenSCADNavView, tools []ToolLink, libraries []LibraryLink, homeURL string, showAI bool) {
@@ -115,7 +120,7 @@ templ ToolsPage(v OpenSCADNavView, tools []ToolLink, libraries []LibraryLink, ho
 					<div class="is-flex is-justify-content-space-between is-align-items-start mb-3" style="gap: 1rem; flex-wrap: wrap;">
 						<div>
 							<h2 id="libraries-heading" class="title is-4 mb-1">Libraries</h2>
-							<p class="is-size-7 mb-0">Libraries found in your local OpenSCAD library folders. Tick an unchecked library to install it.</p>
+							<p class="is-size-7 mb-0">Libraries found in your local OpenSCAD library folders. Tick an unchecked library to install it. Installed libraries are checked against OpenSCAD's library search path.</p>
 						</div>
 						<span class="tag is-light">{ fmt.Sprintf("%d supported", len(libraries)) }</span>
 					</div>
@@ -123,9 +128,6 @@ templ ToolsPage(v OpenSCADNavView, tools []ToolLink, libraries []LibraryLink, ho
 				</section>
 				<div class="tools-grid">
 					for _, tool := range tools {
-						if !showAI && (tool.Title == "AI Chat" || tool.Badge == "AI") {
-							continue
-						}
 						<article class="tool-card">
 							<div class="is-flex is-justify-content-space-between is-align-items-start" style="gap: 1rem;">
 								<div>
@@ -236,6 +238,15 @@ templ OpenSCADLibraryList(libraries []LibraryLink, oob bool) {
 						<strong>{ library.Name }</strong>
 						if library.Installed {
 							<span class="tag is-success is-light">Installed</span>
+							if library.AccessChecked {
+								if library.Accessible {
+									<span class="tag is-success is-light">Accessible to OpenSCAD</span>
+								} else {
+									<span class="tag is-danger is-light">Not accessible to OpenSCAD</span>
+								}
+							} else {
+								<span class="tag is-light" title="OpenSCAD is unavailable, so library access could not be checked">Access unknown</span>
+							}
 						} else {
 							<span class="tag is-warning is-light">Not installed</span>
 						}
@@ -251,6 +262,23 @@ templ OpenSCADLibraryList(libraries []LibraryLink, oob bool) {
 						<code class="is-size-7" style="display:block; margin-top: 0.35rem; word-break: break-all;">{ library.Path }</code>
 					} else if library.InstallSupported {
 						<span class="has-text-grey is-size-7" style="display:block; margin-top: 0.35rem;">Tick to install into your local OpenSCAD libraries.</span>
+					}
+					if library.Installed && library.AccessChecked && !library.Accessible {
+						<span class="has-text-danger is-size-7" style="display:block; margin-top: 0.35rem;">
+							OpenSCAD cannot find this library in its library search path. Reinstalling it may fix the problem.
+						</span>
+						if library.AccessError != "" {
+							<code class="is-size-7" style="display:block; margin-top: 0.25rem; white-space: pre-wrap; word-break: break-word;">{ library.AccessError }</code>
+						}
+						if library.InstallSupported {
+							<button
+								type="button"
+								class="button is-small is-warning is-light mt-2"
+								hx-post={ templ.SafeURL(library.InstallURL) }
+								hx-target="#tools-results-content"
+								hx-swap="innerHTML"
+							>Reinstall library</button>
+						}
 					}
 				</span>
 			</label>

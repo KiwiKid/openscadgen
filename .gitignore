@@ -3,6 +3,9 @@ dist/
 library/**/*
 lib/
 openscadgen
+openscadgen.exe
+tmp/
+*.test
 *.log
 *.stl
 *.3mf

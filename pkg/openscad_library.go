@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/kiwikid/openscadgen/pkg/templates"
 )
@@ -64,6 +66,94 @@ func OpenSCADLibraries() []templates.LibraryLink {
 		})
 	}
 	return libraries
+}
+
+// OpenSCADLibraryAccess reports whether the OpenSCAD executable can resolve a
+// supported library's entry point.
+type OpenSCADLibraryAccess struct {
+	Checked    bool
+	Accessible bool
+	Error      string
+}
+
+type openSCADLibraryAccessCacheEntry struct {
+	access    OpenSCADLibraryAccess
+	checkedAt time.Time
+}
+
+var (
+	openSCADLibraryAccessCacheMu sync.Mutex
+	openSCADLibraryAccessCache   = map[string]openSCADLibraryAccessCacheEntry{}
+)
+
+// openSCADLibraryAccessCacheTTL keeps repeated tools-page loads from launching
+// OpenSCAD on every request while still noticing a repaired installation.
+const openSCADLibraryAccessCacheTTL = 30 * time.Second
+
+// InvalidateOpenSCADLibraryAccessCache drops cached probe results so the next
+// check reflects a library that was just installed or repaired.
+func InvalidateOpenSCADLibraryAccessCache() {
+	openSCADLibraryAccessCacheMu.Lock()
+	defer openSCADLibraryAccessCacheMu.Unlock()
+	openSCADLibraryAccessCache = map[string]openSCADLibraryAccessCacheEntry{}
+}
+
+// CheckOpenSCADLibraryAccess probes each installed supported library with the
+// given OpenSCAD executable and returns a copy with the access fields filled
+// in. An empty executable path leaves every library's access state unchecked.
+func CheckOpenSCADLibraryAccess(libraries []templates.LibraryLink, openscadPath string) []templates.LibraryLink {
+	result := make([]templates.LibraryLink, len(libraries))
+	copy(result, libraries)
+	openscadPath = strings.TrimSpace(openscadPath)
+	if openscadPath == "" {
+		return result
+	}
+	for i := range result {
+		if !result[i].Installed {
+			continue
+		}
+		access := cachedOpenSCADLibraryAccess(result[i].ID, result[i].Path, openscadPath)
+		result[i].AccessChecked = access.Checked
+		result[i].Accessible = access.Accessible
+		result[i].AccessError = access.Error
+	}
+	return result
+}
+
+func cachedOpenSCADLibraryAccess(id, libraryPath, openscadPath string) OpenSCADLibraryAccess {
+	key := strings.ToLower(id) + "\x00" + libraryPath + "\x00" + openscadPath
+	now := time.Now()
+
+	openSCADLibraryAccessCacheMu.Lock()
+	if entry, ok := openSCADLibraryAccessCache[key]; ok && now.Sub(entry.checkedAt) < openSCADLibraryAccessCacheTTL {
+		openSCADLibraryAccessCacheMu.Unlock()
+		return entry.access
+	}
+	openSCADLibraryAccessCacheMu.Unlock()
+
+	access := probeOpenSCADLibraryAccess(id, openscadPath)
+
+	openSCADLibraryAccessCacheMu.Lock()
+	openSCADLibraryAccessCache[key] = openSCADLibraryAccessCacheEntry{access: access, checkedAt: now}
+	openSCADLibraryAccessCacheMu.Unlock()
+	return access
+}
+
+func probeOpenSCADLibraryAccess(id, openscadPath string) OpenSCADLibraryAccess {
+	for _, definition := range openSCADLibraryCatalog {
+		if !strings.EqualFold(definition.ID, id) {
+			continue
+		}
+		includePath := definition.Folder + "/" + definition.MarkerFile
+		if err := probeOpenSCADInclude(openscadPath, includePath); err != nil {
+			return OpenSCADLibraryAccess{Checked: true, Error: err.Error()}
+		}
+		return OpenSCADLibraryAccess{Checked: true, Accessible: true}
+	}
+	return OpenSCADLibraryAccess{
+		Checked: true,
+		Error:   fmt.Sprintf("unsupported OpenSCAD library %q", id),
+	}
 }
 
 // InstallOpenSCADLibrary installs or upgrades a supported library by ID.
@@ -147,11 +237,11 @@ func openSCADLibraryDirs() []string {
 			candidates = append(candidates, dir)
 		}
 	}
+	if userDir, err := userOpenSCADLibraryDir(); err == nil {
+		candidates = append(candidates, userDir)
+	}
 	if home, err := os.UserHomeDir(); err == nil {
-		candidates = append(candidates,
-			filepath.Join(home, "Documents", "OpenSCAD", "libraries"),
-			filepath.Join(home, ".local", "share", "OpenSCAD", "libraries"),
-		)
+		candidates = append(candidates, filepath.Join(home, "Documents", "OpenSCAD", "libraries"))
 	}
 
 	seen := make(map[string]struct{}, len(candidates))

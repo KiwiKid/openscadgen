@@ -12,13 +12,6 @@ func configPickerPageURL(configFile models.ConfigFile, serverFolder string) stri
 		base64.StdEncoding.EncodeToString([]byte(serverFolder)))
 }
 
-func serverChatPageURL(serverFolder string) string {
-	if serverFolder == "" {
-		return "/chat"
-	}
-	return fmt.Sprintf("/chat?server_folder=%s", url.QueryEscape(base64.StdEncoding.EncodeToString([]byte(serverFolder))))
-}
-
 templ EnterConfigPage(configFiles []models.ConfigFile, serverFolder string, showAI bool) {
 	<head>
 		<meta charset="UTF-8"/>
@@ -477,7 +470,7 @@ html, body {
 					</div>
 					<div class="level-item">
 						if showAI {
-							<a href={ templ.SafeURL(serverChatPageURL(serverFolder)) } class="button is-light">AI Chat</a>
+							<a href="/ai" class="button is-light">AI &amp; MCP</a>
 						}
 					</div>
 					<div class="level-item">

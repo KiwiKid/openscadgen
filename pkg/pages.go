@@ -30,6 +30,10 @@ var pagesCopyExtensions = map[string]bool{
 	".scad": true,
 	".txt":  true,
 	".log":  true,
+	".js":   true,
+	".css":  true,
+	".wasm": true,
+	".json": true,
 }
 
 func BuildPagesSite(repoRoot string, outputDir string) error {

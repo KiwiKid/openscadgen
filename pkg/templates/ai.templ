@@ -1,0 +1,475 @@
+package templates
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/kiwikid/openscadgen/pkg/models"
+)
+
+func aiToolAccessLabel(tool models.MCPToolInfo) string {
+	if tool.ReadOnly {
+		return "read-only"
+	}
+	if tool.RequiresPush {
+		return "push"
+	}
+	return "write"
+}
+
+func aiParamLabel(param models.MCPParamInfo) string {
+	label := param.Name
+	if param.Type != "" {
+		label += ": " + param.Type
+	}
+	if param.Required {
+		label += " (required)"
+	}
+	return label
+}
+
+func aiJoin(values []string, separator string) string {
+	return strings.Join(values, separator)
+}
+
+func aiAccessTagClass(tool models.MCPToolInfo) string {
+	switch {
+	case tool.Gated:
+		return "tag is-light"
+	case tool.ReadOnly:
+		return "tag is-success is-light"
+	case tool.RequiresPush:
+		return "tag is-danger is-light"
+	default:
+		return "tag is-warning is-light"
+	}
+}
+
+func aiActiveToolCount(tools []models.MCPToolInfo) string {
+	active := 0
+	for _, tool := range tools {
+		if !tool.Gated {
+			active++
+		}
+	}
+	return fmt.Sprintf("%d of %d", active, len(tools))
+}
+
+func aiParamLine(tool models.MCPToolInfo) string {
+	labels := make([]string, 0, len(tool.Params))
+	for _, param := range tool.Params {
+		labels = append(labels, aiParamLabel(param))
+	}
+	return aiJoin(labels, ", ")
+}
+
+func aiFirstRoot(roots []string) string {
+	if len(roots) == 0 {
+		return ""
+	}
+	return roots[0]
+}
+
+// AISettingsPage is the read-only configuration view for the MCP server. It
+// reports effective flags and environment only; nothing here is persisted.
+templ AISettingsPage(data models.AISettingsPageData, nav OpenSCADNavView) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>OpenSCADGen AI &amp; MCP</title>
+			@HeadLinks()
+			<style>
+				.ai-page {
+					max-width: 78rem;
+					margin: 0 auto;
+					padding: 1.5rem;
+				}
+				.ai-hero {
+					padding: 1.5rem;
+					border-radius: 1rem;
+					background: linear-gradient(135deg, rgba(0,102,204,0.12), rgba(0,0,0,0.02));
+					border: 1px solid rgba(0,0,0,0.08);
+					margin-bottom: 1.25rem;
+				}
+				.ai-grid {
+					display: grid;
+					grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+					gap: 1rem;
+					margin-bottom: 1.5rem;
+				}
+				.ai-card {
+					border: 1px solid rgba(0,0,0,0.08);
+					border-radius: 0.9rem;
+					padding: 1rem 1.1rem;
+					background: rgba(255,255,255,0.94);
+				}
+				.ai-card h2 {
+					font-size: 0.8rem;
+					text-transform: uppercase;
+					letter-spacing: 0.06em;
+					color: #4a4a4a;
+					margin-bottom: 0.6rem;
+				}
+				.ai-kv {
+					display: grid;
+					grid-template-columns: 9rem 1fr;
+					gap: 0.3rem 0.75rem;
+					font-size: 0.85rem;
+				}
+				.ai-kv dt {
+					color: #4a4a4a;
+				}
+				.ai-kv dd {
+					word-break: break-word;
+				}
+				.ai-endpoint {
+					display: block;
+					padding: 0.55rem 0.7rem;
+					border-radius: 0.5rem;
+					background: #0f172a;
+					color: #e2e8f0;
+					font-size: 0.85rem;
+					overflow-x: auto;
+					white-space: nowrap;
+				}
+				.ai-snippet {
+					position: relative;
+					margin-bottom: 1rem;
+				}
+				.ai-snippet pre {
+					background: #0f172a;
+					color: #e2e8f0;
+					padding: 0.9rem 1rem;
+					border-radius: 0.6rem;
+					overflow-x: auto;
+					font-size: 0.8rem;
+					margin: 0;
+				}
+				.ai-snippet__head {
+					display: flex;
+					justify-content: space-between;
+					align-items: center;
+					gap: 0.75rem;
+					margin-bottom: 0.4rem;
+					flex-wrap: wrap;
+				}
+				.ai-copy {
+					font-size: 0.7rem;
+				}
+				.ai-builder {
+					display: grid;
+					grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+					gap: 0.75rem;
+					margin-bottom: 0.9rem;
+				}
+				.ai-builder label {
+					font-size: 0.75rem;
+					color: #4a4a4a;
+					display: block;
+					margin-bottom: 0.25rem;
+				}
+				table.ai-table {
+					width: 100%;
+					font-size: 0.82rem;
+				}
+				table.ai-table th {
+					text-align: left;
+					font-size: 0.7rem;
+					text-transform: uppercase;
+					letter-spacing: 0.05em;
+					color: #4a4a4a;
+					padding-bottom: 0.4rem;
+					border-bottom: 1px solid rgba(0,0,0,0.08);
+				}
+				table.ai-table td {
+					padding: 0.55rem 0.5rem 0.55rem 0;
+					border-bottom: 1px solid rgba(0,0,0,0.05);
+					vertical-align: top;
+				}
+				table.ai-table td:first-child {
+					white-space: nowrap;
+					font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+				}
+				.ai-params {
+					color: #6b7280;
+					font-size: 0.72rem;
+				}
+			</style>
+		</head>
+		<body>
+			<div class="ai-page">
+				<div class="is-flex is-justify-content-space-between is-align-items-center mb-4" style="gap: 1rem; flex-wrap: wrap;">
+					<div class="buttons are-small">
+						<a class="button is-light" href="/">Home</a>
+						<a class="button is-light" href="/tools">Tools</a>
+						<a class="button is-primary is-light" href="/ai">AI &amp; MCP</a>
+					</div>
+					@OpenSCADNavWidget(nav)
+				</div>
+				<section class="ai-hero">
+					<div class="is-flex is-justify-content-space-between is-align-items-start" style="gap: 1rem; flex-wrap: wrap;">
+						<div>
+							<p class="title is-3 mb-2">AI &amp; MCP</p>
+							<p class="subtitle is-6 mb-0">
+								OpenSCADGen publishes a Model Context Protocol server. Clients such as Claude Desktop, Cursor, VS Code, and MCP Inspector call these tools directly; this page reports the effective configuration.
+							</p>
+						</div>
+						<div class="tags">
+							if data.Enabled {
+								<span class="tag is-success is-light">MCP enabled</span>
+							} else {
+								<span class="tag is-danger is-light">MCP disabled</span>
+							}
+							if data.ReadOnly {
+								<span class="tag is-warning is-light">read-only</span>
+							}
+							<span class="tag is-info is-light">protocol { data.ProtocolVersion }</span>
+						</div>
+					</div>
+				</section>
+				if len(data.Notices) > 0 {
+					for _, notice := range data.Notices {
+						<div class="notification is-warning is-light">{ notice }</div>
+					}
+				}
+				<div class="ai-grid">
+					<div class="ai-card">
+						<h2>Connection</h2>
+						<dl class="ai-kv">
+							<dt>Transport</dt>
+							<dd>Streamable HTTP (POST) and stdio</dd>
+							<dt>HTTP endpoint</dt>
+							<dd>
+								if data.HTTPMounted {
+									<code class="ai-endpoint" id="ai-endpoint">{ data.EndpointURL }</code>
+								} else {
+									<span class="has-text-grey">HTTP not mounted (stdio only)</span>
+								}
+							</dd>
+							<dt>Progress</dt>
+							<dd>
+								if data.HTTPMounted {
+									<code class="is-size-7">{ data.ProgressPath }</code>
+									<span class="is-size-7 has-text-grey" style="display:block;">Polled while process_config renders; process_status does the same over any transport.</span>
+								} else {
+									<span class="is-size-7 has-text-grey">No HTTP progress URL in stdio mode; use the process_status tool.</span>
+								}
+							</dd>
+							<dt>stdio command</dt>
+							<dd><code class="is-size-7">{ data.StdioCommand }</code></dd>
+							<dt>Bind address</dt>
+							<dd>
+								{ data.BindAddress }
+								if !data.LoopbackOnly {
+									<span class="tag is-danger is-light ml-2">non-loopback</span>
+								}
+							</dd>
+							<dt>Roots</dt>
+							<dd>
+								if len(data.Roots) == 0 {
+									<span class="has-text-danger">none configured</span>
+								} else {
+									for _, root := range data.Roots {
+										<code class="is-size-7" style="display:block; word-break: break-all;">{ root }</code>
+									}
+								}
+							</dd>
+						</dl>
+					</div>
+					<div class="ai-card">
+						<h2>Effective defaults</h2>
+						<dl class="ai-kv">
+							<dt>Response detail</dt>
+							<dd>
+								<span class="tag is-info is-light">{ data.DetailLevel }</span>
+								<span class="is-size-7 has-text-grey">successful calls only; failures are always full</span>
+							</dd>
+							<dt>Read-only</dt>
+							<dd>{ fmt.Sprintf("%t", data.ReadOnly) }</dd>
+							<dt>Git push</dt>
+							<dd>
+								if data.AllowPush {
+									<span class="tag is-warning is-light">exposed</span>
+								} else {
+									<span class="tag is-light">not advertised</span>
+								}
+							</dd>
+							<dt>Tools advertised</dt>
+							<dd>
+								{ aiActiveToolCount(data.Tools) }
+							</dd>
+						</dl>
+					</div>
+				</div>
+				<section class="ai-card mb-5">
+					<h2>Where each setting comes from</h2>
+					<p class="is-size-7 mb-3">
+						Nothing on this page is stored. Settings are resolved from flags, then environment variables, then defaults — restart the server to change them.
+					</p>
+					<table class="ai-table">
+						<thead>
+							<tr>
+								<th>Setting</th>
+								<th>Effective value</th>
+								<th>Flag</th>
+								<th>Environment</th>
+								<th>Default</th>
+							</tr>
+						</thead>
+						<tbody>
+							for _, source := range data.Sources {
+								<tr>
+									<td>{ source.Name }</td>
+									<td><code>{ source.Value }</code></td>
+									<td><code>{ source.Flag }</code></td>
+									<td><code>{ source.Env }</code></td>
+									<td>{ source.Default }</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</section>
+				<section class="ai-card mb-5">
+					<h2>Build a launch command</h2>
+					<p class="is-size-7 mb-3">Adjust the options below to generate a command; copying it is the only way settings change.</p>
+					<div class="ai-builder">
+						<div>
+							<label for="ai-builder-root">Project root</label>
+							<input id="ai-builder-root" class="input is-small" type="text" value={ aiFirstRoot(data.Roots) }/>
+						</div>
+						<div>
+							<label for="ai-builder-detail">Detail level</label>
+							<div class="select is-small is-fullwidth">
+								<select id="ai-builder-detail">
+									<option value="summary" selected?={ data.DetailLevel == "summary" }>summary</option>
+									<option value="normal" selected?={ data.DetailLevel == "normal" }>normal</option>
+									<option value="full" selected?={ data.DetailLevel == "full" }>full</option>
+								</select>
+							</div>
+						</div>
+						<div>
+							<label for="ai-builder-port">Port</label>
+							<input id="ai-builder-port" class="input is-small" type="number" min="1" max="65535" value="7203"/>
+						</div>
+						<div>
+							<label>Safety</label>
+							<label class="checkbox is-size-7"><input id="ai-builder-readonly" type="checkbox" checked?={ data.ReadOnly }/> read-only</label>
+							<br/>
+							<label class="checkbox is-size-7"><input id="ai-builder-push" type="checkbox" checked?={ data.AllowPush }/> allow push</label>
+						</div>
+					</div>
+					<div class="ai-snippet">
+						<div class="ai-snippet__head">
+							<span class="is-size-7 has-text-weight-semibold">Generated command</span>
+							<button type="button" class="button is-small is-light ai-copy" data-copy-target="ai-builder-output">Copy</button>
+						</div>
+						<pre><code id="ai-builder-output">openscadgen -s -ai</code></pre>
+					</div>
+				</section>
+				<section class="ai-card mb-5">
+					<h2>Tools</h2>
+					<p class="is-size-7 mb-3">
+						Every tool accepts an optional <code>response_detail</code> that overrides the default for that call. A summary payload on success keeps token cost low; failures always include full diagnostics.
+					</p>
+					<table class="ai-table">
+						<thead>
+							<tr>
+								<th>Tool</th>
+								<th>Category</th>
+								<th>Access</th>
+								<th>Description</th>
+							</tr>
+						</thead>
+						<tbody>
+							for _, tool := range data.Tools {
+								<tr>
+									<td>{ tool.Name }</td>
+									<td>{ tool.Category }</td>
+									<td>
+										<span class={ aiAccessTagClass(tool) }>{ aiToolAccessLabel(tool) }</span>
+										if tool.Gated {
+											<span class="tag is-light">disabled</span>
+										}
+									</td>
+									<td>
+										{ tool.Description }
+										<div class="ai-params">
+											{ aiParamLine(tool) }
+										</div>
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</section>
+				<section class="ai-card">
+					<h2>Client setup</h2>
+					<p class="is-size-7 mb-3">Paste the matching block into your client's MCP configuration and restart the client.</p>
+					for _, snippet := range data.Snippets {
+						<div class="ai-snippet">
+							<div class="ai-snippet__head">
+								<span>
+									<strong class="is-size-7">{ snippet.Title }</strong>
+									<span class="is-size-7 has-text-grey">— { snippet.Client }</span>
+								</span>
+								<button
+									type="button"
+									class="button is-small is-light ai-copy"
+									data-copy-target={ "ai-snippet-" + snippet.Title }
+								>Copy</button>
+							</div>
+							<pre><code id={ "ai-snippet-" + snippet.Title }>{ snippet.Content }</code></pre>
+						</div>
+					}
+				</section>
+			</div>
+			<script>
+				(function () {
+					const root = document.getElementById('ai-builder-root');
+					const detail = document.getElementById('ai-builder-detail');
+					const port = document.getElementById('ai-builder-port');
+					const readOnly = document.getElementById('ai-builder-readonly');
+					const push = document.getElementById('ai-builder-push');
+					const output = document.getElementById('ai-builder-output');
+
+					function quote(value) {
+						if (!value) return '""';
+						return /\s/.test(value) ? '"' + value.replace(/"/g, '\\"') + '"' : value;
+					}
+
+					function render() {
+						const parts = ['openscadgen', '-s', '-ai'];
+						if (root.value.trim()) parts.push('-mcp-root', quote(root.value.trim()));
+						if (readOnly.checked) parts.push('-mcp-read-only');
+						if (push.checked) parts.push('-mcp-allow-push');
+						if (detail.value && detail.value !== 'normal') parts.push('-mcp-detail', detail.value);
+						if (port.value.trim()) parts.push('-p', port.value.trim());
+						output.textContent = parts.join(' ');
+					}
+
+					[root, detail, port, readOnly, push].forEach(function (element) {
+						element.addEventListener('input', render);
+						element.addEventListener('change', render);
+					});
+					render();
+
+					document.querySelectorAll('.ai-copy').forEach(function (button) {
+						button.addEventListener('click', function () {
+							const target = document.getElementById(button.dataset.copyTarget);
+							if (!target) return;
+							const text = target.textContent || '';
+							if (navigator.clipboard && navigator.clipboard.writeText) {
+								navigator.clipboard.writeText(text).then(function () {
+									button.textContent = 'Copied';
+									setTimeout(function () { button.textContent = 'Copy'; }, 1500);
+								});
+							}
+						});
+					});
+				})();
+			</script>
+		</body>
+	</html>
+}

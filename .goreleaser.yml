@@ -23,6 +23,11 @@ archives:
       - README.md
       - INSTALL.md
       - examples/**
+      - static/browser/og-browser.js
+      - static/browser/og-browser-worker.js
+      - static/browser/og-browser.css
+      - static/browser/openscad.js
+      - static/browser/openscad.wasm
     format_overrides:
       - goos: windows
         formats: [ 'zip' ]

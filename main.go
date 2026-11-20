@@ -2,10 +2,13 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	"github.com/cli/browser"
 	"github.com/kiwikid/openscadgen/cmd"
@@ -27,9 +30,17 @@ func main() {
 			cmdFlags.ShowAI = true
 		}
 	}
+	if cmdFlags.MCPStdio {
+		// Stdio transports own stdout: logs must never corrupt protocol frames.
+		cmdFlags.ShowAI = true
+	}
 
 	// Initialize logger before loading config
-	if err := pkg.InitLogger("memory"); err != nil {
+	logInit := pkg.InitLogger
+	if cmdFlags.MCPStdio {
+		logInit = pkg.InitLoggerStderr
+	}
+	if err := logInit("memory"); err != nil {
 		pkg.LogErrorf("Failed to initialize logger: %v", err)
 		os.Exit(1)
 	}
@@ -40,6 +51,18 @@ func main() {
 		pkg.LogInfof("OpenSCAD Version: %s", version.OpenSCAD)
 	}
 	if cmdFlags.Version {
+		return
+	}
+
+	// Stdio MCP runs without the web server: stdout carries JSON-RPC frames and
+	// nothing else, while logs go to stderr.
+	if cmdFlags.MCPStdio {
+		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+		defer stop()
+		if err := server.StartMCPStdio(ctx, cmdFlags); err != nil {
+			pkg.LogErrorf("MCP stdio server stopped: %v", err)
+			os.Exit(1)
+		}
 		return
 	}
 

@@ -28,6 +28,17 @@ func CloseLogger() {
 }
 
 func InitLogger(logFilePath string) error {
+	return initLogger(os.Stdout, logFilePath)
+}
+
+// InitLoggerStderr is InitLogger with stdout replaced by stderr. Stdio
+// transports reserve stdout for protocol frames, so every log line must go to
+// stderr instead.
+func InitLoggerStderr(logFilePath string) error {
+	return initLogger(os.Stderr, logFilePath)
+}
+
+func initLogger(out io.Writer, logFilePath string) error {
 	logMu.Lock()
 	defer logMu.Unlock()
 
@@ -37,7 +48,7 @@ func InitLogger(logFilePath string) error {
 	}
 
 	if logFilePath == "memory" {
-		writer := io.MultiWriter(os.Stdout)
+		writer := io.MultiWriter(out)
 		handler := newColorHandler(writer)
 		appLogger = slog.New(handler)
 		slog.SetDefault(appLogger)
@@ -51,7 +62,7 @@ func InitLogger(logFilePath string) error {
 	}
 
 	logFile = file
-	writer := io.MultiWriter(os.Stdout, file)
+	writer := io.MultiWriter(out, file)
 	handler := newColorHandler(writer)
 	appLogger = slog.New(handler)
 	slog.SetDefault(appLogger)

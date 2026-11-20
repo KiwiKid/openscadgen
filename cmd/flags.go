@@ -64,6 +64,10 @@ func ParseFlags() models.CmdFlags {
 	flag.BoolVar(&cmdFlags.BuildSite, "build-site", false, "Build all example and bols2otropolis reports in GitHub Pages mode, then assemble the pages/ folder")
 	flag.StringVar(&cmdFlags.BuildSiteIgnoreSections, "build-site-ignore-sections", "", "Comma-separated path sections to skip when building the site")
 
+	browserReportDesc := "Embed an OpenSCAD WebAssembly renderer and its assets in the generated report so instances can be re-rendered in the browser"
+	flag.BoolVar(&cmdFlags.BrowserReport, "browser-report", false, browserReportDesc)
+	flag.BoolVar(&cmdFlags.BrowserReport, "br", false, "Alias for -browser-report")
+
 	flag.BoolVar(&cmdFlags.Version, "version", false, "just output the openscadgen and openscad version number")
 	flag.BoolVar(&cmdFlags.Version, "v", false, "Alias for -version")
 
@@ -110,7 +114,12 @@ func ParseFlags() models.CmdFlags {
 
 	flag.BoolVar(&cmdFlags.EnableFileWatcher, "enable-file-watcher", false, "[NOT YET IMPLEMENTED] sEnable file watchers to automatically regenerate on changes (default false)")
 	flag.BoolVar(&cmdFlags.EnableFileWatcher, "efw", false, "Alias for -enable-file-watcher")
-	flag.BoolVar(&cmdFlags.ShowAI, "ai", false, "Show AI tools in server mode")
+	flag.BoolVar(&cmdFlags.ShowAI, "ai", false, "Enable the MCP server (HTTP and stdio) plus the AI settings page in server mode")
+	flag.BoolVar(&cmdFlags.MCPStdio, "mcp-stdio", false, "Serve MCP over stdin/stdout instead of HTTP (implies -ai; logs move to stderr)")
+	flag.StringVar(&cmdFlags.MCPDetail, "mcp-detail", "", "Default MCP response detail: summary, normal, or full (env OPENSCADGEN_MCP_DETAIL, default normal)")
+	flag.BoolVar(&cmdFlags.MCPReadOnly, "mcp-read-only", false, "Expose only read-only MCP tools (env OPENSCADGEN_MCP_READ_ONLY)")
+	flag.BoolVar(&cmdFlags.MCPAllowPush, "mcp-allow-push", false, "Expose the git_push MCP tool (env OPENSCADGEN_MCP_ALLOW_PUSH)")
+	flag.StringVar(&cmdFlags.MCPRoots, "mcp-root", "", "Comma-separated project folders MCP tools may access (env OPENSCADGEN_MCP_ROOT, default: server folder or working directory)")
 
 	flag.Parse()
 

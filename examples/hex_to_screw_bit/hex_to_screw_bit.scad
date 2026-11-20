@@ -2,21 +2,21 @@ include <BOSL2/std.scad>;
 
 $fn = 100;
 
-screwRadius = 0.8;
-screwDepth = 8;
-hexLength = 20;
-hexRadius = 6.5/2;
+screwRadius = 1.16;
+screwDepth = 15;
+hexLength = 30;
+hexRadius = 7.2/2;
 
-setScrewLength = 18;
+setScrewLength = 26;
 setScrewHeight = 5;
-setScrewRadius = 0.7;
+setScrewRadius = 0.8;
 
 module hex_to_screw_bit(){
 	difference(){
         linear_extrude(hexLength)
         hexagon(r=hexRadius, realign=true);
         
-        cyl(r=screwRadius, h=screwDepth, anchor=BOT);
+        cyl(r=screwRadius, h=screwDepth, anchor=BOT, chamfer1=-.5);
         
         up(setScrewHeight)
         xcyl(r=setScrewRadius, h=setScrewLength, anchor=LEFT);

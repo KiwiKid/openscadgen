@@ -1,0 +1,53 @@
+package templates
+
+import "github.com/kiwikid/openscadgen/pkg/models"
+
+// BrowserRenderPanel is progressively enhanced: the report remains a static
+// document unless the user opens the browser renderer. The bundle is embedded
+// as JSON (escaped by encoding/json) and the runtime is loaded from the
+// adjacent browser/ directory only when needed.
+templ BrowserRenderPanel(reportMeta models.ReportMeta) {
+	<div id="og-browser-bundle" hidden>{ reportMeta.BrowserBundleJSON }</div>
+	<script>
+		window.OG_BROWSER_ASSETS_BASE = {{ reportMeta.BrowserAssetsBase }};
+	</script>
+	<link rel="stylesheet" href={ reportMeta.BrowserAssetsBase + "/og-browser.css" }/>
+	<script src={ reportMeta.BrowserAssetsBase + "/og-browser.js" } defer></script>
+	<div id="og-browser-modal" class="og-browser-modal" hidden>
+		<div class="og-browser-dialog" role="dialog" aria-modal="true" aria-labelledby="og-browser-title">
+			<header class="og-browser-header">
+				<div>
+					<h2 id="og-browser-title">Browser renderer</h2>
+					<p class="og-browser-subtitle">Re-render with OpenSCAD WebAssembly. Geometry only; image previews stay host-generated.</p>
+				</div>
+				<button class="button is-light" id="og-browser-close" type="button" aria-label="Close browser renderer">Close</button>
+			</header>
+			<div class="og-browser-toolbar">
+				<button class="button is-primary" id="og-browser-render-all" type="button">Render selected</button>
+				<button class="button is-danger is-light" id="og-browser-cancel" type="button" disabled>Cancel</button>
+				<label class="checkbox og-browser-preview">
+					<input type="checkbox" id="og-browser-preview" checked/>
+					Quick preview
+				</label>
+				<button class="button is-light" id="og-browser-share" type="button">Copy share link</button>
+				<span class="og-browser-status" id="og-browser-status">Ready</span>
+			</div>
+			<div class="og-browser-body">
+				<div class="og-browser-sidebar">
+					<div class="og-browser-list" id="og-browser-list"></div>
+					<pre class="og-browser-log" id="og-browser-log" aria-live="polite"></pre>
+				</div>
+				<div class="og-browser-viewer">
+					<canvas id="og-browser-canvas"></canvas>
+					<div class="og-browser-viewer-empty" id="og-browser-viewer-empty">
+						Render an instance to preview it here. The viewer uses WebGL; the model is still generated on the CPU by OpenSCAD WebAssembly.
+					</div>
+				</div>
+			</div>
+			<footer class="og-browser-footer">
+				<span>Manifold backend · worker-based · WASM compiled once and shared</span>
+				<span id="og-browser-file-warning"></span>
+			</footer>
+		</div>
+	</div>
+}

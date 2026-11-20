@@ -1,0 +1,25 @@
+[openscadgen]
+name = "charging_cord_integrated_electronics_holder"
+description = ""
+
+version = "v0.1"
+
+export_name_format = "{designFileName}"
+
+global_params = { }
+
+[[openscadgen.input_paths]]
+path = "./charging_cord_integrated_electronics_holder.scad"
+params = { partType = "holder" }
+
+[[openscadgen.input_paths]]
+path = "./charging_cord_integrated_electronics_holder.scad"
+params = { partType = "cordPlug" }
+export_name_format = "cordPlug"
+
+[[openscadgen.images]]
+name = "nice"
+
+[[openscadgen.images]]
+name = "bottom"
+param_filter = { partType = "holder" }

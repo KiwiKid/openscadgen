@@ -5,9 +5,11 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 )
@@ -22,6 +24,12 @@ func InstallOrUpgradeBOSL2(ctx context.Context) error {
 		return err
 	}
 	return installOrUpgradeBOSL2(ctx, libraryDir, bosl2ArchiveURL, http.DefaultClient)
+}
+
+// ManagedOpenSCADLibraryDir returns the OpenSCAD library directory that
+// OpenSCADGen installs and upgrades libraries into.
+func ManagedOpenSCADLibraryDir() (string, error) {
+	return managedOpenSCADLibraryDir()
 }
 
 func managedOpenSCADLibraryDir() (string, error) {
@@ -207,8 +215,17 @@ func replaceBOSL2Directory(sourceDir, targetDir, backupDir string) error {
 		if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
 			return fmt.Errorf("existing BOSL2 library is not a directory")
 		}
-		if err := os.Rename(targetDir, backupDir); err != nil {
-			return fmt.Errorf("back up existing BOSL2 library: %w", err)
+		if err := renameWithRetry(targetDir, backupDir); err != nil {
+			// Windows refuses to rename a directory while another process holds
+			// it open (OpenSCAD, Explorer, a shell whose working directory is
+			// inside it, antivirus, ...). Replacing the files inside the
+			// directory still works, so update in place instead of failing the
+			// whole installation.
+			if !isRetryableRenameError(err) {
+				return fmt.Errorf("back up existing BOSL2 library: %w", err)
+			}
+			LogWarnf("BOSL2 library directory is in use; updating its files in place: %v", err)
+			return replaceBOSL2Contents(sourceDir, targetDir)
 		}
 		if err := os.Rename(sourceDir, targetDir); err != nil {
 			if restoreErr := os.Rename(backupDir, targetDir); restoreErr != nil {
@@ -217,7 +234,9 @@ func replaceBOSL2Directory(sourceDir, targetDir, backupDir string) error {
 			return fmt.Errorf("install BOSL2: %w", err)
 		}
 		if err := os.RemoveAll(backupDir); err != nil {
-			return fmt.Errorf("remove BOSL2 backup after successful install: %w", err)
+			// The new library is already in place; a leftover backup is
+			// harmless and must not be reported as a failed installation.
+			LogWarnf("BOSL2 installed, but the previous library backup could not be removed: %v", err)
 		}
 		return nil
 	case !os.IsNotExist(err):
@@ -228,4 +247,132 @@ func replaceBOSL2Directory(sourceDir, targetDir, backupDir string) error {
 		return fmt.Errorf("install BOSL2: %w", err)
 	}
 	return nil
+}
+
+const (
+	renameRetryAttempts = 5
+	renameRetryDelay    = 100 * time.Millisecond
+)
+
+// renameWithRetry gives transient locks (antivirus scans, search indexing) a
+// chance to clear before the caller falls back to an in-place update.
+func renameWithRetry(oldPath, newPath string) error {
+	delay := renameRetryDelay
+	var err error
+	for attempt := 1; attempt <= renameRetryAttempts; attempt++ {
+		if err = os.Rename(oldPath, newPath); err == nil {
+			return nil
+		}
+		if attempt == renameRetryAttempts || !isRetryableRenameError(err) {
+			return err
+		}
+		time.Sleep(delay)
+		if delay < 800*time.Millisecond {
+			delay *= 2
+		}
+	}
+	return err
+}
+
+// replaceBOSL2Contents updates an existing BOSL2 directory without renaming or
+// deleting it. Files are written atomically and files that the new release no
+// longer ships are pruned on a best-effort basis.
+func replaceBOSL2Contents(sourceDir, targetDir string) error {
+	expected := make(map[string]struct{})
+	err := filepath.WalkDir(sourceDir, func(path string, entry fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		rel, err := filepath.Rel(sourceDir, path)
+		if err != nil {
+			return err
+		}
+		if rel == "." {
+			return nil
+		}
+		expected[rel] = struct{}{}
+		destination := filepath.Join(targetDir, rel)
+		if entry.IsDir() {
+			return os.MkdirAll(destination, 0o755)
+		}
+		sourceInfo, err := entry.Info()
+		if err != nil {
+			return err
+		}
+		return copyFileReplacing(path, destination, sourceInfo.Mode().Perm())
+	})
+	if err != nil {
+		return fmt.Errorf("update BOSL2 files in place: %w", err)
+	}
+	pruneStaleBOSL2Files(targetDir, expected)
+	return nil
+}
+
+func copyFileReplacing(sourcePath, destinationPath string, mode os.FileMode) error {
+	source, err := os.Open(sourcePath)
+	if err != nil {
+		return err
+	}
+	defer source.Close()
+
+	temporary, err := os.CreateTemp(filepath.Dir(destinationPath), ".openscadgen-copy-")
+	if err != nil {
+		return err
+	}
+	temporaryPath := temporary.Name()
+	cleanup := func() {
+		_ = temporary.Close()
+		_ = os.Remove(temporaryPath)
+	}
+
+	if _, err := io.Copy(temporary, source); err != nil {
+		cleanup()
+		return err
+	}
+	if err := temporary.Chmod(mode); err != nil {
+		cleanup()
+		return err
+	}
+	if err := temporary.Close(); err != nil {
+		_ = os.Remove(temporaryPath)
+		return err
+	}
+	if err := os.Rename(temporaryPath, destinationPath); err != nil {
+		_ = os.Remove(temporaryPath)
+		return err
+	}
+	return nil
+}
+
+func pruneStaleBOSL2Files(targetDir string, expected map[string]struct{}) {
+	var stale []string
+	err := filepath.WalkDir(targetDir, func(path string, entry fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		rel, err := filepath.Rel(targetDir, path)
+		if err != nil {
+			return err
+		}
+		if rel == "." {
+			return nil
+		}
+		if _, ok := expected[rel]; !ok {
+			stale = append(stale, path)
+		}
+		return nil
+	})
+	if err != nil {
+		LogWarnf("BOSL2 updated in place, but stale files could not be listed: %v", err)
+		return
+	}
+	// Deepest paths first so files are removed before their directories.
+	sort.Slice(stale, func(i, j int) bool {
+		return strings.Count(stale[i], string(filepath.Separator)) > strings.Count(stale[j], string(filepath.Separator))
+	})
+	for _, path := range stale {
+		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+			LogWarnf("BOSL2 updated in place, but stale path %s could not be removed: %v", path, err)
+		}
+	}
 }
