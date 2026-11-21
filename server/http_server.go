@@ -32,6 +32,7 @@ var globalServerFolder string
 var startOpenSCADFile = openOpenSCADFile
 var installOpenSCAD = installOpenSCADWithHomebrew
 var installLibrary = pkg.InstallOpenSCADLibrary
+var syncGUILibraryPath = pkg.EnsureOpenSCADGUILibraryPath
 
 func bosl2ManualInstallCommand() string {
 	libraryDir, err := pkg.ManagedOpenSCADLibraryDir()
@@ -1035,6 +1036,9 @@ func handleOpenSCADLibraryAction(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		pkg.InvalidateOpenSCADLibraryAccessCache()
+		if err := syncGUILibraryPath(); err != nil {
+			pkg.LogWarnf("%s installed, but OpenSCAD's library copy could not be updated: %v", libName, err)
+		}
 		if err := pkg.RecordUpdateJournal(globalServerFolder, libName, "installed library", strings.ToUpper(libName)+" installed", "downloaded official library source archive", true); err != nil {
 			pkg.LogWarnf("%s update journal write failed: %v", libName, err)
 		}
@@ -1836,7 +1840,7 @@ func openOpenSCADFile(path string) error {
 	// so make the managed libraries resolvable from OpenSCAD's own library
 	// folder as well. Failure is not fatal: a freshly launched instance still
 	// receives the environment below.
-	if err := pkg.EnsureOpenSCADGUILibraryPath(); err != nil {
+	if err := syncGUILibraryPath(); err != nil {
 		pkg.LogWarnf("OpenSCAD GUI may not see OpenSCADGen libraries: %v", err)
 	}
 	var cmd *exec.Cmd

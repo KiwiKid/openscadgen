@@ -127,9 +127,11 @@ func TestHandleOpenSCADInstallRequiresPOST(t *testing.T) {
 
 func TestHandleOpenSCADLibraryActionInstallsBOSL2(t *testing.T) {
 	originalInstall := installLibrary
+	originalSync := syncGUILibraryPath
 	originalServerFolder := globalServerFolder
 	t.Cleanup(func() {
 		installLibrary = originalInstall
+		syncGUILibraryPath = originalSync
 		globalServerFolder = originalServerFolder
 	})
 	installed := false
@@ -138,6 +140,11 @@ func TestHandleOpenSCADLibraryActionInstallsBOSL2(t *testing.T) {
 			t.Fatalf("install library id = %q, want bosl2", id)
 		}
 		installed = true
+		return nil
+	}
+	synced := false
+	syncGUILibraryPath = func() error {
+		synced = true
 		return nil
 	}
 	globalServerFolder = t.TempDir()
@@ -149,6 +156,9 @@ func TestHandleOpenSCADLibraryActionInstallsBOSL2(t *testing.T) {
 
 	if !installed {
 		t.Fatal("expected BOSL2 installer to run")
+	}
+	if !synced {
+		t.Fatal("expected the OpenSCAD GUI library copy to be refreshed")
 	}
 	if rr.Code != http.StatusOK {
 		t.Fatalf("status = %d, body = %s", rr.Code, rr.Body.String())

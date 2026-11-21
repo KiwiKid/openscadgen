@@ -225,7 +225,7 @@ func replaceBOSL2Directory(sourceDir, targetDir, backupDir string) error {
 				return fmt.Errorf("back up existing BOSL2 library: %w", err)
 			}
 			LogWarnf("BOSL2 library directory is in use; updating its files in place: %v", err)
-			return replaceBOSL2Contents(sourceDir, targetDir)
+			return replaceDirectoryContents(sourceDir, targetDir)
 		}
 		if err := os.Rename(sourceDir, targetDir); err != nil {
 			if restoreErr := os.Rename(backupDir, targetDir); restoreErr != nil {
@@ -274,10 +274,13 @@ func renameWithRetry(oldPath, newPath string) error {
 	return err
 }
 
-// replaceBOSL2Contents updates an existing BOSL2 directory without renaming or
+// replaceDirectoryContents updates an existing directory without renaming or
 // deleting it. Files are written atomically and files that the new release no
 // longer ships are pruned on a best-effort basis.
-func replaceBOSL2Contents(sourceDir, targetDir string) error {
+func replaceDirectoryContents(sourceDir, targetDir string) error {
+	if err := os.MkdirAll(targetDir, 0o755); err != nil {
+		return err
+	}
 	expected := make(map[string]struct{})
 	err := filepath.WalkDir(sourceDir, func(path string, entry fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
@@ -302,9 +305,9 @@ func replaceBOSL2Contents(sourceDir, targetDir string) error {
 		return copyFileReplacing(path, destination, sourceInfo.Mode().Perm())
 	})
 	if err != nil {
-		return fmt.Errorf("update BOSL2 files in place: %w", err)
+		return fmt.Errorf("update files in place: %w", err)
 	}
-	pruneStaleBOSL2Files(targetDir, expected)
+	pruneStaleFiles(targetDir, expected)
 	return nil
 }
 
@@ -344,7 +347,7 @@ func copyFileReplacing(sourcePath, destinationPath string, mode os.FileMode) err
 	return nil
 }
 
-func pruneStaleBOSL2Files(targetDir string, expected map[string]struct{}) {
+func pruneStaleFiles(targetDir string, expected map[string]struct{}) {
 	var stale []string
 	err := filepath.WalkDir(targetDir, func(path string, entry fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
@@ -363,7 +366,7 @@ func pruneStaleBOSL2Files(targetDir string, expected map[string]struct{}) {
 		return nil
 	})
 	if err != nil {
-		LogWarnf("BOSL2 updated in place, but stale files could not be listed: %v", err)
+		LogWarnf("Directory updated in place, but stale files could not be listed: %v", err)
 		return
 	}
 	// Deepest paths first so files are removed before their directories.
@@ -372,7 +375,7 @@ func pruneStaleBOSL2Files(targetDir string, expected map[string]struct{}) {
 	})
 	for _, path := range stale {
 		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
-			LogWarnf("BOSL2 updated in place, but stale path %s could not be removed: %v", path, err)
+			LogWarnf("Directory updated in place, but stale path %s could not be removed: %v", path, err)
 		}
 	}
 }

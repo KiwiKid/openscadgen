@@ -5,7 +5,6 @@ package pkg
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -44,18 +43,6 @@ func windowsDocumentsDir() (string, error) {
 		return "", err
 	}
 	return filepath.Join(home, "Documents"), nil
-}
-
-func createDirectoryLink(target, link string) error {
-	output, err := exec.Command("cmd", "/c", "mklink", "/J", link, target).CombinedOutput()
-	if err != nil {
-		message := strings.TrimSpace(string(output))
-		if message != "" {
-			return fmt.Errorf("mklink /J: %w: %s", err, message)
-		}
-		return fmt.Errorf("mklink /J: %w", err)
-	}
-	return nil
 }
 
 // expandWindowsEnvironment expands REG_EXPAND_SZ values such as

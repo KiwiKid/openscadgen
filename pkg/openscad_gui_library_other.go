@@ -18,7 +18,3 @@ func defaultOpenSCADUserLibraryDir() (string, error) {
 	}
 	return filepath.Join(home, ".local", "share", "OpenSCAD", "libraries"), nil
 }
-
-func createDirectoryLink(target, link string) error {
-	return os.Symlink(target, link)
-}
