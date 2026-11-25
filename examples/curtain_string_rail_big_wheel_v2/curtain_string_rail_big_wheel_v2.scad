@@ -2,35 +2,37 @@ include <BOSL2/std.scad>;
 
 $fn = 100;
 
-motorBarRadius= 7/2;
-motorBarNotchRadius = 2;
+motorBarRadius= 6/2;
+motorBarNotchRadius = 1.6;
 
-railWheelHeight = 15;
+railWheelHeight = 20;
 
 
 outerRadiusRounding= 7;
-outerRadius= 16;
+outerRadius= 18;
 
-innerCutoutRadius = 5;
-innerCutoutHeight = 8;
+innerCutoutRadius = 10;
+innerCutoutHeight = 14;
 
-maxOuterRadius = 43/2;
+maxOuterRadius = 45/2;
 
-motorBodyDepth = 22;
-motorBodyWidth = 43;
+motorBodyDepth = 24;
+motorBodyWidth = 51;
 motorBodyWidthClearance = 2;
 motorBodyDepthClearance = 2;
-mode = "wheel"; //all, wheel, strap
+mode = "strap"; //all, wheel, strap
 strapWall = 3;
 strapWidth = motorBodyWidth+motorBodyWidthClearance;
+
+
 strapSize = [strapWidth,motorBodyDepth+railWheelHeight+motorBodyDepthClearance];
 strapHeight = 10;
 
-strapGapWidth = strapWidth-20;
+strapGapWidth = strapWidth-30;
 setScrewRadius = 1;
 module notched_cyl(){
      intersection(){
-         cyl(r=motorBarRadius, h=railWheelHeight+0.001);
+         cyl(r=motorBarRadius, h=railWheelHeight+0.001, chamfer2=-1);
          fwd(motorBarNotchRadius/2)
          cuboid([100,motorBarRadius*2, 100]);
      }
@@ -51,7 +53,7 @@ module curtain_string_rail_big_wheel_v2(){
         xrot(90)
      strap_notch();
         
-        ycyl(r=setScrewRadius,h=40, anchor=TOP);
+        ycyl(r=setScrewRadius,h=40, anchor=TOP+FWD);
         
     }
         
@@ -59,9 +61,8 @@ module curtain_string_rail_big_wheel_v2(){
 
 notchHeight = 2;
 
-module strap_notch(){
- 
-     ycyl(r1=5, r2=3, h=notchHeight);
+module strap_notch(notchRadiusScale=1){
+     ycyl(r1=5*notchRadiusScale, r2=3*notchRadiusScale, h=notchHeight);
 }
 
 module curtain_string_rail_big_wheel_strap(){
@@ -78,14 +79,16 @@ module curtain_string_rail_big_wheel_strap(){
      }
         fwd(railWheelHeight/2)
     
+     
      fwd(strapSize[1]/2-railWheelHeight/2-strapWall-notchHeight/2)
      up(strapHeight/2)
-     strap_notch();
+     strap_notch(notchRadiusScale=0.8);
     
 }
 
 
 if(mode == "strap" || mode == "all"){
+    xrot(-90)
     curtain_string_rail_big_wheel_strap();
 }
 if(mode == "wheel" || mode == "all"){
