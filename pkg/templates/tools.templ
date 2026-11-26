@@ -75,6 +75,7 @@ templ ToolsPage(v OpenSCADNavView, tools []ToolLink, homeURL string, showAI bool
 					<p class="title is-3 mb-2">Tools</p>
 					<p class="subtitle is-6 mb-0">A short list of utilities and libraries that pair well with OpenSCADGen.</p>
 				</section>
+				@OpenSCADWarningSlot(v)
 				<div class="tools-grid">
 					for _, tool := range tools {
 						if !showAI && (tool.Title == "AI Chat" || tool.Badge == "AI") {
@@ -141,7 +142,8 @@ templ ToolsPage(v OpenSCADNavView, tools []ToolLink, homeURL string, showAI bool
 											<button type="submit" class="button is-small is-primary">Install OpenSCAD</button>
 										</form>
 									} else {
-										<span class="has-text-grey is-size-7">OpenSCAD installation is currently supported on macOS only.</span>
+										<span class="has-text-grey is-size-7">Automatic install is available for { v.InstallSupportLabel } only. Install OpenSCAD for this platform, then re-check the page:</span>
+										<pre class="p-2 is-size-7" style="white-space:pre-wrap;word-break:break-word;background:rgba(0,0,0,0.04);border-radius:4px;">{ v.ManualInstallCommand }</pre>
 									}
 								}
 								if tool.IsBOSL2InstallableLib {

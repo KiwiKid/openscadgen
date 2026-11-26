@@ -35,11 +35,17 @@ func main() {
 	}
 
 	version := pkg.GetVersion()
+	openSCADAvailable := version.OpenSCAD != ""
 	if cmdFlags.Debug || cmdFlags.Version {
 		pkg.LogInfof("OpenSCADGen Version: %s", version.OpenSCADGen)
-		pkg.LogInfof("OpenSCAD Version: %s", version.OpenSCAD)
+		if openSCADAvailable {
+			pkg.LogInfof("OpenSCAD Version: %s", version.OpenSCAD)
+		}
 	}
 	if cmdFlags.Version {
+		if !openSCADAvailable {
+			pkg.LogWarnf("%s", pkg.OpenSCADUnavailableMessage())
+		}
 		return
 	}
 
@@ -154,6 +160,13 @@ func main() {
 		}
 		pkg.LogInfof("Built GitHub Pages output in %s", cmdFlags.PagesOutputDir)
 		return
+	}
+
+	// Rendering needs OpenSCAD, but a missing or broken install must not stop
+	// openscadgen from running: report the prerequisite and let the command
+	// that actually needs a renderer fail with the same guidance.
+	if !openSCADAvailable {
+		pkg.LogWarnf("%s", pkg.OpenSCADUnavailableMessage())
 	}
 
 	if cmdFlags.Server || cmdFlags.ServerFolder != "" {

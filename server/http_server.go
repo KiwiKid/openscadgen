@@ -39,12 +39,26 @@ cd "$HOME/.local/share/OpenSCAD/libraries"
 if [ -d BOSL2 ]; then mv BOSL2 "BOSL2.backup-$(date +%s)"; fi
 git clone --depth 1 https://github.com/BelfrySCAD/BOSL2.git`
 
+// openSCADManualInstallCommand returns the per-platform manual install steps
+// shown when the automated (macOS/Homebrew) install is unavailable or fails.
 func openSCADManualInstallCommand(installNightly bool) string {
-	formula := "openscad"
-	if installNightly {
-		formula = "openscad@snapshot"
+	switch runtime.GOOS {
+	case "darwin":
+		formula := "openscad"
+		if installNightly {
+			formula = "openscad@snapshot"
+		}
+		return "brew install " + formula
+	case "windows":
+		return "winget install --id OpenSCAD.OpenSCAD\n# or download the installer: https://openscad.org/downloads.html"
+	case "linux":
+		if installNightly {
+			return "sudo apt-get install -y openscad   # distro stable build\n# nightly AppImage: https://files.openscad.org/snapshots/"
+		}
+		return "sudo apt-get install -y openscad\n# Fedora: sudo dnf install openscad\n# Arch: sudo pacman -S openscad"
+	default:
+		return "Download OpenSCAD from https://openscad.org/downloads.html"
 	}
-	return "brew install " + formula
 }
 
 type ServerInfo struct {
@@ -244,6 +258,17 @@ func StartServer(serverFolder string, cmdFlags models.CmdFlags, onStart func(por
 	}
 
 	pkg.LogInfof("Server started on port %s", port)
+
+	// A missing or unusable OpenSCAD install must not stop the server: log the
+	// prerequisite so the operator sees it, and let the UI banner carry the
+	// same guidance with per-platform install steps.
+	if info, probeErr := pkg.ProbeOpenSCAD(); probeErr != nil {
+		pkg.LogWarnf("OpenSCAD is not available: %s", info.ProblemSummary())
+		if info.Hint != "" {
+			pkg.LogWarnf("%s", info.Hint)
+		}
+		pkg.LogWarnf("Config browsing, editing and the tools pages keep working; STL and image rendering will fail until OpenSCAD is available. Manual install: %s", openSCADManualInstallCommand(false))
+	}
 
 	// Start server on the listener (non-blocking for now, but we'll block here)
 	err = http.Serve(listener, securityHeaders(http.DefaultServeMux))
@@ -811,7 +836,9 @@ func handleOpenSCADHealthBadge(w http.ResponseWriter, r *http.Request) {
 	_ = templates.OpenSCADHealthBadge(true, true, false).Render(r.Context(), w)
 }
 
-// handleOpenSCADStatus returns HTML: full page by default, or HTMX fragment when ?fragment=1.
+// handleOpenSCADStatus returns HTML: full page by default, the nav fragment when
+// ?fragment=1, or the startup warning banner when ?fragment=banner. Missing or
+// broken OpenSCAD installs are reported as page content, never as HTTP errors.
 func handleOpenSCADStatus(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -819,47 +846,14 @@ func handleOpenSCADStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	ctx := r.Context()
-	info, err := pkg.ProbeOpenSCAD()
-	var v templates.OpenSCADNavView
-	if err != nil {
-		v = templates.OpenSCADNavView{
-			Available:             false,
-			Error:                 err.Error(),
-			InstallSupported:      runtime.GOOS == "darwin",
-			InstallSupportLabel:   "darwin",
-			BOSL2ActionLabel:      "Install",
-			BOSL2InstallSupported: runtime.GOOS == "darwin",
-		}
-	} else {
-		bosl2Available, bosl2Err := pkg.ProbeBOSL2(info.Path)
-		bosl2ActionLabel := "Install"
-		if bosl2Available {
-			bosl2ActionLabel = "Upgrade"
-		}
-		v = templates.OpenSCADNavView{
-			Available:             true,
-			Path:                  info.Path,
-			Version:               info.Version,
-			OutOfDate:             info.IsOutOfDate,
-			InstallSupported:      runtime.GOOS == "darwin",
-			InstallSupportLabel:   "darwin",
-			BOSL2Available:        bosl2Available,
-			BOSL2ActionLabel:      bosl2ActionLabel,
-			BOSL2InstallSupported: runtime.GOOS == "darwin",
-		}
-		if bosl2Err != nil {
-			v.BOSL2Error = bosl2Err.Error()
-		}
-	}
+	v := buildOpenSCADNavView()
 	v.DetailsOpen = r.URL.Query().Get("isExpanded") == "1"
-	if !v.Available {
-		v.InstallSupported = runtime.GOOS == "darwin"
-		v.InstallSupportLabel = "darwin"
-		v.BOSL2InstallSupported = runtime.GOOS == "darwin"
-		v.BOSL2ActionLabel = "Install"
-	}
-	if r.URL.Query().Get("fragment") == "1" {
+	switch r.URL.Query().Get("fragment") {
+	case "1":
 		templates.OpenSCADNavWidget(v).Render(ctx, w)
+		return
+	case "banner":
+		templates.OpenSCADWarningSlot(v).Render(ctx, w)
 		return
 	}
 	templates.OpenSCADStatusFullPage(v).Render(ctx, w)
@@ -867,12 +861,12 @@ func handleOpenSCADStatus(w http.ResponseWriter, r *http.Request) {
 
 func installOpenSCADWithHomebrew(ctx context.Context, installNightly bool) error {
 	if runtime.GOOS != "darwin" {
-		return fmt.Errorf("OpenSCAD installation is currently supported on macOS only")
+		return fmt.Errorf("automated OpenSCAD installation is available on %s only; install it with the platform commands below", openscadInstallSupportLabel())
 	}
 
 	brewPath, err := exec.LookPath("brew")
 	if err != nil {
-		return fmt.Errorf("Homebrew is required to install OpenSCAD: %w", err)
+		return fmt.Errorf("Homebrew is required to install OpenSCAD automatically: %w", err)
 	}
 
 	formula := "openscad"
@@ -890,6 +884,9 @@ func installOpenSCADWithHomebrew(ctx context.Context, installNightly bool) error
 	return nil
 }
 
+// handleOpenSCADInstall runs the automated install when the platform supports
+// it and always answers with an actionable result: openscadgen keeps running
+// either way, and the failure path explains the manual steps.
 func handleOpenSCADInstall(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -903,7 +900,10 @@ func handleOpenSCADInstall(w http.ResponseWriter, r *http.Request) {
 	installNightly := r.Form.Get("install_nightly") == "true"
 	if err := installOpenSCAD(r.Context(), installNightly); err != nil {
 		pkg.LogWarnf("OpenSCAD installation failed: %v", err)
-		writeToolActionResult(w, r, "is-danger", "OpenSCAD installation failed", err.Error(), openSCADManualInstallCommand(installNightly))
+		pkg.LogWarnf("Install OpenSCAD manually, then reload the page: %s", openSCADManualInstallCommand(installNightly))
+		writeToolActionResult(w, r, "is-danger", "OpenSCAD installation failed",
+			fmt.Sprintf("%v\nopenscadgen keeps running; rendering stays disabled until OpenSCAD is available.", err),
+			openSCADManualInstallCommand(installNightly))
 		return
 	}
 
@@ -920,38 +920,7 @@ func handleToolsRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	info, err := pkg.ProbeOpenSCAD()
-	var v templates.OpenSCADNavView
-	if err != nil {
-		v = templates.OpenSCADNavView{
-			Available:             false,
-			Error:                 err.Error(),
-			InstallSupported:      runtime.GOOS == "darwin",
-			InstallSupportLabel:   "darwin",
-			BOSL2ActionLabel:      "Install",
-			BOSL2InstallSupported: runtime.GOOS == "darwin",
-		}
-	} else {
-		bosl2Available, bosl2Err := pkg.ProbeBOSL2(info.Path)
-		actionLabel := "Install"
-		if bosl2Available {
-			actionLabel = "Upgrade"
-		}
-		v = templates.OpenSCADNavView{
-			Available:             true,
-			Path:                  info.Path,
-			Version:               info.Version,
-			OutOfDate:             info.IsOutOfDate,
-			InstallSupported:      runtime.GOOS == "darwin",
-			InstallSupportLabel:   "darwin",
-			BOSL2Available:        bosl2Available,
-			BOSL2ActionLabel:      actionLabel,
-			BOSL2InstallSupported: runtime.GOOS == "darwin",
-		}
-		if bosl2Err != nil {
-			v.BOSL2Error = bosl2Err.Error()
-		}
-	}
+	v := buildOpenSCADNavView()
 	templates.ToolsPage(v, pkg.OpenSCADToolRegistry(), pkg.BuildHomeURL(globalServerFolder), aiToolsEnabled).Render(r.Context(), w)
 }
 

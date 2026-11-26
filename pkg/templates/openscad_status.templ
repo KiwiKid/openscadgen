@@ -15,10 +15,19 @@ func bosl2InstallUnsupportedMessage() string {
 
 // OpenSCADNavView is server-side state for the nav OpenSCAD probe widget.
 type OpenSCADNavView struct {
-	Available             bool
-	Path                  string
-	Version               string
-	Error                 string
+	Available bool
+	Path      string
+	Version   string
+	Error     string
+	// Reason is a one-line explanation of why OpenSCAD is unusable (missing,
+	// not runnable) and stays empty when OpenSCAD works.
+	Reason string
+	// Hint carries an actionable prerequisite fix for a detected Reason, such
+	// as the runtime libraries OpenSCAD needs on headless Linux.
+	Hint string
+	// ManualInstallCommand is the per-platform install/upgrade steps shown when
+	// the automated install is unavailable or fails.
+	ManualInstallCommand  string
 	OutOfDate             bool
 	InstallSupported      bool
 	InstallSupportLabel   string
@@ -27,6 +36,67 @@ type OpenSCADNavView struct {
 	BOSL2InstallSupported bool
 	BOSL2Error            string
 	DetailsOpen           bool // from ?isExpanded=1 on /api/openscad/status
+}
+
+// OpenSCADWarningSlot is the HTMX slot that loads the OpenSCAD warning banner.
+// It renders an empty, inert slot when OpenSCAD is available.
+templ OpenSCADWarningSlot(v OpenSCADNavView) {
+	if v.Available {
+		<div id="openscad-warning-slot" hx-get="/api/openscad/status?fragment=banner" hx-trigger="load" hx-swap="outerHTML"></div>
+	} else {
+		<article id="openscad-warning-slot" class="notification is-warning" data-openscad-warning="missing-renderer">
+			<p class="has-text-weight-bold mb-2">OpenSCAD is not available — rendering is disabled</p>
+			if v.Reason != "" {
+				<p class="mb-2">{ v.Reason }</p>
+			}
+			<p class="mb-2">
+				openscadgen keeps running: you can browse, edit and create configs, but STL and preview-image renders will fail until OpenSCAD is available.
+			</p>
+			if v.Hint != "" {
+				<p class="has-text-weight-semibold mb-1">Missing prerequisite</p>
+				<pre id="openscad-warning-hint" class="p-2 mb-2" style="white-space:pre-wrap;word-break:break-word;background:rgba(0,0,0,0.04);border-radius:4px;">{ v.Hint }</pre>
+			}
+			if v.InstallSupported {
+				<div class="buttons are-small mb-2">
+					<button
+						type="button"
+						class="button is-link is-small"
+						hx-post="/api/openscad/install"
+						hx-vals='js:{install_nightly: "false"}'
+						hx-target="#openscad-warning-install-result"
+						hx-swap="innerHTML"
+					>Install OpenSCAD</button>
+					<button
+						type="button"
+						class="button is-link is-light is-small"
+						hx-post="/api/openscad/install"
+						hx-vals='js:{install_nightly: "true"}'
+						hx-target="#openscad-warning-install-result"
+						hx-swap="innerHTML"
+					>Install OpenSCAD nightly</button>
+				</div>
+				<div id="openscad-warning-install-result" class="mb-2"></div>
+				<p class="is-size-7 mb-1">If the automatic install fails, install it manually and reload the page:</p>
+			} else {
+				<p class="is-size-7 mb-1">Automatic install is available for { v.InstallSupportLabel } only. Install OpenSCAD for your platform, then reload the page:</p>
+			}
+			<pre id="openscad-warning-manual" class="p-2 mb-2" style="white-space:pre-wrap;word-break:break-word;background:rgba(0,0,0,0.04);border-radius:4px;">{ v.ManualInstallCommand }</pre>
+			<details class="is-size-7">
+				<summary>Diagnostic details</summary>
+				<pre class="p-2 mt-1" style="white-space:pre-wrap;word-break:break-word;background:rgba(0,0,0,0.04);border-radius:4px;">{ v.Error }</pre>
+			</details>
+			<p class="is-size-7 mt-2">
+				<a href="/api/openscad/status?fragment=banner">Re-check OpenSCAD</a>
+				· <a href="/tools">Open tools</a>
+			</p>
+		</article>
+	}
+}
+
+// OpenSCADWarningPlaceholder loads the warning banner on page load. It is a
+// no-op when OpenSCAD is available, so pages look unchanged on working installs.
+templ OpenSCADWarningPlaceholder() {
+	<div id="openscad-warning-slot" hx-get="/api/openscad/status?fragment=banner" hx-trigger="load" hx-swap="outerHTML"></div>
 }
 
 // OpenSCADNavWidget shows OpenSCAD OK / No OpenSCAD in a <summary>; details hold path/version.
@@ -107,16 +177,27 @@ templ OpenSCADNavWidget(v OpenSCADNavView) {
 						<p class="has-text-warning mt-2">Flagged out-of-date.</p>
 					}
 					if !v.InstallSupported {
-						<p class="has-text-grey mt-2">OpenSCAD install not supported (supported are { v.InstallSupportLabel }).</p>
+						<p class="has-text-grey mt-2">Automated install runs on { v.InstallSupportLabel } only.</p>
 					}
 					if v.BOSL2Error != "" {
 						<p class="has-text-grey mt-2">{ v.BOSL2Error }</p>
 					}
 				} else {
+					if v.Reason != "" {
+						<p class="mb-2">{ v.Reason }</p>
+					}
 					<p class="mb-1"><strong>Error</strong></p>
 					<pre class="p-2" style="white-space:pre-wrap;word-break:break-all;background:rgba(0,0,0,0.04);border-radius:4px;">{ v.Error }</pre>
+					if v.Hint != "" {
+						<p class="mb-1 mt-2"><strong>Missing prerequisite</strong></p>
+						<pre class="p-2" style="white-space:pre-wrap;word-break:break-all;background:rgba(0,0,0,0.04);border-radius:4px;">{ v.Hint }</pre>
+					}
+					if v.ManualInstallCommand != "" {
+						<p class="mb-1 mt-2"><strong>Manual install</strong></p>
+						<pre class="p-2" style="white-space:pre-wrap;word-break:break-all;background:rgba(0,0,0,0.04);border-radius:4px;">{ v.ManualInstallCommand }</pre>
+					}
 					if !v.InstallSupported {
-						<p class="has-text-grey mt-2">OpenSCAD install not supported (supported are { v.InstallSupportLabel }).</p>
+						<p class="has-text-grey mt-2">Automated install runs on { v.InstallSupportLabel } only.</p>
 					}
 					if v.BOSL2Error != "" {
 						<p class="has-text-grey mt-2">{ v.BOSL2Error }</p>

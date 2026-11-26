@@ -239,10 +239,17 @@ var runErrorCodeName = map[RunErrorCode]string{
 	RunErrorCode_DuplicateExportPath: "Duplicate export path found in config",
 }
 
+// GetVersion reports the openscadgen build and, when the OpenSCAD CLI is
+// runnable, the renderer version. A missing or unusable OpenSCAD install is not
+// fatal: callers decide whether the missing renderer blocks their work, so the
+// server can still start and present install guidance.
 func GetVersion() Version {
 	openSCADVersion, err := findOpenSCAD()
 	if err != nil {
-		log.Fatalf("GetVersion Error: %v", err)
+		return Version{
+			OpenSCADGen: VERSION,
+			IsOutOfDate: false,
+		}
 	}
 	return Version{
 		OpenSCADGen: VERSION,
@@ -455,10 +462,44 @@ func Process(config *models.Config, progress ProgressReporter, cancel <-chan str
 		return models.ProcessResult{}, err
 	}
 	renderer := OpenSCADRenderer{Executable: resolveOpenSCADCommand(config), AdditionalArguments: additionalArgs}
+	if renderer.Executable == "" {
+		return models.ProcessResult{}, openSCADUnavailableError()
+	}
 	if err := preflightBOSL2(config, renderer.Executable, ProbeBOSL2); err != nil {
 		return models.ProcessResult{}, err
 	}
 	return ProcessWithRenderer(config, progress, cancel, operations, isServerMode, renderer)
+}
+
+// OpenSCADUnavailableMessage is the actionable, non-fatal explanation used
+// whenever rendering is requested without a usable OpenSCAD CLI.
+func OpenSCADUnavailableMessage() string {
+	info, err := ProbeOpenSCAD()
+	if err == nil {
+		return "OpenSCAD is not available for rendering. Set `custom_openscad_command` in your config.toml, or install OpenSCAD and make sure `openscad` is on PATH."
+	}
+
+	var message string
+	switch info.Problem {
+	case OpenSCADProblemMissing:
+		message = "The `openscad` command was not found on PATH. Rendering STLs and preview images is disabled until it is installed."
+	case OpenSCADProblemNotRunnable:
+		if info.Path != "" {
+			message = fmt.Sprintf("OpenSCAD was found at %s but it could not start. Rendering STLs and preview images is disabled until it can run.", info.Path)
+		} else {
+			message = "OpenSCAD could not start. Rendering STLs and preview images is disabled until it can run."
+		}
+	default:
+		message = fmt.Sprintf("OpenSCAD is not available for rendering: %v", err)
+	}
+	if info.Hint != "" {
+		message += "\n" + info.Hint
+	}
+	return message
+}
+
+func openSCADUnavailableError() error {
+	return fmt.Errorf("%s", OpenSCADUnavailableMessage())
 }
 
 // ProcessWithRenderer runs the instance/image pipeline through a supplied
@@ -3732,10 +3773,57 @@ func Copy(src string, dst string) error {
 	return nil
 }
 
+// OpenSCADProblem classifies why the OpenSCAD CLI cannot be used for rendering.
+type OpenSCADProblem string
+
+const (
+	// OpenSCADProblemNone means the CLI answered a version check.
+	OpenSCADProblemNone OpenSCADProblem = ""
+	// OpenSCADProblemMissing means no `openscad` executable was found on PATH.
+	OpenSCADProblemMissing OpenSCADProblem = "missing"
+	// OpenSCADProblemNotRunnable means the executable exists but could not run
+	// (typically missing system libraries such as libEGL).
+	OpenSCADProblemNotRunnable OpenSCADProblem = "not_runnable"
+)
+
 type OpenSCADVersion struct {
 	Version     string
 	Path        string
 	IsOutOfDate bool
+	// Problem explains why the CLI is unusable, and is empty when it works.
+	Problem OpenSCADProblem
+	// Hint carries an actionable prerequisite fix for the detected Problem.
+	Hint string
+}
+
+// ProblemSummary is a one-line explanation suitable for CLI warnings and the
+// server's OpenSCAD status UI.
+func (v OpenSCADVersion) ProblemSummary() string {
+	switch v.Problem {
+	case OpenSCADProblemMissing:
+		return "The `openscad` command was not found on PATH."
+	case OpenSCADProblemNotRunnable:
+		if v.Path != "" {
+			return fmt.Sprintf("OpenSCAD was found at %s but it could not start.", v.Path)
+		}
+		return "OpenSCAD was found but it could not start."
+	default:
+		return ""
+	}
+}
+
+// openSCADLibraryHint converts launcher/dynamic-linker output from a failed
+// `openscad --version` run into an actionable prerequisite hint.
+func openSCADLibraryHint(output string) string {
+	lower := strings.ToLower(output)
+	if !strings.Contains(lower, "error while loading shared libraries") && !strings.Contains(lower, "cannot open shared object file") {
+		return ""
+	}
+	if runtime.GOOS == "linux" {
+		return "OpenSCAD is installed but its rendering libraries are missing. Install them with your package manager, for example:\n" +
+			"  sudo apt-get update && sudo apt-get install -y --no-install-recommends libegl1 libgl1 libglx0 libopengl0"
+	}
+	return "OpenSCAD is installed but one of its runtime libraries is missing. Reinstall OpenSCAD with your platform's installer."
 }
 
 // ProbeBOSL2 reports whether the local OpenSCAD install can resolve BOSL2/std.scad.
@@ -3762,26 +3850,32 @@ func ProbeBOSL2(openscadPath string) (bool, error) {
 	return true, nil
 }
 
-// findOpenSCAD finds the OpenSCAD executable and returns its version info
+// findOpenSCAD finds the OpenSCAD executable and returns its version info.
+// A returned error always leaves Problem describing why the CLI is unusable so
+// callers can degrade to a warning instead of aborting.
 func findOpenSCAD() (OpenSCADVersion, error) {
-	// Try to run openscad --version directly
-	cmdVer := exec.Command("openscad", "--version")
-	outputVer, err := cmdVer.CombinedOutput()
-	if err != nil {
-		return OpenSCADVersion{}, fmt.Errorf("OpenSCAD not found in PATH (version check). Make sure you can run openscad from the command line: %w", err)
-	}
-
-	versionStr := strings.TrimSpace(string(outputVer))
-
-	// Get the path for future use
 	path, err := exec.LookPath("openscad")
 	if err != nil {
-		// If we can run it but can't find the path, just use "openscad"
-		path = "openscad"
+		return OpenSCADVersion{Problem: OpenSCADProblemMissing},
+			fmt.Errorf("OpenSCAD not found in PATH (version check). Make sure you can run openscad from the command line: %w", err)
+	}
+
+	outputVer, err := exec.Command(path, "--version").CombinedOutput()
+	if err != nil {
+		output := strings.TrimSpace(string(outputVer))
+		info := OpenSCADVersion{
+			Path:    path,
+			Problem: OpenSCADProblemNotRunnable,
+			Hint:    openSCADLibraryHint(output),
+		}
+		if output == "" {
+			return info, fmt.Errorf("OpenSCAD at %s could not run `openscad --version`: %w", path, err)
+		}
+		return info, fmt.Errorf("OpenSCAD at %s could not run `openscad --version`: %w\n%s", path, err, output)
 	}
 
 	return OpenSCADVersion{
-		Version:     versionStr,
+		Version:     strings.TrimSpace(string(outputVer)),
 		Path:        path,
 		IsOutOfDate: false,
 	}, nil
@@ -4591,11 +4685,13 @@ func generateSTL(ctx context.Context, instance *models.InstanceConfig, config *m
 	return result, nil
 }
 
+// FindOpenSCAD resolves the openscad executable on PATH. It returns an empty
+// string when OpenSCAD is unavailable so a missing renderer degrades to an
+// actionable warning instead of terminating the process.
 func FindOpenSCAD() string {
-	// Use exec.LookPath which is cross-platform
 	path, err := exec.LookPath("openscad")
 	if err != nil {
-		log.Fatalf("OpenSCAD not found in PATH. (%+v)", err)
+		return ""
 	}
 	return path
 }
